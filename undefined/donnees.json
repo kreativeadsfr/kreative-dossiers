@@ -1,0 +1,134 @@
+{
+  "website": "",
+  "secteur": "",
+  "nb_ugly": 0,
+  "date": "2026-09-27",
+  "couleurs": [
+    "#266e9d",
+    "#e85e54",
+    "#1863dc",
+    "#483de0",
+    "#293c5b"
+  ],
+  "polices": [
+    "DM Sans",
+    "Roboto",
+    "Comfortaa"
+  ],
+  "captures": [],
+  "ton": "",
+  "adresse": "",
+  "promo": "",
+  "interdits": "",
+  "preuves": "",
+  "offre": "",
+  "differenciation": "",
+  "client_ideal": "",
+  "freins": "",
+  "objectif": "",
+  "assets": [
+    {
+      "id": "PJ01",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-soMTps1WZmus/4dbdc222-b30d-4447-8dd4-e78e39870eb5-fVRB5BrXWgHSrQGxwW4xLu76LflqEv01uHXv013yCjbpK6xBFkPf5txbpP01Qx3HXFZGhHrY7rHQLS4ols2tSexr8auVGgNAAu5/LOGO-KOTOR_Plan-de-travail-1-copie-4.png",
+      "type": "logo"
+    },
+    {
+      "id": "PJ02",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-soMTps1WZmus/c57d00aa-5fa5-4b44-a3d4-766f02f05924-f4tdXSBYYqxnRGQiJMlUzUg1QRxyQzgsQMsAjiWqlfWtvu0M3eVTbYH7NJVuINzTopDYbDLisp0MhT5cus2vHU666UwS5rN74Vj/LOGO-KOTOR_Plan-de-travail-1-copie-5.png",
+      "type": "logo"
+    },
+    {
+      "id": "PJ03",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-soMTps1WZmus/db917af6-dd5b-40b9-bcc8-b65eaeb2a55c-BzLOzzzO13nHEmItzAE9ANPIDhScymjyqwzFSVhiMlP2WzWWAKTlZpZt3E6TRcY2rTiVQzANJUzztdlCHdM3w9P94Z8SdYZ6u60/Kotor-Pharma-FOnd-Blanc-Rond.png",
+      "type": "logo"
+    },
+    {
+      "id": "PJ04",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-soMTps1WZmus/09b26cc7-07e1-4a2d-ab25-b593d8d1102d-LaIeD4ufOX09l2bMceHCTM1q2G3QRWeDH8GTLxb1GZpudsJwjBwLTBGZe5IPt6MjqWPgvehBqvcXMJH3MExFbq5BqKzWQ0bW6wF/Kotor-Omega-3-Epax-Packshot-Ombre.png",
+      "type": "produit"
+    },
+    {
+      "id": "PJ05",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-soMTps1WZmus/a946b959-cf41-474b-a1c3-83da1c51b97e-xZsPYwmSCdBK2aO6fDuTHdF8P79BoDM9KERQOaQ0U26MUOgfJBWbxyRb2CBYBO42C5iMPBLbmn1cQhX8CuzR6SJ4uoSxL9tDXjD/Kotor-CollageIne-Packshot-Ombre.png",
+      "type": "produit"
+    },
+    {
+      "id": "PJ06",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-soMTps1WZmus/8c5d0e56-7856-483e-b8d7-b4c720e54470-mP4oHdfuqFGTWMW7rrhXRQbaXS0S72EAc8RgeZ8652xGFXbET2M6cJhVxKUPL6oS3kvlvoEbnI6wIpzZJAGK7V6GLnI3u8a7SBh/KotorPharma_Collagene-33.jpg",
+      "type": "ambiance"
+    },
+    {
+      "id": "PJ07",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-soMTps1WZmus/401d2845-72b2-48af-900d-b7c2139ba7e3-zTRJ4DFyQNNZFfbzeaoiRvJOQdSoI9i6n6CBRqpvgvM6Nj4meKpjxIBSildn7Fw5F3iCzVzJmSq180Q2iw14VRjdXQYpFVKo92P/KotorPharma_collagene-06.jpg",
+      "type": "ambiance"
+    },
+    {
+      "id": "PJ08",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-soMTps1WZmus/707785a8-1ecd-45e7-b613-530723772125-aKMan2uVTfP07ird9zinKIzzNJS4eCC6tZraICHMsvMWZw5RkdQi2b576tP5IYKlHZCeIJgKFDszHNxIafnLaEeXJgiAUsIsSsz/KotorPharma_collagene-09.jpg",
+      "type": "ambiance"
+    },
+    {
+      "id": "PJ09",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-soMTps1WZmus/ddd3ca65-20ec-42b4-9975-c3d43e78ef99-Mn2cOe8HhurnL82RA1z94iBAGbggAwnXJQmORaC4CzdZGlA87aJlgSnxLxNANxD4DRM8gi4VhcDgmDYPq0LQbXK5sweguhGDIfx/KotorPharma_Collagene-36.jpg",
+      "type": "ambiance"
+    },
+    {
+      "id": "PJ10",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-soMTps1WZmus/0b503713-0bfd-413a-b297-4596e1ed68d8-qYplneQff4BlGaOLQp2ry7E9fZITDIKR5qCWJijq8b8BAnoxmost6kEvtuj3HTnHzgIXzp3cwN2zxBeLAJKRC2IHw8rPJgZqDeg/KotorPharma_Collagene-14.jpg",
+      "type": "ambiance"
+    },
+    {
+      "id": "PJ11",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-soMTps1WZmus/df5ae1de-9828-4dc4-b6fc-80f51fed4e6f-xEQuKgOEGsheJnTAleklddiIPEn3YG3KhqOH5j7uOzTVB2JgjD3BsZPjyYX0TK5u7lVrut2bTDznGwSKoUlECmVurAD5YYF36yU/KotorPharma_Collagene-18-(1).jpg",
+      "type": "ambiance"
+    },
+    {
+      "id": "PJ12",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-soMTps1WZmus/6bc7c676-5468-481b-bf88-c9172de6f3c7-epgXyXSvku8uRGprvzF70M3e7ixS2E4eUL3aKXKqeehfZlY2OhO2vjlcRGmxCtFwjRMqc5O2qjr7niGML6QmMpKaAN8PEfLs92a/KotorPharma_Collagene-22.jpg",
+      "type": "ambiance"
+    },
+    {
+      "id": "PJ13",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-soMTps1WZmus/80b7e796-d3de-4a7d-bd23-5c977e757955-qKAR69TI3ghZkK3Oqv3mpyZrz3kmwXvHS5tYev2xvVtgLcHMrB0hXJtNtI4loYZy47eYZoEZNqOIwWiYsTIDvm2qCD7qMLTAfYd/KotorPharma_Collagene-32.jpg",
+      "type": "ambiance"
+    },
+    {
+      "id": "PJ14",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-soMTps1WZmus/e1b0bde6-1086-47b8-891d-62df8081b34a-0YtpM0lUwjSJc2SOl0nDQNzzGNnaBqAPKuoGO2SHhymeKYX7Y2HAHVjifg6hK5bHrmMSjt5ebfzXyv0uLimtz9DejPFl79pkFPI/KotorPharma_Collagene-30.jpg",
+      "type": "ambiance"
+    },
+    {
+      "id": "PJ15",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-soMTps1WZmus/81c9430d-3e24-46be-8a27-796dac5b2747-IynniE72Dqo1boSWYtPKwnVSeHekHlvkfZicel1pQt9vSi1oJdC0SogzVbtLcFOsNqlbmdEVxeCZDp0fiLppIyjbGGQ5oA9f36X/KotorPharma_Collagene-26.jpg",
+      "type": "ambiance"
+    },
+    {
+      "id": "PJ16",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-soMTps1WZmus/faf378d5-efd5-490c-9f0d-50f07ebb2e39-w3lb05M35VAGcY2a1l6tfmUt7669HxfY2ZthEAWfQsHkYo88X4gwJjtLpfDUYQGiuqnvXo5rClkX9F6ObWgTMHBhwsir4apNkMH/KotorPharma_Collagene-18.jpg",
+      "type": "ambiance"
+    },
+    {
+      "id": "PJ17",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-soMTps1WZmus/27b351dd-59e8-4dfe-9bee-d8c2fc72e726-eIMszCiCcWf7ewjK1aL8yALT6qyRmmW4KnQfeKWrckyDb7ebEWzg6fFSvFBM9XNrt4YmAoqek3pP9dnuD27tJ4ytN3Gu7IiB6Uv/KotorPharma_collagene-10.jpg",
+      "type": "ambiance"
+    },
+    {
+      "id": "PJ18",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-soMTps1WZmus/aeab4b3c-e7f8-47cf-95b0-18c13ab228e1-tDtT8r6brZ639aHFLisbLKWVjWPN8PZESjg2MOgr6vmxjI8CrlabxwuIkN3yMJywNOblNMBzn8mNDT4Ro62Unzil02hZMtWORLU/KotorPharma_Collagene-40.jpg",
+      "type": "ambiance"
+    },
+    {
+      "id": "PJ19",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-soMTps1WZmus/1d719006-54a1-42c1-9f63-257ed7e92a9a-mwj0AcKWTFjb300BQ2vU9uupqA7n4sDaWRxLWdVrvKu0yW3MSDQUOt78Rb1nRcyr45nsJmx8UcV4CqBxI633zYHc7Gofp4MXgRa/KotorPharma_Collagene-31.jpg",
+      "type": "ambiance"
+    },
+    {
+      "id": "PJ20",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-soMTps1WZmus/f08aa9ae-145f-48f5-aaab-427232340de2-gL6gsU8JpJCwjokYUHT9lEevGgNyy1MjAphPiVRE5ryPKtY7IQiNVzV26dHgrf5RulRatnzDp0dryiasv5Cz7kLPM8U575bdfxX/KotorPharma_Collagene-12.jpg",
+      "type": "ambiance"
+    }
+  ],
+  "assets_site": [],
+  "pubs_client": [],
+  "pubs_concurrents": []
+}

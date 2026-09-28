@@ -2,13 +2,18 @@
   "website": "",
   "secteur": "",
   "nb_ugly": 0,
-  "date": "2026-09-27",
+  "date": "2026-09-28",
   "couleurs": [
-    "#1e2538",
-    "#db407a"
+    "#007bff",
+    "#7fbdff",
+    "#fd7c7c",
+    "#cf1b2b",
+    "#ed2939",
+    "#002495"
   ],
   "polices": [
-    "Arial"
+    "&quot",
+    "Inter"
   ],
   "captures": [],
   "ton": "",
@@ -24,96 +29,46 @@
   "assets": [
     {
       "id": "PJ01",
-      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-soMTps1WZmus/e4b2c61e-fe3e-47b3-b84a-861f811b8a98-SS5fxyHNCtBgLlmrxeQ0j80Z0Nz8p9OpmgvOWOcsWRp4Be2lunc4PnvkKyh1cc02xePgVOeic1b57FnlbEXBl7C9SoRRGldCjtt/SFPRODISPLAYBOLD.OTF",
-      "type": "autre"
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-hSWiGFjTVhus/51db2d9d-974d-4333-bf83-3da0271236e2-Mbqe7RNJyvGSY3HCE7nNWku44kxSI0iXj0cR41gANnl6aHlVAS2Wy7Xh2GWujwoA73DDEoVdovRxyVtKujhfHobL1bB4IskoOUf/Logo-Only.png",
+      "type": "logo"
     },
     {
       "id": "PJ02",
-      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-soMTps1WZmus/0dbcd830-457b-436a-9d0e-abf699d02f47-vRoQaA4D4pnQKzDKEYfCt3NIoD7dKnMIja2Y2L2rYJ8fG9kZ2j5v0VFPwDWM7aWpwiwaZQA79RzcRrSnopqLIU1ycTHHYyKeHpH/SFPRODISPLAYMEDIUM.OTF",
-      "type": "autre"
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-hSWiGFjTVhus/f0d80d43-4dc1-4f1e-ad86-ed001537a080-9FWpUOjSX2ZfeidCQN5qbOobMWT1umfCWQamEKAqQ7zeH9mOo1aouATssomoMHc83yKYErz2abEcwEWiS1PLSrljWBOwFFu07TX/Logo-Vertical.png",
+      "type": "logo"
     },
     {
       "id": "PJ03",
-      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-soMTps1WZmus/0b534fcb-cdaa-469c-8a9b-231ea8f9fe90-k79I7wNGvbTfqJ6vwufHGzEyldY04bRnoQs02VDx1NPY0eiZQpUAovfj354U3d8BqxP54of8cpP7R8zgmhHEmFrlOXHOGIbRHHA/SFPRODISPLAYSEMIBOLDITALIC.OTF",
-      "type": "autre"
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-hSWiGFjTVhus/6bdd3343-0bf5-4d3d-a310-783935d3e361-4p7TDt5nu7jK3rYhsryDIR8D9xjGsZx2IvSMxdO6z3WKRS5S08rNaoSWYJISbFNqwRoQ9jsG9LvPGgyOMXa7BDHVhdqnnv6k9xC/Logo-Only.png",
+      "type": "logo"
     },
     {
       "id": "PJ04",
-      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-soMTps1WZmus/342ebeba-185a-4c73-aa34-3b1ed03e3ad2-zczQ0qff8EzKfPGCTZaOA2cyaJJnwDVpfufn4XjqfzOQperaiSNOgGau4Oe8iLIdM3jY7e8THJWcLHH0zy57jTbjIEq46YACOBo/SFPRODISPLAYREGULAR.OTF",
-      "type": "autre"
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-hSWiGFjTVhus/d1bb9dec-fe3a-4820-992c-19fba2316361-AY7WvjzrWWwngNnsCEYKNxG64FEGWLoUxMyzCPZcWQITWdGUgsB1GerTRL8mnX1Ide6ZXjm83JsXnOa7ddmmeYuSDZSPr2VwEJ6/Logo-Vertical.png",
+      "type": "logo"
     },
     {
       "id": "PJ05",
-      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-soMTps1WZmus/a3378571-f0dc-4ec6-b9c8-210e59b78380-a2nRvBEpPRMIOuqDRa8m0dRfbw2Y1iTYUmvIyBKFIkwf0iK9LFjhEV6t1OCNJZ6s3baVV7bEv1re3E2fBgu8pZdV0sGko531Lqy/SFPRODISPLAYHEAVYITALIC.OTF",
-      "type": "autre"
-    },
-    {
-      "id": "PJ06",
-      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-soMTps1WZmus/f40723fb-d323-4795-84d4-8a09f406f71c-9VnbNmMrhHUIuluRE2T3m6CIXCudiwEPZunXjEumh9XEvUkqAhqYWzAXyQ5xzsi6FMuz8t5OsdHZHVSJTlDRTqVTMfzOgDNuVcp/SFPRODISPLAYULTRALIGHTITALIC.OTF",
-      "type": "autre"
-    },
-    {
-      "id": "PJ07",
-      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-soMTps1WZmus/3992127b-0a03-49c1-879e-968bbbfa08a3-TT3ALwlwl3gYGZMONrNmDX7JoLgJrZHJv6vf5Z8wZEUzR8PqJaspxxCZgWklNUj8mzVMKr9zsKywlg1CRSRAqboxdtECYlnG1FW/SFPRODISPLAYBLACKITALIC.OTF",
-      "type": "autre"
-    },
-    {
-      "id": "PJ08",
-      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-soMTps1WZmus/586d0aed-75ba-42bc-8159-a69216729e32-Xy8RjTflTOydIePOhPFJvzkKEPI5cGHgiHHFRMW8sVo60ok6MMlmhzx7YQN3AMofs8RqkrtBrE93l5cvmG4WRoLpvDXuaYCPJu1/neuropol-x-rg.otf",
-      "type": "autre"
-    },
-    {
-      "id": "PJ09",
-      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-soMTps1WZmus/698efa73-9a2b-456a-a9f8-7a8434ccb0ae-wCWSZK7e7reKAS2S6WbQzH1SjvAi6cEnkrlINTiEOm6T8rbMyl0JM1E9pEqBiWCsSJdsEH6K03NbYUpREAQcsGNqWASuFMsCpWf/SFPRODISPLAYTHINITALIC.OTF",
-      "type": "autre"
-    },
-    {
-      "id": "PJ10",
-      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-soMTps1WZmus/1ada9f1d-771c-4252-9d05-24901c476125-Xe0d5fCLhQ4gs1MkxHg4u3132z54Ic5CGzjC68vc0zESCuuuWBNkKASGIblV8s812p5YE1T0bj2wvgBBvbQOb32TozsrbpthQbu/SFPRODISPLAYLIGHTITALIC.OTF",
-      "type": "autre"
-    },
-    {
-      "id": "PJ11",
-      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-soMTps1WZmus/8ed1f419-da13-480a-b586-2f7c42e57b95-EtPrSKiZF9dbUeZdnH22TZeYUGfGUoICQd3NTVQvTRx4jfv5BaiPm29kj5u33MzuF6XiCqRRtdo4bhDEN0XpdUdkLfRQYsRZG4H/neuropol.otf",
-      "type": "autre"
-    },
-    {
-      "id": "PJ12",
-      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-soMTps1WZmus/d59b05f1-f9d6-487a-800f-0c49cbcb3434-O5ecD0Q9spEVW1fQHFKR55nGDc3fzQrMuNPdZwF3iswXOzqmo7opkzShVb0gxofQYjNu17yAlompJm9L7Vv3bWeItzVpwZKyiYI/BrittanySignature.ttf",
-      "type": "autre"
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-hSWiGFjTVhus/031595c1-9bfb-4d86-8001-2fd004b60662-1hpzdEVZDTdNmSLNFHlV8gC5C8Fk5U20YqoigeNUN2EJE9qD4uq0fKiI2h8DmMqGYE7wy8CBAQvHtU8oBzZA2aEjM2wfhtCPLEL/Logo-Only.png",
+      "type": "logo"
     }
   ],
   "assets_site": [],
   "pubs_client": [
     {
       "id": "AD01",
-      "url": "https://scontent-phl2-1.xx.fbcdn.net/v/t39.35426-6/710745444_1694475038422977_5375662131157593732_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=106&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=WJbPf2SCsK0Q7kNvwEUqZQH&_nc_oc=Adq_5Hm5t-iJRURVH_EMLTsJRNPONQwSt7taosHo0Ikg0dgb6FzqAr1P2zYcxusCH9s&_nc_zt=14&_nc_ht=scontent-phl2-1.xx&_nc_gid=HlfJVuyVpiP8GoGt3xoVyQ&_nc_ss=7f289&oh=00_AQPnmu0J8_5iTZ4PXrdQSdTwJwbDa_DSMoMkdFesjoXMPw&oe=6ABF827C",
-      "texte": "Simplicicar Welkenraedt · Trouvez toutes les informations sur SimpliciCar Verviers-Welkenraedt à Welkenraedt sur AutoScout24. ✓ Véhicules ✓ Évaluations ✓ Heures d'ouverture. · ⭐️Garage noté 5 étoiles sur Google. 𝑽𝒐𝒕𝒓"
+      "url": "https://scontent-lga3-1.xx.fbcdn.net/v/t39.35426-6/791361254_1980595992625213_3648461240458173666_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=109&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=59NQHc5-a8EQ7kNvwFTIF3y&_nc_oc=Adr8AvFC0BxFAuaTTEdxBKHN1WUNg22H-iHi-B3nGGpv-AGRNHYY1IwEkMDJ5fXBQyY&_nc_zt=14&_nc_ht=scontent-lga3-1.xx&_nc_gid=ItXAAHOKZS0O3fkSKwvYng&_nc_ss=7f289&oh=00_AQNlHUzdoWXswCvvb-OkfV14x0c8B72qPjQ7_IMSahUp6g&oe=6AC05E80",
+      "texte": "Branding complet dès 150€. Livré en 48h. · Gagnez la confiance de vos clients dès le premier jour grâce à une identité visuelle épurée et intemporelle, conçue pour mettre en valeur votre entreprise. · Une identité de mar"
     },
     {
       "id": "AD02",
-      "url": "https://scontent-phl2-1.xx.fbcdn.net/v/t39.35426-6/750870914_3819918498159499_6732634822126702011_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=110&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=EdcG_KBoZQUQ7kNvwHIF-Lu&_nc_oc=AdpBTnVUiTcddsDQbVLEIvipKkwKicsyfYyvU5UM-h47YejF-bHdEcFtkwoIUoWB6Iw&_nc_zt=14&_nc_ht=scontent-phl2-1.xx&_nc_gid=HlfJVuyVpiP8GoGt3xoVyQ&_nc_ss=7f289&oh=00_AQMvJhUZOat6TTyHk420PEnjUHbJQBLCKVfAla7Me7NobQ&oe=6ABF61EB",
-      "texte": "Abarth595 · Trouvez la voiture qui vous correspond vraiment. Parcourez notre stock et laissez-vous surprendre par votre prochain coup de cœur. · autoscout24.be"
+      "url": "https://scontent-lga3-2.xx.fbcdn.net/v/t39.35426-6/798182582_1594439832207978_7119420765000511510_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=107&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=joVGVPqOHWMQ7kNvwGqwiij&_nc_oc=AdqTwparTF_Ni9yEzHh2z072McM3Lz0qz0rdp0kXQvF8wPwebQU82yL5AMLaYLPTy2Y&_nc_zt=14&_nc_ht=scontent-lga3-2.xx&_nc_gid=ItXAAHOKZS0O3fkSKwvYng&_nc_ss=7f289&oh=00_AQMPP37M-JmEhJoHR-dqGYA33So14xRKdAaa1y-GS-c-nQ&oe=6AC05B84",
+      "texte": "Branding complet dès 150€. Livré en 48h. · Gagnez la confiance de vos clients dès le premier jour grâce à une identité visuelle épurée et intemporelle, conçue pour mettre en valeur votre entreprise. · Une identité de mar"
     },
     {
       "id": "AD03",
-      "url": "https://scontent-phl2-1.xx.fbcdn.net/v/t39.35426-6/757831755_1691218142169696_1434081156709818729_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=109&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=PmicKh3dbI4Q7kNvwHE9PZD&_nc_oc=Adrb6Ue7ecR8E5BwP3zgxaUSfOuudL4Zd6_-lYs-SPXHsvQz-Tw-9CkuBXwzEzlqj_M&_nc_zt=14&_nc_ht=scontent-phl2-1.xx&_nc_gid=HlfJVuyVpiP8GoGt3xoVyQ&_nc_ss=7f289&oh=00_AQOYXvS-t2_QO4tkCar7mEJxDpkkANKIC7TXzh8RHPN2tg&oe=6ABF4E9D",
-      "texte": "KiaXCeed · ⭐️Garage noté 5 étoiles sur Google. 𝑽𝒐𝒕𝒓𝒆 𝒑𝒓𝒐𝒄𝒉𝒂𝒊𝒏𝒆 𝒗𝒐𝒊𝒕𝒖𝒓𝒆 𝒆𝒔𝒕 𝒑𝒆𝒖𝒕-𝒆̂𝒕𝒓𝒆 𝒅𝒂𝒏𝒔 𝒄𝒆 𝒄𝒂𝒓𝒓𝒐𝒖𝒔𝒆𝒍. Découvrez notre stock, comparez les modèles et contactez-nous pour e"
-    },
-    {
-      "id": "AD04",
-      "url": "https://scontent-phl2-1.xx.fbcdn.net/v/t39.35426-6/799755373_1818167092962864_2817557016922811527_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=111&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=MztIBPNkzEIQ7kNvwE1hEeN&_nc_oc=Adpv78GyVHb2Kr9i1WTw2e-dCdo9cJX7qqSLr83s7p7BO2s6hoqHvh04ycjki6T4S8U&_nc_zt=14&_nc_ht=scontent-phl2-1.xx&_nc_gid=HlfJVuyVpiP8GoGt3xoVyQ&_nc_ss=7f289&oh=00_AQN9tZKuw9SeWVV7O4YdGUYQgK9nKrkf6sHNEE2hXhPsRQ&oe=6ABF8273",
-      "texte": "Après 2015 · Max. 120.000 km · Cliquez sur en \"Savoir plus\" pour envoyer les informations de votre véhicule. · Vous souhaitez vendre votre voiture sans perdre de temps ? Chez Simplicicar Welkenraedt, nous vous accompagno"
-    },
-    {
-      "id": "AD05",
-      "url": "https://scontent-phl2-1.xx.fbcdn.net/v/t39.35426-6/799143934_1844746020218245_3904432738138545566_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=111&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=pA0LBFCgz94Q7kNvwFVtVnb&_nc_oc=AdpGPAxdisEYLJtZKm-0nRnsUZFt294NrHrdxw3AjqXK5I8rQAOw-U8B1l9WVs4-Mr0&_nc_zt=14&_nc_ht=scontent-phl2-1.xx&_nc_gid=HlfJVuyVpiP8GoGt3xoVyQ&_nc_ss=7f289&oh=00_AQOu_FIAi3-S8mDpGLPF7ECi95ufR-dQVDf5hYOfvhixAg&oe=6ABF72B1",
-      "texte": "Après 2015 · Max. 120.000 km · Vous voulez vendre votre véhicule sans perdre de temps, sans négociations interminables et sans stress ? Chez Simplicicar Welkenraedt, nous vous proposons deux solutions adaptées : le racha"
-    },
-    {
-      "id": "AD06",
-      "url": "https://scontent-phl2-1.xx.fbcdn.net/v/t39.35426-6/820199049_2072505003370444_7702784742954275343_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=107&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=bIGwEHzakYkQ7kNvwHRjkT4&_nc_oc=Ado0whT352lNh_vmrk8ynceNIsBG8CR3cj65n5k42QuDHKm85L2g4PoCNEYqobS4DMU&_nc_zt=14&_nc_ht=scontent-phl2-1.xx&_nc_gid=HlfJVuyVpiP8GoGt3xoVyQ&_nc_ss=7f289&oh=00_AQPh3dvnancj653ai3GlRkfPwetlxg7lnRGAH3oUxZMoTA&oe=6ABF6F92",
-      "texte": "Après 2015 · Max. 120.000 km · Cliquez sur en \"Savoir plus\" pour envoyer les informations de votre véhicule. · 🚗 Vous vendez votre voiture ? On s'occupe de tout, gratuitement ! Avec Simplicicar, profitez de la visibilit"
+      "url": "https://scontent-lga3-2.xx.fbcdn.net/v/t39.35426-6/805923828_2270436213780283_2798412043066438649_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=107&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=O2mJVBJN8msQ7kNvwGZ57zJ&_nc_oc=Adr0LcgSXJpflyYtwl_sHw6q93tj0QkF-gUe7kEcEgQLYNZPmEd3le0D0CHvRecwZdA&_nc_zt=14&_nc_ht=scontent-lga3-2.xx&_nc_gid=ItXAAHOKZS0O3fkSKwvYng&_nc_ss=7f289&oh=00_AQMsr5zh3NS9ReQa3ybT6QxXSK-FRr-YK23CmOkIZYCQUw&oe=6AC04130",
+      "texte": "On design les meilleures identités visuelles pour les startups · Gagnez la confiance de vos clients dès le premier jour grâce à une identité visuelle épurée et intemporelle, conçue pour mettre en valeur votre entreprise."
     }
   ],
   "pubs_concurrents": []

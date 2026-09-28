@@ -1,0 +1,10 @@
+Créa 1 · IDlift
+
+Titre       : L'agence de branding pour les startups.
+Sous-titre  : Livrés en 7 jours
+CTA         : Réserver un appel
+
+Idée du visuel : 
+Référence      : AG1-04
+
+Alerte : PROMPT NON LU (prompt vide) : {"error":{"message":"400 - \"{\\\"type\\\":\\\"error\\\",\\\"error\\\":{\\\"type\\\":\\\"invalid_request_error\\\",\\\"message\\\":\\\"messages.0.content.1.image.source.base64: invalid base64 data\\\"},\\\"request_id\\\":\\\"req_011CfWZJcxtpMFpzZPrfsaaC\\\"}\"","name":"AxiosError","stack":"AxiosErro

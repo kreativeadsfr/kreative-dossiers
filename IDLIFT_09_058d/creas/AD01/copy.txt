@@ -1,0 +1,10 @@
+Créa 1 · IDlift
+
+Titre       : Une identité de marque complète pour 360 €.
+Sous-titre  : Une agence vous en demanderait 5 000.
+CTA         : Voir ce qui est inclus
+
+Idée du visuel : Deux colonnes, agence classique à gauche avec son prix barré, IDlift à droite. Le contraste de prix est le sujet.
+Référence      : AG2-07
+
+Alerte : PROMPT NON LU (prompt vide) : {"error":{"message":"400 - \"{\\\"type\\\":\\\"error\\\",\\\"error\\\":{\\\"type\\\":\\\"invalid_request_error\\\",\\\"message\\\":\\\"messages.0.content.2.image.source.base64: invalid base64 data\\\"},\\\"request_id\\\":\\\"req_011CfWcxVmTwP1bxbRdpNCxN\\\"}\"","name":"AxiosError","stack":"AxiosErro

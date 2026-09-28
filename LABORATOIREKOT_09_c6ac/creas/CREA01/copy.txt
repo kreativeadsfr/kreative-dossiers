@@ -7,4 +7,4 @@ CTA         : Acheter maintenant
 Idée du visuel : un peu le même concept mais avec des coquilles d'oeuf et des poussins jaunes
 Référence      : EC1-03
 
-Alerte : PROMPT NON LU (prompt vide) : {"error":{"message":"400 - \"{\\\"type\\\":\\\"error\\\",\\\"error\\\":{\\\"type\\\":\\\"invalid_request_error\\\",\\\"message\\\":\\\"messages.0.content.1.image.source.base64: invalid base64 data\\\"},\\\"request_id\\\":\\\"req_011CfW5N7aAe8Pk55urP6JyA\\\"}\"","name":"AxiosError","stack":"AxiosErro
+Alerte : PROMPT NON LU (prompt vide) : {"error":{"message":"400 - \"{\\\"type\\\":\\\"error\\\",\\\"error\\\":{\\\"type\\\":\\\"invalid_request_error\\\",\\\"message\\\":\\\"messages.0.content.1.image.source.base64: invalid base64 data\\\"},\\\"request_id\\\":\\\"req_011CfWDJ54RxuUN7XfgNTc8s\\\"}\"","name":"AxiosError","stack":"AxiosErro

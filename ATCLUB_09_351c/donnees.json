@@ -1,0 +1,108 @@
+{
+  "dossier": "ATCLUB_09_351c",
+  "brand_name": "ATCLUB",
+  "website": "https://www.atclub.app",
+  "secteur": "Application Mobile",
+  "pack": "starter",
+  "nb_creas": 6,
+  "deadline": "2026-10-01T23:17:53.339Z",
+  "deadline_heures": 48,
+  "nb_ugly": 0,
+  "date": "2026-09-29",
+  "couleurs": [],
+  "polices": [],
+  "captures": [],
+  "ton": "Direct & percutant (oral, sans détour)",
+  "adresse": "",
+  "promo": "",
+  "interdits": "Ne pas placer nos concurrents trop proche. (par exemple si comparatif avec d'autres apps, plutôt mettre des apps connues telles que tinder, Hinge...)",
+  "preuves": "des millions de rencontres, des gens qui se sont mariés, qui ont eu des enfants... Aussi, des gens qui se sont remis au sport ou qui ont commencé le sport grâce à l'app.",
+  "offre": "AtClub est une app de dating exclusivement pour sportifs. L'identité est hybride : entre le réseau social amical et l'application de rencontre.",
+  "differenciation": "n°1 ; identité un peu style tinder/hinge ...",
+  "client_ideal": "le client idéal est un client qui achète notre abonnement in app. Généralement, il est là plutôt pour du coté dating. C'est un homme qui cherche à être en couple.",
+  "freins": "",
+  "objectif": "Générer des ventes de notre abonnement in app.",
+  "assets": [
+    {
+      "id": "PJ01",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-hSWiGFjTVhus/e08a0642-f62a-45cb-8c90-4b940ff7dddc-tNR3PqwiMJDPZvqOZhycBWlBouqarmfNoai42tkiEoNhsD11ZygaEvM80TRxomo4gKvzzTTLbITiFQPSXzKQiYShObpi1EGb5XA/09D0DF8A-CCCB-461D-9266-4C57F299821F-1.png",
+      "type": "logo"
+    },
+    {
+      "id": "PJ02",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-hSWiGFjTVhus/12be58b0-eeaa-4c27-9bba-9ed52d09abb7-lQLktAZt2DAAbHCEdhjlkLdne2oF4oFRZHShHumhPo1Ish98DVzIdSeL3tWyGRZCPy2fTSO9rQduvxkCJD3YHbVVTD5oLSo2nU5/IMG_5845.jpg",
+      "type": "logo"
+    }
+  ],
+  "assets_site": [
+    {
+      "id": "WS01",
+      "url": "https://images.squarespace-cdn.com/content/v1/66abf353815cb14bf8ef9973/cbcd6ae7-efa5-4713-8af1-f84639ac8289/Rectangle.png",
+      "nom": "visuel du site",
+      "note": 10
+    },
+    {
+      "id": "WS02",
+      "url": "https://images.squarespace-cdn.com/content/v1/66abf353815cb14bf8ef9973/ae304b4c-d856-4cfc-a4ec-fb508de62ec8/Rectangle.png",
+      "nom": "visuel du site",
+      "note": 7
+    },
+    {
+      "id": "WS03",
+      "url": "https://images.squarespace-cdn.com/content/v1/66abf353815cb14bf8ef9973/73cc8ce9-270a-455a-859c-0c556a8ed7f0/Swipe+Black+Copy+128.png",
+      "nom": "visuel du site",
+      "note": 10
+    }
+  ],
+  "pubs_client": [],
+  "pubs_concurrents": [
+    {
+      "id": "CC01",
+      "annonceur": "Hinge",
+      "url": "https://scontent-sjc6-1.xx.fbcdn.net/v/t39.35426-6/791145896_1184309244262249_8871280549225409959_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=107&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=ZOG5qhs7q8UQ7kNvwFNFVIf&_nc_oc=Adr7bhPr_ZFAM3N2hxVGF9hclLqoEoc7r2Un5lm_NlOhBc5jfy9zlo6NNTlAFEImq2Y&_nc_zt=14&_nc_ht=scontent-sjc6-1.xx&_nc_gid=VkzFX6C-a359vcXFDdH_WQ&_nc_ss=7f289&oh=00_AQMcaRvcWxdspzxm6tCq1gjWSdyr7PmsarIkmkxvI-GRpg&oe=6AC20482",
+      "texte": "Soyez dans le vrai. · Découvrez à qui vous plaisez sur Hinge, et où ça peut vous mener. · hinge.onelink.me"
+    },
+    {
+      "id": "CC02",
+      "annonceur": "Hinge",
+      "url": "https://scontent-sjc6-1.xx.fbcdn.net/v/t39.35426-6/790147621_4262971850631959_7813343819485885248_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=104&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=EIIvQ2X7xDUQ7kNvwH-3MP3&_nc_oc=Adq0x2Mb20Yod26jkufcI4ORyshvPUKvGQzMVqJTiLIi5tMMXD-7VIUTwO2qqYif6io&_nc_zt=14&_nc_ht=scontent-sjc6-1.xx&_nc_gid=VkzFX6C-a359vcXFDdH_WQ&_nc_ss=7f289&oh=00_AQP2K_AivakRqCAIOkx-2_SWSCTNMn0bDdFgDU6hyU6A_g&oe=6AC22E8B",
+      "texte": "Et si c'était votre dernier premier date ? · Rapprochez-vous de ce que (et de qui) vous cherchez. · play.google.com"
+    },
+    {
+      "id": "CC03",
+      "annonceur": "Hinge",
+      "url": "https://scontent-sjc3-1.xx.fbcdn.net/v/t39.35426-6/791533774_1058000023745758_6316732926111209798_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=111&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=BoVmctktbbQQ7kNvwFzKbGy&_nc_oc=Adql4Cx98lVqO3xkvGwVC-RBbuAMY1EyOFsRP57cegprcBPzXs8rlQxRCZyIOG2BMS4&_nc_zt=14&_nc_ht=scontent-sjc3-1.xx&_nc_gid=VkzFX6C-a359vcXFDdH_WQ&_nc_ss=7f289&oh=00_AQP5LlYDAEgEgzM4Oll7LXun2hIV-Gp_lw3wz7ypqdqwqw&oe=6AC21582",
+      "texte": "Et si c'était votre dernier premier date ? · Rapprochez-vous de ce que (et de qui) vous cherchez. · play.google.com"
+    },
+    {
+      "id": "CC04",
+      "annonceur": "Hinge",
+      "url": "https://scontent-sjc3-1.xx.fbcdn.net/v/t39.35426-6/791942806_28525181510449972_6408960783007777263_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=111&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=W57fmMrtbicQ7kNvwHu_Xh5&_nc_oc=AdogpylsgG6PTWhWlVIX4ohk8NSYOn8SdcWXTYPjTCcwaV7rI7YWRcLK_2jatHc3cZs&_nc_zt=14&_nc_ht=scontent-sjc3-1.xx&_nc_gid=VkzFX6C-a359vcXFDdH_WQ&_nc_ss=7f289&oh=00_AQMH7pHmSl_bS6oWEuNbKkY83qkryd8SFXUZxcBsJSKGvw&oe=6AC22062",
+      "texte": "Dê match. Encontre. E talvez algo mais? · Encontre alguém no Hinge por quem vale deletar todos os apps. · play.google.com"
+    },
+    {
+      "id": "CC05",
+      "annonceur": "Tinder",
+      "url": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/778899057_1292248470633501_974766504875547679_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=106&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=eQk4xW3oC5EQ7kNvwHX3leV&_nc_oc=AdpTWHicOz3BkihrBNcecmiiwhB7s-QPz0XKZwfXWEOR8H_orFJG8qyGotR6lVsPzKE&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=qAF0EMBIfewJR5a9HfrHww&_nc_ss=7f289&oh=00_AQOAdX86yGY_Qwa8iaY4dS5FtM25GUmlJd2QkrmZbnXaXQ&oe=6AC20CF9",
+      "texte": "Descargar · Hay historias que empiezan cuando dejas de decir que no. · play.google.com"
+    },
+    {
+      "id": "CC06",
+      "annonceur": "Tinder",
+      "url": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/777828079_951783414632754_7493906973536566469_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=104&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=_Gj9TTSdMhkQ7kNvwGqKS2B&_nc_oc=Adr7wGNfbrskgUDFfs5uQmTkosKwuBIMnNBOUIy_9XTALG8HxLmyUZ337581qKk5K5A&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=qAF0EMBIfewJR5a9HfrHww&_nc_ss=7f289&oh=00_AQNcjIItWQQ_x6GZyZIbnI4whE6HERlbcQyxl7Ki7J2pQg&oe=6AC20FCD",
+      "texte": "Descargar · play.google.com"
+    },
+    {
+      "id": "CC07",
+      "annonceur": "Tinder",
+      "url": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/779537409_2678899702507221_480225231387477010_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=100&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=uKHQWtinfuUQ7kNvwGEhe6p&_nc_oc=AdprqBAijeeAVLhzLu7acBk4v3uT2lAS-3Smyq98Jft-zeuy_jezyKMlOpXbKmqXEMw&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=qAF0EMBIfewJR5a9HfrHww&_nc_ss=7f289&oh=00_AQMyOhlkO8CvTvO0lJtLz-Gbc4e6N474k9MvnsoKLnOk5A&oe=6AC2277B",
+      "texte": "Descargar · play.google.com"
+    },
+    {
+      "id": "CC08",
+      "annonceur": "Tinder",
+      "url": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/697398981_960877770173454_5055620146679363176_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=102&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=vYXQXJc_zhQQ7kNvwFIWE7b&_nc_oc=Adop8KqsZ6PaYhHyYhtTUeE14Ye0ys36R_P_giCcMlKlGXtpkDTA9NqpDOBBfvCc3f0&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=qAF0EMBIfewJR5a9HfrHww&_nc_ss=7f289&oh=00_AQOkRfqqMhNGI5anN_xFjcyPdATFAJ9ShX1gCSsexo5L2Q&oe=6AC20311",
+      "texte": "Descargar · play.google.com"
+    }
+  ]
+}

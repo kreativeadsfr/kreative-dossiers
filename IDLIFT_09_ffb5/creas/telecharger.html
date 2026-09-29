@@ -62,77 +62,85 @@ function enregistre(blob, nom){
 }
 
 /* ---------------------------------------------------------------
-   RECUPERER UN FICHIER, VRAIMENT
+   RECUPERER LES FICHIERS
 
-   L ancienne version faisait simplement :
-       sous.file(a.nom, await (await fetch(a.url)).blob())
-   sans jamais verifier la reponse. Or fetch REUSSIT sur un 404 :
-   on recuperait la page d erreur HTML de GitHub et on la rangeait
-   dans le zip sous le nom « Logo-Only.png ». Bon nom, bon dossier,
-   contenu illisible. C est exactement ce que voyait le designer :
-   pas de vignette, « format de fichier non pris en charge ».
+   Deux defauts corriges ici.
 
-   Et le 404 n etait pas une erreur : GitHub Pages met 30 a 60
-   secondes a publier un fichier neuf. Le zip partait avant.
+   1. fetch REUSSIT sur un 404 : la version d origine rangeait la
+      page d erreur HTML de GitHub dans le zip sous le nom
+      « Logo-Only.png ». Bon nom, bon dossier, contenu illisible.
+      On verifie donc le code de reponse ET le type renvoye.
 
-   On verifie donc le code de reponse ET le type renvoye, et on
-   reessaie quelques fois en laissant le temps a la publication.
+   2. Les reessais etaient faits fichier apres fichier : 13 assets
+      absents x 6 essais x 2,5 s, plus de trois minutes d attente.
+      Maintenant tout part EN PARALLELE, et on ne fait que trois
+      tours, en ne redemandant que ce qui manque encore. Pire cas :
+      une dizaine de secondes.
 --------------------------------------------------------------- */
-const ESSAIS = 6;
-const ATTENTE = 2500;
+const TOURS = 3;
+const ATTENTE = 3000;
+const EN_VOL = 6;          /* requetes simultanees, pour ne pas saturer */
 
-async function recupere(url){
-  for (let essai = 1; essai <= ESSAIS; essai++){
-    try{
-      const r = await fetch(url, { cache: 'no-store' });
-      if (r.ok){
-        const type = (r.headers.get('content-type') || '').toLowerCase();
-        /* une page d erreur arrive en text/html : jamais dans le zip */
-        if (!type.includes('text/html')){
-          const b = await r.blob();
-          if (b.size > 0) return b;
-        }
-      }
-    }catch(e){ /* reseau : on reessaie */ }
-    if (essai < ESSAIS) await new Promise(r => setTimeout(r, ATTENTE));
+async function unFichier(url){
+  try{
+    const r = await fetch(url, { cache: 'no-store' });
+    if (!r.ok) return null;
+    const type = (r.headers.get('content-type') || '').toLowerCase();
+    if (type.includes('text/html')) return null;   /* page d erreur */
+    const b = await r.blob();
+    return b.size > 0 ? b : null;
+  }catch(e){ return null; }
+}
+
+async function enParallele(liste, avance, tour){
+  const restants = [];
+  let fait = 0;
+  for (let i = 0; i < liste.length; i += EN_VOL){
+    const tranche = liste.slice(i, i + EN_VOL);
+    const blobs = await Promise.all(tranche.map(f => unFichier(f.url)));
+    tranche.forEach((f, k) => {
+      fait++;
+      if (blobs[k]) f.blob = blobs[k]; else restants.push(f);
+    });
+    avance((tour > 1 ? 'Nouvelle tentative, ' : 'Récupération ') + fait + ' sur ' + liste.length);
   }
-  return null;
+  return restants;
 }
 
 async function faireLeZip(avance){
+  /* la liste plate de tout ce qu il faut aller chercher */
+  const aPrendre = [];
+  for (const p of PLAN){
+    if (p.visuel) aPrendre.push({ url: p.visuel, ad: p.ad, nom: p.nom, dans: '' });
+    for (const a of p.assets) aPrendre.push({ url: a.url, ad: p.ad, nom: a.nom, dans: 'assets' });
+  }
+
+  let restants = aPrendre;
+  for (let tour = 1; tour <= TOURS && restants.length; tour++){
+    if (tour > 1){
+      avance(restants.length + ' fichier(s) pas encore publié(s), nouvelle tentative…');
+      await new Promise(r => setTimeout(r, ATTENTE));
+    }
+    restants = await enParallele(restants, avance, tour);
+  }
+
+  const pris = aPrendre.filter(f => f.blob);
+  const manques = aPrendre.filter(f => !f.blob);
+
   if (typeof JSZip === 'undefined'){
     avance('La compression n a pas pu se charger, telechargement un par un');
-    for (const p of PLAN){
-      if (!p.visuel) continue;
-      const b = await recupere(p.visuel);
-      if (b) enregistre(b, p.nom);
-      await new Promise(r => setTimeout(r, 400));
-    }
-    return false;
+    for (const f of pris){ enregistre(f.blob, f.nom); await new Promise(r => setTimeout(r, 400)); }
+    return manques.length === 0;
   }
+
+  avance('Compression…');
   const zip = new JSZip();
   const racine = zip.folder(RACINE);
-  const manques = [];
-  let n = 0;
-  const total = PLAN.length;
-  for (const p of PLAN){
-    n++;
-    avance('Préparation ' + n + ' sur ' + total);
-    const dossier = racine.folder(p.ad);
-    if (p.visuel){
-      const b = await recupere(p.visuel);
-      if (b) dossier.file(p.nom, b);
-      else manques.push(p.ad + ' / ' + p.nom + '  ->  ' + p.visuel);
-    }
-    if (p.assets.length){
-      const sous = dossier.folder('assets');
-      for (const a of p.assets){
-        const b = await recupere(a.url);
-        if (b) sous.file(a.nom, b);
-        else manques.push(p.ad + ' / assets / ' + a.nom + '  ->  ' + a.url);
-      }
-    }
+  for (const f of pris){
+    const d = racine.folder(f.ad);
+    (f.dans ? d.folder(f.dans) : d).file(f.nom, f.blob);
   }
+
   /* Un fichier introuvable n entre PAS dans le zip : mieux vaut une
      absence visible qu un fichier qui ne s ouvre pas. On dit lesquels. */
   if (manques.length){
@@ -141,9 +149,10 @@ async function faireLeZip(avance){
       'La publication GitHub prend parfois une minute : reviens sur cette page',
       'dans deux minutes et relance le telechargement.',
       ''
-    ].concat(manques).join(String.fromCharCode(10)));
+    ].concat(manques.map(f => f.ad + (f.dans ? ' / ' + f.dans : '') + ' / ' + f.nom + '  ->  ' + f.url))
+     .join(String.fromCharCode(10)));
   }
-  avance(manques.length ? 'Compression, ' + manques.length + ' fichier(s) manquant(s)…' : 'Compression…');
+
   enregistre(await zip.generateAsync({ type: 'blob' }), RACINE + '_creas.zip');
   return manques.length === 0;
 }

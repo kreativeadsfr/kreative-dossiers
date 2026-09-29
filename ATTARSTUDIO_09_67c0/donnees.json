@@ -1,0 +1,243 @@
+{
+  "dossier": "ATTARSTUDIO_09_67c0",
+  "brand_name": "Attar Studio",
+  "website": "https://www.attarstudio.ch/",
+  "secteur": "E-commerçant",
+  "pack": "scale",
+  "nb_creas": 24,
+  "deadline": "2026-10-02T22:44:01.829Z",
+  "deadline_heures": 72,
+  "nb_ugly": 12,
+  "date": "2026-09-29",
+  "couleurs": [
+    "#a6a398",
+    "#0a1b33",
+    "#eb001b",
+    "#f79e1b",
+    "#ff5f00",
+    "#d81e25",
+    "#142fbd",
+    "#1532cb"
+  ],
+  "polices": [
+    "Glacial indifférence",
+    "&quot"
+  ],
+  "captures": [],
+  "ton": "Premium & sobre (haut de gamme, élégant)",
+  "adresse": "",
+  "promo": "",
+  "interdits": "Ne pas parler de dupe, de faux parfums",
+  "preuves": "+5000 clients satisfaits, 30% de concentration (15% la moyenne du secteur), 98% de ressemblance avec l’original",
+  "offre": "",
+  "differenciation": "",
+  "client_ideal": "Femme 25-45ans active, déçu des parfums d’inspiration et des dupes en général.\nLes parfums dupes ne tiennent pas, mauvaise concentration, mauvaise qualité des essences ect\nLes parfums originaux coûtent trop cher et certains ne tiennent pas, mauvais rapport qualité prix",
+  "freins": "La peur qu’on soit une marque de dupe supplémentaire, même que les autres.",
+  "objectif": "Marquer la différence, meilleur rapport qualité prix du marché. Expérience client exceptionnel.\nExpertise parfum",
+  "assets": [
+    {
+      "id": "PJ01",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-sPx62jwVQqus/481822d0-b21c-4608-9b34-0bd3713f4cbc-35ap17nMhTD1NRjMbnlLGd6uwMwiqFSDppIYpl2hjmrx1C4CsM4ZLCRR46NV77q7MeJ3u4y0xF6bAwrUDsy0E47ctLLkoozXCNA/Logo-web.png",
+      "type": "logo"
+    },
+    {
+      "id": "PJ02",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-sPx62jwVQqus/40fa92f0-af2c-4ec3-ae67-aad6c329bcbf-ZhAIxgPhhKI1KXypfRravjQ6dcH54DKcUmkLfw5DbOURsWleaMlbLUqEp6OAk5VEufpCUVRCYYo4oT6E4XWf4gSxQr1cBk0GdKo/IMG_7064.jpg",
+      "type": "produit"
+    },
+    {
+      "id": "PJ03",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-sPx62jwVQqus/92192a57-d903-4717-8d4f-d9d03dabad69-R8xvfpIOAn5ycrITzthiyzxSIY7OqOp5nQ7HZcRogHcUVDguCmjH63fEiOM6Nz4ttsZD7314MQfsIbUTfV1aLdcqwvfMO6dLKHT/IMG_7376.jpg",
+      "type": "ambiance"
+    }
+  ],
+  "assets_site": [
+    {
+      "id": "WS01",
+      "url": "https://www.attarstudio.ch/cdn/shop/files/SI_101_G.jpg?v=1782243172&width=3072",
+      "nom": "visuel du site",
+      "note": 17
+    },
+    {
+      "id": "WS02",
+      "url": "https://www.attarstudio.ch/cdn/shop/files/SI_111_P.png?v=1782243176&width=1946",
+      "nom": "visuel du site",
+      "note": 13
+    },
+    {
+      "id": "WS03",
+      "url": "https://www.attarstudio.ch/cdn/shop/files/SI_147_P.jpg?v=1782243174&width=1946",
+      "nom": "visuel du site",
+      "note": 13
+    },
+    {
+      "id": "WS04",
+      "url": "https://www.attarstudio.ch/cdn/shop/files/SI_195_P.jpg?v=1782243172&width=1946",
+      "nom": "visuel du site",
+      "note": 13
+    },
+    {
+      "id": "WS05",
+      "url": "https://www.attarstudio.ch/cdn/shop/files/SI_153_P.jpg?v=1782243175&width=1946",
+      "nom": "visuel du site",
+      "note": 13
+    },
+    {
+      "id": "WS06",
+      "url": "https://www.attarstudio.ch/cdn/shop/t/15/assets/home-art-du-sillage.jpg?v=23737393546979312951790303629",
+      "nom": "visuel du site",
+      "note": 11
+    },
+    {
+      "id": "WS07",
+      "url": "https://www.attarstudio.ch/",
+      "nom": "visuel du site",
+      "note": 5
+    },
+    {
+      "id": "WS08",
+      "url": "https://www.attarstudio.ch/products/111-insp-by-louis-vuitton-ombre-nomade",
+      "nom": "visuel du site",
+      "note": 4
+    },
+    {
+      "id": "WS09",
+      "url": "https://www.attarstudio.ch/products/147-insp-by-erba-pura",
+      "nom": "visuel du site",
+      "note": 4
+    },
+    {
+      "id": "WS10",
+      "url": "https://www.attarstudio.ch/products/195-insp-by-unique-luxury-crush-on-me",
+      "nom": "visuel du site",
+      "note": 4
+    },
+    {
+      "id": "WS11",
+      "url": "https://www.attarstudio.ch/products/153-insp-by-kryptonite",
+      "nom": "visuel du site",
+      "note": 4
+    },
+    {
+      "id": "WS12",
+      "url": "https://www.attarstudio.ch/de",
+      "nom": "visuel du site",
+      "note": 2
+    },
+    {
+      "id": "WS13",
+      "url": "https://www.attarstudio.ch/cdn/shop/files/SI_111_G.png?v=1782243174&width=3072",
+      "nom": "visuel du site",
+      "note": 17
+    },
+    {
+      "id": "WS14",
+      "url": "https://www.attarstudio.ch/cdn/shop/files/preview_images/4b08ea3cea2248bfaae1a38a1d1ec764.thumbnail.0000000000_800x.jpg?v=1764335751",
+      "nom": "visuel du site",
+      "note": 6
+    },
+    {
+      "id": "WS15",
+      "url": "https://www.attarstudio.ch/cdn/shop/files/SI_195_G.jpg?v=1782243172&width=1946",
+      "nom": "visuel du site",
+      "note": 12
+    },
+    {
+      "id": "WS16",
+      "url": "https://www.attarstudio.ch/cdn/shop/t/15/assets/home-qualite-suisse.jpg?v=169896306257557129441790303629",
+      "nom": "visuel du site",
+      "note": 8
+    },
+    {
+      "id": "WS17",
+      "url": "https://www.attarstudio.ch/cdn/shop/files/SI_118_G.jpg?v=1782243172&width=3072",
+      "nom": "visuel du site",
+      "note": 15
+    },
+    {
+      "id": "WS18",
+      "url": "https://www.attarstudio.ch/cdn/shop/files/SI_177_G.jpg?v=1782243171&width=3072",
+      "nom": "visuel du site",
+      "note": 10
+    },
+    {
+      "id": "WS19",
+      "url": "https://www.attarstudio.ch/cdn/shop/t/15/assets/home-concentration.jpg?v=86519257500751652741790303629",
+      "nom": "visuel du site",
+      "note": 8
+    },
+    {
+      "id": "WS20",
+      "url": "https://www.attarstudio.ch/cdn/shop/files/SI119G.jpg?v=1782243612&width=3072",
+      "nom": "visuel du site",
+      "note": 15
+    },
+    {
+      "id": "WS21",
+      "url": "https://www.attarstudio.ch/cdn/shop/files/SI_106_G.png?v=1782243175&width=3072",
+      "nom": "visuel du site",
+      "note": 10
+    },
+    {
+      "id": "WS22",
+      "url": "https://www.attarstudio.ch/cdn/shop/files/SI_147_G.jpg?v=1782243172&width=3072",
+      "nom": "visuel du site",
+      "note": 15
+    },
+    {
+      "id": "WS23",
+      "url": "https://www.attarstudio.ch/cdn/shop/files/SI_153_G.jpg?v=1782243171&width=3072",
+      "nom": "visuel du site",
+      "note": 15
+    },
+    {
+      "id": "WS24",
+      "url": "https://www.attarstudio.ch/cdn/shop/files/si126G.png?v=1782243388&width=2160",
+      "nom": "visuel du site",
+      "note": 15
+    }
+  ],
+  "pubs_client": [
+    {
+      "id": "AD01",
+      "url": "https://scontent-lga3-1.xx.fbcdn.net/v/t39.35426-6/812315042_1964034120951129_7145766575327378755_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=111&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=J4v14WtsQykQ7kNvwEGt7Sy&_nc_oc=Ados9xp9FAzsfhAiem6eKOcFYpn3HH6-n7Agh4d_29k1yx-xIBZ36lOOkGs24xsKObE&_nc_zt=14&_nc_ht=scontent-lga3-1.xx&_nc_gid=A9ahsjM6OSqNQcJANnpagQ&_nc_ss=7f289&oh=00_AQOTuD5zFxqAIQOr6sdADYEcsdT8KRwMS6wy9Nsibrfqow&oe=6AC2255E",
+      "texte": "Le Luxe Suisse livré chez vous 🇨🇭 · Livraison offerte dès 55€ · Et si votre parfum devenait votre signature ? Attar Studio propose des fragrances suisses intenses, inspirées et accessibles, pour un sillage qui fait la "
+    },
+    {
+      "id": "AD02",
+      "url": "https://scontent-lga3-3.xx.fbcdn.net/v/t39.35426-6/799249972_1453391299967094_4787487949943740328_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=104&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=3WbCRbregBkQ7kNvwGLtgBh&_nc_oc=AdqZIL9PxlZ0R0ggxXWgln2aCuL2rLrpYKUBTlbaiZr6W-WmF7NXYPJTGd84Mng_kbg&_nc_zt=14&_nc_ht=scontent-lga3-3.xx&_nc_gid=A9ahsjM6OSqNQcJANnpagQ&_nc_ss=7f289&oh=00_AQOT9QJYl8TZ5c3LOXjj4O3Ea7fnH5XFxO34bm3XnlK5zw&oe=6AC20D6B",
+      "texte": "Collection Fête des Mères 💝 · Livraison offerte dès 55€ · Pour la Fête des Mères, offrez plus qu’un parfum : une attention qui dure. Concentré à 30 %, fabriqué en Suisse, inspiré des grands classiques. 🇨🇭 Fabriqué en "
+    },
+    {
+      "id": "AD03",
+      "url": "https://scontent-lga3-1.xx.fbcdn.net/v/t39.35426-6/785599712_2132923937577495_4132515765046292874_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=103&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=VubIYKPhz0QQ7kNvwGGVi3Y&_nc_oc=AdprAgPwAmnKHh0yPAXRqJ_3zjbN-ftcW5EzT1DFXvJU7wfIQlHGLLft6bu9F4O4OCc&_nc_zt=14&_nc_ht=scontent-lga3-1.xx&_nc_gid=A9ahsjM6OSqNQcJANnpagQ&_nc_ss=7f289&oh=00_AQPs0jyPU-BfFwadlEIp-Fu9mpaOLhhwkE01HKxa_iI5HQ&oe=6AC20C57",
+      "texte": "Le Luxe Suisse livré chez vous 🇨🇭 · Livraison offerte dès 55€ · Et si votre parfum devenait votre signature ? Attar Studio propose des fragrances suisses intenses, inspirées et accessibles, pour un sillage qui fait la "
+    },
+    {
+      "id": "AD04",
+      "url": "https://scontent-lga3-2.xx.fbcdn.net/v/t39.35426-6/766072037_2772431163157731_4837635155570084791_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=107&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=b0tYE-6lC5IQ7kNvwFXOblN&_nc_oc=AdrppWbY6_SNJhgVcBx-xLnsQEoqhioxMOgt5alWYOxAO07OIPeUXHzNtIziOMAj-j4&_nc_zt=14&_nc_ht=scontent-lga3-2.xx&_nc_gid=A9ahsjM6OSqNQcJANnpagQ&_nc_ss=7f289&oh=00_AQPFZCNC3eXX-ijgamAkzypVbVOdJrgD0sARrKeMEqeEuw&oe=6AC22129",
+      "texte": "Le Luxe Suisse livré chez vous 🇨🇭 · Livraison offerte dès 55€ · Et si votre parfum devenait votre signature ? Attar Studio propose des fragrances suisses intenses, inspirées et accessibles, pour un sillage qui fait la "
+    },
+    {
+      "id": "AD05",
+      "url": "https://scontent-lga3-2.xx.fbcdn.net/v/t39.35426-6/750617665_1348721837441566_7336701153024417230_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=107&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=MXAM03dvblYQ7kNvwEjt4CM&_nc_oc=AdpMuvEPmmGVt2bJy6XvLCkic20_A3YOeBEIEr1MOaTeBf981BtDGSLp7L2UpveJrgg&_nc_zt=14&_nc_ht=scontent-lga3-2.xx&_nc_gid=A9ahsjM6OSqNQcJANnpagQ&_nc_ss=7f289&oh=00_AQOQjGZHyOzLzTcNVwjVkDwLPf5TqRIrqKMsvPO3VeNuQw&oe=6AC1FB61",
+      "texte": "-10 % sur votre première commande · Fabrication suisse • 30 % de concentration · Un parfum fabriqué en Suisse, pensé pour durer et proposé à partir de 39 €. Chez Attar Studio, nous avons fait le choix d'investir dans la "
+    },
+    {
+      "id": "AD06",
+      "url": "https://scontent-lga3-2.xx.fbcdn.net/v/t39.35426-6/751578476_26904016105938408_3275771159955791117_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=100&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=YzROWzPTUrMQ7kNvwEQjhjb&_nc_oc=Adop_cDta_DMr7-FUvWuKHplbz0lQzJuPMMtaTc5kAuUfR-Z81QWIcA56VGG-y-oA_s&_nc_zt=14&_nc_ht=scontent-lga3-2.xx&_nc_gid=A9ahsjM6OSqNQcJANnpagQ&_nc_ss=7f289&oh=00_AQMjxqLrxBoJNv7ytb8RDdKPo5mzT1n0w_8czW9NQvOdkg&oe=6AC22920",
+      "texte": "-10 % sur votre première commande · Fabrication suisse • 30 % de concentration · Un parfum fabriqué en Suisse, pensé pour durer et proposé à partir de 39 €. Chez Attar Studio, nous avons fait le choix d'investir dans la "
+    },
+    {
+      "id": "AD07",
+      "url": "https://scontent-lga3-1.xx.fbcdn.net/v/t39.35426-6/744955738_1053436163696544_2929457249358254000_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=103&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=EJPEwE_K_78Q7kNvwEQBMRZ&_nc_oc=AdqkalF1ZIdOiWWJTQLIMz5lOgEMlJzAQrQhZ20-cAxoLvtMROVBQYSLP7pWcGHGRjc&_nc_zt=14&_nc_ht=scontent-lga3-1.xx&_nc_gid=A9ahsjM6OSqNQcJANnpagQ&_nc_ss=7f289&oh=00_AQPzql8gKRXRJmk_ixo-ANcA9y7Bbxuwep-6jpHTuiEfGg&oe=6AC1F62C",
+      "texte": "-10 % sur votre première commande · Découvrez leurs parfums préférés. · Les meilleurs ambassadeurs d'Attar Studio sont nos clients. Leur fidélité est le reflet de notre exigence : créer des parfums de qualité que l'on a "
+    },
+    {
+      "id": "AD08",
+      "url": "https://scontent-lga3-2.xx.fbcdn.net/v/t39.35426-6/749258394_1062380972902615_7145240547758438068_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=101&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=CPf2BpyCqR8Q7kNvwFaJx7M&_nc_oc=Adqbj71EunYwcaEICvNMm26-c-OeVavbS5aAkJPmsKXRHr8VhmriJo4tC6YDIcOSf1Y&_nc_zt=14&_nc_ht=scontent-lga3-2.xx&_nc_gid=A9ahsjM6OSqNQcJANnpagQ&_nc_ss=7f289&oh=00_AQOyHTewLl7gy1HJ-Y2apJkd1mUl5HAW7pLv_DaJd4khRQ&oe=6AC226C2",
+      "texte": "144 -Insp by Sospiro Dolce Melodia · Quand l’élégance rencontre la puissance : nos parfums suisses s’inspirent des icônes de la parfumerie et offrent un sillage intense, durable et inoubliable. · attarstudio.ch"
+    }
+  ],
+  "pubs_concurrents": []
+}

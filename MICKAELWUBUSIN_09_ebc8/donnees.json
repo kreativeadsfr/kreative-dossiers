@@ -1,0 +1,115 @@
+{
+  "dossier": "MICKAELWUBUSIN_09_ebc8",
+  "brand_name": "MICKAEL WU BUSINESS",
+  "website": "https://www.mickaelwu.com/",
+  "secteur": "Formateur / Coach",
+  "pack": "starter",
+  "nb_creas": 6,
+  "deadline": "2026-10-01T23:17:44.626Z",
+  "deadline_heures": 48,
+  "nb_ugly": 4,
+  "date": "2026-09-29",
+  "couleurs": [],
+  "polices": [],
+  "captures": [],
+  "ton": "Direct & percutant (oral, sans détour)",
+  "adresse": "",
+  "promo": "",
+  "interdits": "",
+  "preuves": "+1000 clients accompagnés\n\nplein plein de résultats",
+  "offre": "",
+  "differenciation": "",
+  "client_ideal": "",
+  "freins": "",
+  "objectif": "Plus de leads",
+  "assets": [],
+  "assets_site": [
+    {
+      "id": "WS01",
+      "url": "https://widgets.itreust.com/branding/itreust-wordmark-light.png",
+      "nom": "visuel du site",
+      "note": 11
+    },
+    {
+      "id": "WS02",
+      "url": "https://www.mickaelwu.com/assets/mika-communaute.jpg",
+      "nom": "visuel du site",
+      "note": 11
+    },
+    {
+      "id": "WS03",
+      "url": "https://i.ytimg.com/vi/3qtYqqRk7ss/default.jpg",
+      "nom": "visuel du site",
+      "note": 3
+    },
+    {
+      "id": "WS04",
+      "url": "https://i.ytimg.com/vi/F8Os0uK5MdY/default.jpg?sqp=-oaymwEkCHgQWvKriqkDGvABAfgB_gmAAtAFigIMCAAQARgTICkofzAP&rs=AOn4CLCBMxTFIPwHF7y8KePOKBJLHEaqTg&quot;);",
+      "nom": "visuel du site",
+      "note": 3
+    },
+    {
+      "id": "WS05",
+      "url": "https://i.ytimg.com/vi/ue5PkTFRJLc/default.jpg?sqp=-oaymwEkCHgQWvKriqkDGvABAfgB_gmAAtAFigIMCAAQARgxIEoofzAP&rs=AOn4CLA7JmKalnBo3U0Oy6IdxjYrcTkMnw&quot;);",
+      "nom": "visuel du site",
+      "note": 3
+    },
+    {
+      "id": "WS06",
+      "url": "https://www.mickaelwu.com/assets/mika-portrait.jpg",
+      "nom": "visuel du site",
+      "note": 10
+    },
+    {
+      "id": "WS07",
+      "url": "https://www.mickaelwu.com/assets/capsule-1.jpg",
+      "nom": "visuel du site",
+      "note": 9
+    },
+    {
+      "id": "WS08",
+      "url": "https://www.mickaelwu.com/assets/capsule-2.jpg",
+      "nom": "visuel du site",
+      "note": 9
+    },
+    {
+      "id": "WS09",
+      "url": "https://www.mickaelwu.com/assets/capsule-3.jpg",
+      "nom": "visuel du site",
+      "note": 7
+    },
+    {
+      "id": "WS10",
+      "url": "https://www.mickaelwu.com/assets/capsule-5.jpg",
+      "nom": "visuel du site",
+      "note": 7
+    },
+    {
+      "id": "WS11",
+      "url": "https://www.mickaelwu.com/assets/capsule-9.jpg",
+      "nom": "visuel du site",
+      "note": 7
+    },
+    {
+      "id": "WS12",
+      "url": "https://www.mickaelwu.com/assets/vsl-poster.jpg",
+      "nom": "visuel du site",
+      "note": 4
+    },
+    {
+      "id": "WS13",
+      "url": "https://www.mickaelwu.com/assets/trustwho-poster.jpg",
+      "nom": "visuel du site",
+      "note": 4
+    }
+  ],
+  "pubs_client": [],
+  "pubs_concurrents": [
+    {
+      "id": "CC01",
+      "annonceur": "Laure de Sainte Foy ",
+      "url": "https://scontent-lga3-3.xx.fbcdn.net/v/t39.35426-6/795253803_1654145582905438_7485134825198440690_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=106&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=0joynrjbi6kQ7kNvwFPfNeZ&_nc_oc=AdowpdNLnuVI9hsmfWiyf-2FSuWbpM8BxdNBdJ8b20_TVjujwmxOmSnmRgO3gyn7zt8&_nc_zt=14&_nc_ht=scontent-lga3-3.xx&_nc_gid=Is_NJ-ePEOZMgs1mWU9PBw&_nc_ss=7f289&oh=00_AQNpGNnpfQpRy8fm6xjbqZbbTMPznEZZynD3WhpECbGu0w&oe=6AC200BE",
+      "texte": "Formation Fondamentaux du Coaching · ET SI C'ÉTAIT LE BON MOMENT POUR VOUS LANCER ? Vous aimez accompagner les autres, écouter, faire grandir les personnes autour de vous… Que vous soyez manager, salarié(e), entrepreneur"
+    }
+  ]
+}

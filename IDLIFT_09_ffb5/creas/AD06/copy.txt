@@ -5,4 +5,4 @@ Sous-titre  : Vous pouvez faire pareil avant vendredi.
 CTA         : Réserver ma place
 
 Idée du visuel : À la place de l'image du mec, tu mets le projet en pièce jointe de background. Tu changes la couleur de fond en bleu plus foncé et tu mets une capture d'écran d'un avis 5 étoiles.
-Référence      : EC4-14 · témoignage photographique avec avis intégré
+Référence      : EC4-14 · témoignage photographique avec capture d'avis 5 étoiles

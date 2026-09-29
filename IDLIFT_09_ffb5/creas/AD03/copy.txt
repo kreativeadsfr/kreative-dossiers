@@ -5,4 +5,4 @@ Sous-titre  : Tout ce qu'il faut pour lancer, dans un seul dossier.
 CTA         : Voir les livrables
 
 Idée du visuel : Une planche qui étale les livrables côte à côte : logo, palette, carte de visite
-Référence      : AG1-24 · planche de livrables étalés, composition grille 2x2
+Référence      : AG1-24 · planche de livrables d'identité, composition structurée

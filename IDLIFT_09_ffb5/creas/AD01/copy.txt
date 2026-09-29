@@ -5,4 +5,4 @@ Sous-titre  : Une agence vous en demanderait 5 000.
 CTA         : Voir ce qui est inclus
 
 Idée du visuel : Deux colonnes face à face. À gauche la facture d'agence, barrée. À droite le prix IDlift, en gros. Fond clair, bleu #007bff sur le chiffre.
-Référence      : AG2-04 · comparaison deux cartes face à face, fond clair travaillé
+Référence      : AG2-04 · comparaison frontale deux cartes/factures, split gauche-droite

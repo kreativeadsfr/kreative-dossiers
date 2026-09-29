@@ -1,0 +1,126 @@
+{
+  "dossier": "TRIGGERFLOW_09_7279",
+  "brand_name": "Triggerflow",
+  "website": "https://www.trigger-flow.com/fr",
+  "secteur": "SaaS",
+  "pack": "growth",
+  "nb_creas": 12,
+  "deadline": "2026-10-01T16:48:06.596Z",
+  "deadline_heures": 48,
+  "nb_ugly": 6,
+  "date": "2026-09-29",
+  "couleurs": [
+    "#016f68",
+    "#002b28",
+    "#006f68",
+    "#ff5f57",
+    "#ffbd2e",
+    "#28ca41",
+    "#c74634"
+  ],
+  "polices": [
+    "Fraunces et system-ui"
+  ],
+  "captures": [],
+  "ton": "Direct & percutant (oral, sans détour)",
+  "adresse": "",
+  "promo": "",
+  "interdits": "",
+  "preuves": "Tout est récupérable sur notre site",
+  "offre": "TriggerFlow est un CRM et une plateforme d'automatisation conçus pour l'hôtellerie.\n\nOn se connecte au PMS de l'hôtel (le logiciel qui gère leurs réservations) et on exploite ses données clients pour déclencher automatiquement les bonnes communications au bon moment : informations d'arrivée, relance de pré-check-in, proposition d'extras, demande d'avis, fidélisation. Par email, SMS ou WhatsApp.\n\nConcrètement, ça règle trois problèmes que vit tout hôtelier : du temps de réception passé à envoyer des messages à la main, du chiffre d'affaires laissé sur la table faute de proposer les extras (petit-déjeuner, parking, late check-out), et des clients venus des OTA (bookings, expedia, airbnb etc..) qu'on ne revoit jamais en direct.\n\nCible : directeurs et propriétaires d'hôtels indépendants, groupes hôteliers, résidences.",
+  "differenciation": "La puissance de personnalisation de ce qu'on automatise. La plupart des outils du marché proposent des scénarios pré-définis qu'on active ou non. Nous, c'est du vrai sur mesure : chaque établissement construit ses propres automatisations, avec ses déclencheurs, ses conditions et ses branches. On peut envoyer un message différent selon le type de chambre, le tarif réservé, la durée du séjour, la langue du client, son canal de réservation ou s'il est déjà venu — et faire varier le contenu du message lui-même avec les données de sa réservation. Un hôtel de 12 chambres et un groupe de 40 établissements n'ont pas les mêmes besoins : chacun construit ce qu'il lui faut, sans développement.\n\nLa synchronisation dans les deux sens. Nos formulaires ne se contentent pas de lire le PMS : ils y réécrivent les données collectées auprès du client — civilité, heure d'arrivée, informations de séjour. La quasi-totalité des outils du marché sont en lecture seule et laissent la ressaisie à la réception. Chez nous, ce que le client remplit remonte directement dans le PMS, sans double saisie.\n\nToute la relation client au même endroit. Nos modules couvrent le parcours complet, de la réservation au séjour suivant : emails, SMS et WhatsApp, pré-check-in, vente d'extras, liens de paiement, demandes d'avis, serrures connectées, fidélisation, gestions des avis, outils d'email marketing. Un hôtelier qui vient chez nous remplace plusieurs outils qui ne se parlaient pas — et récupère une base client unique, où tout est synchronisé et où chaque information collectée devient exploitable par toutes les autres automatisations.",
+  "client_ideal": "Directeur ou propriétaire d'hôtel indépendant, ou responsable marketing / CRM dans un petit groupe hôtelier. En France. Il porte plusieurs casquettes et sa réception est déjà sous l'eau.\n\nSon problème n°1 : il a toutes les données de ses clients dans son PMS, et elles ne servent à rien. Personne ne les exploite. Résultat : les messages du séjour partent à la main quand quelqu'un a le temps, les extras ne sont jamais proposés, et les clients venus des OTA repartent sans qu'il ait eu la moindre chance de créer un lien direct — il repaiera donc une commission au séjour suivant.\n\nCe qu'il a déjà essayé sans succès :\n- un outil d'emailing généraliste type Mailchimp ou Brevo : pas connecté au PMS, donc export/import de fichiers à la main, et aucun envoi déclenché au bon moment du séjour ;\n- l'emailing intégré de son PMS : deux ou trois modèles figés, aucune personnalisation réelle ;\n- le faire à la main : ça tient quelques semaines, puis ça s'arrête dès que l'hôtel se remplit.",
+  "freins": "« Est-ce que ça se connecte vraiment à MON PMS ? » C'est le premier réflexe, et la méfiance est légitime : beaucoup d'outils promettent une intégration et livrent un export CSV.\n\nLa peur du projet informatique. Il imagine des semaines de paramétrage, une migration, de la technique — il n'a ni le temps ni l'équipe pour ça.\n\n« Ma réception n'aura jamais le temps de s'en occuper. » Il confond automatisation et charge de travail supplémentaire.\n\nIl a déjà trois ou quatre outils qui se chevauchent et redoute d'en empiler un de plus au lieu d'en supprimer.\n\nLe prix, rapporté à un hôtel indépendant, tant qu'il ne voit pas le revenu additionnel que les extras génèrent.",
+  "objectif": "L'objectif final est la demande de démo : c'est notre seule conversion réelle, le cycle de vente passe toujours par là.\n\nMais nous ne comptons pas la demander dès la première publicité. Le plan est un funnel progressif : une landing page par angle, un CTA peu engageant — téléchargement d'un livre blanc plutôt que « réserver une démo » — pour récupérer l'email, puis du lead nurturing jusqu'à la prise de rendez-vous.\n\nCe que nous attendons donc de ces créas : générer des téléchargements de contenu, pas des demandes de démo directes. La promesse doit donner envie d'en savoir plus, pas d'entrer tout de suite en discussion commerciale.",
+  "assets": [
+    {
+      "id": "PJ01",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-soMTps1WZmus/edc9a8ca-aeed-43e6-aea2-16d9b1856171-YqgtMID5kozb22o0BNRQLSh7Lfpv2vIKmKDYWgOBHg07QrcyfBPlxia2iyxGgZ3WpV2UwdBXzEDeUDEgTvXkO8P57yJXpesGkwR/TriggerFlowlogoblanc.png",
+      "type": "logo"
+    },
+    {
+      "id": "PJ02",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-soMTps1WZmus/0b9da421-736e-4269-90bc-329f83f850dd-llgadRWRSSgtJBZKHWY7HJBkp7qdgpwlDq4gwG1q5Ed2174kQqgt2YsjdaaVNzY1s47yJyYKl50f8a7CRdrA4gXHLQxySoN11DP/TriggerFlowiconetuilementhe.png",
+      "type": "logo"
+    },
+    {
+      "id": "PJ03",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-soMTps1WZmus/ad609cc1-f657-4306-8a86-032cf0684b86-G2zVLLQz0EXEYMhItMGqqQclZLBhha21d7RFB8n2Ppu0A3YZicATJMEjXvJNPzKPIyy7WmDtgvR5xw8zeWxvVbWmlVF3acRFi0A/TriggerFlowlogohorizontal.png",
+      "type": "logo"
+    }
+  ],
+  "assets_site": [
+    {
+      "id": "WS01",
+      "url": "https://www.trigger-flow.com/_next/image?url=%2Fimages%2Fhero-tf-v2.webp&w=3840&q=75",
+      "nom": "visuel du site"
+    },
+    {
+      "id": "WS02",
+      "url": "https://www.trigger-flow.com/_next/image?url=%2Fimages%2Fhomepage%2Fhub-inbox.webp&w=3840&q=75",
+      "nom": "visuel du site"
+    },
+    {
+      "id": "WS03",
+      "url": "https://www.trigger-flow.com/_next/image?url=%2Fimages%2Fhomepage%2Fcrm-client-card.webp&w=3840&q=75",
+      "nom": "visuel du site"
+    },
+    {
+      "id": "WS04",
+      "url": "https://www.trigger-flow.com/_next/image?url=%2Fimages%2Fhomepage%2Fpersonas-dashboard.webp&w=3840&q=75",
+      "nom": "visuel du site"
+    },
+    {
+      "id": "WS05",
+      "url": "https://www.trigger-flow.com/_next/image?url=%2Fimages%2Fhomepage%2Fpersona-direction_1.webp&w=3840&q=75",
+      "nom": "visuel du site"
+    },
+    {
+      "id": "WS06",
+      "url": "https://www.trigger-flow.com/_next/image?url=%2Fimages%2Fhomepage%2Fpersona-reception_1.webp&w=3840&q=75",
+      "nom": "visuel du site"
+    },
+    {
+      "id": "WS07",
+      "url": "https://www.trigger-flow.com/_next/image?url=%2Fimages%2Fhomepage%2Fpersona-marketing_1.webp&w=3840&q=75",
+      "nom": "visuel du site"
+    },
+    {
+      "id": "WS08",
+      "url": "https://www.trigger-flow.com/_next/image?url=%2Fimages%2Fcase-studies%2Fedgar-hotel-spa.jpg&w=3840&q=75",
+      "nom": "visuel du site"
+    },
+    {
+      "id": "WS09",
+      "url": "https://www.trigger-flow.com/_next/image?url=%2Fimages%2Fcase-studies%2Fcausse-comtal.jpg&w=3840&q=75",
+      "nom": "visuel du site"
+    },
+    {
+      "id": "WS10",
+      "url": "https://www.trigger-flow.com/_next/image?url=%2Fimages%2Fcase-studies%2Fnoemys.jpg&w=3840&q=75",
+      "nom": "visuel du site"
+    },
+    {
+      "id": "WS11",
+      "url": "https://www.trigger-flow.com/_next/image?url=%2Fimages%2Fproduit%2Femail%2Fhero-email.webp&w=3840&q=75",
+      "nom": "visuel du site"
+    },
+    {
+      "id": "WS12",
+      "url": "https://www.trigger-flow.com/_next/image?url=%2Fimages%2Fproduit%2Femail%2Femail-builder.webp&w=3840&q=75",
+      "nom": "visuel du site"
+    },
+    {
+      "id": "WS13",
+      "url": "https://www.trigger-flow.com/_next/image?url=%2Fimages%2Fproduit%2Fsms%2Fhero-sms-desktop.webp&w=3840&q=75",
+      "nom": "visuel du site"
+    },
+    {
+      "id": "WS14",
+      "url": "https://www.trigger-flow.com/_next/image?url=%2Fimages%2Fproduit%2Fsms%2Ffeature-sms-conversation.webp&w=828&q=75",
+      "nom": "visuel du site"
+    }
+  ],
+  "pubs_client": [],
+  "pubs_concurrents": []
+}

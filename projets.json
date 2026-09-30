@@ -1,13 +1,5 @@
 [
   {
-    "dossier": "IDLIFT_09_9b0d",
-    "brand_name": "IDlift",
-    "nb_creas": 6,
-    "pack": "starter",
-    "date": "2026-09-29",
-    "url": "https://kreativeadsfr.github.io/kreative-dossiers/IDLIFT_09_9b0d/"
-  },
-  {
     "dossier": "IDLIFT_09_1bc0",
     "brand_name": "IDlift",
     "nb_creas": 6,
@@ -22,14 +14,6 @@
     "pack": "starter",
     "date": "2026-09-29",
     "url": "https://kreativeadsfr.github.io/kreative-dossiers/IDLIFT_09_ffb5/"
-  },
-  {
-    "dossier": "SIMPLICICAR_09_0bd2",
-    "brand_name": "Simplicicar",
-    "nb_creas": 12,
-    "pack": "growth",
-    "date": "2026-09-27",
-    "url": "https://kreativeadsfr.github.io/kreative-dossiers/SIMPLICICAR_09_0bd2/"
   },
   {
     "dossier": "LABORATOIREKOT_09_c6ac",

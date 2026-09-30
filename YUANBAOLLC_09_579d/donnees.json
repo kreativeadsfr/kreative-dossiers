@@ -1,0 +1,322 @@
+{
+  "dossier": "YUANBAOLLC_09_579d",
+  "brand_name": "YUANBAO LLC",
+  "website": "https://matchymatchy.re/",
+  "secteur": "E-commerçant",
+  "pack": "growth",
+  "nb_creas": 12,
+  "deadline": "2026-10-02T13:50:24.034Z",
+  "deadline_heures": 48,
+  "deadline_strategiste": "2026-10-01T05:50:24.034Z",
+  "deadline_designer": "2026-10-02T05:50:24.034Z",
+  "nb_ugly": 0,
+  "date": "2026-09-30",
+  "couleurs": [
+    "#dc1d33",
+    "#fff5f6",
+    "#00b67a",
+    "#ffe3e7"
+  ],
+  "couleurs_client": [
+    "#dc1d33",
+    "#fff5f6"
+  ],
+  "couleurs_site": [
+    "#00b67a",
+    "#ffe3e7"
+  ],
+  "polices": [
+    "Poppins Bold pour les titres",
+    "Poppins Regular pour le corps",
+    "sans"
+  ],
+  "polices_client": [
+    "Poppins Bold pour les titres",
+    "Poppins Regular pour le corps"
+  ],
+  "polices_site": [
+    "sans"
+  ],
+  "captures": [
+    {
+      "page": "accueil",
+      "url": "https://storage.googleapis.com/firecrawl-scrape-media/screenshot-14227687-96be-4d56-a137-53b8f0cf60c7.png?GoogleAccessId=scrape-bucket-accessor%40firecrawl.iam.gserviceaccount.com&Expires=1791380943&Signature=KMYox1Uwi7vjp%2FxEmO7ndFcaBRqfNxh92Mjc5KY2MFKZA7Y%2BA7Yzev1eYYz6lFoxLlRLKbtSZbXjBVILgU85fnv5BFySAJ%2BN9KNUcg%2BLLn70IHW0UMGN4ETYQa99kDBgAyVeTV4VuKZPhxMpFoxOzqjvMtY%2FXgq28TmK9adC36FoMvQiFJJgJ9a0dH%2Ba%2Bd%2FPyyHCNHkrYlGgL6PtG93B2psZCyX30S44GM1mz6IIuIO4sZrBOSImLnObRg4wRCeFD%2FxXpY1ZLI6uX9WwVN4FiV3gxsjEazaNVKCEYIYblTCyip7sC6ZvYxibX47SLKPqjeAT6jhIoCD8vP0VWp0MJQ%3D%3D"
+    }
+  ],
+  "ton": "Complice & léger (proche, accessible)",
+  "adresse": "Tutoiement",
+  "ambiance": "Eye catchy, Bonbon, Épuré",
+  "consignes": "J'ai fourni 2 modèles, un modèle homme et un modèle femme. \n\nSi vous utilisez les packshots des tshirts avec l'IA, utilisez le modèle homme pour le tshirt GIRLFRIEND, et le modèle femme pour le tshirt BOYFRIEND.\n\nCe sont les modèles qui sont en collage photo à l'arrière des tshirts. \n\nJe suis sur plusieurs marchés différents (Réunion, France, Belgique, Italy, Espagne), si vous faites des créas IA de couple habillé avec les tshirts, faites attention à ce que le décor ne définisse pas un pays en particulier. Par exemple une créa avec un décor d'une ville de France, ne fonctionnera pas pour le marché Réunion, et inversement.",
+  "promo": "dernier jour pour profiter du 2ème tshirt à 20€",
+  "interdits": "",
+  "preuves": "+ 2000 clients satisfaits",
+  "offre": "",
+  "differenciation": "",
+  "client_ideal": "Personne en couple, entre 18 et 30 ans.\n\nBreakdown âge et sexe de mes 2000 dernieres ventes : \n\n🥇 Femme 18 - 24 ans\n🥈 Femme 25 - 34 ans\n🥉 Homme 18 - 24 ans\n\nClientèle majoritairement féminine. \n\nPersona 1 : insecure, jalouse, possessive, besoin d'exprimer le sentiment d'appartenance \nPersona 2 : très amoureuse, très bien dans son couple, fier de porter un tshirt avec son partenaire dessus",
+  "freins": "Aucune idée, manque de social proof peut être",
+  "objectif": "Générer des ventes",
+  "assets": [
+    {
+      "id": "PJ01",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-soMTps1WZmus/7ab1b6f3-e9f3-45fd-ad89-6895ebbabbac-6v2JZYxyRghrf4M0oxarZqvpyFShe6o9EW0gLqRnSksGEDAeLn4tu1Mphinv21TsOzunF3Ztv2ZI4leKvvBYLh3hhuPp6xEusQs/official-brand-logo.png",
+      "type": "logo"
+    },
+    {
+      "id": "PJ02",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-soMTps1WZmus/470c0e84-121d-4921-abcd-e58745bc9fad-62X2YbJRUo6V9TwPnOg20ChAQpZhtZqSnvX78wn7osn4c1vuwy4t5NN00d6jxG87U08orbFBkCjcy2TymKvx2lTHGB47taPASfy/MATCHY-MATCHY--TSHIRT-BOYFRIEND-WHITE.jpg",
+      "type": "produit"
+    },
+    {
+      "id": "PJ03",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-soMTps1WZmus/1331332e-4462-424e-b053-6e1b3439ce0f-9bQt6AgeuC5HQhucGBRoO4dLbHsvMl8zZLbMISSCMaU6fFkKl7FmnOhjwcW4dXyOKjAkS3CG1nIy4kPCSm9XkzXJRbquHqGavvc/MATCHY-MATCHY--TSHIRT-BOYFRIEND-BLACK.jpg",
+      "type": "produit"
+    },
+    {
+      "id": "PJ04",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-soMTps1WZmus/62f72cc9-ccd8-474b-bc82-c1233bb3c41a-DOLJ89kZKo35Q77lJxLEquJ60S0WEl00nszRjshPIxgTDls1Je0OWAubGIgrjguLhawpYH65FHxlhYpaxfueU93ZLU4nuJ1CDK1/MATCHY-MATCHY--TSHIRT-GIRLFRIEND-BLACK.jpg",
+      "type": "produit"
+    },
+    {
+      "id": "PJ05",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-soMTps1WZmus/e81664f9-ac22-4c8c-afa3-7bc647f0da1d-5nFFoV4M7MxY3UP9zTw0WrMDwTZcaXJSNogSf8zO4WWougwajpQedDgZLxrB6p1MmH7suZ3X8oUsNrdO2Yr7RJRzw2O3J2UwvgW/MATCHY-MATCHY--TSHIRT-GIRLFRIEND-WHITE.jpg",
+      "type": "produit"
+    },
+    {
+      "id": "PJ06",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-soMTps1WZmus/739b0eca-e5f7-48eb-a8c0-d524618558de-0tkvokgMuFSDcc5oKezX9ZhXgw5Nw5qTFi139EuGwqqmMZAcxB7x34VB5HZbk17XgHkkPbU2zNjTqWfzCmSkAezE1zD4jufhfJT/MATCHY-MATCHY--MODELE-FEMME.jpg",
+      "type": "produit"
+    },
+    {
+      "id": "PJ07",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-soMTps1WZmus/02b26421-a708-4108-ac6f-edcb29ee40d0-9goDrGUzHodj7nNQBICduqIePjpERkdHa0oVO0lI2i0xiYlcawhZsrP0itR9zCqw1dWjIIKxgjf58ChpvAdQbE6qQAvNXo9oMr5/MATCHY-MATCHY--MODELE-HOMME.jpg",
+      "type": "produit"
+    }
+  ],
+  "assets_site": [
+    {
+      "id": "WS01",
+      "url": "https://matchymatchy.eu/cdn/shop/files/Capture_d_ecran_2026-08-01_a_19.28.16.png?v=1785598139&width=533",
+      "nom": "visuel du site",
+      "note": 17
+    },
+    {
+      "id": "WS02",
+      "url": "https://matchymatchy.eu/cdn/shop/files/MM-HERO-PACKSHOT-V2.png?v=1774480477",
+      "nom": "visuel du site",
+      "note": 15
+    },
+    {
+      "id": "WS03",
+      "url": "https://matchymatchy.eu/cdn/shop/files/BESTFRIEND-PACKSHOT-V2.jpg?v=1771686371&width=533",
+      "nom": "visuel du site",
+      "note": 15
+    },
+    {
+      "id": "WS04",
+      "url": "https://matchymatchy.eu/cdn/shop/files/6aa7c86f861c8.webp?v=1789380724&width=533",
+      "nom": "visuel du site",
+      "note": 12
+    },
+    {
+      "id": "WS05",
+      "url": "https://flagcdn.com/w80/us.png",
+      "nom": "visuel du site",
+      "note": 4
+    },
+    {
+      "id": "WS06",
+      "url": "https://matchymatchy.eu/cdn/shop/files/Capture_d_ecran_2026-08-01_a_19.30.47.png?v=1785598265&width=533",
+      "nom": "visuel du site",
+      "note": 16
+    },
+    {
+      "id": "WS07",
+      "url": "https://matchymatchy.eu/cdn/shop/files/GIRLFRIEND-MOCKUP-TRANSPARENT_400x.png?v=1774483274",
+      "nom": "visuel du site",
+      "note": 15
+    },
+    {
+      "id": "WS08",
+      "url": "https://matchymatchy.eu/cdn/shop/files/BESTFRIEND-PACKSHOT.jpg?v=1771686371&width=533",
+      "nom": "visuel du site",
+      "note": 13
+    },
+    {
+      "id": "WS09",
+      "url": "https://matchymatchy.eu/cdn/shop/files/6aa7c861225d8.webp?v=1789380724&width=533",
+      "nom": "visuel du site",
+      "note": 10
+    },
+    {
+      "id": "WS10",
+      "url": "https://flagcdn.com/w80/at.png",
+      "nom": "visuel du site",
+      "note": 4
+    },
+    {
+      "id": "WS11",
+      "url": "https://matchymatchy.eu/cdn/shop/files/Captured_ecran2026-08-02a13.08.53.png?v=1785661744&width=533",
+      "nom": "visuel du site",
+      "note": 16
+    },
+    {
+      "id": "WS12",
+      "url": "https://matchymatchy.eu/cdn/shop/files/red-heart_2764-fe0f.png?v=1774481262",
+      "nom": "visuel du site",
+      "note": 13
+    },
+    {
+      "id": "WS13",
+      "url": "https://flagcdn.com/w80/be.png",
+      "nom": "visuel du site",
+      "note": 4
+    },
+    {
+      "id": "WS14",
+      "url": "https://matchymatchy.eu/cdn/shop/files/Capture_d_ecran_2026-08-01_a_19.29.50.png?v=1785598207&width=533",
+      "nom": "visuel du site",
+      "note": 14
+    },
+    {
+      "id": "WS15",
+      "url": "https://matchymatchy.eu/cdn/shop/files/BOYFRIEND-MOCKUP-TRANSPARENT_400x.png?v=1774484566",
+      "nom": "visuel du site",
+      "note": 13
+    },
+    {
+      "id": "WS16",
+      "url": "https://flagcdn.com/w80/ba.png",
+      "nom": "visuel du site",
+      "note": 4
+    },
+    {
+      "id": "WS17",
+      "url": "https://matchymatchy.eu/cdn/shop/files/MM-CUSTOM.jpg?v=1769853337&width=533",
+      "nom": "visuel du site",
+      "note": 11
+    },
+    {
+      "id": "WS18",
+      "url": "https://matchymatchy.eu/cdn/shop/files/626289931_18073368608434183_1833634462236358978_n_360x360.jpg?v=1774537083",
+      "nom": "visuel du site",
+      "note": 8
+    },
+    {
+      "id": "WS19",
+      "url": "https://flagcdn.com/w80/bg.png",
+      "nom": "visuel du site",
+      "note": 4
+    },
+    {
+      "id": "WS20",
+      "url": "https://matchymatchy.eu/cdn/shop/files/503031629_18293866330247821_1629036795977993073_n_360x360.jpg?v=1774537368",
+      "nom": "visuel du site",
+      "note": 8
+    },
+    {
+      "id": "WS21",
+      "url": "https://flagcdn.com/w80/hr.png",
+      "nom": "visuel du site",
+      "note": 4
+    },
+    {
+      "id": "WS22",
+      "url": "https://matchymatchy.eu/cdn/shop/files/634870684_17876937414491964_7004362264777102229_n_360x360.jpg?v=1774537913",
+      "nom": "visuel du site",
+      "note": 8
+    },
+    {
+      "id": "WS23",
+      "url": "https://flagcdn.com/w80/cz.png",
+      "nom": "visuel du site",
+      "note": 4
+    },
+    {
+      "id": "WS24",
+      "url": "https://matchymatchy.eu/cdn/shop/files/Plan_de_travail_6_1.5x.png?v=1774450252",
+      "nom": "visuel du site",
+      "note": 8
+    },
+    {
+      "id": "WS25",
+      "url": "https://flagcdn.com/w80/dk.png",
+      "nom": "visuel du site",
+      "note": 4
+    },
+    {
+      "id": "WS26",
+      "url": "https://matchymatchy.eu/cdn/shop/files/Plan_de_travail_5_1.5x_a8c0a719-eee0-4272-994e-70d74ccfe90d.png?v=1774450295&width=500",
+      "nom": "visuel du site",
+      "note": 8
+    },
+    {
+      "id": "WS27",
+      "url": "https://flagcdn.com/w80/ee.png",
+      "nom": "visuel du site",
+      "note": 4
+    },
+    {
+      "id": "WS28",
+      "url": "https://matchymatchy.eu/cdn/shop/files/369627222_326057489923911_4346107920634073913_n_360x360.jpg?v=1774538384",
+      "nom": "visuel du site",
+      "note": 7
+    },
+    {
+      "id": "WS29",
+      "url": "https://flagcdn.com/w80/fi.png",
+      "nom": "visuel du site",
+      "note": 4
+    },
+    {
+      "id": "WS30",
+      "url": "https://matchymatchy.eu/cdn/shop/files/639499469_18313112764269876_5090902525801569379_n_360x360.jpg?v=1774538771",
+      "nom": "visuel du site",
+      "note": 7
+    },
+    {
+      "id": "WS31",
+      "url": "https://flagcdn.com/w80/fr.png",
+      "nom": "visuel du site",
+      "note": 4
+    },
+    {
+      "id": "WS32",
+      "url": "https://matchymatchy.eu/cdn/shop/files/595816002_1925864651687406_2961566174941922268_n_360x360.jpg?v=1774540181",
+      "nom": "visuel du site",
+      "note": 7
+    },
+    {
+      "id": "WS33",
+      "url": "https://flagcdn.com/w80/de.png",
+      "nom": "visuel du site",
+      "note": 4
+    },
+    {
+      "id": "WS34",
+      "url": "https://matchymatchy.eu/cdn/shop/files/TESTIMONIAL-01_36033af6-9ef4-4f82-9612-bc5e52c6b33d_800x.jpg?v=1774537041",
+      "nom": "visuel du site",
+      "note": 6
+    },
+    {
+      "id": "WS35",
+      "url": "https://flagcdn.com/w80/gr.png",
+      "nom": "visuel du site",
+      "note": 4
+    },
+    {
+      "id": "WS36",
+      "url": "https://matchymatchy.eu/cdn/shop/files/TESTIMONIAL-02_643024ea-dfbf-40ec-b9df-29c1c6a28cd0_800x.jpg?v=1774537326",
+      "nom": "visuel du site",
+      "note": 6
+    }
+  ],
+  "pubs_client": [],
+  "pubs_concurrents": [
+    {
+      "id": "CC01",
+      "annonceur": "Personelly",
+      "url": "https://scontent-phl2-1.xx.fbcdn.net/v/t39.35426-6/529332297_1281824766689761_8094919901391198177_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=105&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=o9ffpyQ_KEgQ7kNvwGbPaK9&_nc_oc=Adq00g2JumCLBs5esyD1tnQQjhTp3yTAhWs6DLMo1bt-SdPmsayEn2aQ7w8qbr1Pqno&_nc_zt=14&_nc_ht=scontent-phl2-1.xx&_nc_gid=Gndp1UunPv025pPbxpVkaQ&_nc_ss=7f289&oh=00_AQMZ810NsPaVey3gPv03eg5wz6Z_Coz25p7t73VLAwBoZA&oe=6AC2D84C",
+      "texte": "278,213 clients satisfaits⭐️ · livraison rapide · Copain - T-shirt photo personnalisé Partenaire, Couple, Boyfriend, Mon copain · uniheart.de"
+    }
+  ]
+}

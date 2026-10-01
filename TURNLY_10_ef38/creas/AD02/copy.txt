@@ -7,6 +7,6 @@ Créa 2 · Turnly
 5. CTA : La solution est juste en dessous 👇
 
 Idée du visuel : Une vraie note iPhone en mode clair, écrite par un commerçant. Rien d'autre.
-Référence      : UG1-13 · note iPhone native, liste cochée
+Référence      : UG1-13 · note iPhone native, checklist
 
-Alerte : La créa de départ est une note Apple en mode sombre, mais l'idée du stratégiste demande le mode clair. Le prompt suit sa consigne en gardant l'interface native d'Apple Notes dans sa version claire (fond blanc, texte noir, accents jaunes) ; à valider si le mode sombre de départ était voulu.
+Alerte : La référence UG1-13 est en mode sombre, mais l'idée du stratégiste demande explicitement le mode clair. J'ai suivi le stratégiste en gardant l'interface, la police et l'accent jaune-orange natifs d'Apple, en version claire. L'heure de la barre d'état a été remplacée par "9:14" pour ne reprendre aucun texte de la référence. Les négations orales (« j'ose pas », « j'ai pas ») sont gardées telles quelles, car elles relèvent du ton voulu.

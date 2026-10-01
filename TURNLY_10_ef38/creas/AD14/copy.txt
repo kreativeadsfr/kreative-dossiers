@@ -11,6 +11,6 @@ Créa 14 · Turnly
 12. Mention : 1 semaine offerte, sans carte bancaire
 
 Idée du visuel : Même timeline en 3 étapes, sans les libellés de jour.
-Référence      : AG1-22 · timeline verticale en trois étapes
+Référence      : AG1-22 · frise verticale en trois étapes
 
-Alerte : Points à vérifier avant génération. 1) La pièce jointe 1 ne correspond pas au logo Turnly visible sur le site (roue multicolore et mot-symbole bleu "turnly"). Elle est placée à l'emplacement du logo, sans mot-symbole ajouté : à remplacer par le vrai logo Turnly du drive s'il s'agit d'une autre icône. 2) La charte impose un texte blanc sur un bouton #FFE29A, ce qui donne un contraste très faible et un CTA difficile à lire. Elle est appliquée telle quelle : recommandation de passer le texte du bouton en #082B58. 3) Le mot pivot en #FFE29A seul serait illisible sur fond clair. Il est écrit en #082B58 sur une bande de surligneur #FFE29A. 4) Les étoiles de la ligne du bas sont retirées, car la nouvelle mention n'est pas une note.
+Alerte : La pièce jointe 1 ne correspond pas au logo Turnly visible sur le site (roue multicolore et nom « turnly » en bleu). Elle est placée à l'emplacement du logo comme icône de marque, sans être nommée logo : à vérifier qu'il s'agit bien de l'icône d'application Turnly, sinon fournir le vrai logo. Les étoiles de la mention d'origine sont retirées, car le nouveau texte n'est plus une note. Le mot pivot est surligné en #ffe29a au lieu d'être écrit dans cette couleur, qui serait illisible sur fond clair.

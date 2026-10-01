@@ -1,0 +1,11 @@
+Créa 16 · Turnly
+
+1. Titre : 1 semaine offerte.
+3. Prix : 14,90 €/mois
+4. Preuve sociale : Sans engagement
+5. Mention : Sans carte bancaire, prêt en 3 minutes
+
+Idée du visuel : Notre vraie photo de l'affiche Turnly en vitrine en héros, le texte à droite comme sur l'inspiration.
+Référence      : EC1-03 · produit héros et offre prix
+
+Alerte : Aucun fichier logo Turnly n'est joint : le nom de marque en haut à droite de la référence est supprimé, et le logo n'apparaît que via la signature intégrée à la photo. Les cinq étoiles de la preuve sociale sont retirées, car elles laisseraient croire à une note sous le texte « Sans engagement ». L'accent #ffe29a est illisible en texte sur le fond crème : il est appliqué en surlignage derrière « offerte. ». La référence et la fiche ne comportent pas de CTA : aucun n'a été ajouté.

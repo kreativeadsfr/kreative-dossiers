@@ -1,0 +1,13 @@
+Créa 4 · IDlift TEST
+
+1. Titre : Une marque qui inspire confiance.
+2. Liste à puces 1 : Un logo unique
+3. Détail puce 1 : Dessiné à la main, jamais généré
+4. Liste à puces 2 : Une charte complète
+6. Liste à puces 3 : Livré en 48h
+8. CTA : VOIR LES OFFRES
+
+Idée du visuel : Garde le texte à gauche et le visuel à droite, mais remplace le flacon par une carte de visite IDlift posée sur du papier kraft.
+Référence      : EC1-20 · produit héros, texte à gauche
+
+Alerte : Aucun asset n'est joint, donc le logo du haut est supprimé et la carte de visite est générée vierge, sans logo ni texte, pour ne pas inventer le logo IDlift. Vu la consigne du client contre l'IA, il vaut mieux joindre le logo IDlift ou une vraie photo de sa carte de visite.

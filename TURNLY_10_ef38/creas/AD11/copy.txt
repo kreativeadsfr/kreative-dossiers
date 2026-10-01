@@ -1,0 +1,14 @@
+Créa 11 · Turnly
+
+1. Libellé colonne de gauche : Votre problème :
+2. Libellé colonne de droite : Notre solution :
+3. Liste à puces 1 : Vos clients sont contents, mais ne laissent pas d'avis
+4. Liste à puces 2 : Vous n'osez pas demander
+5. Liste à puces 3 : Le concurrent d'en face a 10 fois plus d'avis
+6. Liste à puces 4 : Pas le temps, pas de matériel, pas de service marketing
+7. Liste à puces 5 : Une roue, un QR code, des avis en continu
+
+Idée du visuel : Même structure problème à gauche, solution à droite. À droite, notre vraie affiche Turnly avec la roue.
+Référence      : UG3-03 · problème solution en deux colonnes
+
+Alerte : Aucun logo Turnly séparé n'est joint et une ugly ad n'en porte pas, donc aucun n'est ajouté. La mention de marque reste seulement celle qui figure déjà dans l'affiche. L'emplacement 7 (« Une roue, un QR code, des avis en continu ») est une solution placée dans la colonne problème : il est conservé à sa place, comme le demande la fiche, mais le stratégiste devrait le vérifier.

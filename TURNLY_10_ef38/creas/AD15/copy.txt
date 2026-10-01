@@ -1,0 +1,21 @@
+Créa 15 · Turnly
+
+1. Titre : Plus d’avis Google en 3 minutes. Pas en 3 ans.
+2. Ligne 1, colonne de gauche : Prêt en 3 minutes
+3. Ligne 2, colonne de gauche : 14,90 €/mois, sans engagement
+4. Ligne 3, colonne de gauche : Aucun matériel à installer
+5. Ligne 4, colonne de gauche : Vos clients jouent, vous gagnez des avis
+6. Ligne 5, colonne de gauche : Résultats suivis sur votre tableau de bord
+7. Ligne 6, colonne de gauche : 1 semaine offerte
+8. Libellé colonne de droite : Demander à l’oral
+9. Ligne 1, colonne de droite : Gênant pour vous et vos clients
+10. Ligne 2, colonne de droite : Vous oubliez une fois sur deux
+11. Ligne 3, colonne de droite : Personne ne le fait vraiment
+12. Ligne 4, colonne de droite : Aucun suivi des résultats
+13. Lignes 5 et 6, colonne de droite : Quelques avis par an / Note qui stagne
+14. CTA : Essayer Turnly →
+
+Idée du visuel : Même tableau à deux colonnes, notre colonne à gauche avec les coches.
+Référence      : AG2-07 · tableau comparatif nous vs eux
+
+Alerte : 1) L'asset joint ne correspond pas au logo Turnly visible dans l'en-tête du site (roue multicolore et mot « turnly » en bleu) ; je l'ai utilisé comme seule marque, en tête de la carte de gauche. Le logo du haut de la référence est supprimé faute de second asset. Il faut vérifier que cette icône est bien celle de Turnly, ou fournir le vrai logo. 2) La charte impose un texte blanc sur un fond #ffe29a pour le CTA, ce qui donne un contraste très faible, presque illisible en vignette. Je recommande un texte bleu nuit #082b58 sur ce bouton. 3) Le mot pivot est traité en surligneur #ffe29a derrière un texte noir plutôt qu'en texte coloré, car le jaune pâle serait illisible sur fond clair. 4) L'en-tête en serif italique de la carte de droite passe dans la police de la charte.

@@ -12,4 +12,4 @@ Créa 5 · Turnly
 Idée du visuel : Le même message d'excuse, texte dense sur fond sombre, comme l'inspiration.
 Référence      : UG6-08 · lettre d'excuse sur ciel nocturne
 
-Alerte : La référence contient un sachet produit au centre bas, mais aucun asset n'est joint sur cette créa. Cet emplacement visuel est donc supprimé et remplacé par la mer de nuages, sans aucun produit inventé.
+Alerte : Ce visuel prévoit un emplacement pour un visuel produit au centre bas (un sachet), mais aucun asset n'est joint. L'emplacement est retiré et remplacé par les nuages, sans rien inventer. C'est une ugly ad : la police et les couleurs restent celles du format natif, jamais celles de la charte Turnly.

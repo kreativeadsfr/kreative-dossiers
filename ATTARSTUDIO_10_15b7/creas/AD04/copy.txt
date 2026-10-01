@@ -5,6 +5,6 @@ Créa 4 · Attar Studio
 3. Libellé au-dessus du produit : la solution :
 
 Idée du visuel : Garde la recherche Google, et en dessous notre vrai flacon posé.
-Référence      : UG1-03 · recherche Google puis produit posé
+Référence      : UG1-03 · recherche Google puis produit
 
-Alerte : Aucun fichier logo séparé : la marque n'apparaît que sur l'étiquette du flacon, ce qui convient à une ugly ad sans logo. Le flacon est photographié à plat vu de dessus : le redresser debout peut altérer le rendu, à vérifier à la génération. La consigne « À NE PAS FAIRE : Oui » est inexploitable et n'a pas été appliquée. Les grains de café de la référence, propres à son produit, n'ont pas été repris.
+Alerte : Aucun logo séparé d'Attar Studio n'est joint ; conformément à l'ugly ad, aucun logo n'est ajouté, la marque n'apparaît que sur l'étiquette du flacon. Les grains de café de la référence, propres au produit d'origine, ont été retirés sans remplacement. Le flacon étant photographié à plat, la scène est recomposée en vue du dessus pour ne pas le redresser.

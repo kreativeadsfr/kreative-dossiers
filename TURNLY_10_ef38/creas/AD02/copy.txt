@@ -1,0 +1,12 @@
+Créa 2 · Turnly
+
+1. Titre : Pourquoi mes clients ne laissent jamais d’avis :
+2. Liste à puces 1 : Ils sont contents, mais ils oublient
+3. Liste à puces 2 : Moi, j'ose pas leur demander
+4. Liste à puces 3 : Et quand j'ose, j'ai pas le temps
+5. CTA : La solution est juste en dessous 👇
+
+Idée du visuel : Une vraie note iPhone en mode clair, écrite par un commerçant. Rien d'autre.
+Référence      : UG1-13 · capture note iPhone mode clair
+
+Alerte : L'image de référence est une note iPhone en mode sombre, mais l'idée du stratégiste demande explicitement le mode clair. J'ai suivi sa consigne en gardant l'interface native d'Apple (jaune d'accent, pastilles cochées, barre de navigation) avec les couleurs du mode clair natif d'iOS. L'heure de la barre d'état a été fixée à "9:17" pour ne pas reprendre celle de la référence.

@@ -6,6 +6,6 @@ Créa 16 · Turnly
 5. Mention : Sans carte bancaire, prêt en 3 minutes
 
 Idée du visuel : Notre vraie photo de l'affiche Turnly en vitrine en héros, le texte à droite comme sur l'inspiration.
-Référence      : EC1-03 · produit héros et offre
+Référence      : EC1-03 · produit héros et offre prix
 
-Alerte : Aucun logo Turnly n'est joint (l'asset est une photo d'affiche, son petit « Créé avec turnly » n'est pas utilisable comme logo) : l'emplacement du logo en haut à droite est supprimé. Les cinq étoiles de la preuve sociale sont retirées car « Sans engagement » remplace la note client et ne justifie pas d'étoiles. La référence n'a pas de CTA, aucun n'est ajouté. L'accent #ffe29a est illisible en texte sur fond crème : il est appliqué en surlignage derrière le mot pivot.
+Alerte : Aucun logo Turnly exploitable n'est joint : il apparaît seulement en tout petit sur l'affiche. Le bloc logo en haut à droite est donc supprimé. Les cinq étoiles de l'emplacement 4 sont retirées, car "Sans engagement" n'est pas un avis et les garder serait trompeur. L'accent #ffe29a étant illisible en texte sur fond crème, il est appliqué en surlignage feutre derrière "offerte". Il n'y a pas de CTA, car la structure n'en a pas et la fiche n'en fournit aucun texte.

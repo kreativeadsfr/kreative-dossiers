@@ -1,0 +1,11 @@
+Créa 20 · Turnly
+
+1. Titre : Vos clients sont satisfaits. Ils ne le disent juste jamais.
+2. Sous-titre : Une roue. Un QR code. Des avis Google.
+3. CTA : Essayer Turnly gratuitement →
+4. Mention : 1 semaine offerte, sans carte bancaire. 14,90 €/mois ensuite.
+
+Idée du visuel : Remplace les écrans du bas par notre vraie photo de l'affiche Turnly en vitrine.
+Référence      : AG1-14 · titre centré sur photo vitrine
+
+Alerte : Le logo officiel de Turnly (roue colorée et nom « turnly ») n'est pas joint. PJ1 est une icône noire, crème et dorée qui ne correspond pas au logo du site : elle est placée à l'emplacement du logo, à valider. La charte impose un texte blanc sur le bouton jaune pâle #ffe29a, ce qui donne un contraste faible et nuit à la lisibilité du CTA : il faudrait valider un texte bleu nuit #082b58. Pour garder la structure centrée, la photo de la vitrine sert de fond voilé et reste donc moins visible que si elle était le point focal.

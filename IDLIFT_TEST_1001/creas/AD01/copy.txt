@@ -1,0 +1,15 @@
+Créa 1 · IDlift TEST
+
+1. Titre : Une identité de marque complète pour 360 €.
+2. Sous-titre : Une agence vous en demanderait 5 000.
+3. Libellé au-dessus de la carte de gauche : Une agence
+5. Prix, carte de droite : 360 €
+7. Prix barré, carte de gauche : 5 000 €
+8. Délai, carte de droite : Livré en 48h
+9. Délai, carte de gauche : Livré en 4 semaines
+10. CTA : Voir ce qui est inclus
+
+Idée du visuel : Deux cartes face à face : à gauche l'agence classique, prix barré. À droite IDlift, le prix entouré au feutre.
+Référence      : AG2-04 · deux cartes prix face à face
+
+Alerte : Selon l'idée du stratégiste, l'entourage au feutre passe du délai au prix de la carte de droite. Les couleurs secondaires du site ne sont pas confirmées comme couleurs de marque : seul #007bff est utilisé. Le rouge du prix barré est une couleur fonctionnelle.

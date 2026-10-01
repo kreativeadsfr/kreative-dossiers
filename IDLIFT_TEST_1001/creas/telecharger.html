@@ -42,7 +42,7 @@ h2{font-size:23px;line-height:1.25;letter-spacing:-.015em;margin:0 0 8px;font-we
 </style></head><body>
 <div class="boite">
   <h1>IDlift</h1>
-  <p>2 créas, 2 visuels et 2 assets</p>
+  <p>6 créas, 6 visuels et 8 assets</p>
   <button class="tout" id="tout" type="button">Télécharger le dossier</button>
   <div class="etat" id="etat">Préparation automatique…</div>
   <a class="lien" href="./">Voir l'aperçu des créas</a>
@@ -50,7 +50,7 @@ h2{font-size:23px;line-height:1.25;letter-spacing:-.015em;margin:0 0 8px;font-we
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script>
 
-const PLAN = [{"ad":"AD01","visuel":"https://kreativeadsfr.github.io/kreative-dossiers/IDLIFT_TEST_1001/creas/AD01/visuel.jpg","nom":"IDLIFT_STANDARD_01.jpg","assets":[{"url":"https://kreativeadsfr.github.io/kreative-dossiers/IDLIFT_TEST_1001/creas/AD01/assets/IDlift-logo-noir.png","nom":"IDlift-logo-noir.png"}]},{"ad":"AD02","visuel":"https://kreativeadsfr.github.io/kreative-dossiers/IDLIFT_TEST_1001/creas/AD02/visuel.jpg","nom":"IDLIFT_STANDARD_02.jpg","assets":[{"url":"https://kreativeadsfr.github.io/kreative-dossiers/IDLIFT_TEST_1001/creas/AD02/assets/IDlift-logo-noir.png","nom":"IDlift-logo-noir.png"}]}];
+const PLAN = [{"ad":"AD01","visuel":"https://kreativeadsfr.github.io/kreative-dossiers/IDLIFT_TEST_1001/creas/AD01/visuel.jpg","nom":"IDLIFT_STANDARD_01.jpg","assets":[{"url":"https://kreativeadsfr.github.io/kreative-dossiers/IDLIFT_TEST_1001/creas/AD01/assets/Logo-Only__2_.png","nom":"Logo-Only__2_.png"}]},{"ad":"AD02","visuel":"https://kreativeadsfr.github.io/kreative-dossiers/IDLIFT_TEST_1001/creas/AD02/visuel.jpg","nom":"IDLIFT_STANDARD_02.jpg","assets":[{"url":"https://kreativeadsfr.github.io/kreative-dossiers/IDLIFT_TEST_1001/creas/AD02/assets/Logo-Only__2_.png","nom":"Logo-Only__2_.png"},{"url":"https://kreativeadsfr.github.io/kreative-dossiers/IDLIFT_TEST_1001/creas/AD02/assets/Capture_d__cran_2026-06-28_035504.png","nom":"Capture_d__cran_2026-06-28_035504.png"}]},{"ad":"AD03","visuel":"https://kreativeadsfr.github.io/kreative-dossiers/IDLIFT_TEST_1001/creas/AD03/visuel.jpg","nom":"IDLIFT_STANDARD_03.jpg","assets":[]},{"ad":"AD04","visuel":"https://kreativeadsfr.github.io/kreative-dossiers/IDLIFT_TEST_1001/creas/AD04/visuel.jpg","nom":"IDLIFT_STANDARD_04.jpg","assets":[{"url":"https://kreativeadsfr.github.io/kreative-dossiers/IDLIFT_TEST_1001/creas/AD04/assets/Logo-Only__2_.png","nom":"Logo-Only__2_.png"},{"url":"https://kreativeadsfr.github.io/kreative-dossiers/IDLIFT_TEST_1001/creas/AD04/assets/Capture_d__cran_2026-06-28_035504.png","nom":"Capture_d__cran_2026-06-28_035504.png"},{"url":"https://kreativeadsfr.github.io/kreative-dossiers/IDLIFT_TEST_1001/creas/AD04/assets/Capture_d__cran_2026-06-28_040025.png","nom":"Capture_d__cran_2026-06-28_040025.png"},{"url":"https://kreativeadsfr.github.io/kreative-dossiers/IDLIFT_TEST_1001/creas/AD04/assets/Capture_d__cran_2026-06-28_035431.png","nom":"Capture_d__cran_2026-06-28_035431.png"}]},{"ad":"AD05","visuel":"https://kreativeadsfr.github.io/kreative-dossiers/IDLIFT_TEST_1001/creas/AD05/visuel.jpg","nom":"IDLIFT_STANDARD_05.jpg","assets":[]},{"ad":"AD06","visuel":"https://kreativeadsfr.github.io/kreative-dossiers/IDLIFT_TEST_1001/creas/AD06/visuel.jpg","nom":"IDLIFT_STANDARD_06.jpg","assets":[{"url":"https://kreativeadsfr.github.io/kreative-dossiers/IDLIFT_TEST_1001/creas/AD06/assets/Logo-Only.png","nom":"Logo-Only.png"}]}];
 const RACINE = "IDLIFT";
 
 function enregistre(blob, nom){

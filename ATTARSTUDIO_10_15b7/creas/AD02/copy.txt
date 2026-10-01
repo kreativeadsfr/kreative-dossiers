@@ -6,6 +6,6 @@ Créa 2 · Attar Studio
 5. Mention : Livraison offerte dès 70 €
 
 Idée du visuel : Notre flacon en héros dans la coupe dorée avec les pamplemousses, comme sur la photo du site.
-Référence      : EC1-03 · produit héros, colonne offre à droite
+Référence      : EC1-03 · produit héros et prix
 
-Alerte : Aucun logo Attar Studio isolé n'est joint (la marque n'apparaît que sur l'étiquette du flacon), donc l'emplacement du nom de marque en haut à droite est retiré. La fiche ne contient aucun texte de CTA, donc aucun bouton n'est ajouté. Les cinq étoiles de la structure sont conservées comme détail graphique, sans aucune note chiffrée affichée.
+Alerte : Aucun logo Attar Studio n'est joint : l'emplacement du logotype en haut à droite est retiré, et la marque n'apparaît que sur l'étiquette du flacon. La couleur d'accent #A6A398 manque de contraste sur le fond beige : elle est posée sur « Pas 15. » plutôt que sur « 30 % », pour garder le chiffre clé lisible. La fiche ne donne aucun texte de CTA et la structure n'en a pas, donc aucun bouton n'est ajouté. Les cinq étoiles de la structure sont conservées en taupe : à retirer si le client ne peut pas les justifier par des avis notés.

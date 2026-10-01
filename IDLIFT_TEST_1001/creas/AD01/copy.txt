@@ -10,6 +10,6 @@ Créa 1 · IDlift
 10. CTA : Voir ce qui est inclus
 
 Idée du visuel : Deux cartes face à face : à gauche l'agence classique, prix barré. À droite IDlift, le prix entouré au feutre.
-Référence      : AG2-04 · deux cartes prix face à face
+Référence      : AG2-04 · deux cartes de prix comparées
 
-Alerte : Le sous-titre « Une agence vous en demanderait 5 000. » vouvoie alors que le client exige le tutoiement : il est recopié tel quel, à faire valider par le stratégiste. Selon son idée, l'entourage au feutre est déplacé du délai vers le prix de droite. Le rouge du trait barré n'est pas confirmé dans les captures, il est utilisé uniquement comme signal fonctionnel. Vu la consigne anti-IA du client, des planches de réalisation jointes renforceraient l'authenticité des prochaines créas.
+Alerte : Aucune réalisation IDlift n'est jointe à cette créa : le visuel est construit uniquement avec les cartes de prix et la typographie. Selon l'idée du stratégiste, l'entourage au feutre passe du délai au prix de droite, et la flèche pointe vers ce prix.

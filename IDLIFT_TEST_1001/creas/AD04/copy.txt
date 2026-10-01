@@ -6,4 +6,6 @@ Créa 4 · IDlift
 4. CTA : Voir nos réalisations
 
 Idée du visuel : Garde l'éventail de projets au centre, avec nos vraies planches de réalisations.
-Référence      : AG1-47 · éventail de planches de réalisations
+Référence      : AG1-47 · éventail de réalisations en cartes
+
+Alerte : Quatre réalisations jointes pour cinq cartes : l'éventail passe donc à quatre cartes. Ces cartes sont carrées et non verticales, pour garder chaque planche en entier. Le mot mis en avant en italique serif est rendu en Poppins Bold bleu #007bff, comme l'impose la charte.

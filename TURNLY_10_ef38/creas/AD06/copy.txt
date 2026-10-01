@@ -1,9 +1,0 @@
-Créa 6 · Turnly
-
-1. Rubrique : COMMERCE LOCAL
-2. Titre : LES CLIENTS CHOISISSENT DÉSORMAIS LEUR RESTAURANT D'APRÈS LES AVIS GOOGLE, BIEN AVANT LA VITRINE
-
-Idée du visuel : Une fausse page d'actu sur la photo d'une rue commerçante, comme l'inspiration. Aucun nom de média réel.
-Référence      : UG6-01 · fausse une d'actualité sur photo
-
-Alerte : La fiche ne fournit pas de nom de média pour l'emplacement en haut à gauche, et l'idée interdit tout nom de média réel : cette zone est laissée vide. La fiche ne précise pas non plus quels mots du titre mettre en bleu : "AVIS GOOGLE" et "VITRINE" ont été choisis pour reprendre les deux mots en couleur du format.

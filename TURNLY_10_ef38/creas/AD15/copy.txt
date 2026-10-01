@@ -16,6 +16,6 @@ Créa 15 · Turnly
 14. CTA : Essayer Turnly →
 
 Idée du visuel : Même tableau à deux colonnes, notre colonne à gauche avec les coches.
-Référence      : AG2-07 · tableau nous vs eux deux cartes
+Référence      : AG2-07 · tableau comparatif deux cartes
 
-Alerte : L'icône de la pièce jointe 1 est traitée comme le logo Turnly. La capture du site montre pourtant un autre logo (roue multicolore et nom « turnly » en bleu) : à vérifier dans le drive. La charte impose un texte blanc sur le fond #ffe29a du CTA, ce qui donne un contraste très faible et nuit à la lisibilité. Pour la même raison, l'accent #ffe29a du mot pivot est rendu en surlignage derrière un texte noir, et non en couleur de texte, car il serait illisible sur fond clair. L'italique serif de la créa d'origine est remplacé par la police de la charte.
+Alerte : Le seul asset joint est une icône d'application noire, crème et dorée. Elle diffère du logo visible sur le site (roue colorée et mot « turnly » bleu nuit) et n'a pas de mot-symbole. Je l'utilise comme logo Turnly, à valider avec le client (logos sur son drive). La police de la charte est déduite du mot-symbole du site, en Plus Jakarta Sans. Le mot pivot « avis Google » est traité au surligneur #ffe29a avec un texte bleu nuit, car un texte en #ffe29a serait illisible sur fond crème.

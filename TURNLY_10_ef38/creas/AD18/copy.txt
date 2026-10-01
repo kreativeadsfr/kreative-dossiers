@@ -1,0 +1,11 @@
+Créa 18 · Turnly
+
+1. Titre : Une affiche prête en 3 minutes.
+2. Sous-titre : Choisissez un modèle, votre lot, votre logo. Imprimez. C’est en place.
+3. Badge preuve sociale : 14,90 €/mois · Sans engagement · 1 semaine offerte
+4. CTA : Voir les modèles
+
+Idée du visuel : Nos vraies affiches Turnly en éventail au centre.
+Référence      : AG1-47 · éventail d'affiches réelles
+
+Alerte : Aucun asset ne contient le logo Turnly (roue multicolore et wordmark bleu vus sur le site) : le bloc logo du haut est retiré. L'icône noire de la pièce jointe 1 n'est pas identifiable comme marque Turnly ; elle est placée en petite carte d'éventail pour respecter « tous les assets », à remplacer ou retirer si elle ne sert pas. La charte impose un texte blanc sur fond #ffe29a pour le CTA : le contraste est très faible, un texte bleu nuit #082b58 serait plus lisible si la charte le permet. Sur fond clair, l'accent #ffe29a du mot pivot est appliqué en surlignage plutôt qu'en couleur de texte, pour rester lisible.

@@ -8,6 +8,6 @@ Créa 23 · Turnly
 6. CTA : Essayer 7 jours gratuits
 
 Idée du visuel : Avant / après en deux cartes côte à côte. La carte « Avec Turnly » montre notre vraie capture de la roue.
-Nouvelle idée, inspirations : AG2-03, AG3-01 · avant après, deux cartes
+Nouvelle idée, inspirations : AG2-03, AG3-01 · avant / après, deux cartes
 
-Alerte : Aucun logo Turnly identifiable dans les assets : la pièce jointe 1 est une icône d'application noire qui ne correspond pas au logo vu sur le site (roue multicolore et mot « turnly » en bleu), utilisée comme petite icône en haut, à vérifier ; par ailleurs le CTA imposé par la charte (texte blanc sur fond #ffe29a) aura un contraste faible sur fond clair, à valider.
+Alerte : VISUEL NON GÉNÉRÉ : Try spacing your requests out using the batching settings under 'Options' | La pièce jointe 1 ne correspond pas au logo Turnly visible sur le site (roue multicolore et mot « turnly » en bleu) : je l'ai traitée comme l'icône de la marque en haut, sans l'appeler logo, à vérifier avant diffusion. Dans la phrase de la pièce jointe 2, les textes des secteurs et du bouton sont recopiés depuis la capture pour la décrire : si le générateur les double hors de la roue, retire ces mots de la phrase et garde seulement la description.

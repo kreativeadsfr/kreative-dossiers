@@ -1,0 +1,15 @@
+Créa 5 · Laboratoire Kotor Pharma
+
+1. Titre : Articulations & peau.
+2. Sous-titre : Un seul complément, deux bénéfices.
+3. Liste à puces 1, nom : MEMBRANE D’ŒUF
+4. Liste à puces 1, description : Source naturelle de collagène
+5. Liste à puces 2, nom : ACIDE HYALURONIQUE
+6. Liste à puces 2, description : Hydratation de la peau
+7. Liste à puces 3, nom : ÉLASTINE
+8. Liste à puces 3, description : Souplesse de la peau
+
+Idée du visuel : Notre vrai pot de Collagène tenu en main au centre, les ingrédients reliés autour.
+Référence      : EC3-17 · produit en main, ingrédients reliés
+
+Alerte : La charte demande l'accent #266e9d sur le mot pivot, mais le fond reprend la clarté sombre de la référence dans ce même bleu : l'accent des mots "deux bénéfices." passe donc en jaune #ffe563, l'autre couleur client. Les trois médaillons d'ingrédients sont générés, faute d'asset d'ingrédients joint. La référence n'a ni CTA ni logo : aucun CTA n'est ajouté, et le logo est placé petit en bas à droite pour utiliser l'asset joint.

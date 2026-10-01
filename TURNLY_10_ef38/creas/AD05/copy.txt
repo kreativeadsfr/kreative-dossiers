@@ -1,0 +1,15 @@
+Créa 5 · Turnly
+
+1. Titre : Nous sommes désolés.
+2. Texte, phrase 1 : Au restaurateur qui a 4,9 en salle et 3,8 sur Google.
+3. Texte, phrase 2 : À la coiffeuse dont les clientes adorent la coupe, mais ne le disent jamais.
+4. Texte, phrase 3 : À tous ceux qui pensaient que demander un avis, ça gênait.
+5. Texte, phrase 4 : Vous n'aviez simplement pas de roue.
+6. Texte, phrase 5 : Vos clients jouent, ils gagnent, ils laissent un avis.
+7. Texte, phrase 6 : Et votre fiche Google se remplit toute seule.
+8. Texte, phrase 7 : Nous sommes désolés que cela vous parvienne seulement maintenant.
+
+Idée du visuel : Le même message d'excuse, texte dense sur fond sombre, comme l'inspiration.
+Référence      : UG6-08 · lettre d'excuse sur ciel nocturne
+
+Alerte : La référence a un seul emplacement visuel (le sachet produit posé sur les nuages) et aucun asset n'est joint : il est retiré et l'espace est rééquilibré par les nuages et le bloc de texte, sans remplissage inventé.

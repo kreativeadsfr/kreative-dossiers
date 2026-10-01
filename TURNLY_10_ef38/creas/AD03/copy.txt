@@ -5,6 +5,6 @@ Créa 3 · Turnly
 3. Libellé au-dessus du produit : la solution :
 
 Idée du visuel : Garde la recherche Google. En dessous, notre vraie photo de l'affiche Turnly sur la table de la terrasse.
-Référence      : UG1-03 · recherche Google puis solution photo
+Référence      : UG1-03 · capture recherche Google puis photo
 
-Alerte : Aucun logo Turnly isolé n'a été fourni : seule la mention « Créé avec turnly » apparaît dans la photo, donc aucun logo n'est ajouté, ce qui est conforme au format ugly ad. La référence en 4:5 est recomposée en carré. La photo, verticale et non recadrée, sera donc plus étroite que le produit de la référence.
+Alerte : Turnly n'a pas de logo seul : la marque n'apparaît que dans la petite mention en bas de l'affiche de la photo, ce qui convient à une ugly ad sans logo. La photo est verticale et doit rester entière : dans le carré, elle sera plus étroite que le produit de la créa d'origine. La requête de recherche n'a pas de point d'interrogation, elle est conservée telle quelle comme une vraie saisie Google.

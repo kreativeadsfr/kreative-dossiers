@@ -10,6 +10,6 @@ Créa 1 · IDlift TEST
 10. CTA : Voir ce qui est inclus
 
 Idée du visuel : Deux cartes face à face : à gauche l'agence classique, prix barré. À droite IDlift, le prix entouré au feutre.
-Référence      : AG2-04 · deux cartes prix face à face
+Référence      : AG2-04 · nous vs eux, deux cartes inclinées
 
-Alerte : Selon l'idée du stratégiste, l'entourage au feutre passe du délai au prix de la carte de droite. Les couleurs secondaires du site ne sont pas confirmées comme couleurs de marque : seul #007bff est utilisé. Le rouge du prix barré est une couleur fonctionnelle.
+Alerte : Le sous-titre « Une agence vous en demanderait 5 000. » vouvoie alors que le client demande le tutoiement : il est recopié tel quel, à valider par le stratégiste (par exemple « t'en demanderait »). Selon l'idée du stratégiste, l'entourage au feutre est déplacé du délai vers le prix de la carte de droite. Le trait rouge de la référence devient bleu nuit, car les rouges vus sur le site viennent des drapeaux de langue et ne sont pas des couleurs de la marque.

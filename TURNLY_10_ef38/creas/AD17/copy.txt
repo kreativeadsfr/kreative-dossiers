@@ -1,0 +1,17 @@
+Créa 17 · Turnly
+
+1. Titre : Une roue. Des avis.
+2. Sous-titre : Vos clients jouent, votre note monte.
+3. Liste à puces 1, nom : LE QR CODE
+4. Liste à puces 1, description : Posé sur le comptoir
+5. Liste à puces 2, nom : LA ROUE
+6. Liste à puces 2, description : Vos clients la tournent
+7. Liste à puces 3, nom : LE LOT
+8. Liste à puces 3, description : Un café, un dessert, -10 %
+9. Liste à puces 4, nom : L'AVIS
+10. Liste à puces 4, description : Laissé sur Google
+
+Idée du visuel : Notre vraie affiche Turnly tenue en main au centre, les 4 étapes reliées autour.
+Référence      : EC3-17 · produit tenu en main, étapes
+
+Alerte : Aucun logo Turnly n'est joint seul : il n'existe que dans la signature de l'affiche, donc aucun logo n'est ajouté. La main est générée pour suivre l'idée du stratégiste. Les pictogrammes des étapes sont générés et purement graphiques, faute d'assets. Aucun CTA, car ni la référence ni la fiche n'en prévoient. Les visuels du site WS01 à WS07 (portraits, badge Google Partners) n'apportent pas de DA exploitable : la police Plus Jakarta Sans est déduite de la capture du site.

@@ -1,0 +1,12 @@
+Créa 21 · Turnly
+
+1. Titre : Votre fiche Google, enfin à la hauteur de votre boutique.
+2. Liste à puces : Prêt en 3 minutes
+3. Liste à puces : Une roue que vos clients adorent
+4. Liste à puces : Vos avis suivis sur un tableau de bord
+5. CTA : Essayer gratuitement
+
+Idée du visuel : Titre en haut, la liste cochée dessous. En bas, notre vraie capture du tableau de bord de la roue, en carte inclinée, avec notre vraie fiche Google qui se chevauche.
+Nouvelle idée, inspirations : AG1-17, AG1-12 · checklist et cartes d'interface superposées
+
+Alerte : Le logo Turnly n'est pas fourni : l'icône noire au C crème (PJ1) ne correspond pas au logo vu sur le site (roue multicolore et mot turnly en bleu). La créa n'a donc pas de logo, et PJ1 sert d'icône flottante secondaire. Il faut vérifier ce qu'est cette icône. Sur fond clair, l'accent #ffe29a est illisible en couleur de texte. Le mot pivot est donc traité en surlignage derrière un texte noir bleuté. Pour la même raison, le texte du CTA passe en bleu marine #082b58 au lieu du blanc demandé par la charte, car du blanc sur #ffe29a est illisible. À valider à l'échelle du pack.

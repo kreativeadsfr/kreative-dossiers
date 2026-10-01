@@ -1,0 +1,19 @@
+Créa 2 · Simplicicar
+
+1. Libellé colonne de gauche : LEBONCOIN
+2. Libellé colonne de droite : SIMPLICICAR
+3. Badge colonne de gauche : GALÈRE
+4. Badge colonne de droite : ZÉRO STRESS
+5. Ligne 1, colonne de gauche : Des inconnus chez vous
+6. Ligne 1, colonne de droite : Anonymat total
+7. Ligne 2, colonne de gauche : Arnaques au faux virement
+8. Ligne 2, colonne de droite : Paiement sécurisé
+9. Ligne 3, colonne de gauche : Paperasse à gérer seul
+10. Ligne 3, colonne de droite : On gère toutes les démarches
+11. Ligne 4, colonne de gauche : Recours possible après la vente
+12. Ligne 4, colonne de droite : Zéro après-vente
+
+Idée du visuel : Même comparatif à deux colonnes. À droite, notre vraie photo de voiture en showroom.
+Référence      : UG4-06
+
+Alerte : PROMPT NON LU (pas de texte dans la reponse) : AUCUN BLOC TEXTE (arret : inconnu) {"error":{"message":"400 - \"{\\\"type\\\":\\\"error\\\",\\\"error\\\":{\\\"type\\\":\\\"invalid_request_error\\\",\\\"message\\\":\\\"Your credit balance is too low to access the Anthropic API. Pleas

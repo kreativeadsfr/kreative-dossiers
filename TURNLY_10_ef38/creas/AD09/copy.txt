@@ -5,6 +5,6 @@ Créa 9 · Turnly
 3. CTA : Découvrir le secret : turnly.fr
 
 Idée du visuel : Format censuré : un vrai document tapé à la machine où certains mots sont cachés par des barres noires, exactement là où il y a ███ dans les textes. C'est voulu, c'est le concept.
-Nouvelle idée, inspirations : UG6-03 · document dactylographié censuré
+Nouvelle idée, inspirations : UG6-03 · document tapé censuré
 
-Alerte : La police de l'inspiration (sans serif géométrique) est remplacée par une frappe de machine à écrire, parce que l'idée du stratégiste demande explicitement un document tapé à la machine. Les couleurs et le rendu de l'inspiration sont conservés, et le logo de l'enveloppe est retiré.
+Alerte : Police machine à écrire choisie selon l'idée du stratégiste (document tapé à la machine), à la place de la linéale grasse de l'inspiration. Couleurs natives de l'inspiration conservées. Logo de l'enveloppe d'origine retiré.

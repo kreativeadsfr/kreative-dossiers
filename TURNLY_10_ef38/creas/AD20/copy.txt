@@ -6,6 +6,6 @@ Créa 20 · Turnly
 4. Mention : 1 semaine offerte, sans carte bancaire. 14,90 €/mois ensuite.
 
 Idée du visuel : Remplace les écrans du bas par notre vraie photo de l'affiche Turnly en vitrine.
-Référence      : AG1-14 · titre centré sur photo voilée
+Référence      : AG1-14 · titre centré, affiche réelle en fond
 
-Alerte : L'icône noire au C crème (pièce jointe 1) ne ressemble pas au logo vu sur le site, la roue multicolore suivie de « turnly » en bleu : elle est utilisée comme logo, ce qui est à confirmer avec le client. La charte impose un texte blanc sur le bouton #ffe29a, ce qui donne un contraste très faible : un texte bleu nuit #082b58 serait plus lisible. La photo de vitrine est voilée pour garder les textes lisibles, comme les écrans flous de la référence.
+Alerte : L'icône de la pièce jointe 1 ne ressemble pas au logo du site (roue multicolore et mot « turnly » bleu) : à confirmer comme logo officiel. Elle est gardée en couleurs d'origine, car la passer en blanc uni la détruirait. Pour que la photo de l'affiche reste entière, le bouton et la mention passent sur le pied de la carte, assombri par un dégradé.

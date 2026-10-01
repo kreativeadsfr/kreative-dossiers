@@ -14,6 +14,6 @@ Créa 12 · Turnly
 12. Ligne 4, colonne de droite : Vos clients repartent avec un lot
 
 Idée du visuel : Même comparatif à deux colonnes. À droite, notre vraie photo de l'affiche Turnly en vitrine.
-Référence      : UG4-06 · comparatif deux colonnes natif
+Référence      : UG4-06 · comparatif deux colonnes sans/avec
 
-Alerte : Un seul asset pour deux emplacements photo : la colonne de gauche garde son fond studio sans image, aucune scène « sans » n'a été inventée. Une photo réelle d'une demande d'avis maladroite renforcerait le contraste. Ugly ad : pas de logo Turnly ajouté, la marque n'apparaît que via « Créé avec turnly » imprimé sur l'affiche.
+Alerte : Aucun logo Turnly autonome n'a été joint (seule la petite mention Créé avec turnly figure sur l'affiche), ce qui ne pose pas de problème pour une ugly ad sans logo. La structure a deux emplacements photo, mais un seul asset a été joint : le visuel de gauche est supprimé et la zone garde le fond terracotta vide, faute d'asset et parce qu'aucune scène générée n'est permise pour un SaaS.

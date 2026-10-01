@@ -1,0 +1,18 @@
+{
+ "execution": "475",
+ "statut": "crashed",
+ "noeuds": [],
+ "erreurs": [],
+ "temps": {},
+ "prep": [],
+ "prompts": [],
+ "gemini": [],
+ "gemini_forme": null,
+ "ranger_nb": 0,
+ "ranger_diag": "",
+ "publies_nb": 0,
+ "publies_echecs": 0,
+ "publies": [],
+ "page": [],
+ "pagesPubliees": []
+}

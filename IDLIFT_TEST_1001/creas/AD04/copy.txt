@@ -1,4 +1,4 @@
-Créa 4 · IDlift TEST
+Créa 4 · IDlift
 
 1. Titre : Une marque qui inspire confiance.
 2. Liste à puces 1 : Un logo unique
@@ -8,6 +8,6 @@ Créa 4 · IDlift TEST
 8. CTA : VOIR LES OFFRES
 
 Idée du visuel : Garde le texte à gauche et le visuel à droite, mais remplace le flacon par une carte de visite IDlift posée sur du papier kraft.
-Référence      : EC1-20 · texte à gauche, carte héros droite
+Référence      : EC1-20 · texte gauche, objet héros droite
 
-Alerte : Aucun asset joint : ni logo IDlift ni photo de carte de visite réelle. Le nom de marque du haut est donc supprimé et les cartes sont générées vierges, sans logo, ce qui va contre la règle agence et la consigne du client de limiter l'IA. Joindre le logo IDlift ou une vraie photo de la papeterie IDlift permettrait d'afficher la marque sur la carte héros.
+Alerte : Aucun asset n'est joint. Le nom de marque du haut est donc supprimé, et la carte de visite IDlift est générée vierge, aux couleurs du client, sans logo pour ne rien inventer. Le client demande d'éviter le rendu IA, ce qui est sensible pour une agence de branding : idéalement, joindre le logo IDlift ou une vraie photo de sa carte de visite. La deuxième ligne du titre, en italique dans la créa d'origine, passe en Poppins Bold pour respecter la charte.

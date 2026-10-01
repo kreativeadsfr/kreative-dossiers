@@ -8,6 +8,6 @@ Créa 3 · Simplicicar
 6. CTA : Estimer ma voiture
 
 Idée du visuel : Titre à gauche avec la liste cochée, à droite notre vraie photo de voiture en showroom en grand, légèrement inclinée.
-Nouvelle idée, inspirations : AG2-03, AG1-09
+Nouvelle idée, inspirations : AG2-03, AG1-09 · liste cochée et photo inclinée
 
-Alerte : PROMPT NON LU (pas de texte dans la reponse) : AUCUN BLOC TEXTE (arret : inconnu) {"error":{"message":"400 - \"{\\\"type\\\":\\\"error\\\",\\\"error\\\":{\\\"type\\\":\\\"invalid_request_error\\\",\\\"message\\\":\\\"Your credit balance is too low to access the Anthropic API. Pleas
+Alerte : Aucun logo Simplicicar n'est joint séparément : aucun logo n'est ajouté, la marque apparaît seulement par l'enseigne de la photo. La photo contient en bas deux inscriptions ("Véhicule Garanti & visible sur RDV" et "Simplicicar Saint-Priest") qui resteront visibles faute de recadrage demandé. La charte des polices est ambiguë : interprétée comme SF Pro Display pour les textes et Brittany comme police de coupure sur le seul chiffre du titre. La consigne client « Plus de détails en mail » n'est pas exploitable.

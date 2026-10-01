@@ -6,4 +6,4 @@ Créa 8 · Turnly
 Idée du visuel : Une vraie story Instagram de commerçant avec le sticker « Pose-moi une question » et la réponse tapée en dessous, sur une photo floue de son comptoir.
 Nouvelle idée, inspirations : UG1-07, UG1-12 · story Instagram question-réponse
 
-Alerte : Aucun asset joint : la photo du comptoir est générée, générique et floue, sans chevalet Turnly visible. Le texte natif du sticker "Pose-moi une question" est repris de l'idée du stratégiste. Le nom d'utilisateur et l'heure de la story sont volontairement absents pour éviter un texte inventé.
+Alerte : Le libellé « Pose-moi une question » cité dans l'idée ne figure pas dans les textes de la fiche : il n'est donc pas affiché, et le bandeau du sticker reste sans texte. Les textes natifs de l'interface (nom du compte, heure, champ Envoyer un message) sont volontairement absents. Aucun asset n'est joint : la photo floue du comptoir est générée, générique, sans chevalet QR ni produit Turnly.

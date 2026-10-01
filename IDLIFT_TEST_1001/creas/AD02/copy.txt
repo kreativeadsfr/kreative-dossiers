@@ -13,4 +13,4 @@ Créa 2 · IDlift
 Idée du visuel : Même timeline en 3 étapes, mais sans les libellés de jour.
 Référence      : AG1-22 · timeline verticale en trois étapes
 
-Alerte : Le titre « en 3 jours » diffère du « livrée en 48h » affiché sur le site du client : à faire confirmer par le stratégiste. Aucune réalisation n'est jointe, mais la structure n'a aucun emplacement visuel : la créa reste typographique, sans remplissage inventé.
+Alerte : Aucune réalisation jointe : la structure n'a pas d'emplacement visuel, donc la créa reste typographique. À noter aussi : la mention reprend la preuve 4,8/5 de la fiche, alors que le site affiche 4,9, et le titre promet 3 jours quand le site annonce 48h, à valider avec le client.

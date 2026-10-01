@@ -12,6 +12,6 @@ Créa 17 · Turnly
 10. Liste à puces 4, description : Laissé sur Google
 
 Idée du visuel : Notre vraie affiche Turnly tenue en main au centre, les 4 étapes reliées autour.
-Référence      : EC3-17 · produit tenu en main, étapes
+Référence      : EC3-17 · objet tenu, étapes en arc
 
-Alerte : Aucun logo Turnly n'est joint seul : il n'existe que dans la signature de l'affiche, donc aucun logo n'est ajouté. La main est générée pour suivre l'idée du stratégiste. Les pictogrammes des étapes sont générés et purement graphiques, faute d'assets. Aucun CTA, car ni la référence ni la fiche n'en prévoient. Les visuels du site WS01 à WS07 (portraits, badge Google Partners) n'apportent pas de DA exploitable : la police Plus Jakarta Sans est déduite de la capture du site.
+Alerte : Aucun fichier logo séparé : le seul logo Turnly est celui déjà imprimé en bas de l'affiche, et la référence n'en a pas. La fiche ne contient aucun texte de CTA, donc aucun bouton n'est ajouté. Les quatre cercles reçoivent des pictogrammes graphiques générés, faute d'assets dédiés.

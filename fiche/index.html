@@ -1073,9 +1073,50 @@ function charge_utile(){
    sur disque un noeud Code ne peut plus les relire. Les 19 assets
    repartaient donc vides. En JSON, il n y a aucun binaire, donc rien
    a relire : la donnee est deja la.
-   Limite du webhook n8n : 16 Mo de corps. On s arrete a 12 Mo utiles
-   pour garder de la marge, et on le dit clairement. */
-const MAX_ENVOI = 12 * 1024 * 1024;
+   Limite du webhook n8n : N8N_PAYLOAD_SIZE_MAX, reglee a 64 Mo sur le
+   serveur (01/10). On s arrete a 48 Mo utiles pour garder de la marge.
+   Avant l envoi, chaque image lourde est allegee (voir allege). */
+const MAX_ENVOI = 48 * 1024 * 1024;
+
+/* ---------- alleger les images lourdes avant l envoi ----------
+   Une photo produit peut peser 8 Mo (Kotor Pharma). Au-dessus de
+   1,5 Mo ou de 2400 px, l image est redessinee a 2400 px maximum
+   (1600 px si elle depasse encore 2 Mo),
+   dans son format : JPEG reste JPEG (qualite 0,88), PNG reste PNG
+   (la transparence d un logo est gardee), WEBP reste WEBP. Si le
+   resultat n est pas plus leger, on garde l original. Une meme image
+   deposee sur plusieurs creas n est traitee qu une fois. */
+const COTE_MAX_ENVOI = 2400;
+const POIDS_LEGER = 1.5 * 1024 * 1024;
+const allegees = new Map();
+async function allege(blob){
+  if(allegees.has(blob)) return allegees.get(blob);
+  const p = (async()=>{
+    const type = blob.type || "";
+    if(!/^image\/(jpeg|png|webp)$/.test(type)) return blob;
+    let bmp;
+    try{ bmp = await createImageBitmap(blob); }catch(e){ return blob; }
+    const grand = Math.max(bmp.width, bmp.height);
+    if(blob.size <= POIDS_LEGER && grand <= COTE_MAX_ENVOI){ bmp.close&&bmp.close(); return blob; }
+    /* un PNG photo (packshot detoure) reste lourd a 2400 px : on
+       redescend a 1600 px s il depasse encore 2 Mo */
+    let sortie = null;
+    for(const cote of [COTE_MAX_ENVOI, 1600]){
+      const f = Math.min(1, cote / grand);
+      const w = Math.max(1, Math.round(bmp.width * f)), h = Math.max(1, Math.round(bmp.height * f));
+      const cv = document.createElement("canvas"); cv.width = w; cv.height = h;
+      const cx = cv.getContext("2d");
+      cx.imageSmoothingQuality = "high";
+      cx.drawImage(bmp, 0, 0, w, h);
+      sortie = await new Promise(r => cv.toBlob(r, type, type === "image/png" ? undefined : 0.88));
+      if(!sortie || sortie.size <= 2 * 1024 * 1024) break;
+    }
+    bmp.close&&bmp.close();
+    return (sortie && sortie.size < blob.size) ? sortie : blob;
+  })();
+  allegees.set(blob, p);
+  return p;
+}
 
 async function envoie(){
   const n=nb();
@@ -1090,7 +1131,8 @@ async function envoie(){
     for(let k=0;k<list.length;k++){
       const a=list[k];
       if(!a.blob)continue;
-      const d=await b64(a.blob);              /* data:image/png;base64,AAAA... */
+      const leger=await allege(a.blob);
+      const d=await b64(leger);               /* data:image/png;base64,AAAA... */
       if(!d)continue;
       const v=d.indexOf(",");
       if(v<0)continue;
@@ -1099,7 +1141,7 @@ async function envoie(){
       poids+=brut.length;
       (charge.fichiers[i]||=[]).push({
         nom:a.name,
-        mime:(a.blob.type||"application/octet-stream"),
+        mime:(leger.type||a.blob.type||"application/octet-stream"),
         b64:brut
       });
     }
@@ -1114,6 +1156,7 @@ async function envoie(){
     headers:{"Content-Type":"application/json"},
     body:JSON.stringify(charge)
   });
+  if(r.status===413)throw new Error("envoi trop lourd pour le serveur (413) : retire quelques pieces et renvoie");
   if(!r.ok)throw new Error("le webhook a repondu "+r.status);
   return true;
 }

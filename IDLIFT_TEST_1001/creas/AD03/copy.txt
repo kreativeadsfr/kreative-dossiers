@@ -7,6 +7,6 @@ Créa 3 · IDlift
 5. CTA : Lien juste en dessous 👇
 
 Idée du visuel : Une vraie note iPhone en mode sombre, rien d'autre.
-Référence      : UG1-13 · note iPhone sombre en checklist
+Référence      : UG1-13 · note iPhone sombre, checklist
 
-Alerte : L'heure de la barre d'état a été changée en « 9:24 » pour ne reprendre aucun texte de la référence. Le libellé « Notes » est conservé parce que c'est un élément d'interface native du format, pas de la copy.
+Alerte : L'heure de la barre d'état (14:07, remplaçant l'heure d'origine) et le mot « Notes » du bouton retour sont des éléments natifs de l'interface iOS conservés pour la crédibilité de la capture, ils ne viennent pas de la fiche ; à retirer du prompt si seuls les textes du stratégiste doivent apparaître.

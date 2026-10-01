@@ -1,0 +1,281 @@
+{
+  "dossier": "SENSEFRAGRANCE_10_7cf1",
+  "brand_name": "Sense fragrances",
+  "website": "sense-fragrances.com",
+  "secteur": "E-commerçant",
+  "pack": "scale",
+  "nb_creas": 24,
+  "deadline": "2026-10-04T17:36:37.882Z",
+  "deadline_heures": 72,
+  "deadline_strategiste": "2026-10-02T17:36:37.882Z",
+  "deadline_designer": "2026-10-04T09:36:37.882Z",
+  "nb_ugly": 12,
+  "date": "2026-10-01",
+  "couleurs": [
+    "#c5382e",
+    "#13621f",
+    "#79571b",
+    "#5a78ff",
+    "#0071ce",
+    "#1e3764"
+  ],
+  "couleurs_client": [],
+  "couleurs_site": [
+    "#c5382e",
+    "#13621f",
+    "#79571b",
+    "#5a78ff",
+    "#0071ce",
+    "#1e3764"
+  ],
+  "polices": [],
+  "polices_client": [],
+  "polices_site": [],
+  "captures": [
+    {
+      "page": "accueil",
+      "url": "https://storage.googleapis.com/firecrawl-scrape-media/screenshot-dec48ec0-abdb-4599-bb42-f72327200765.png?GoogleAccessId=scrape-bucket-accessor%40firecrawl.iam.gserviceaccount.com&Expires=1791480946&Signature=Su07vIfxSWyFFEVrkNB%2Be0O%2FJn87266sy2I25fLYfOyAt41mjTOufKkw0%2B0qEXREBJuGQy9pyEwJAIHQkJY3lD%2ButZfgthSyNPtfaq7hZx9Kp2dfUqNmd%2Bf2mVYFxRi02VLXthvgN6%2B%2BKa6m90DvS95GNNxa%2FVoKnXYtPNURuMAFFU0nj%2FTVKtkcJTzwUpek7GhwwXm9JG3ccmP65n8IgVBEAVwwmKZaQcUiKN2CinhTpjucnVTYFCbBbafIbEFaDBRFUefNMWhrryVw35hm7PyInN5DLfry8t%2FVRLCBE1zhEeqnaNxw5qwcn5xON9XSerVuA4knAPxpQ6mwigF1gQ%3D%3D"
+    }
+  ],
+  "ton": "Direct & percutant (oral, sans détour)",
+  "adresse": "Les deux",
+  "ambiance": "",
+  "consignes": "Nous voulons les visuels statiques les plus performants du moment, avec un message compris en un coup d'œil : le client doit saisir l'image et l'idée en une seconde. Le message de fond est que payer un parfum 200 ou 300 € n'est pas normal. Ce prix vient surtout de la marque, du marketing et du packaging, pas des matières premières. Chez Sense, on mise sur la qualité du jus : nos parfums tiennent, ont du sillage et sont vendus au juste prix.",
+  "promo": "Sur le site nous allons faire une offre 2 parfums achetés 1 offert",
+  "interdits": "",
+  "preuves": "Plus de 5000 clients, et nous avons des avis trustpilot à récupérer pour intégrer dans les statiques…",
+  "offre": "",
+  "differenciation": "",
+  "client_ideal": "Notre client idéal a entre 18 et 35 ans. C'est un homme ou une femme qui aime les beaux parfums et veut sentir bon toute la journée, mais qui ne peut pas (ou ne veut pas) mettre 150 à 300 € dans un flacon de grande marque. Son problème est simple : les parfums de luxe sont trop chers, et les alternatives bon marché tiennent mal et sentent « le faux ». Il cherche une fragrance de qualité, qui tient, à un prix raisonnable.",
+  "freins": "Ils ne peuvent pas sentir le parfum avant d'acheter en ligne. Ils doutent de la tenue (« est-ce que ça tient vraiment ? ») et de la qualité par rapport à l'original. Ils ne connaissent pas encore bien la marque, et beaucoup ont déjà été déçus par des alternatives bon marché.",
+  "objectif": "Faire un maximum de ventes en levant les objections des prospects. Les ads doivent prouver la tenue et le sillage de nos parfums, et surtout convaincre de leur ressemblance avec les grands parfums dont ils s'inspirent, pour que le client achète en confiance sans avoir senti le produit.",
+  "assets": [
+    {
+      "id": "PJ01",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-sPx62jwVQqus/d6018aa7-a21a-42d9-b52c-cf4e286d3dd1-MdXFiVbu4IFGqx4eqxXlL3wEKmkN1ZOjZHjJNmbg1ibAf90yhp2OyCUgzoo6Y7sewSgnAIC5xq8lDMJpDRyei4OJvwiMb871dSe/sense-(500-x-500-px).png",
+      "type": "logo"
+    },
+    {
+      "id": "PJ02",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-sPx62jwVQqus/b14f2b5c-b810-4d56-91a0-e685df5181fd-Ja8AH9IplauirSMAiEkXszH8dys0D6Hsr3HG2UD2SEyirwPgW7ZLaitaqXutrZFQx889umARRG6xCcOrOU1ddPflaI9ZxHW3l50/sense-(500-x-500-px).png",
+      "type": "produit"
+    }
+  ],
+  "assets_site": [
+    {
+      "id": "WS01",
+      "url": "https://sense-fragrances.com/cdn/shop/files/DSC02055__Embellisseur_de_produit.jpg?v=1788443358&width=720",
+      "nom": "visuel du site",
+      "note": 18
+    },
+    {
+      "id": "WS02",
+      "url": "https://sense-fragrances.com/cdn/shop/files/DSC01954__Embellisseur_de_produit.jpg?v=1788440861&width=720",
+      "nom": "visuel du site",
+      "note": 12
+    },
+    {
+      "id": "WS03",
+      "url": "https://cdn.shopify.com/s/files/1/0952/4707/3612/files/Showroom.png?v=1779548660",
+      "nom": "visuel du site",
+      "note": 5
+    },
+    {
+      "id": "WS04",
+      "url": "https://sense-fragrances.com/cdn/shop/files/DSC01955__Embellisseur_de_produit.jpg?v=1788440899&width=720",
+      "nom": "visuel du site",
+      "note": 18
+    },
+    {
+      "id": "WS05",
+      "url": "https://sense-fragrances.com/cdn/shop/files/DSC02065__Embellisseur_de_produit.jpg?v=1788443625&width=720",
+      "nom": "visuel du site",
+      "note": 12
+    },
+    {
+      "id": "WS06",
+      "url": "https://sense-fragrances.com/cdn/shop/files/DSC02060__Embellisseur_de_produit.jpg?v=1788443501&width=720",
+      "nom": "visuel du site",
+      "note": 17
+    },
+    {
+      "id": "WS07",
+      "url": "https://sense-fragrances.com/cdn/shop/files/DSC02050__Embellisseur_de_produit.jpg?v=1788443263&width=720",
+      "nom": "visuel du site",
+      "note": 12
+    },
+    {
+      "id": "WS08",
+      "url": "https://sense-fragrances.com/cdn/shop/files/DSC02057__Embellisseur_de_produit.jpg?v=1788444658&width=720",
+      "nom": "visuel du site",
+      "note": 17
+    },
+    {
+      "id": "WS09",
+      "url": "https://sense-fragrances.com/cdn/shop/files/DSC02031__Embellisseur_de_produit.jpg?v=1788442741&width=720",
+      "nom": "visuel du site",
+      "note": 12
+    },
+    {
+      "id": "WS10",
+      "url": "https://sense-fragrances.com/cdn/shop/files/DSC01965__Embellisseur_de_produit.jpg?v=1788441166&width=720",
+      "nom": "visuel du site",
+      "note": 17
+    },
+    {
+      "id": "WS11",
+      "url": "https://sense-fragrances.com/cdn/shop/files/DSC02063__Embellisseur_de_produit.jpg?v=1788443575&width=720",
+      "nom": "visuel du site",
+      "note": 11
+    },
+    {
+      "id": "WS12",
+      "url": "https://sense-fragrances.com/cdn/shop/files/DSC02037__Embellisseur_de_produit.jpg?v=1788442989&width=720",
+      "nom": "visuel du site",
+      "note": 17
+    },
+    {
+      "id": "WS13",
+      "url": "https://sense-fragrances.com/cdn/shop/files/DSC01962__Embellisseur_de_produit.jpg?v=1788441089&width=720",
+      "nom": "visuel du site",
+      "note": 11
+    },
+    {
+      "id": "WS14",
+      "url": "https://sense-fragrances.com/cdn/shop/files/DSC02046__Embellisseur_de_produit.jpg?v=1788443138&width=720",
+      "nom": "visuel du site",
+      "note": 15
+    },
+    {
+      "id": "WS15",
+      "url": "https://sense-fragrances.com/cdn/shop/files/DSC02056__Embellisseur_de_produit.jpg?v=1788443391&width=720",
+      "nom": "visuel du site",
+      "note": 11
+    },
+    {
+      "id": "WS16",
+      "url": "https://sense-fragrances.com/cdn/shop/files/DSC02020__Embellisseur_de_produit.jpg?v=1788442462&width=720",
+      "nom": "visuel du site",
+      "note": 11
+    },
+    {
+      "id": "WS17",
+      "url": "https://sense-fragrances.com/cdn/shop/files/DSC02005__Embellisseur_de_produit.jpg?v=1788442177&width=720",
+      "nom": "visuel du site",
+      "note": 11
+    },
+    {
+      "id": "WS18",
+      "url": "https://sense-fragrances.com/cdn/shop/files/DSC02040__Embellisseur_de_produit.jpg?v=1788443035&width=720",
+      "nom": "visuel du site",
+      "note": 11
+    },
+    {
+      "id": "WS19",
+      "url": "https://sense-fragrances.com/cdn/shop/files/DSC02030__Embellisseur_de_produit.jpg?v=1788442692&width=720",
+      "nom": "visuel du site",
+      "note": 10
+    },
+    {
+      "id": "WS20",
+      "url": "https://sense-fragrances.com/cdn/shop/files/DSC02059__Embellisseur_de_produit.jpg?v=1788443465&width=720",
+      "nom": "visuel du site",
+      "note": 10
+    },
+    {
+      "id": "WS21",
+      "url": "https://sense-fragrances.com/cdn/shop/files/DSC01967__Embellisseur_de_produit.jpg?v=1788441208&width=720",
+      "nom": "visuel du site",
+      "note": 10
+    },
+    {
+      "id": "WS22",
+      "url": "https://sense-fragrances.com/cdn/shop/files/DSC01952__Embellisseur_de_produit.jpg?v=1788440800&width=720",
+      "nom": "visuel du site",
+      "note": 10
+    },
+    {
+      "id": "WS23",
+      "url": "https://sense-fragrances.com/cdn/shop/files/DSC01953__Embellisseur_de_produit.jpg?v=1788440844&width=720",
+      "nom": "visuel du site",
+      "note": 10
+    },
+    {
+      "id": "WS24",
+      "url": "https://sense-fragrances.com/cdn/shop/files/DSC01972__Embellisseur_de_produit.jpg?v=1788441329&width=720",
+      "nom": "visuel du site",
+      "note": 10
+    },
+    {
+      "id": "WS25",
+      "url": "https://sense-fragrances.com/cdn/shop/files/DSC02038__Embellisseur_de_produit.jpg?v=1788443010&width=720",
+      "nom": "visuel du site",
+      "note": 10
+    },
+    {
+      "id": "WS26",
+      "url": "https://sense-fragrances.com/cdn/shop/files/DSC02035__Embellisseur_de_produit.jpg?v=1788442925&width=720",
+      "nom": "visuel du site",
+      "note": 10
+    },
+    {
+      "id": "WS27",
+      "url": "https://sense-fragrances.com/cdn/shop/files/DSC02022__Embellisseur_de_produit.jpg?v=1788442513&width=720",
+      "nom": "visuel du site",
+      "note": 10
+    },
+    {
+      "id": "WS28",
+      "url": "https://sense-fragrances.com/cdn/shop/files/1_88cfed98-61bd-493c-92a6-7720ec388e71.png?v=1776439872&width=720",
+      "nom": "visuel du site",
+      "note": 7
+    },
+    {
+      "id": "WS29",
+      "url": "https://sense-fragrances.com/cdn/shop/files/2_c9951991-5bc0-4235-980e-96530086213a.png?v=1776439872&width=720",
+      "nom": "visuel du site",
+      "note": 7
+    },
+    {
+      "id": "WS30",
+      "url": "https://sense-fragrances.com/cdn/shop/files/3_1e0d61f7-04db-42cf-8ca1-fadf2855f93f.png?v=1776439872&width=720",
+      "nom": "visuel du site",
+      "note": 7
+    },
+    {
+      "id": "WS31",
+      "url": "https://sense-fragrances.com/cdn/shop/files/4_d33cc026-20fe-465f-a097-66c0333806c7.png?v=1776439872&width=720",
+      "nom": "visuel du site",
+      "note": 7
+    },
+    {
+      "id": "WS32",
+      "url": "https://sense-fragrances.com/cdn/shop/files/Banniere_mobile_765ec0eb-ac97-4733-b2b6-33b8abd7f28b.png?v=1779355615&width=360",
+      "nom": "visuel du site",
+      "note": 3
+    }
+  ],
+  "pubs_client": [
+    {
+      "id": "AD01",
+      "url": "https://scontent-lga3-3.xx.fbcdn.net/v/t39.35426-6/825266901_2094256731480705_4880968893171513182_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=108&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=bQXv8vU0_TEQ7kNvwGGmM7E&_nc_oc=AdqV66DyMDRaclrVXqW-DGpY6h4efMVhHS2wAP8OVJ_0EmL7jB0rYtHTDLPjyYZeUNY&_nc_zt=14&_nc_ht=scontent-lga3-3.xx&_nc_gid=thoKcX42rgbzbCRNAQ5SKg&_nc_ss=78289&oh=00_AQNHRJUuO5dYTKsMrOvaBd35sco-NdL2HAqn8VWydTGsTg&oe=6AC4696C",
+      "texte": "Sense Fragrances · Découvrez nos parfums inspirés des plus grandes marques, avec une ressemblance olfactive jusqu’à 95%. Profitez d’une tenue longue durée, d’une qualité premium et d’un prix jusqu’à 8x moins cher que les"
+    },
+    {
+      "id": "AD02",
+      "url": "https://scontent-lga3-2.xx.fbcdn.net/v/t39.35426-6/825279363_1409134767259410_6626500901474564220_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=100&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=ipfJoyF8QfQQ7kNvwEcw4DX&_nc_oc=AdpfJ0lIwd7FPfj9NLTxww58-aFS5XsYUeIRg2OlyzwgK9zde4oWfmx65QSs6T330vA&_nc_zt=14&_nc_ht=scontent-lga3-2.xx&_nc_gid=thoKcX42rgbzbCRNAQ5SKg&_nc_ss=78289&oh=00_AQMa3AyEK4twr7b8XwVkT6cbOMH5uVKOFXx-YV4jqK_U9g&oe=6AC46412",
+      "texte": "Sense Fragrances · Découvrez nos parfums inspirés des plus grandes marques, avec une ressemblance olfactive jusqu’à 95%. Profitez d’une tenue longue durée, d’une qualité premium et d’un prix jusqu’à 8x moins cher que les"
+    },
+    {
+      "id": "AD03",
+      "url": "https://scontent-lga3-1.xx.fbcdn.net/v/t39.35426-6/825336536_1078056298416014_3179987506282340013_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=103&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=1L0qbXkdXN8Q7kNvwEp5R_5&_nc_oc=Ado5-F0mBenwtCLR_emIn7k0blztPoTGar2inBa1cLh-DNp8TBNMZahG6I69ZOq8Olk&_nc_zt=14&_nc_ht=scontent-lga3-1.xx&_nc_gid=thoKcX42rgbzbCRNAQ5SKg&_nc_ss=78289&oh=00_AQMLyEurt9LoYU-I4071-mv-Xz0-CuLr2ccur-FaPDHvOg&oe=6AC48057",
+      "texte": "sense-fragrances.com"
+    },
+    {
+      "id": "AD04",
+      "url": "https://scontent-lga3-2.xx.fbcdn.net/v/t39.35426-6/789109557_1581774043360349_8768871997527542406_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=100&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=Y_yy8mgx_0UQ7kNvwHKsmDP&_nc_oc=AdpNrHfSd8a3mJ6O2ajRCvND49kaNQWq8HQjNjsh7W1DNuKjs5-13NAKF1DgL4_S-D8&_nc_zt=14&_nc_ht=scontent-lga3-2.xx&_nc_gid=thoKcX42rgbzbCRNAQ5SKg&_nc_ss=78289&oh=00_AQNVRMvJ2xqWCOfPk7aGXqEA9ms-kasFpP81jM8sDGy3PQ&oe=6AC47709",
+      "texte": "Sense Fragrances · Découvrez nos parfums inspirés des plus grandes marques, avec une ressemblance olfactive jusqu’à 95%. Profitez d’une tenue longue durée, d’une qualité premium et d’un prix jusqu’à 8x moins cher que les"
+    }
+  ],
+  "pubs_concurrents": []
+}

@@ -1,0 +1,11 @@
+Créa 24 · Turnly
+
+1. Titre : Pendant que vous n'osez pas demander, le concurrent d'en face collectionne les avis.
+2. Sous-titre : Turnly demande à votre place. Vos clients tournent la roue, ils laissent un avis.
+3. CTA : Essayer gratuitement
+4. Mention : 1 semaine offerte, sans carte bancaire
+
+Idée du visuel : Gros titre en haut avec le mot « concurrent » en couleur. En bas, notre vraie fiche Google en carte, avec une courbe d'avis qui monte.
+Nouvelle idée, inspirations : AG1-33, AG1-13 · titre choc et fiche Google
+
+Alerte : Aucun logo Turnly parmi les assets : l'icône noire de la pièce jointe 1 ne correspond pas au logo du site (roue colorée et mot « turnly » en bleu). La créa sort donc sans logo et cette icône est utilisée comme élément secondaire ; à vérifier qu'elle appartient bien à Turnly. La charte impose un CTA en texte blanc sur fond #ffe29a, un contraste très faible, appliqué tel quel, à revoir pour la lisibilité. Le mot pivot « concurrent » est traité en surligneur #ffe29a sous des lettres bleu nuit plutôt qu'en lettres #ffe29a, illisibles sur fond clair. La fiche jointe est celle d'un commerce client (Le Comptoir du Foie Gras), pas une fiche Turnly.

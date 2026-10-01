@@ -9,5 +9,3 @@ Créa 1 · Turnly
 
 Idée du visuel : Vraie capture iMessage entre deux commerçants potes. Le dernier message donne la solution.
 Nouvelle idée, inspirations : UG1-02 · capture conversation iMessage native
-
-Alerte : Les textes natifs de l'interface ont été fixés par moi pour éviter qu'ils soient inventés : prénom du contact "Karim" avec l'initiale "K" en avatar sans photo, horodatage "Aujourd'hui 21:14", champ de saisie "iMessage". Le CTA "turnly.fr" est traité comme une bulle reçue contenant un lien, sans aperçu. À valider par le stratégiste.

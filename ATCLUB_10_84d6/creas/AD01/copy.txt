@@ -1,0 +1,8 @@
+Créa 1 · ATCLUB
+
+1. Titre : Ton prochain date court aussi le dimanche.
+
+Idée du visuel : Le vrai écran de l'app dans le téléphone, au centre, comme sur l'inspiration.
+Référence      : AG1-11 · écran d'app héros dans téléphone
+
+Alerte : La fiche ne fournit aucun texte de CTA (et la structure de départ n'en a pas), donc aucun CTA n'est ajouté. La police Futura PT est déduite des captures du site, aucune police n'ayant été donnée. Le téléphone n'est coupé qu'au niveau de sa barre de navigation, pour suivre la consigne du stratégiste (comme sur l'inspiration). L'écran de l'app contient des textes en anglais (Nearby, Send a message...), qui sont conservés tels quels.

@@ -9,4 +9,4 @@ Créa 5 · IDlift
 Idée du visuel : Vraie capture iMessage entre deux fondateurs. Le dernier message envoie le lien vers les offres.
 Nouvelle idée, inspirations : UG1-02, UG1-05 · capture native conversation iMessage
 
-Alerte : Aucun nom de contact, horodatage ni statut « Distribué » n'est fourni dans la fiche : le nom est masqué par une barre de floutage et l'horodatage comme le statut sont omis, pour n'afficher aucun texte inventé. Les règles de fond travaillé et de CTA non-pilule ne s'appliquent pas, car l'ugly ad garde le rendu natif iMessage et le CTA est une bulle-lien.
+Alerte : Aucun prénom de contact fourni pour l'en-tête iMessage : le nom est laissé absent, l'avatar par défaut d'Apple reste seul, et ni l'heure ni la barre d'état ne sont affichées pour n'imprimer aucun texte hors fiche.

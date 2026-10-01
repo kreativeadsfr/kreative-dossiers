@@ -5,6 +5,6 @@ Créa 13 · Turnly
 3. CTA : ESSAYER 7 JOURS GRATUITS →
 
 Idée du visuel : Sur le panneau, notre vraie photo de l'affiche Turnly sur le comptoir de la boulangerie.
-Référence      : EC1-14 · panneau d'affichage dans le ciel
+Référence      : EC1-14 · panneau publicitaire 4x3 dans le ciel
 
-Alerte : Logo à vérifier : la pièce jointe 2 est une icône d'application qui ne correspond pas au logo vu sur turnly.fr (roue multicolore et mot turnly en bleu). Je l'ai placée à l'emplacement du logo sans la nommer logo. Lisibilité du CTA : la charte impose un texte blanc sur fond #ffe29a, un contraste très faible qui risque de rendre le bouton illisible en vignette. Je propose de passer le texte du bouton en bleu nuit #082b58, à valider.
+Alerte : Aucun asset ne montre le logo Turnly du site (roue multicolore + "turnly" en bleu) : l'icône noire de la pièce jointe 2 est placée en marque, à confirmer avec le client. La charte impose un texte blanc sur un bouton #ffe29a : contraste faible et lisibilité du CTA à vérifier. Le mot pivot #ffe29a sur ciel bleu est soutenu par une ombre douce.

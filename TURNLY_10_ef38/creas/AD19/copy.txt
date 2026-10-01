@@ -1,0 +1,16 @@
+Créa 19 · Turnly
+
+1. Titre : Pas assez d’avis Google ?
+2. Sous-titre : Vos clients sont contents. Turnly leur donne une raison de le dire.
+3. Bénéfice 1, à gauche : PRÊT EN 3 MINUTES
+4. Bénéfice 1, à droite : SANS MATÉRIEL
+5. Bénéfice 2, à gauche : CLIENTS QUI JOUENT
+6. Bénéfice 2, à droite : AVIS EN CONTINU
+7. Bénéfice 3, à gauche : TABLEAU DE BORD
+8. Bénéfice 3, à droite : SANS ENGAGEMENT
+9. CTA : Essayer 7 jours gratuits
+
+Idée du visuel : Notre vraie affiche Turnly au centre, les 6 bénéfices de part et d'autre.
+Référence      : EC2-07 · produit héros et bénéfices latéraux
+
+Alerte : Aucun logo Turnly n'est joint à cette créa : l'emplacement du nom de marque en haut est retiré. La charte impose un texte blanc sur fond #ffe29a pour le CTA, ce qui donne un contraste faible, appliqué tel quel, à valider. L'accent #ffe29a du mot pivot est posé en surlignage derrière le texte bleu nuit pour rester lisible sur fond clair.

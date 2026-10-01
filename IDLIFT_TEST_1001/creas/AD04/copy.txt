@@ -8,6 +8,6 @@ Créa 4 · IDlift TEST
 8. CTA : VOIR LES OFFRES
 
 Idée du visuel : Garde le texte à gauche et le visuel à droite, mais remplace le flacon par une carte de visite IDlift posée sur du papier kraft.
-Référence      : EC1-20 · produit héros, texte à gauche
+Référence      : EC1-20 · texte à gauche, carte héros droite
 
-Alerte : Aucun asset n'est joint, donc le logo du haut est supprimé et la carte de visite est générée vierge, sans logo ni texte, pour ne pas inventer le logo IDlift. Vu la consigne du client contre l'IA, il vaut mieux joindre le logo IDlift ou une vraie photo de sa carte de visite.
+Alerte : Aucun asset joint : ni logo IDlift ni photo de carte de visite réelle. Le nom de marque du haut est donc supprimé et les cartes sont générées vierges, sans logo, ce qui va contre la règle agence et la consigne du client de limiter l'IA. Joindre le logo IDlift ou une vraie photo de la papeterie IDlift permettrait d'afficher la marque sur la carte héros.

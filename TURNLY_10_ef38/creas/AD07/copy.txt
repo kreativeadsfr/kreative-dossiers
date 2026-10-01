@@ -5,6 +5,6 @@ Créa 7 · Turnly
 3. Texte du post : 📈
 
 Idée du visuel : Un vrai tweet de commerçant façon meme, deux lignes qui se répondent, rien d'autre. Pas de photo.
-Nouvelle idée, inspirations : UG1-12 · tweet meme de commerçant
+Nouvelle idée, inspirations : UG1-12 · tweet meme natif sans photo
 
-Alerte : Les textes natifs de l'interface (nom "Sophie Martin", identifiant "@sophie_boulange · 3h", compteurs "248", "1,9 k", "7,2 k", "412") ne viennent pas de la fiche : ils sont ajoutés pour que le post passe pour une vraie capture, à valider ou remplacer par le stratégiste. L'emoji 📈 peut être rendu de façon imparfaite par le générateur, à vérifier.
+Alerte : Le format tweet impose un nom, un pseudo, une heure et des compteurs que la fiche ne fournit pas : j'ai écrit des valeurs natives réalistes ("Julien Marchand", "@julien_boulange · 3 h", 214 / 1,8 k / 9,6 k / 312). Le stratégiste doit les valider ou les remplacer.

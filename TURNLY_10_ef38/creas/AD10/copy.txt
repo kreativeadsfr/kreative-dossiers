@@ -6,6 +6,6 @@ Créa 10 · Turnly
 4. Mention : (notre designer est parti chercher plus d’avis)
 
 Idée du visuel : Le même format manuscrit sur papier, avec notre vraie affiche Turnly à la place du produit.
-Référence      : UG2-01 · note manuscrite sur papier
+Référence      : UG2-01 · manuscrit sur papier, affiche fléchée
 
-Alerte : Aucun logo Turnly séparé n'a été joint, donc aucun logo n'est ajouté. Le seul logo visible est la petite signature intégrée en pied de l'affiche, conservée parce que l'asset ne se recadre pas. La référence montrait deux visuels pour un seul asset joint : la créa est réduite à un seul emplacement visuel. L'emoji du titre est dessiné à la main pour rester dans le format manuscrit.
+Alerte : Aucun logo Turnly séparé n'est joint. La seule marque est la petite signature "Créé avec turnly" intégrée à l'affiche, conservée car l'asset doit rester entier. La référence a deux emplacements visuels pour un seul asset : ils sont réduits à un seul. Le titre contient l'emoji 👋 : je l'ai demandé dessiné au feutre pour rester dans le format manuscrit.

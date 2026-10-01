@@ -37,11 +37,11 @@ h2{font-size:23px;line-height:1.25;letter-spacing:-.015em;margin:0 0 8px;font-we
     <h1>Simplicicar</h1>
     <p class="meta">3 créas &middot; à livrer vendredi 02/10 23:56</p>
   </div>
-  
+  <button class="tout" id="tout" type="button">Tout télécharger</button>
 </header>
 
-<article class="c ko">
-  <div class="im"><div class="vide">visuel non généré</div></div>
+<article class="c">
+  <div class="im"><img src="https://kreativeadsfr.github.io/kreative-dossiers/SIMPLICICAR_10_bca8/creas/AD01/visuel.jpg" alt="AD01" loading="lazy"></div>
   <div class="tx">
     <span class="num">AD01</span>
     <h2>Vendre sa voiture, sans les galères.</h2>
@@ -49,8 +49,8 @@ h2{font-size:23px;line-height:1.25;letter-spacing:-.015em;margin:0 0 8px;font-we
     <p class="cta">ESTIMER MA VOITURE →</p>
   </div>
 </article>
-<article class="c ko">
-  <div class="im"><div class="vide">visuel non généré</div></div>
+<article class="c">
+  <div class="im"><img src="https://kreativeadsfr.github.io/kreative-dossiers/SIMPLICICAR_10_bca8/creas/AD02/visuel.jpg" alt="AD02" loading="lazy"></div>
   <div class="tx">
     <span class="num">AD02</span>
     <h2>LEBONCOIN</h2>
@@ -67,8 +67,8 @@ h2{font-size:23px;line-height:1.25;letter-spacing:-.015em;margin:0 0 8px;font-we
     <p class="sub">Zéro après-vente</p>
   </div>
 </article>
-<article class="c ko">
-  <div class="im"><div class="vide">visuel non généré</div></div>
+<article class="c">
+  <div class="im"><img src="https://kreativeadsfr.github.io/kreative-dossiers/SIMPLICICAR_10_bca8/creas/AD03/visuel.jpg" alt="AD03" loading="lazy"></div>
   <div class="tx">
     <span class="num">AD03</span>
     <h2>Jusqu'à +25 % par rapport à une reprise en concession.</h2>
@@ -83,7 +83,7 @@ h2{font-size:23px;line-height:1.25;letter-spacing:-.015em;margin:0 0 8px;font-we
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script>
 
-const PLAN = [{"ad":"AD01","visuel":"","nom":"SIMPLI_STANDARD_01.jpg","assets":[{"url":"https://kreativeadsfr.github.io/kreative-dossiers/SIMPLICICAR_10_bca8/creas/AD01/assets/WS02-visuel-du-site.jpg","nom":"WS02-visuel-du-site.jpg"}]},{"ad":"AD02","visuel":"","nom":"SIMPLI_STANDARD_02.jpg","assets":[{"url":"https://kreativeadsfr.github.io/kreative-dossiers/SIMPLICICAR_10_bca8/creas/AD02/assets/WS02-visuel-du-site.jpg","nom":"WS02-visuel-du-site.jpg"}]},{"ad":"AD03","visuel":"","nom":"SIMPLI_STANDARD_03.jpg","assets":[{"url":"https://kreativeadsfr.github.io/kreative-dossiers/SIMPLICICAR_10_bca8/creas/AD03/assets/WS18-visuel-du-site.jpg","nom":"WS18-visuel-du-site.jpg"}]}];
+const PLAN = [{"ad":"AD01","visuel":"https://kreativeadsfr.github.io/kreative-dossiers/SIMPLICICAR_10_bca8/creas/AD01/visuel.jpg","nom":"SIMPLI_STANDARD_01.jpg","assets":[{"url":"https://kreativeadsfr.github.io/kreative-dossiers/SIMPLICICAR_10_bca8/creas/AD01/assets/WS02-visuel-du-site.jpg","nom":"WS02-visuel-du-site.jpg"}]},{"ad":"AD02","visuel":"https://kreativeadsfr.github.io/kreative-dossiers/SIMPLICICAR_10_bca8/creas/AD02/visuel.jpg","nom":"SIMPLI_STANDARD_02.jpg","assets":[{"url":"https://kreativeadsfr.github.io/kreative-dossiers/SIMPLICICAR_10_bca8/creas/AD02/assets/WS02-visuel-du-site.jpg","nom":"WS02-visuel-du-site.jpg"}]},{"ad":"AD03","visuel":"https://kreativeadsfr.github.io/kreative-dossiers/SIMPLICICAR_10_bca8/creas/AD03/visuel.jpg","nom":"SIMPLI_STANDARD_03.jpg","assets":[{"url":"https://kreativeadsfr.github.io/kreative-dossiers/SIMPLICICAR_10_bca8/creas/AD03/assets/WS18-visuel-du-site.jpg","nom":"WS18-visuel-du-site.jpg"}]}];
 const RACINE = "SIMPLI";
 
 function enregistre(blob, nom){

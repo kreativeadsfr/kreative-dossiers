@@ -1,34 +1,42 @@
 [
- {
-  "dossier": "IDLIFT_TEST_1001",
-  "brand_name": "IDlift",
-  "nb_creas": 6,
-  "pack": "starter",
-  "date": "2026-10-01",
-  "url": "https://kreativeadsfr.github.io/kreative-dossiers/IDLIFT_TEST_1001/"
- },
- {
-  "dossier": "YUANBAOLLC_09_579d",
-  "brand_name": "YUANBAO LLC",
-  "nb_creas": 12,
-  "pack": "growth",
-  "date": "2026-09-30",
-  "url": "https://kreativeadsfr.github.io/kreative-dossiers/YUANBAOLLC_09_579d/"
- },
- {
-  "dossier": "IDLIFT_09_27ba",
-  "brand_name": "IDlift",
-  "nb_creas": 6,
-  "pack": "starter",
-  "date": "2026-09-30",
-  "url": "https://kreativeadsfr.github.io/kreative-dossiers/IDLIFT_09_27ba/"
- },
- {
-  "dossier": "LABORATOIREKOT_09_c6ac",
-  "brand_name": "Laboratoire Kotor Pharma",
-  "nb_creas": 12,
-  "pack": "growth",
-  "date": "2026-09-27",
-  "url": "https://kreativeadsfr.github.io/kreative-dossiers/LABORATOIREKOT_09_c6ac/"
- }
+  {
+    "dossier": "ATCLUB_10_84d6",
+    "brand_name": "ATCLUB",
+    "nb_creas": 6,
+    "pack": "starter",
+    "date": "2026-10-01",
+    "url": "https://kreativeadsfr.github.io/kreative-dossiers/ATCLUB_10_84d6/"
+  },
+  {
+    "dossier": "IDLIFT_TEST_1001",
+    "brand_name": "IDlift",
+    "nb_creas": 6,
+    "pack": "starter",
+    "date": "2026-10-01",
+    "url": "https://kreativeadsfr.github.io/kreative-dossiers/IDLIFT_TEST_1001/"
+  },
+  {
+    "dossier": "YUANBAOLLC_09_579d",
+    "brand_name": "YUANBAO LLC",
+    "nb_creas": 12,
+    "pack": "growth",
+    "date": "2026-09-30",
+    "url": "https://kreativeadsfr.github.io/kreative-dossiers/YUANBAOLLC_09_579d/"
+  },
+  {
+    "dossier": "IDLIFT_09_27ba",
+    "brand_name": "IDlift",
+    "nb_creas": 6,
+    "pack": "starter",
+    "date": "2026-09-30",
+    "url": "https://kreativeadsfr.github.io/kreative-dossiers/IDLIFT_09_27ba/"
+  },
+  {
+    "dossier": "LABORATOIREKOT_09_c6ac",
+    "brand_name": "Laboratoire Kotor Pharma",
+    "nb_creas": 12,
+    "pack": "growth",
+    "date": "2026-09-27",
+    "url": "https://kreativeadsfr.github.io/kreative-dossiers/LABORATOIREKOT_09_c6ac/"
+  }
 ]

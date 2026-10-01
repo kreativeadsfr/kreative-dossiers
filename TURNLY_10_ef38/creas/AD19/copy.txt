@@ -13,4 +13,4 @@ Créa 19 · Turnly
 Idée du visuel : Notre vraie affiche Turnly au centre, les 6 bénéfices de part et d'autre.
 Référence      : EC2-07 · produit héros entouré de bénéfices
 
-Alerte : Aucun logo Turnly autonome n'est joint (seule la petite mention Turnly intégrée à l'affiche), donc le logo du haut de la structure est supprimé. La charte impose un texte blanc sur un bouton #ffe29a : ce contraste est faible et risque de rendre le CTA peu lisible en vignette, ce qui pèse sur la conversion. À valider, par exemple avec un texte bleu nuit #082b58. Le vert de l'affiche appartient à la réalisation faite pour KF Burger : il n'est pas repris comme DA. L'avis client, le nom de l'auteur et leur bandeau sont retirés.
+Alerte : Aucun logo Turnly n'est joint (seule la petite mention Powered by turnly figure dans l'affiche) : le bloc nom de marque en haut est retiré. L'accent #ffe29a sur le mot pivot est traité en surlignage, car en texte il serait illisible sur fond crème. Le monticule de matcha est transposé en tas d'étoiles 3D dorées générées.

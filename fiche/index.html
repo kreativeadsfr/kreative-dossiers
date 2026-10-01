@@ -583,6 +583,7 @@ const save=()=>{if(!PRJ)return;try{localStorage.setItem(cle(),JSON.stringify(dat
 const charge=()=>{try{data=JSON.parse(localStorage.getItem(cle())||"{}")}catch(e){data={}}};
 /* une crea : {mode:"inspi"|"libre", ref, tx:{ref:{k:texte}}, idee, moods:[], lignes:[{role,t}]}
    Les anciens brouillons (titre, sous, cta) sont repris tels quels. */
+const MIGRES = new Set();
 function crea(i){
   const d = data[i] = data[i] || {};
   if (!d.mode) d.mode = "inspi";
@@ -597,11 +598,18 @@ function crea(i){
   }
   if (!Array.isArray(d.moods)) d.moods = [];
   if (!Array.isArray(d.lignes)) d.lignes = [];
-  d.lignes.forEach(l => {
-    if (l.role === "Puce") l.role = "Liste à puces";
-    else if (l.role === AUTRE && !(l.lib || "").trim() && !(l.t || "").trim()) l.role = "Titre";
-    else if (l.role !== AUTRE && !ROLES.includes(l.role)) { l.lib = l.role; l.role = AUTRE; }
-  });
+  /* Les anciens brouillons sont remis d aplomb UNE fois, a la premiere
+     ouverture de la crea. Le faire a chaque affichage annulait le choix
+     « Autre » sur une ligne encore vide : elle redevenait « Titre ». */
+  const cle = (PRJ ? PRJ.dossier : "") + ":" + i;
+  if (!MIGRES.has(cle)) {
+    MIGRES.add(cle);
+    d.lignes.forEach(l => {
+      if (l.role === "Puce") l.role = "Liste à puces";
+      else if (l.role === AUTRE && !(l.lib || "").trim() && !(l.t || "").trim()) l.role = "Titre";
+      else if (l.role !== AUTRE && !ROLES.includes(l.role)) { l.lib = l.role; l.role = AUTRE; }
+    });
+  }
   return d;
 }
 const textesDe = d => (d.tx[d.ref] = d.tx[d.ref] || {});

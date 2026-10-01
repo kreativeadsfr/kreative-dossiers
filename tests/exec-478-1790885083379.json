@@ -1,0 +1,83 @@
+{
+ "execution": "478",
+ "statut": "crashed",
+ "noeuds": [
+  "Webhook",
+  "Skill",
+  "Lire la fiche",
+  "Charger la DA",
+  "Une créa par ligne",
+  "Chercher la référence",
+  "Préparer l'appel Claude",
+  "Claude · écrire le prompt",
+  "Lire le prompt",
+  "Gemini · générer l'image",
+  "Ranger la créa",
+  "Page du batch",
+  "GitHub · publier la page",
+  "Wait",
+  "GitHub · lire la page",
+  "Fusionner le sha",
+  "GitHub · publier",
+  "GitHub · lire les fichiers",
+  "Fusionner le sha des fichiers",
+  "Loop Over Items"
+ ],
+ "erreurs": [],
+ "temps": {
+  "Webhook": 1,
+  "Skill": 1,
+  "Lire la fiche": 3194,
+  "Charger la DA": 171,
+  "Une créa par ligne": 218,
+  "Chercher la référence": 742,
+  "Préparer l'appel Claude": 9605,
+  "Claude · écrire le prompt": 97679,
+  "Lire le prompt": 3207,
+  "Gemini · générer l'image": 76952,
+  "Ranger la créa": 5572,
+  "Page du batch": 1440,
+  "GitHub · publier la page": 2597,
+  "Wait": 1,
+  "GitHub · lire la page": 322,
+  "Fusionner le sha": 31595,
+  "GitHub · publier": 2733,
+  "GitHub · lire les fichiers": 3115,
+  "Fusionner le sha des fichiers": 3066,
+  "Loop Over Items": 1
+ },
+ "prep": [
+  {}
+ ],
+ "prompts": [
+  {
+   "isArtificialRecoveredEventItem": true
+  }
+ ],
+ "gemini": [
+  {
+   "i": 0,
+   "cles": [
+    "isArtificialRecoveredEventItem"
+   ],
+   "erreur": "",
+   "statut": ""
+  }
+ ],
+ "gemini_forme": {
+  "isArtificialRecoveredEventItem": true
+ },
+ "ranger_nb": 1,
+ "ranger_diag": "",
+ "publies_nb": 1,
+ "publies_echecs": 1,
+ "publies": [
+  "ECHEC {\"isArtificialRecoveredEventItem\":true}"
+ ],
+ "page": [
+  "[\"isArtificialRecoveredEventItem\"]"
+ ],
+ "pagesPubliees": [
+  "ECHEC {\"isArtificialRecoveredEventItem\":true}"
+ ]
+}

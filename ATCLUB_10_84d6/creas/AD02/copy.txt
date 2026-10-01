@@ -1,0 +1,10 @@
+Créa 2 · ATCLUB
+
+1. Texte du post, ligne 1 : Rencontrés au padel grâce à une app.
+2. Texte du post, ligne 2 : Deux ans plus tard, on court notre premier marathon ensemble.
+3. Texte du post, ligne 3 : Merci ATCLUB 🧡
+
+Idée du visuel : Un vrai post de réseau social, rien d'autre.
+Référence      : UG1-12 · capture native post X texte
+
+Alerte : Aucun asset joint : la grande photo du post de la référence est supprimée et non générée (service, pas de scène photo inventée), le post devient un post texte seul. La fiche ne donne aucun nom d'auteur pour ce témoignage : prénom "Camille" et handle "@camille" choisis par défaut avec un avatar générique, à valider ou à remplacer par le stratégiste. Compteurs d'engagement retirés pour ne reprendre aucun texte de la référence.

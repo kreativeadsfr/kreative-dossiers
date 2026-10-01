@@ -11,6 +11,6 @@ Créa 2 · IDlift
 12. Mention : Noté 4,8/5 sur plus de 40 avis
 
 Idée du visuel : Même timeline en 3 étapes, mais sans les libellés de jour.
-Référence      : AG1-22 · timeline verticale en trois étapes
+Référence      : AG1-22 · frise verticale en trois étapes
 
-Alerte : Aucune réalisation n'est jointe. Pour une agence de branding, c'est le visuel attendu, donc la créa est construite uniquement en typographie et en blocs, sans rien générer, conformément à la consigne du client de ne pas utiliser d'IA. Le titre annonce « 3 jours » alors que le site affiche « livrée en 48h » : à vérifier avec le stratégiste.
+Alerte : Aucune réalisation jointe pour cette agence : la créa reste typographique, comme la structure de la référence qui n'a pas d'emplacement image. Le logo fourni est noir alors que le logo du site est bleu : il reste en noir, faute de version bleue jointe.

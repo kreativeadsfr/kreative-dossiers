@@ -12,4 +12,4 @@ Créa 1 · IDlift
 Idée du visuel : Deux cartes face à face : à gauche l'agence classique, prix barré. À droite IDlift, le prix entouré au feutre.
 Référence      : AG2-04 · deux cartes de prix comparées
 
-Alerte : Aucune réalisation IDlift n'est jointe à cette créa : le visuel est construit uniquement avec les cartes de prix et la typographie. Selon l'idée du stratégiste, l'entourage au feutre passe du délai au prix de droite, et la flèche pointe vers ce prix.
+Alerte : Le sous-titre du stratégiste vouvoie (« vous en demanderait ») alors que la DA impose le tutoiement : je l'ai recopié mot pour mot, à valider. Le trait rouge du prix barré utilise #ED2939, une couleur secondaire vue sur le site mais absente de l'identité visible sur les captures. Aucune réalisation n'est jointe, alors que le client demande un rendu qui ne fasse pas IA : la créa repose sur des cartes graphiques et sur le logo seul.

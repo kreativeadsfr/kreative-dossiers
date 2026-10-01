@@ -1,0 +1,11 @@
+Créa 3 · ATCLUB
+
+1. Titre : Pas de match sans sport en commun.
+2. Liste à puces : Tennis, running, padel, foot
+3. Liste à puces : Que des profils sportifs
+4. CTA : Télécharger ATCLUB
+
+Idée du visuel : Fond dans le dégradé rouge-rose de l'app, le téléphone avec le vrai profil incliné à droite, le titre à gauche.
+Nouvelle idée, inspirations : EC1-12, AG1-01 · mockup téléphone incliné, titre gauche
+
+Alerte : Police déduite des captures du site, une géométrique de type Futura, à confirmer par le client. La capture du profil contient des textes d'interface en anglais (Nearby, Send a message…), conservés tels quels car l'asset ne se modifie pas. Le champ « À NE PAS FAIRE » vaut « Oui » sans aucun détail. Le client prévoit d'envoyer des visuels en haute qualité par Google Drive : la capture jointe est peut-être une version compressée, à remplacer si une meilleure version arrive.

@@ -1,0 +1,589 @@
+{
+ "execution": "426",
+ "statut": "waiting",
+ "noeuds": [
+  "Webhook",
+  "Skill",
+  "Lire la fiche",
+  "Charger la DA",
+  "Une créa par ligne",
+  "Chercher la référence",
+  "Préparer l'appel Claude",
+  "Claude · écrire le prompt",
+  "Lire le prompt",
+  "Gemini · générer l'image",
+  "Ranger la créa",
+  "GitHub · lire les fichiers",
+  "Fusionner le sha des fichiers",
+  "GitHub · publier",
+  "Page du batch",
+  "GitHub · lire la page",
+  "Fusionner le sha",
+  "GitHub · publier la page",
+  "Wait"
+ ],
+ "erreurs": [],
+ "temps": {
+  "Webhook": 0,
+  "Skill": 2,
+  "Lire la fiche": 89,
+  "Charger la DA": 147,
+  "Une créa par ligne": 37,
+  "Chercher la référence": 324,
+  "Préparer l'appel Claude": 1865,
+  "Claude · écrire le prompt": 65383,
+  "Lire le prompt": 248,
+  "Gemini · générer l'image": 36230,
+  "Ranger la créa": 867,
+  "GitHub · lire les fichiers": 364,
+  "Fusionner le sha des fichiers": 108,
+  "GitHub · publier": 22009,
+  "Page du batch": 139,
+  "GitHub · lire la page": 278,
+  "Fusionner le sha": 749,
+  "GitHub · publier la page": 2372,
+  "Wait": 1
+ },
+ "prep": [
+  {
+   "n": 1,
+   "diagnostic_reference": "crea 1 : reference jointe, 57 ko",
+   "diagnostic_textes": "crea 1 : mode inspiration, 8 texte(s) a afficher, 2 a retirer",
+   "diagnostic_da": "crea 1 : 1 asset(s), 1 capture(s) du site jointe(s) | pieces : PJ1 pose sur fond blanc, 320x67 | logo : PJ1 (IDlift-logo.png) | police : Poppins | accent : #007bff | couleurs client : #007bff | ambiance : oui | consignes : oui"
+  },
+  {
+   "n": 2,
+   "diagnostic_reference": "crea 2 : reference jointe, 49 ko",
+   "diagnostic_textes": "crea 2 : mode inspiration, 9 texte(s) a afficher, 3 a retirer",
+   "diagnostic_da": "crea 2 : 1 asset(s), 1 capture(s) du site jointe(s) | pieces : PJ1 pose sur fond blanc, 320x67 | logo : PJ1 (IDlift-logo.png) | police : Poppins | accent : #007bff | couleurs client : #007bff | ambiance : oui | consignes : oui"
+  },
+  {
+   "n": 3,
+   "diagnostic_reference": "crea 3 : reference jointe, 86 ko",
+   "diagnostic_textes": "crea 3 : mode inspiration, 5 texte(s) a afficher, 0 a retirer",
+   "diagnostic_da": "crea 3 : 0 asset(s), 1 capture(s) du site jointe(s) | pieces :  | logo : non reconnu par le nom | police : Poppins | accent : #007bff | couleurs client : #007bff | ambiance : oui | consignes : oui"
+  },
+  {
+   "n": 4,
+   "diagnostic_reference": "crea 4 : reference jointe, 45 ko",
+   "diagnostic_textes": "crea 4 : mode inspiration, 6 texte(s) a afficher, 3 a retirer",
+   "diagnostic_da": "crea 4 : 0 asset(s), 1 capture(s) du site jointe(s) | pieces :  | logo : non reconnu par le nom | police : Poppins | accent : #007bff | couleurs client : #007bff | ambiance : oui | consignes : oui"
+  },
+  {
+   "n": 5,
+   "diagnostic_reference": "crea 5 : nouvelle idee, 2 inspiration(s) jointe(s) sur 2",
+   "diagnostic_textes": "crea 5 : mode nouvelle idee, 5 texte(s) a afficher",
+   "diagnostic_da": "crea 5 : 1 asset(s), 1 capture(s) du site jointe(s) | pieces : PJ1 pose sur fond blanc, 320x67 | logo : PJ1 (IDlift-logo.png) | police : Poppins | accent : #007bff | couleurs client : #007bff | ambiance : oui | consignes : oui"
+  },
+  {
+   "n": 6,
+   "diagnostic_reference": "crea 6 : nouvelle idee, 3 inspiration(s) jointe(s) sur 3",
+   "diagnostic_textes": "crea 6 : mode nouvelle idee, 10 texte(s) a afficher",
+   "diagnostic_da": "crea 6 : 0 asset(s), 1 capture(s) du site jointe(s) | pieces :  | logo : non reconnu par le nom | police : Poppins | accent : #007bff | couleurs client : #007bff | ambiance : oui | consignes : oui"
+  }
+ ],
+ "prompts": [
+  {
+   "dossier": "IDLIFT_TEST_1001",
+   "brand_name": "IDlift TEST",
+   "nb_creas": 6,
+   "date": "2026-10-01",
+   "deadline": "2026-10-02T04:27:04.823Z",
+   "n": 1,
+   "crea": "AD01",
+   "mode": "inspi",
+   "titre": "Une identité de marque complète pour 360 €.",
+   "sous_titre": "Une agence vous en demanderait 5 000.",
+   "cta": "Voir ce qui est inclus",
+   "idee_visuel": "Deux cartes face à face : à gauche l'agence classique, prix barré. À droite IDlift, le prix entouré au feutre.",
+   "reference": "AG2-04",
+   "inspirations": [],
+   "url_inspirations": [],
+   "famille": "Agence et SaaS",
+   "format_ref": "NOUS VS EUX",
+   "url_reference": "https://kreativeadsfr.github.io/kreative-dossiers/fiche/lot1/refs/AG2-04.jpg",
+   "reference_mime": "image/jpeg",
+   "diagnostic_reference": "crea 1 : reference jointe, 57 ko",
+   "diagnostic_textes": "crea 1 : mode inspiration, 8 texte(s) a afficher, 2 a retirer",
+   "diagnostic_lot": "6 creas lues, 6 items entrants, 6 appels prepares",
+   "diagnostic_da": "crea 1 : 1 asset(s), 1 capture(s) du site jointe(s) | pieces : PJ1 pose sur fond blanc, 320x67 | logo : PJ1 (IDlift-logo.png) | police : Poppins | accent : #007bff | couleurs client : #007bff | ambiance : oui | consignes : oui",
+   "prompt": "Créative publicitaire statique, format carré 1:1. Composition éditoriale minimaliste et centrée, sur un fond bleu très pâle qui part de #F3F8FF en haut et s'intensifie doucement vers #D3E6FF en bas du cadre. Le fond est travaillé en matière : grain photographique fin, légère texture papier et halo bleu diffus #007bff à faible opacité qui monte du bas, jamais un aplat nu, jamais une lueur centrée. En haut, centré, petit et discret : le logo IDlift en noir. Juste en dessous, centré, le titre sur deux lignes, très grand, gras et très contrasté en bleu nuit #0F2A4A, découpé ainsi : ligne 1 « Une identité de marque complète », ligne 2 « pour 360 €. ». Les caractères « 360 € » sont en bleu #007bff et restent ensemble sur la même ligne. Sous le titre, séparé par une respiration nette, le sous-titre centré sur une seule ligne, nettement plus petit, en bleu nuit #0F2A4A : « Une agence vous en demanderait 5 000. ». Seul le montant « 5 000 » de ce sous-titre est en gras. Toute la moitié basse du carré est occupée par deux cartes blanches rectangulaires à coins arrondis qui se chevauchent. La carte de gauche est en retrait, placée un peu plus bas, inclinée d'environ six degrés dans le sens antihoraire. Elle est blanche semi-transparente, délavée, avec une ombre portée très légère. Au-dessus de son bord haut, incliné avec elle, un petit libellé en bleu nuit #0F2A4A : « Une agence ». En haut de cette carte de gauche, le prix « 5 000 € » en gris #A3ACBA, barré d'un trait horizontal épais bleu nuit #0F2A4A. Sous le prix : une large barre pleine bleu très pâle #DCEAFE aux coins arrondis, puis trois rangées de petites coches gris #A3ACBA suivies de barres pleines pâles. La deuxième rangée remplace sa barre par le texte gris #8A94A6 « Livré en 4 semaines ». La carte de droite passe en avant-plan et recouvre le bord droit de la carte de gauche. Elle est inclinée d'environ cinq degrés dans le sens horaire, blanche opaque, avec un fin contour bleu #007bff à 40 % d'opacité et une ombre portée douce. Juste au-dessus de son bord haut, incliné avec elle, le logo IDlift en petit et en noir. En haut de cette carte de droite, le prix « 360 € » en gras bleu #007bff, nettement plus grand que le prix barré. Il est entouré d'une ellipse irrégulière tracée au feutre bleu #007bff à main levée, comme une annotation à la main. Juste à droite de cette ellipse, un petit nœud papillon graphique plein bleu #007bff. Sous le prix : une large barre pleine bleu très pâle #DCEAFE, puis trois rangées de petites coches bleu #007bff suivies de barres pleines pâles. La première rangée remplace sa barre par le texte bleu nuit #0F2A4A « Livré en 48h ». Une flèche courbe fine, tracée au feutre bleu #007bff à main levée, part du milieu de la carte de gauche, passe au-dessus du chevauchement et vient pointer l'ellipse autour du prix de la carte de droite. Le bas des deux cartes se fond progressivement dans le fond bleu pâle. Les barres pâles sont des formes pleines sans aucune lettre. En bas du cadre, centré, posé à cheval sur le fondu des deux cartes et détaché par du vide autour de son texte : un bouton plein rectangulaire aux coins légèrement arrondis, jamais en pilule, sans contour, fond bleu #007bff, ombre portée douce et légère. Il contient en blanc « Voir ce qui est inclus », suivi d'une flèche fine vers la droite. Rendu de design graphique propre et réaliste, comme une maquette faite à la main par un directeur artistique, sans effet 3D, sans reflet artificiel, sans rien qui trahisse une image générée. Un seul point focal : la carte de droite avec son prix entouré au feutre. Polices : titre en Poppins Bold ; sous-titre en Poppins Regular, avec le montant en Poppins Bold ; prix en Poppins Bold ; libellé au-dessus de la carte et lignes de délai en Poppins Medium ; texte du bouton en Poppins SemiBold. Aucun tiret cadratin dans le texte affiché ni comme élément graphique. Utilise exactement le logo IDlift fourni en pièce jointe 1 (le mot IDLIFT en capitales noires grasses et inclinées, au dessin découpé) : ne le recrée pas, ne le redessine pas, ne le réécris pas avec une autre police, ne change ni ses lettres ni ses formes. Tu peux uniquement le redimensionner, le placer, l'incliner avec la carte, et si le fond l'exige le passer en blanc uni ou en noir uni. N'affiche que les textes écrits entre guillemets, aucun autre texte, aucun faux texte. Utilise la meilleure qualité de Nano Banana Pro en restant gratuit.",
+   "format_visuel": "nous vs eux, deux cartes inclinées",
+   "assets_declares": [
+    {
+     "pj": 1,
+     "fichier": "IDlift-logo.png",
+     "montre": "le logo IDlift, le mot IDLIFT en capitales noires grasses et inclinées au dessin découpé",
+     "role": "logo, petit, en haut au centre, et répété en petit au-dessus de la carte de droite"
+    }
+   ],
+   "structure_reference": "Référence quasi carrée, à recomposer en 1:1 sans rien couper. Alignement général centré. Fond lavande très pâle, presque blanc en haut, qui s'intensifie doucement vers le bas avec un halo plus saturé. Le fond porte un léger grain et aucun quadrillage. En haut, centré : le logo de la marque, petit, noir. Juste dessous, centré : le titre (emplacement 1) sur deux lignes, très grand, noir, gras, avec un mot pivot en couleur d'accent. Dessous, séparé par un peu de vide : le sous-titre (emplacement 2) sur une seule ligne, nettement plus petit, en regular, avec un segment en gras. La moitié basse est occupée par deux cartes blanches à coins arrondis qui se chevauchent. La carte de gauche est en retrait, plus basse, inclinée d'environ 6 degrés dans le sens antihoraire. Elle est semi-transparente et délavée. Au-dessus de son coin haut, un petit libellé incliné avec elle (emplacement 3). Dans la carte de gauche : le nom de l'offre en gris pâle (emplacement 6, à retirer), le prix gris barré d'un trait rouge épais (emplacement 7), une large barre pleine lavande, puis des lignes à coches. L'une de ces lignes est lisible (emplacement 9), les autres sont de simples barres pâles. La carte de droite est en avant-plan, inclinée d'environ 5 degrés dans le sens horaire, blanche et opaque, avec un fin contour coloré et une ombre douce. Au-dessus d'elle : le logo de la marque, petit et incliné. Dans la carte de droite : le nom de l'offre en gris pâle (emplacement 4, à retirer), le prix gras en couleur d'accent (emplacement 5), des barres pâles, des lignes à coches dont une lisible (emplacement 8). Cette ligne lisible est entourée d'une ellipse tracée au feutre, avec un petit nœud papillon décoratif dans la couleur d'accent juste à droite. Une flèche courbe tracée à main levée part du bas de la carte de gauche et vient pointer l'élément entouré sur la carte de droite. Le bas des deux cartes se fond progressivement dans le fond. En bas, centré, à cheval sur le bas des cartes : un bouton CTA en pilule, plein, couleur d'accent, texte blanc suivi d'une flèche fine (emplacement 10), qui deviendra un rectangle aux coins légèrement arrondis. Profondeur : chevauchement des cartes, inclinaisons opposées, ombres douces, fondu bas. Emplacements visuels : deux occurrences du logo de la marque, aucune photo, aucun écran. Un asset joint, le logo, qui couvre les deux occurrences. Adaptation demandée par l'idée du stratégiste : l'entourage au feutre passe sur le prix de la carte de droite, et la flèche pointe vers lui.",
+   "alerte": "Le sous-titre « Une agence vous en demanderait 5 000. » vouvoie alors que le client demande le tutoiement : il est recopié tel quel, à valider par le stratégiste (par exemple « t'en demanderait »). Selon l'idée du stratégiste, l'entourage au feutre est déplacé du délai vers le prix de la carte de droite. Le trait rouge de la référence devient bleu nuit, car les rouges vus sur le site viennent des drapeaux de langue et ne sont pas des couleurs de la marque.",
+   "pret": true,
+   "diagnostic_prompt": "crea 1 : [end_turn, 6194 tokens] 4440 caracteres, 2 bloc(s) envoyes a Gemini",
+   "diagnostic_lot_prompts": "6 items entrants, 6 creas preparees, 6 sorties, 6 prompt(s) lisible(s)"
+  },
+  {
+   "dossier": "IDLIFT_TEST_1001",
+   "brand_name": "IDlift TEST",
+   "nb_creas": 6,
+   "date": "2026-10-01",
+   "deadline": "2026-10-02T04:27:04.823Z",
+   "n": 2,
+   "crea": "AD02",
+   "mode": "inspi",
+   "titre": "Ton identité en 3 jours ?",
+   "sous_titre": "",
+   "cta": "Lancer mon projet",
+   "idee_visuel": "Même timeline en 3 étapes, mais sans les libellés de jour.",
+   "reference": "AG1-22",
+   "inspirations": [],
+   "url_inspirations": [],
+   "famille": "Agence et SaaS",
+   "format_ref": "PRODUIT EN ACTION",
+   "url_reference": "https://kreativeadsfr.github.io/kreative-dossiers/fiche/lot1/refs/AG1-22.jpg",
+   "reference_mime": "image/jpeg",
+   "diagnostic_reference": "crea 2 : reference jointe, 49 ko",
+   "diagnostic_textes": "crea 2 : mode inspiration, 9 texte(s) a afficher, 3 a retirer",
+   "diagnostic_lot": "6 creas lues, 6 items entrants, 6 appels prepares",
+   "diagnostic_da": "crea 2 : 1 asset(s), 1 capture(s) du site jointe(s) | pieces : PJ1 pose sur fond blanc, 320x67 | logo : PJ1 (IDlift-logo.png) | police : Poppins | accent : #007bff | couleurs client : #007bff | ambiance : oui | consignes : oui",
+   "prompt": "Créative publicitaire statique, format carré 1:1. Composition éditoriale minimaliste et moderne, en timeline verticale, sur un fond blanc très légèrement bleuté #F7FAFF travaillé en matière : grain papier très fin et dégradé bleu clair diffus qui monte du bas du cadre, de #E3F0FF vers #BCDBFF contre le bord inférieur. Jamais d'aplat nu, jamais de lueur centrée. En haut, centré, le logo IDLIFT, petit et discret, dans sa couleur noire d'origine. Juste dessous, centré, le titre sur une seule ligne, très grand et très contrasté, en bleu nuit #0B1F3A : \"Ton identité en 3 jours ?\". Les mots \"en 3 jours ?\" sont en bleu #007bff, et le point d'interrogation reste sur la même ligne que le mot qui le précède. Sur la gauche du cadre, une ligne verticale très fine en bleu pâle #BFDDFF part sous le titre, descend sur toute la hauteur et se fond progressivement dans le dégradé du bas. Elle porte trois petits points ronds pleins en #007bff, chacun entouré d'un halo circulaire bleu très pâle #DCEBFF, placés à intervalles réguliers. À droite de chaque point, rapprochée de la ligne et sans aucun autre élément entre les deux, une capsule blanche #FFFFFF aux bords très arrondis, au contour fin bleu clair #99C9FF, avec une ombre portée douce bleutée qui la détache légèrement du fond. Sous chaque capsule, alignée sur son bord gauche et séparée par une petite respiration, une ligne de description en gris ardoise foncé #2E3A4B, nettement plus petite. Les trois étapes sont empilées de haut en bas et alignées à gauche, avec le même espacement entre elles. Dans la capsule du haut, en #007bff : \"Un brief de 15 minutes\", et sous elle : \"Tu nous dis l'essentiel, on s'occupe du reste.\". Dans la capsule du milieu, en #007bff : \"Des pistes faites à la main\", et sous elle : \"Pas d'IA, des designers qui dessinent pour ta marque.\". Dans la capsule du bas, en #007bff : \"Tu valides, on livre\", et sous elle : \"Les fichiers, la charte, et des retouches gratuites.\". En bas du cadre, centré dans le dégradé et nettement détaché des étapes par du vide, un bouton rectangulaire plein #007bff aux coins légèrement arrondis (rayon d'environ 8 px sur 1080 px), jamais en pilule, sans contour, avec une ombre portée douce et légère. Il contient en blanc #FFFFFF le texte \"Lancer mon projet\" suivi d'une flèche fine vers la droite. Juste sous le bouton, centrée et sur une ligne, une rangée de cinq petites étoiles pleines en #007bff, la dernière remplie aux quatre cinquièmes, suivie en petit gris moyen #6B7A90 de la mention \"Noté 4,8/5 sur plus de 40 avis\". Beaucoup d'espace négatif autour de chaque bloc. Aucune photo, aucun personnage, aucune illustration générée : la créa repose uniquement sur la typographie, la ligne, les points, les capsules et la matière du fond, comme un vrai design fait à la main. Un seul point focal : le titre, puis la lecture descend le long de la timeline jusqu'au bouton. Polices : titre en Poppins Bold, descriptions en Poppins Regular, texte du bouton en Poppins SemiBold, textes des capsules et mention en Poppins Medium, aucune autre police ni graisse. Utilise exactement le logo IDLIFT fourni en pièce jointe 1 (le mot IDLIFT en capitales noires très grasses, italiques et découpées) : ne le recrée pas, ne le redessine pas, ne le réécris pas avec une autre police, ne change ni ses lettres ni ses formes. Tu peux uniquement le redimensionner, le placer, et si le fond l'exige le passer en blanc uni ou en noir uni. Aucun tiret cadratin dans le texte affiché ni comme élément graphique. N'affiche que les textes écrits entre guillemets, aucun autre texte, aucun faux texte. Utilise la meilleure qualité de Nano Banana Pro en restant gratuit.",
+   "format_visuel": "timeline verticale en trois étapes",
+   "assets_declares": [
+    {
+     "pj": 1,
+     "fichier": "IDlift-logo.png",
+     "montre": "le logo IDLIFT, mot en capitales noires très grasses, italiques et découpées, sur fond transparent",
+     "role": "logo, petit, en haut au centre, en noir"
+    }
+   ],
+   "structure_reference": "Format déjà carré. Fond blanc très légèrement teinté de lavande, avec un grain doux et un dégradé lavande diffus qui monte du bas et devient nettement plus saturé contre le bord inférieur. Aucun aplat nu. En haut, centré : le logo de la marque, petit, en noir. Juste dessous, centré : le titre sur une seule ligne, très grand, en gras noir, avec le second mot dans la couleur d'accent (emplacement 1). Sur la gauche, une ligne verticale très fine et pâle part sous le titre, descend sur toute la hauteur et se fond dans le dégradé du bas. Elle porte trois petits points ronds, un par étape, chacun dans un léger halo. Trois étapes empilées à intervalles réguliers, alignées à gauche, entre le tiers gauche et le centre. Pour chaque étape, de gauche à droite : un point sur la ligne, puis une petite carte blanche arrondie à ombre douce contenant le libellé de jour (emplacements 2, 5 et 8, tous à retirer), puis une capsule blanche plus grande au contour fin coloré contenant le titre d'étape en couleur d'accent, en graisse moyenne (emplacements 3, 6 et 9). Sous chaque capsule, alignée sur son bord gauche, une ligne de description en petit gris foncé, en graisse normale (emplacements 4, 7 et 10). Les capsules ont une ombre portée douce qui les détache légèrement du fond. En bas, centré, dans le dégradé : un CTA en pilule pleine couleur d'accent, texte blanc avec une flèche fine vers la droite et une ombre douce (emplacement 11). Juste dessous, centrée : une rangée de cinq petites étoiles dans la couleur d'accent, suivie d'une mention en petit gris (emplacement 12). Adaptation : les trois cartes de jour disparaissent avec leur support. On garde la ligne et les trois points, puisque l'idée demande la même timeline. Chaque capsule se rapproche de son point, ce qui rééquilibre la largeur. La référence ne contient aucun emplacement visuel hors du logo : 1 emplacement pour 1 asset joint (le logo), donc aucun visuel à inventer.",
+   "alerte": "",
+   "pret": true,
+   "diagnostic_prompt": "crea 2 : [end_turn, 4197 tokens] 3668 caracteres, 2 bloc(s) envoyes a Gemini",
+   "diagnostic_lot_prompts": "6 items entrants, 6 creas preparees, 6 sorties, 6 prompt(s) lisible(s)"
+  },
+  {
+   "dossier": "IDLIFT_TEST_1001",
+   "brand_name": "IDlift TEST",
+   "nb_creas": 6,
+   "date": "2026-10-01",
+   "deadline": "2026-10-02T04:27:04.823Z",
+   "n": 3,
+   "crea": "AD03",
+   "mode": "inspi",
+   "titre": "Avant de refaire ton logo sur Canva :",
+   "sous_titre": "",
+   "cta": "Lien juste en dessous 👇",
+   "idee_visuel": "Une vraie note iPhone en mode sombre, rien d'autre.",
+   "reference": "UG1-13",
+   "inspirations": [],
+   "url_inspirations": [],
+   "famille": "Ugly ads",
+   "format_ref": "CAPTURE NATIVE",
+   "url_reference": "https://kreativeadsfr.github.io/kreative-dossiers/fiche/lot3/refs/UG1-13.jpg",
+   "reference_mime": "image/jpeg",
+   "diagnostic_reference": "crea 3 : reference jointe, 86 ko",
+   "diagnostic_textes": "crea 3 : mode inspiration, 5 texte(s) a afficher, 0 a retirer",
+   "diagnostic_lot": "6 creas lues, 6 items entrants, 6 appels prepares",
+   "diagnostic_da": "crea 3 : 0 asset(s), 1 capture(s) du site jointe(s) | pieces :  | logo : non reconnu par le nom | police : Poppins | accent : #007bff | couleurs client : #007bff | ambiance : oui | consignes : oui",
+   "prompt": "Créative publicitaire statique, format carré 1:1. Capture d'écran native et réaliste d'une note dans l'application Notes d'un iPhone en mode sombre, cadrée plein écran sans aucun cadre de téléphone, comme une vraie capture prise sur le téléphone et postée telle quelle. Fond noir profond `#0A0A0A` avec un grain numérique très fin et une légère texture de compression d'image, exactement comme une vraie capture d'écran, sans aucun halo, sans aucune lueur, sans dégradé ni décor. Tout le contenu est aligné à gauche sur une même marge confortable, avec des marges resserrées pour tenir dans le carré. Tout en haut, la barre d'état iOS réduite à ses seules icônes : à droite, l'icône de réseau en barres, l'icône wifi et l'icône de batterie à moitié pleine, en blanc `#FFFFFF`, petites et fines ; aucun chiffre ni aucune heure affichés. Juste en dessous, la barre de navigation de l'app : à gauche, un simple chevron de retour fin pointant vers la gauche, seul, sans aucun libellé à côté ; à droite, une icône ronde au contour fin contenant trois petits points, ces deux icônes en bleu `#007bff`. Sous cette barre, après une respiration, le titre de la note aligné à gauche, très grand, en blanc `#F5F5F5`, sur deux lignes avec un retour à la ligne après le mot logo : « Avant de refaire ton logo sur Canva : ». Le mot « Canva » est en bleu `#007bff`, le reste du titre en blanc. Sous le titre, séparée par du vide, une liste de trois lignes empilées alignées à gauche, même taille pour les trois, nettement plus petites que le titre, en blanc `#F5F5F5`, avec un interligne régulier. Chaque ligne commence par une coche native de liste Notes : un petit rond plein bleu `#007bff` contenant un check fin blanc `#FFFFFF`, les trois ronds parfaitement alignés verticalement, le texte démarrant juste à droite du rond. Première ligne : « Demande-toi si on te reconnaît à 3 mètres ». Deuxième ligne : « Regarde combien ça te coûte en clients perdus ». Troisième ligne : « Compare avec une identité complète à 360 € ». Si une ligne déborde, elle passe sur deux lignes alignées sous le début du texte, jamais sous le rond. Sous la liste, détaché par une respiration nette, aligné à gauche, un lien texte sans bouton, en bleu `#007bff`, souligné d'un trait fin bleu `#007bff`, suivi de l'emoji natif main qui pointe vers le bas : « Lien juste en dessous 👇 ». Tout le bas du carré reste noir et vide, comme le reste d'une note pas encore remplie, ce vide fait partie du réalisme. Aucun élément ne flotte, aucune ombre, aucune forme décorative ajoutée : la créa doit ressembler à une vraie capture d'iPhone, pas à une pub. Un seul point focal : le titre « Avant de refaire ton logo sur Canva : ». Polices : Poppins Bold pour le titre, Poppins Regular pour les trois lignes de la liste, Poppins SemiBold pour le lien texte, aucune autre police ni graisse. Aucun logo, aucune image, aucun mockup, aucun tiret cadratin dans le texte affiché ni comme élément graphique. N'affiche que les textes écrits entre guillemets, aucun autre texte, aucun faux texte. Utilise la meilleure qualité de Nano Banana Pro en restant gratuit.",
+   "format_visuel": "note iPhone native mode sombre",
+   "assets_declares": [],
+   "structure_reference": "Capture native d'une note iPhone (app Notes) en mode sombre, cadrée plein écran, format 4:5 d'origine à recomposer en carré. Fond noir quasi pur, légèrement bruité comme une vraie capture compressée, sans halo, sans décor, sans profondeur ajoutée : la crédibilité vient du réalisme natif. Tout est aligné à gauche sur une même marge, sauf les icônes de droite. En haut, la barre d'état iOS : heure à gauche, réseau, wifi et batterie à droite, en blanc. Juste dessous, la barre de navigation : chevron retour avec libellé « Notes » à gauche et cercle à trois points à droite, tous deux dans la couleur d'accent de l'app (jaune). Emplacement 1, Titre : en haut du corps de note, aligné à gauche, très grand, gras, blanc, une ligne. Emplacements 2, 3 et 4, Liste à puces : trois lignes empilées au milieu, chacune précédée d'une coche dans un rond plein jaune avec un check sombre, texte blanc regular, nettement plus petit que le titre, interligne régulier. Emplacement 5, CTA : sous la liste, détaché par une respiration, texte blanc regular aligné à gauche suivi de l'emoji main qui pointe vers le bas ; c'est un lien texte, sans bouton. Tout le tiers inférieur reste vide et noir. Aucun logo. Emplacements visuels : zéro ; assets joints : zéro, donc aucune image à placer.",
+   "alerte": "Aucun asset joint, créa 100 % typographique et native, sans logo. L'heure de la barre d'état et le libellé « Notes » à côté du chevron sont retirés car ils ne figurent pas dans la fiche : seules les icônes natives sont conservées. Le jaune natif de l'app passe en #007bff et le mot pivot « Canva » prend l'accent, conformément à la charte.",
+   "pret": true,
+   "diagnostic_prompt": "crea 3 : [end_turn, 3319 tokens] 3109 caracteres, 1 bloc(s) envoyes a Gemini",
+   "diagnostic_lot_prompts": "6 items entrants, 6 creas preparees, 6 sorties, 6 prompt(s) lisible(s)"
+  },
+  {
+   "dossier": "IDLIFT_TEST_1001",
+   "brand_name": "IDlift TEST",
+   "nb_creas": 6,
+   "date": "2026-10-01",
+   "deadline": "2026-10-02T04:27:04.823Z",
+   "n": 4,
+   "crea": "AD04",
+   "mode": "inspi",
+   "titre": "Une marque qui inspire confiance.",
+   "sous_titre": "",
+   "cta": "VOIR LES OFFRES",
+   "idee_visuel": "Garde le texte à gauche et le visuel à droite, mais remplace le flacon par une carte de visite IDlift posée sur du papier kraft.",
+   "reference": "EC1-20",
+   "inspirations": [],
+   "url_inspirations": [],
+   "famille": "E-commerce",
+   "format_ref": "PRODUIT HEROS ET OFFRE",
+   "url_reference": "https://kreativeadsfr.github.io/kreative-dossiers/fiche/lot1/refs/EC1-20.jpg",
+   "reference_mime": "image/jpeg",
+   "diagnostic_reference": "crea 4 : reference jointe, 45 ko",
+   "diagnostic_textes": "crea 4 : mode inspiration, 6 texte(s) a afficher, 3 a retirer",
+   "diagnostic_lot": "6 creas lues, 6 items entrants, 6 appels prepares",
+   "diagnostic_da": "crea 4 : 0 asset(s), 1 capture(s) du site jointe(s) | pieces :  | logo : non reconnu par le nom | police : Poppins | accent : #007bff | couleurs client : #007bff | ambiance : oui | consignes : oui",
+   "prompt": "Créative publicitaire statique, format carré 1:1. Composition de type nature morte photographiée en studio, texte aligné à gauche et objet héros à droite, sur un fond de studio très clair blanc cassé `#F3F5F8` avec un grain photographique fin, une légère texture de papier mat et une lumière naturelle douce qui vient de la gauche, jamais un aplat nu, jamais de halo ni de lueur centrée. Sur la moitié droite du cadre, une grande feuille de papier kraft brun clair `#C9A47A` entre par le bord droit avec un bord supérieur en diagonale, légèrement froissée, avec ses fibres et son grain visibles, posée sur le fond clair, et passe en retrait sous la fin de la colonne de texte sans jamais toucher les lettres. Colonne de texte à gauche, sur environ la moitié gauche de la largeur, alignée sur une marge gauche régulière. En haut à gauche, le titre sur deux lignes, gros et très contrasté, en bleu nuit `#0B1F3A`, découpé ainsi, ligne 1 : \"Une marque qui\", ligne 2 : \"inspire confiance.\", avec le mot \"confiance\" en bleu `#007bff`. Sous le titre, séparée par une vraie respiration, une liste de trois intitulés empilés, sans puce graphique, de taille moyenne nettement plus petite que le titre, en bleu nuit `#0B1F3A`. Premier intitulé : \"Un logo unique\", suivi juste dessous d'une petite ligne en gris ardoise `#5A6472`, nettement plus petite : \"Dessiné à la main, jamais généré\". Puis, avec le même espacement régulier, le deuxième intitulé : \"Une charte complète\". Puis le troisième intitulé : \"Livré en 48h\". Ces trois intitulés ont exactement la même taille et le même alignement à gauche, avec un espacement aéré entre eux. Sous la liste, nettement détaché par du vide, un bouton rectangulaire aux coins nets, plein, sans contour, rempli de bleu `#007bff`, avec une ombre portée douce et légère, contenant en blanc, en capitales, sur une seule ligne : \"VOIR LES OFFRES\". Aucune flèche. Rien sous le bouton. En bas à droite, en premier plan, posée à plat sur le papier kraft et légèrement inclinée d'une dizaine de degrés, une carte de visite épaisse au recto bleu `#007bff` en papier mat de fort grammage, tranche visible, coins nets, avec une ombre portée douce et réaliste sur le kraft, partiellement coupée par le bord droit du cadre. Juste derrière elle, en retrait et inclinée dans l'autre sens, une deuxième carte au verso blanc cassé `#FAFAF7` qu'elle chevauche en partie, qui crée la profondeur. Les deux cartes sont entièrement vierges : aucun logo, aucune lettre, aucun symbole, aucun texte imprimé, uniquement la couleur et la matière du papier. Éclairage cohérent, ombres justes, rendu de vrai shooting de papeterie, jamais un rendu 3D lisse. Un seul point focal : la carte de visite bleue posée sur le kraft. Beaucoup d'espace négatif autour de chaque bloc de texte. Polices : Poppins Bold pour le titre, Poppins Medium pour les trois intitulés, Poppins Regular pour la petite ligne grise, Poppins SemiBold pour le texte du bouton. Aucun tiret cadratin dans le texte affiché ni comme élément graphique, aucun trait décoratif horizontal. N'affiche que les textes écrits entre guillemets, aucun autre texte, aucun faux texte. Utilise la meilleure qualité de Nano Banana Pro en restant gratuit.",
+   "format_visuel": "texte à gauche, carte héros droite",
+   "assets_declares": [],
+   "structure_reference": "Format vertical proche du 9:16, à recomposer en carré. Fond de studio photo très clair, blanc cassé chaud presque gris, sans couture, avec une lumière douce venant de la gauche. Colonne de texte alignée à gauche sur environ la moitié gauche du cadre, marge gauche régulière. En haut à gauche, le nom de marque en petites capitales espacées (aucun asset logo joint, donc supprimé). Emplacement 1, Titre : sur deux lignes, gros, sombre, deuxième ligne en italique. Emplacements 2, 4 et 6, Liste à puces : trois intitulés de taille moyenne, sombres, sans puce graphique, empilés et séparés par une respiration régulière. Emplacements 3, 5 et 7, Détail puce : deux petites lignes grises sous chaque intitulé ; seul le 3 est conservé, le 5 et le 7 sont à retirer, ce qui libère de l'espace entre les intitulés 2 et 3. Emplacement 8, CTA : rectangle aux coins nets, à gauche sous la liste, texte gras en capitales sur deux lignes ; il reste un rectangle aux coins nets, plein en #007bff, texte blanc, sans flèche. Emplacement 9, Mention : petites lignes grises en bas à gauche, à retirer. Moitié droite : composition produit en profondeur, une grande feuille d'aloe vera qui entre en diagonale par le haut droit et passe derrière la colonne de texte, une demi-orange au centre bas qui chevauche légèrement la zone du CTA, et le flacon héros au premier plan en bas à droite, coupé par le bord droit, avec ombres portées douces et réalistes sur le sol du studio. Un seul point focal : le produit héros. Selon l'idée du stratégiste, les fruits, la feuille et le flacon sont remplacés par une carte de visite IDlift posée sur du papier kraft : la diagonale de la feuille devient le bord d'une feuille de kraft qui entre par la droite, la carte devient le héros en bas à droite, une deuxième carte en retrait reprend le rôle de l'orange en profondeur. Emplacements visuels : 1 héros ; assets joints : 0. Aucun logo ni aucun visuel IDlift ne peut donc être placé : les cartes restent vierges, sans logo ni texte.",
+   "alerte": "Aucun asset joint : ni logo IDlift ni photo de carte de visite réelle. Le nom de marque du haut est donc supprimé et les cartes sont générées vierges, sans logo, ce qui va contre la règle agence et la consigne du client de limiter l'IA. Joindre le logo IDlift ou une vraie photo de la papeterie IDlift permettrait d'afficher la marque sur la carte héros.",
+   "pret": true,
+   "diagnostic_prompt": "crea 4 : [end_turn, 3808 tokens] 3208 caracteres, 1 bloc(s) envoyes a Gemini",
+   "diagnostic_lot_prompts": "6 items entrants, 6 creas preparees, 6 sorties, 6 prompt(s) lisible(s)"
+  },
+  {
+   "dossier": "IDLIFT_TEST_1001",
+   "brand_name": "IDlift TEST",
+   "nb_creas": 6,
+   "date": "2026-10-01",
+   "deadline": "2026-10-02T04:27:04.823Z",
+   "n": 5,
+   "crea": "AD05",
+   "mode": "libre",
+   "titre": "",
+   "sous_titre": "",
+   "cta": "Voir les offres",
+   "idee_visuel": "Conversation iMessage en plein cadre, fond gris clair de l'app. Deux bulles grises à gauche, deux bleues à droite. Le logo IDlift tout en bas, petit, avec le CTA en texte souligné.",
+   "reference": "UG1-02",
+   "inspirations": [
+    "UG1-02",
+    "UG1-05"
+   ],
+   "url_inspirations": [
+    "https://kreativeadsfr.github.io/kreative-dossiers/fiche/lot3/refs/UG1-02.jpg",
+    "https://kreativeadsfr.github.io/kreative-dossiers/fiche/lot3/refs/UG1-05.jpg"
+   ],
+   "famille": "Ugly ads",
+   "format_ref": "CAPTURE NATIVE",
+   "url_reference": "https://kreativeadsfr.github.io/kreative-dossiers/fiche/lot3/refs/UG1-02.jpg",
+   "reference_mime": "image/jpeg",
+   "diagnostic_reference": "crea 5 : nouvelle idee, 2 inspiration(s) jointe(s) sur 2",
+   "diagnostic_textes": "crea 5 : mode nouvelle idee, 5 texte(s) a afficher",
+   "diagnostic_lot": "6 creas lues, 6 items entrants, 6 appels prepares",
+   "diagnostic_da": "crea 5 : 1 asset(s), 1 capture(s) du site jointe(s) | pieces : PJ1 pose sur fond blanc, 320x67 | logo : PJ1 (IDlift-logo.png) | police : Poppins | accent : #007bff | couleurs client : #007bff | ambiance : oui | consignes : oui",
+   "prompt": "Créative publicitaire statique, format carré 1:1. Capture d'écran de conversation iMessage d'iPhone présentée en plein cadre, au rendu natif et crédible, comme une vraie capture partagée et pas comme une illustration. Le fond du fil est gris clair `#F2F2F7`, avec un grain d'écran très fin et la très légère compression d'une vraie capture : jamais un aplat nu, jamais de halo ni de lueur, aucun effet 3D. Tout en haut, sur toute la largeur, une barre d'en-tête iOS fine et translucide en gris très clair `#F9F9F9`, posée sur le fil et séparée de lui par un filet gris `#D1D1D6`. Elle porte à gauche un chevron retour bleu `#007bff`, au centre un petit avatar rond gris neutre `#C7C7CC` avec une silhouette générique blanche et sans visage, et à droite une icône caméra vidéo bleue `#007bff`. Aucun nom, aucune heure, aucun statut de lecture. Sous la barre, la conversation occupe toute la hauteur centrale, avec des bulles iOS aux coins très arrondis, chacune munie de sa petite queue, et un espacement régulier et aéré entre elles. Le texte des bulles est très grand, lisible en vignette sur mobile. Première bulle, grise `#E9E9EB` alignée à gauche, texte noir `#000000` sur deux lignes : \"T'as vu mon nouveau logo ? Fait sur Canva en 10 min\". Deuxième bulle, bleue `#007bff` alignée à droite, texte blanc `#FFFFFF` sur une ligne : \"Frère… on le reconnaît à 3 km\". Troisième bulle, grise `#E9E9EB` alignée à gauche, courte, texte noir `#000000` : \"Tu connais mieux ?\". Quatrième bulle, bleue `#007bff` alignée à droite, texte blanc `#FFFFFF` sur deux lignes, légèrement plus large que les autres : \"IDlift. Identité complète en 48h, 360 €.\". Tout en bas du carré, à la place du champ de saisie, une bande blanche `#FFFFFF` séparée du fil par un filet gris très fin `#D1D1D6`. Elle porte à gauche le logo IDlift en petit et discret, noir tel quel, et à droite, aligné sur la même ligne, le lien d'action en bleu `#007bff` souligné d'un trait fin de la même couleur, sans bouton ni flèche : \"Voir les offres\". Un seul point focal : la quatrième bulle bleue, la réponse finale de la conversation. Rendu iOS fidèle et propre : alignements précis, marges latérales régulières, bulles nettes, pas de main, pas de téléphone, pas de décor autour. Polices : Poppins Regular pour le texte de toutes les bulles, Poppins SemiBold pour le lien d'action. Utilise exactement le logo IDlift fourni en pièce jointe 1 (le mot IDLIFT en capitales noires, italiques, épaisses et découpées) : ne le recrée pas, ne le redessine pas, ne le réécris pas avec une autre police, ne change ni ses lettres ni ses formes. Tu peux uniquement le redimensionner, le placer, et si le fond l'exige le passer en blanc uni ou en noir uni. N'affiche que les textes écrits entre guillemets, aucun autre texte, aucun faux texte. Utilise la meilleure qualité de Nano Banana Pro en restant gratuit.",
+   "format_visuel": "conversation iMessage native plein cadre",
+   "assets_declares": [
+    {
+     "pj": 1,
+     "fichier": "IDlift-logo.png",
+     "montre": "le logo IDLIFT, mot en capitales noires italiques épaisses et découpées",
+     "role": "logo, petit, en bas à gauche dans la bande blanche"
+    }
+   ],
+   "structure_reference": "Carré 1:1, capture iMessage plein cadre au rendu natif. Tout en haut, une barre d'en-tête iOS fine et translucide, gris très clair, séparée du fil par un filet gris : chevron retour bleu à gauche, avatar rond gris neutre au centre, icône caméra bleue à droite. Aucun nom de contact, aucune heure, aucun statut, car aucun de ces textes n'est dans la fiche. Fond du fil gris clair de l'app, avec un grain d'écran très fin et la légère compression d'une vraie capture, jamais un aplat nu. La conversation occupe toute la hauteur centrale, de haut en bas, avec un espacement régulier et généreux. Texte 1 : grande bulle grise à gauche, à queue, sur deux lignes. Texte 2 : bulle bleue à droite, à queue, une ligne. Texte 3 : bulle grise à gauche, courte. Texte 4 : bulle bleue à droite, la dernière et la plus lourde de sens, sur deux lignes, point focal et chute de la conversation. Le texte des bulles est très grand pour rester lisible en vignette, plus grand que sur un vrai téléphone. Tout en bas, une bande blanche séparée par un filet gris très fin remplace le champ de saisie : le logo IDlift petit à gauche, noir tel que fourni, et le CTA en texte souligné à droite. Profondeur : celle d'une interface réelle, avec la barre d'en-tête translucide qui se pose sur le fil, les queues de bulles et la bande basse en avant-plan, sans aucun effet 3D. Repris de UG1-02 : le fond gris clair, le traitement des bulles iOS (gris à gauche, bleu à droite, queues, coins très arrondis), la barre d'en-tête avec chevron, avatar et caméra, le cadrage serré plein écran et le rendu de vraie capture non retouchée. Repris de UG1-05 : le registre de capture native brute qui ne ressemble pas à une pub, la barre système nette et la typographie sobre et lisible. Le CTA est un lien souligné en #007bff, comme le demande l'idée. Emplacements visuels : un seul, le logo, pour un asset joint (le logo). Aucun autre visuel n'est inventé.",
+   "alerte": "Les éléments natifs d'iMessage qui portent du texte (nom du contact, heure, « Distribué », texte du champ de saisie) sont retirés, car ils ne figurent pas dans la fiche. Le champ de saisie est remplacé par la bande du logo et du CTA. Poppins remplace la police système iOS, comme l'impose la charte. Le logo est fourni en noir alors que le site l'affiche en bleu : il est gardé tel quel. Vu la consigne du client sur l'IA, une vraie capture iMessage refaite à la main donnerait un rendu encore plus crédible.",
+   "pret": true,
+   "diagnostic_prompt": "crea 5 : [end_turn, 4290 tokens] 2858 caracteres, 2 bloc(s) envoyes a Gemini",
+   "diagnostic_lot_prompts": "6 items entrants, 6 creas preparees, 6 sorties, 6 prompt(s) lisible(s)"
+  },
+  {
+   "dossier": "IDLIFT_TEST_1001",
+   "brand_name": "IDlift TEST",
+   "nb_creas": 6,
+   "date": "2026-10-01",
+   "deadline": "2026-10-02T04:27:04.823Z",
+   "n": 6,
+   "crea": "AD06",
+   "mode": "libre",
+   "titre": "Ton branding, enfin pro.",
+   "sous_titre": "",
+   "cta": "Je démarre",
+   "idee_visuel": "Fond clair éditorial. Titre en haut à gauche, liste de 3 bénéfices cochés en dessous. À droite, une grande carte prix avec le badge en coin. Avis client en bas à gauche avec 5 étoiles, CTA en bas à droite, petite mention tout en bas, signature manuscrite à côté de l'avis.",
+   "reference": "AG1-22",
+   "inspirations": [
+    "AG1-22",
+    "AG2-03",
+    "EC1-45"
+   ],
+   "url_inspirations": [
+    "https://kreativeadsfr.github.io/kreative-dossiers/fiche/lot1/refs/AG1-22.jpg",
+    "https://kreativeadsfr.github.io/kreative-dossiers/fiche/lot1/refs/AG2-03.jpg",
+    "https://kreativeadsfr.github.io/kreative-dossiers/fiche/lot2/refs/EC1-45.jpg"
+   ],
+   "famille": "Agence et SaaS",
+   "format_ref": "PRODUIT EN ACTION",
+   "url_reference": "https://kreativeadsfr.github.io/kreative-dossiers/fiche/lot1/refs/AG1-22.jpg",
+   "reference_mime": "image/jpeg",
+   "diagnostic_reference": "crea 6 : nouvelle idee, 3 inspiration(s) jointe(s) sur 3",
+   "diagnostic_textes": "crea 6 : mode nouvelle idee, 10 texte(s) a afficher",
+   "diagnostic_lot": "6 creas lues, 6 items entrants, 6 appels prepares",
+   "diagnostic_da": "crea 6 : 0 asset(s), 1 capture(s) du site jointe(s) | pieces :  | logo : non reconnu par le nom | police : Poppins | accent : #007bff | couleurs client : #007bff | ambiance : oui | consignes : oui",
+   "prompt": "Créative publicitaire statique, format carré 1:1. Composition éditoriale claire et minimaliste en deux colonnes, sur un fond bleu très pâle #F3F8FF travaillé en matière : grain photographique fin, légère texture de papier mat et halo bleu clair #7fbdff diffus qui monte doucement depuis le coin bas droit du cadre. Jamais un aplat nu, jamais une lueur centrée. En haut à gauche, aligné à gauche, le titre très gros et très contrasté sur deux lignes, découpé exactement ainsi : ligne 1 \"Ton branding,\", ligne 2 \"enfin pro.\". La première ligne est en bleu nuit #0A1A33 et les mots \"enfin pro.\" sont en bleu #007bff. Sous le titre, séparées par une vraie respiration, trois lignes empilées et alignées à gauche, de même taille, chacune posée dans un rectangle blanc #FFFFFF aux coins arrondis avec un contour fin bleu clair #CFE3FF et une ombre portée très légère. Chaque ligne commence par une petite coche bleue #007bff suivie du texte en bleu nuit #0A1A33 : première ligne \"Logo + charte + déclinaisons\", deuxième ligne \"Livré en 48h\", troisième ligne \"Retouches gratuites\". Dans la colonne de droite, une grande carte blanche #FFFFFF verticale aux coins arrondis, posée en avant-plan avec une ombre portée douce et profonde. Derrière elle, deux cartes plus pâles, l'une en bleu très clair #E3EFFF et l'autre en blanc cassé #FAFCFF, se chevauchent en retrait, légèrement décalées et inclinées de quelques degrés vers la droite, pour créer un empilement en profondeur. Au centre de la carte avant, le prix énorme en bleu nuit #0A1A33 : \"360 €\". Il est entouré d'un cercle ovale tracé à main levée au feutre bleu #007bff, au trait irrégulier et légèrement ouvert, comme une annotation faite à la main sur un papier. Sur le coin supérieur droit de la carte, qu'elle chevauche et dépasse, une pastille rectangulaire aux coins arrondis remplie de bleu nuit #0A1A33, inclinée d'environ huit degrés, avec une ombre douce, contenant en blanc #FFFFFF \"-90 % vs agence\". En bas à gauche, détaché du reste par du vide : une rangée de cinq petites étoiles pleines bleues #007bff, puis la citation en bleu nuit #0A1A33, sur une ou deux lignes, \"« Enfin un logo qui nous ressemble. »\", puis juste dessous, en plus petit et en gris ardoise #5A6B85, \"Julie, fondatrice de Maison Loa\". Immédiatement à droite de cet avis, légèrement inclinée, une signature manuscrite réelle tracée au stylo à encre bleue #007bff, avec un trait fluide, une pression variable et une petite boucle finale, comme signée à la main sur le papier : \"Julie\". En bas à droite, aligné sur la ligne de l'avis et entouré de vide, un bouton rectangulaire plein bleu #007bff aux coins légèrement arrondis, sans contour, avec une ombre portée douce et légère, contenant en blanc #FFFFFF \"Je démarre\", sans flèche. Tout en bas du carré, sur une seule ligne alignée à gauche, en très petit gris #8A97AB à faible contraste : \"Prix HT, paiement en 2 fois possible.\". Beaucoup d'espace négatif entre chaque bloc ; aucun texte ne touche un autre. Rendu sobre et fait main, comme un vrai travail de graphiste, sans aucun effet artificiel. Un seul point focal : la carte blanche avec le prix entouré au feutre. Polices : Poppins Bold pour le titre et le prix, Poppins SemiBold pour le texte du bouton, Poppins Medium pour les trois lignes cochées, la pastille, la citation, son auteur et la ligne du bas ; la signature est un tracé manuscrit, pas une police. Aucun logo, aucune image, aucun mockup, aucun tiret cadratin, aucun trait long décoratif. N'affiche que les textes écrits entre guillemets, aucun autre texte, aucun faux texte. Utilise la meilleure qualité de Nano Banana Pro en restant gratuit.",
+   "format_visuel": "offre prix en carte éditoriale",
+   "assets_declares": [],
+   "structure_reference": "Structure construite à partir de l'idée du stratégiste, en carré 1:1, en deux colonnes. FOND : bleu très pâle #F3F8FF. Il reprend la clarté et le halo qui monte du bas de AG1-22, recoloré dans le bleu du client. Matière : grain photographique fin, légère texture papier et halo diffus #7fbdff qui monte du coin bas droit. Pas de quadrillage, car le site n'en a pas. COLONNE GAUCHE, environ 55 pour cent de la largeur, alignée à gauche : en haut à gauche, le titre (1) très gros sur deux lignes, en Poppins Bold bleu nuit, avec « enfin pro. » en accent #007bff. Ce traitement reprend le titre bicolore de AG1-22 et AG2-03. Sous le titre, après une respiration, les trois puces (2, 3, 4) empilées. Chacune est dans un rectangle blanc aux coins arrondis, avec un contour fin bleu clair et une coche #007bff, à la manière des lignes cochées de AG2-03. COLONNE DROITE : une grande carte prix blanche aux coins arrondis, avec une ombre portée douce, inspirée de la carte prix de EC1-45. Deux cartes plus pâles sont décalées derrière elle et légèrement inclinées, ce qui crée la profondeur en calques. Au centre de la carte, le prix (5) énorme, entouré d'un cercle tracé au feutre #007bff à main levée, comme le prix entouré de AG2-03. Le badge (6) est une pastille inclinée qui chevauche le coin supérieur droit de la carte. BAS GAUCHE : cinq étoiles #007bff, puis la citation (7) entre guillemets typographiques, puis le nom de l'auteur en petit dessous. Juste à droite de l'avis, la signature manuscrite (10) tracée à l'encre bleue. BAS DROITE : le CTA (9), rectangle plein #007bff aux coins légèrement arrondis, sans flèche, avec une ombre douce. TOUT EN BAS : la mention (8) en petit gris, à faible contraste. Aucun logo et aucun visuel, car aucun asset n'a été déposé : la créa vit par la typographie, les cartes superposées, le cercle au feutre et le fond travaillé. Zéro emplacement visuel pour zéro asset.",
+   "alerte": "Aucun asset n'a été déposé, pas même le logo IDlift : la créa sort sans logo, et c'est à ajouter si la marque doit être signée. La signature manuscrite est décrite comme un tracé à la main pour respecter la règle « aucune autre police » de la charte.",
+   "pret": true,
+   "diagnostic_prompt": "crea 6 : [end_turn, 4530 tokens] 3647 caracteres, 1 bloc(s) envoyes a Gemini",
+   "diagnostic_lot_prompts": "6 items entrants, 6 creas preparees, 6 sorties, 6 prompt(s) lisible(s)"
+  }
+ ],
+ "gemini": [
+  {
+   "i": 0,
+   "cles": [
+    "id",
+    "status",
+    "usage",
+    "created",
+    "updated",
+    "service_tier",
+    "steps",
+    "object"
+   ],
+   "erreur": "",
+   "statut": "completed"
+  },
+  {
+   "i": 1,
+   "cles": [
+    "id",
+    "status",
+    "usage",
+    "created",
+    "updated",
+    "service_tier",
+    "steps",
+    "object"
+   ],
+   "erreur": "",
+   "statut": "completed"
+  },
+  {
+   "i": 2,
+   "cles": [
+    "id",
+    "status",
+    "usage",
+    "created",
+    "updated",
+    "service_tier",
+    "steps",
+    "object"
+   ],
+   "erreur": "",
+   "statut": "completed"
+  },
+  {
+   "i": 3,
+   "cles": [
+    "id",
+    "status",
+    "usage",
+    "created",
+    "updated",
+    "service_tier",
+    "steps",
+    "object"
+   ],
+   "erreur": "",
+   "statut": "completed"
+  },
+  {
+   "i": 4,
+   "cles": [
+    "id",
+    "status",
+    "usage",
+    "created",
+    "updated",
+    "service_tier",
+    "steps",
+    "object"
+   ],
+   "erreur": "",
+   "statut": "completed"
+  },
+  {
+   "i": 5,
+   "cles": [
+    "id",
+    "status",
+    "usage",
+    "created",
+    "updated",
+    "service_tier",
+    "steps",
+    "object"
+   ],
+   "erreur": "",
+   "statut": "completed"
+  }
+ ],
+ "gemini_forme": {
+  "id": "v1_ChdOdHk5YXZpaUM0eUp2ZElQNmFmVTBRURIXTnR5OWF2aWlDNHlKdmRJUDZhZlUwUVE",
+  "status": "completed",
+  "usage": {
+   "total_tokens": 4328,
+   "total_input_tokens": 1766,
+   "input_tokens_by_modality": [
+    {
+     "modality": "text",
+     "tokens": 1206
+    },
+    {
+     "modality": "image",
+     "tokens": 560
+    }
+   ],
+   "total_cached_tokens": 0,
+   "total_output_tokens": 2111,
+   "output_tokens_by_modality": [
+    {
+     "modality": "image",
+     "tokens": 1120
+    }
+   ],
+   "total_tool_use_tokens": 0,
+   "total_thought_tokens": 451,
+   "raw_prompt_token": 2223,
+   "model_invocation_token_counts": [
+    {
+     "prompt_tokens_details": [
+      {
+       "modality": "text",
+       "tokens": 1663
+      },
+      {
+       "modality": "image",
+       "tokens": 560
+      }
+     ],
+     "candidates_tokens_details": [
+      {
+       "modality": "text",
+       "tokens": 981
+      }
+     ],
+     "thoughts_tokens_details": [
+      {
+       "modality": "text",
+       "tokens": 451
+      }
+     ]
+    },
+    {
+     "prompt_tokens_details": [
+      {
+       "modality": "text",
+       "tokens": 3119
+      },
+      {
+       "modality": "image",
+       "tokens": 1039
+      }
+     ],
+     "candidates_tokens_details": [
+      {
+       "modality": "text",
+       "tokens": 22
+      }
+     ],
+     "thoughts_tokens_details": [
+      {
+       "modality": "text",
+       "tokens": 126
+      }
+     ]
+    }
+   ],
+   "non_grounding_model_invocation_token_counts": [
+    {
+     "prompt_tokens_details": [
+      {
+       "modality": "text",
+       "tokens": 1663
+      },
+      {
+       "modality": "image",
+       "tokens": 560
+      }
+     ],
+     "candidates_tokens_details": [
+      {
+       "modality": "text",
+       "tokens": 981
+      }
+     ],
+     "thoughts_tokens_details": [
+      {
+       "modality": "text",
+       "tokens": 451
+      }
+     ]
+    },
+    {
+     "prompt_tokens_details": [
+      {
+       "modality": "text",
+       "tokens": 3119
+      },
+      {
+       "modality": "image",
+       "tokens": 1039
+      }
+     ],
+     "candidates_tokens_details": [
+      {
+       "modality": "text",
+       "tokens": 22
+      }
+     ],
+     "thoughts_tokens_details": [
+      {
+       "modality": "text",
+       "tokens": 126
+      }
+     ]
+    }
+   ]
+  },
+  "created": "2026-10-01T04:06:40Z",
+  "updated": "2026-10-01T04:06:40Z",
+  "service_tier": "standard",
+  "steps": [
+   {
+    "signature": "[texte 4446036 car. debut EvnCywEK9MLLAQFp]",
+    "type": "thought"
+   },
+   {
+    "content": [
+     {
+      "data": "[texte 2736192 car. debut /9j/4AAQSkZJRgAB]",
+      "mime_type": "image/jpeg",
+      "type": "image"
+     }
+    ],
+    "type": "model_output"
+   }
+  ],
+  "object": "interaction",
+  "model": "gemini-3-pro-image"
+ },
+ "ranger_nb": 15,
+ "ranger_diag": "15 fichier(s) a publier (6 copy, 6 prompt, 3 asset)",
+ "publies": [
+  "IDLIFT_TEST_1001/creas/AD01/copy.txt",
+  "IDLIFT_TEST_1001/creas/AD01/prompt.txt",
+  "IDLIFT_TEST_1001/creas/AD01/assets/IDlift-logo.png",
+  "IDLIFT_TEST_1001/creas/AD02/copy.txt",
+  "IDLIFT_TEST_1001/creas/AD02/prompt.txt",
+  "IDLIFT_TEST_1001/creas/AD02/assets/IDlift-logo.png",
+  "IDLIFT_TEST_1001/creas/AD03/copy.txt",
+  "IDLIFT_TEST_1001/creas/AD03/prompt.txt",
+  "IDLIFT_TEST_1001/creas/AD04/copy.txt",
+  "IDLIFT_TEST_1001/creas/AD04/prompt.txt",
+  "IDLIFT_TEST_1001/creas/AD05/copy.txt",
+  "IDLIFT_TEST_1001/creas/AD05/prompt.txt",
+  "IDLIFT_TEST_1001/creas/AD05/assets/IDlift-logo.png",
+  "IDLIFT_TEST_1001/creas/AD06/copy.txt",
+  "IDLIFT_TEST_1001/creas/AD06/prompt.txt"
+ ],
+ "page": [
+  "IDLIFT_TEST_1001/creas/index.html",
+  "IDLIFT_TEST_1001/creas/telecharger.html"
+ ],
+ "pagesPubliees": [
+  "IDLIFT_TEST_1001/creas/index.html",
+  "IDLIFT_TEST_1001/creas/telecharger.html"
+ ]
+}

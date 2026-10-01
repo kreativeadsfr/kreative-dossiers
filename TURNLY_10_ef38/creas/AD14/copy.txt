@@ -1,0 +1,16 @@
+Créa 14 · Turnly
+
+1. Titre : Plus d’avis Google en 3 minutes ?
+3. Étape 1 : Créez votre compte
+4. Description étape 1 : Votre nom, votre lot à gagner, c’est tout.
+6. Étape 2 : Imprimez votre QR code
+7. Description étape 2 : Une affiche prête, posée sur le comptoir.
+9. Étape 3 : Les avis arrivent
+10. Description étape 3 : Vos clients tournent la roue et laissent un avis.
+11. CTA : Essayer gratuitement
+12. Mention : 1 semaine offerte, sans carte bancaire
+
+Idée du visuel : Même timeline en 3 étapes, sans les libellés de jour.
+Référence      : AG1-22 · timeline verticale en trois étapes
+
+Alerte : Logo : la pièce jointe 1 ne correspond pas au logo Turnly visible sur le site (roue multicolore et nom « turnly » en bleu). Je l'ai placée à l'emplacement du logo sans l'appeler « logo » et sans ajouter de nom ; il faut joindre le vrai logo Turnly. Accent #ffe29a : il est illisible en couleur de texte sur fond clair, donc je l'ai posé en surlignage derrière « en 3 minutes ? ». Bouton : le texte blanc imposé sur fond #ffe29a est très peu lisible, je recommande un texte bleu marine #082b58. Étoiles : je les ai retirées avec l'ancienne note, car la nouvelle mention n'est pas un avis.

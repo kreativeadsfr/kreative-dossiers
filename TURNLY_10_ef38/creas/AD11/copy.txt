@@ -11,4 +11,4 @@ Créa 11 · Turnly
 Idée du visuel : Même structure problème à gauche, solution à droite. À droite, notre vraie affiche Turnly avec la roue.
 Référence      : UG3-03 · problème solution en deux colonnes
 
-Alerte : Aucun logo Turnly séparé n'est joint et une ugly ad n'en porte pas, donc aucun n'est ajouté. La mention de marque reste seulement celle qui figure déjà dans l'affiche. L'emplacement 7 (« Une roue, un QR code, des avis en continu ») est une solution placée dans la colonne problème : il est conservé à sa place, comme le demande la fiche, mais le stratégiste devrait le vérifier.
+Alerte : Aucun logo Turnly séparé n'est joint (seule la petite mention « Créé avec turnly » figure sur l'affiche), ce qui convient à une ugly ad sans logo. La référence montre trois produits pour un seul asset joint : le visuel est réduit à une seule affiche. L'emplacement 7 (« Une roue, un QR code, des avis en continu ») est une solution mais reste à sa place dans la colonne des problèmes, comme demandé par la fiche.

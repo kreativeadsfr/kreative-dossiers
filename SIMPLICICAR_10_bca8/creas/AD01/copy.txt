@@ -5,6 +5,6 @@ Créa 1 · Simplicicar
 3. CTA : ESTIMER MA VOITURE →
 
 Idée du visuel : Sur le panneau, notre vraie photo de voiture en showroom.
-Référence      : EC1-14
+Référence      : EC1-14 · panneau d'affichage dans le ciel
 
-Alerte : PROMPT NON LU (pas de texte dans la reponse) : AUCUN BLOC TEXTE (arret : inconnu) {"error":{"message":"400 - \"{\\\"type\\\":\\\"error\\\",\\\"error\\\":{\\\"type\\\":\\\"invalid_request_error\\\",\\\"message\\\":\\\"Your credit balance is too low to access the Anthropic API. Pleas
+Alerte : Aucun logo isolé de Simplicicar n'est joint : l'emplacement logo du panneau a été retiré, et la marque n'apparaît que via l'enseigne et la plaque visibles dans la photo. La photo jointe porte des inscriptions incrustées en bas (garantie, Paris 17ème) qui resteront visibles, car l'asset n'est pas recadré : une version sans ces inscriptions serait plus propre. La consigne client « Plus de détails en mail » ne contient aucune instruction exploitable.

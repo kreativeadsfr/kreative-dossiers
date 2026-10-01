@@ -1,0 +1,435 @@
+{
+  "dossier": "LABORATOIREKOT_10_7236",
+  "brand_name": "Laboratoire Kotor Pharma",
+  "website": "https://kotorpharma.com/",
+  "secteur": "E-commerçant",
+  "pack": "growth",
+  "nb_creas": 12,
+  "deadline": "2026-10-03T05:57:45.365Z",
+  "deadline_heures": 48,
+  "deadline_strategiste": "2026-10-01T21:57:45.365Z",
+  "deadline_designer": "2026-10-02T21:57:45.365Z",
+  "nb_ugly": 6,
+  "date": "2026-10-01",
+  "couleurs": [
+    "#266e9d",
+    "#ffe563",
+    "#e85e54",
+    "#1863dc",
+    "#483de0",
+    "#293c5b"
+  ],
+  "couleurs_client": [
+    "#266e9d",
+    "#ffe563"
+  ],
+  "couleurs_site": [
+    "#e85e54",
+    "#1863dc",
+    "#483de0",
+    "#293c5b"
+  ],
+  "polices": [
+    "Toutes les déclinaisons de futura",
+    "DM Sans",
+    "Roboto",
+    "Comfortaa"
+  ],
+  "polices_client": [
+    "Toutes les déclinaisons de futura"
+  ],
+  "polices_site": [
+    "DM Sans",
+    "Roboto",
+    "Comfortaa"
+  ],
+  "captures": [
+    {
+      "page": "accueil",
+      "url": "https://storage.googleapis.com/firecrawl-scrape-media/screenshot-0d835238-1e25-451b-9e1e-e3ff7244b871.png?GoogleAccessId=scrape-bucket-accessor%40firecrawl.iam.gserviceaccount.com&Expires=1791438897&Signature=jUii6%2FfQ38eY1%2F1jASWxZcWR4nIqVQ5jf7NjSM4jCkNttMI7AhoxaE9Dmun%2B2oOepZYgbyhZVvbAjZUeu4tpO%2FijoaemFOHs412jQOVxSBBz5KE6TemETEISC3TrmKngx0kTYEDxeqY9LDeYiSDo3a6Tmz6HkGLNQYJYkN%2FqWYoOIpCvlA%2Bi2zRvUxt73k1x3eVFA%2FSJL2WhXk0%2FKgbv7IehIcd22HTjPVNeXfBd4kevSCYXJOUP0A3NM5fpMoNzMsyhoJ7FIre0uy48rlEpOEt2T8LqVVbKhZnL2rAW2h9CqSp0inTHLmPd1oylK9u%2BkuMawsXIhHUV6YeKZuti%2FQ%3D%3D"
+    }
+  ],
+  "ton": "Expert & rassurant (sérieux, pédagogue)",
+  "adresse": "Vouvoiement",
+  "ambiance": "Épuré, naturel, clair",
+  "consignes": "",
+  "promo": "",
+  "interdits": "",
+  "preuves": "4.9/5 sur +1100 avis vérifiés en note de marque\nLes notes des produits eux mêmes (voir page produit)\nUne étude pour Kotor Collagène : \n\nRésultats observés après seulement 30 jours\n\nL’étude met en évidence une amélioration significative de plusieurs marqueurs de la qualité de la peau :\n\n* ✨ Longueur globale des rides : -17 %\n* ✨ Volume des sillons nasogéniens (rides du sourire) : -16 %\n* ✨ Surface des sillons nasogéniens : -15 %\n* 💧 Hydratation de la peau : +14 %\n* ✨ Longueur des sillons nasogéniens : -13 %\n* 🌿 Élasticité de la peau : +10 %\n* ✨ Volume global des rides : -9 %\n* ✨ Surface globale des rides : -9 %\n\nEn résumé\n\nAprès 30 jours, les participants ont présenté :\n\n* une réduction visible des rides, pouvant atteindre 17 % ;\n* une atténuation des sillons nasogéniens jusqu’à 16 % ;\n* une augmentation de l’hydratation cutanée de 14 % ;\n* une amélioration de l’élasticité de la peau de 10 %.",
+  "offre": "",
+  "differenciation": "",
+  "client_ideal": "Nos clients sont principalement des 50ans et +. Ils ont donc des troubles de personnes plutôt \"agées\" : douleurs articulaires, cholesterol, memoire, rides etc.",
+  "freins": "Est ce que ca marche vraiment\nQu'est ce qui fait que ce complément est mieux qu'un autre",
+  "objectif": "Générer des ventes",
+  "assets": [
+    {
+      "id": "PJ01",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-soMTps1WZmus/4dbdc222-b30d-4447-8dd4-e78e39870eb5-fVRB5BrXWgHSrQGxwW4xLu76LflqEv01uHXv013yCjbpK6xBFkPf5txbpP01Qx3HXFZGhHrY7rHQLS4ols2tSexr8auVGgNAAu5/LOGO-KOTOR_Plan-de-travail-1-copie-4.png",
+      "type": "logo"
+    },
+    {
+      "id": "PJ02",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-soMTps1WZmus/c57d00aa-5fa5-4b44-a3d4-766f02f05924-f4tdXSBYYqxnRGQiJMlUzUg1QRxyQzgsQMsAjiWqlfWtvu0M3eVTbYH7NJVuINzTopDYbDLisp0MhT5cus2vHU666UwS5rN74Vj/LOGO-KOTOR_Plan-de-travail-1-copie-5.png",
+      "type": "logo"
+    },
+    {
+      "id": "PJ03",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-soMTps1WZmus/db917af6-dd5b-40b9-bcc8-b65eaeb2a55c-BzLOzzzO13nHEmItzAE9ANPIDhScymjyqwzFSVhiMlP2WzWWAKTlZpZt3E6TRcY2rTiVQzANJUzztdlCHdM3w9P94Z8SdYZ6u60/Kotor-Pharma-FOnd-Blanc-Rond.png",
+      "type": "logo"
+    },
+    {
+      "id": "PJ04",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-soMTps1WZmus/09b26cc7-07e1-4a2d-ab25-b593d8d1102d-LaIeD4ufOX09l2bMceHCTM1q2G3QRWeDH8GTLxb1GZpudsJwjBwLTBGZe5IPt6MjqWPgvehBqvcXMJH3MExFbq5BqKzWQ0bW6wF/Kotor-Omega-3-Epax-Packshot-Ombre.png",
+      "type": "produit"
+    },
+    {
+      "id": "PJ05",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-soMTps1WZmus/a946b959-cf41-474b-a1c3-83da1c51b97e-xZsPYwmSCdBK2aO6fDuTHdF8P79BoDM9KERQOaQ0U26MUOgfJBWbxyRb2CBYBO42C5iMPBLbmn1cQhX8CuzR6SJ4uoSxL9tDXjD/Kotor-CollageIne-Packshot-Ombre.png",
+      "type": "produit"
+    },
+    {
+      "id": "PJ06",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-soMTps1WZmus/8c5d0e56-7856-483e-b8d7-b4c720e54470-mP4oHdfuqFGTWMW7rrhXRQbaXS0S72EAc8RgeZ8652xGFXbET2M6cJhVxKUPL6oS3kvlvoEbnI6wIpzZJAGK7V6GLnI3u8a7SBh/KotorPharma_Collagene-33.jpg",
+      "type": "ambiance"
+    },
+    {
+      "id": "PJ07",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-soMTps1WZmus/401d2845-72b2-48af-900d-b7c2139ba7e3-zTRJ4DFyQNNZFfbzeaoiRvJOQdSoI9i6n6CBRqpvgvM6Nj4meKpjxIBSildn7Fw5F3iCzVzJmSq180Q2iw14VRjdXQYpFVKo92P/KotorPharma_collagene-06.jpg",
+      "type": "ambiance"
+    },
+    {
+      "id": "PJ08",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-soMTps1WZmus/707785a8-1ecd-45e7-b613-530723772125-aKMan2uVTfP07ird9zinKIzzNJS4eCC6tZraICHMsvMWZw5RkdQi2b576tP5IYKlHZCeIJgKFDszHNxIafnLaEeXJgiAUsIsSsz/KotorPharma_collagene-09.jpg",
+      "type": "ambiance"
+    },
+    {
+      "id": "PJ09",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-soMTps1WZmus/ddd3ca65-20ec-42b4-9975-c3d43e78ef99-Mn2cOe8HhurnL82RA1z94iBAGbggAwnXJQmORaC4CzdZGlA87aJlgSnxLxNANxD4DRM8gi4VhcDgmDYPq0LQbXK5sweguhGDIfx/KotorPharma_Collagene-36.jpg",
+      "type": "ambiance"
+    },
+    {
+      "id": "PJ10",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-soMTps1WZmus/0b503713-0bfd-413a-b297-4596e1ed68d8-qYplneQff4BlGaOLQp2ry7E9fZITDIKR5qCWJijq8b8BAnoxmost6kEvtuj3HTnHzgIXzp3cwN2zxBeLAJKRC2IHw8rPJgZqDeg/KotorPharma_Collagene-14.jpg",
+      "type": "ambiance"
+    },
+    {
+      "id": "PJ11",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-soMTps1WZmus/df5ae1de-9828-4dc4-b6fc-80f51fed4e6f-xEQuKgOEGsheJnTAleklddiIPEn3YG3KhqOH5j7uOzTVB2JgjD3BsZPjyYX0TK5u7lVrut2bTDznGwSKoUlECmVurAD5YYF36yU/KotorPharma_Collagene-18-(1).jpg",
+      "type": "ambiance"
+    },
+    {
+      "id": "PJ12",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-soMTps1WZmus/6bc7c676-5468-481b-bf88-c9172de6f3c7-epgXyXSvku8uRGprvzF70M3e7ixS2E4eUL3aKXKqeehfZlY2OhO2vjlcRGmxCtFwjRMqc5O2qjr7niGML6QmMpKaAN8PEfLs92a/KotorPharma_Collagene-22.jpg",
+      "type": "ambiance"
+    },
+    {
+      "id": "PJ13",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-soMTps1WZmus/80b7e796-d3de-4a7d-bd23-5c977e757955-qKAR69TI3ghZkK3Oqv3mpyZrz3kmwXvHS5tYev2xvVtgLcHMrB0hXJtNtI4loYZy47eYZoEZNqOIwWiYsTIDvm2qCD7qMLTAfYd/KotorPharma_Collagene-32.jpg",
+      "type": "ambiance"
+    },
+    {
+      "id": "PJ14",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-soMTps1WZmus/e1b0bde6-1086-47b8-891d-62df8081b34a-0YtpM0lUwjSJc2SOl0nDQNzzGNnaBqAPKuoGO2SHhymeKYX7Y2HAHVjifg6hK5bHrmMSjt5ebfzXyv0uLimtz9DejPFl79pkFPI/KotorPharma_Collagene-30.jpg",
+      "type": "ambiance"
+    },
+    {
+      "id": "PJ15",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-soMTps1WZmus/81c9430d-3e24-46be-8a27-796dac5b2747-IynniE72Dqo1boSWYtPKwnVSeHekHlvkfZicel1pQt9vSi1oJdC0SogzVbtLcFOsNqlbmdEVxeCZDp0fiLppIyjbGGQ5oA9f36X/KotorPharma_Collagene-26.jpg",
+      "type": "ambiance"
+    },
+    {
+      "id": "PJ16",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-soMTps1WZmus/faf378d5-efd5-490c-9f0d-50f07ebb2e39-w3lb05M35VAGcY2a1l6tfmUt7669HxfY2ZthEAWfQsHkYo88X4gwJjtLpfDUYQGiuqnvXo5rClkX9F6ObWgTMHBhwsir4apNkMH/KotorPharma_Collagene-18.jpg",
+      "type": "ambiance"
+    },
+    {
+      "id": "PJ17",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-soMTps1WZmus/27b351dd-59e8-4dfe-9bee-d8c2fc72e726-eIMszCiCcWf7ewjK1aL8yALT6qyRmmW4KnQfeKWrckyDb7ebEWzg6fFSvFBM9XNrt4YmAoqek3pP9dnuD27tJ4ytN3Gu7IiB6Uv/KotorPharma_collagene-10.jpg",
+      "type": "ambiance"
+    },
+    {
+      "id": "PJ18",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-soMTps1WZmus/aeab4b3c-e7f8-47cf-95b0-18c13ab228e1-tDtT8r6brZ639aHFLisbLKWVjWPN8PZESjg2MOgr6vmxjI8CrlabxwuIkN3yMJywNOblNMBzn8mNDT4Ro62Unzil02hZMtWORLU/KotorPharma_Collagene-40.jpg",
+      "type": "ambiance"
+    },
+    {
+      "id": "PJ19",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-soMTps1WZmus/1d719006-54a1-42c1-9f63-257ed7e92a9a-mwj0AcKWTFjb300BQ2vU9uupqA7n4sDaWRxLWdVrvKu0yW3MSDQUOt78Rb1nRcyr45nsJmx8UcV4CqBxI633zYHc7Gofp4MXgRa/KotorPharma_Collagene-31.jpg",
+      "type": "ambiance"
+    },
+    {
+      "id": "PJ20",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-soMTps1WZmus/f08aa9ae-145f-48f5-aaab-427232340de2-gL6gsU8JpJCwjokYUHT9lEevGgNyy1MjAphPiVRE5ryPKtY7IQiNVzV26dHgrf5RulRatnzDp0dryiasv5Cz7kLPM8U575bdfxX/KotorPharma_Collagene-12.jpg",
+      "type": "ambiance"
+    }
+  ],
+  "assets_site": [
+    {
+      "id": "WS01",
+      "url": "https://kotorpharma.com/wp-content/uploads/2026/04/KotorPharma_zinc_1000x1000.webp",
+      "nom": "visuel du site",
+      "note": 13
+    },
+    {
+      "id": "WS02",
+      "url": "https://kotorpharma.com/wp-content/uploads/2024/03/KotorPharma_magnesium.jpg",
+      "nom": "visuel du site",
+      "note": 12
+    },
+    {
+      "id": "WS03",
+      "url": "https://saas-assistants-s3.s3.eu-north-1.amazonaws.com/Kotor-Pharma_20260916_092541_159_9958209e.jpg",
+      "nom": "visuel du site",
+      "note": 11
+    },
+    {
+      "id": "WS04",
+      "url": "https://kotorpharma.com/wp-content/uploads/2023/09/KotorPharma_silice-buvable-silicium-organique.jpg",
+      "nom": "visuel du site",
+      "note": 11
+    },
+    {
+      "id": "WS05",
+      "url": "https://kotorpharma.com/wp-content/uploads/2025/09/KotorPharma_antistress.jpg",
+      "nom": "visuel du site",
+      "note": 11
+    },
+    {
+      "id": "WS06",
+      "url": "https://kotorpharma.com/wp-content/uploads/elementor/thumbs/7-rciqypjau70dgg1omkn036mouny80v5q5q9cvv8l8o.jpg",
+      "nom": "visuel du site",
+      "note": 9
+    },
+    {
+      "id": "WS07",
+      "url": "https://kotorpharma.com/wp-content/plugins/coupon-referral-program/public/images/bg.png",
+      "nom": "visuel du site",
+      "note": 7
+    },
+    {
+      "id": "WS08",
+      "url": "https://kotorpharma.com/wp-content/uploads/2026/08/KotorPharma_stress-sommeil.webp",
+      "nom": "visuel du site",
+      "note": 10
+    },
+    {
+      "id": "WS09",
+      "url": "https://kotorpharma.com/wp-content/uploads/2024/03/KotorPharma_omega-3.jpg",
+      "nom": "visuel du site",
+      "note": 12
+    },
+    {
+      "id": "WS10",
+      "url": "https://kotorpharma.com/wp-content/uploads/2023/09/KotorPharma_kotor-gel-silicium-2.webp",
+      "nom": "visuel du site",
+      "note": 9
+    },
+    {
+      "id": "WS11",
+      "url": "https://kotorpharma.com/wp-content/uploads/2025/05/KotorPharma_collagene.jpg",
+      "nom": "visuel du site",
+      "note": 10
+    },
+    {
+      "id": "WS12",
+      "url": "https://kotorpharma.com/wp-content/uploads/elementor/thumbs/4-rciqyiyficrd76b8ozsm3qagoyunizflstoyixicg8.jpg",
+      "nom": "visuel du site",
+      "note": 9
+    },
+    {
+      "id": "WS13",
+      "url": "https://kotorpharma.com/wp-content/plugins/coupon-referral-program/public/images/loading.gif",
+      "nom": "visuel du site",
+      "note": 6
+    },
+    {
+      "id": "WS14",
+      "url": "https://kotorpharma.com/wp-content/uploads/2024/03/KotorPharma_probiodiet.jpg",
+      "nom": "visuel du site",
+      "note": 12
+    },
+    {
+      "id": "WS15",
+      "url": "https://kotorpharma.com/wp-content/uploads/2023/08/KotorPharma_Livraison-2048x2048.png",
+      "nom": "visuel du site",
+      "note": 9
+    },
+    {
+      "id": "WS16",
+      "url": "https://kotorpharma.com/wp-content/uploads/2025/09/KotorPharma_antistress-300x300.jpg",
+      "nom": "visuel du site",
+      "note": 8
+    },
+    {
+      "id": "WS17",
+      "url": "https://kotorpharma.com/wp-content/uploads/elementor/thumbs/3-rciqyf72r0m7wqgpay63tr8mbfd6o70ogb30ltnx54.jpg",
+      "nom": "visuel du site",
+      "note": 9
+    },
+    {
+      "id": "WS18",
+      "url": "https://kotorpharma.com/wp-content/uploads/2024/03/KotorPharma_gel-apaisant.jpg",
+      "nom": "visuel du site",
+      "note": 11
+    },
+    {
+      "id": "WS19",
+      "url": "https://kotorpharma.com/wp-content/uploads/2023/08/KotorPharma_LServiceClient-1024x1024.png",
+      "nom": "visuel du site",
+      "note": 8
+    },
+    {
+      "id": "WS20",
+      "url": "https://kotorpharma.com/wp-content/uploads/elementor/thumbs/1-rciqxy9zbzz23r5a1qutkvibmhoktn5idzc9yud094.jpg",
+      "nom": "visuel du site",
+      "note": 9
+    },
+    {
+      "id": "WS21",
+      "url": "https://kotorpharma.com/wp-content/uploads/2024/03/KotorPharma_curcuma.jpg",
+      "nom": "visuel du site",
+      "note": 11
+    },
+    {
+      "id": "WS22",
+      "url": "https://kotorpharma.com/wp-content/uploads/2023/08/KotorPharma_France-1024x1024.png",
+      "nom": "visuel du site",
+      "note": 8
+    },
+    {
+      "id": "WS23",
+      "url": "https://kotorpharma.com/wp-content/uploads/elementor/thumbs/5-rciqytanlj5iqvw80m9id5oj87fovnkni8vasz30js.jpg",
+      "nom": "visuel du site",
+      "note": 9
+    },
+    {
+      "id": "WS24",
+      "url": "https://kotorpharma.com/wp-content/uploads/2024/02/KotorPharma-Pack-Silicium.webp",
+      "nom": "visuel du site",
+      "note": 11
+    },
+    {
+      "id": "WS25",
+      "url": "https://kotorpharma.com/wp-content/uploads/2023/08/KotorPharma-10.png",
+      "nom": "visuel du site",
+      "note": 6
+    },
+    {
+      "id": "WS26",
+      "url": "https://kotorpharma.com/wp-content/uploads/elementor/thumbs/2-rciqy21c3c47e6ztfshbuuk60161ofkfqhy7vy7fk8.jpg",
+      "nom": "visuel du site",
+      "note": 9
+    },
+    {
+      "id": "WS27",
+      "url": "https://kotorpharma.com/wp-content/uploads/2024/03/KotorPharma_ongles-cheveux.jpg",
+      "nom": "visuel du site",
+      "note": 10
+    },
+    {
+      "id": "WS28",
+      "url": "https://kotorpharma.com/wp-content/uploads/2023/08/Group-1-10.png",
+      "nom": "visuel du site",
+      "note": 6
+    },
+    {
+      "id": "WS29",
+      "url": "https://kotorpharma.com/wp-content/uploads/2024/02/Kotor-Pharma-Pack-Beaute.webp",
+      "nom": "visuel du site",
+      "note": 10
+    },
+    {
+      "id": "WS30",
+      "url": "https://kotorpharma.com/wp-content/uploads/2024/02/KotorPharma_Pack-Digestion-Transit.jpg",
+      "nom": "visuel du site",
+      "note": 10
+    },
+    {
+      "id": "WS31",
+      "url": "https://kotorpharma.com/wp-content/uploads/2024/02/KotorPharma_Pack-Sante-Cardiovasculaire.jpg",
+      "nom": "visuel du site",
+      "note": 10
+    },
+    {
+      "id": "WS32",
+      "url": "https://kotorpharma.com/wp-content/uploads/2024/02/KotorPharma-Homepage-Pillulier-2.webp",
+      "nom": "visuel du site",
+      "note": 10
+    },
+    {
+      "id": "WS33",
+      "url": "https://kotorpharma.com/wp-content/uploads/2024/03/KotorPharma_chondro.jpg",
+      "nom": "visuel du site",
+      "note": 9
+    },
+    {
+      "id": "WS34",
+      "url": "https://kotorpharma.com/wp-content/uploads/2024/03/KotorPharma_articulations.jpg",
+      "nom": "visuel du site",
+      "note": 9
+    },
+    {
+      "id": "WS35",
+      "url": "https://kotorpharma.com/wp-content/uploads/2024/03/KotorPharma_sommeil.jpg",
+      "nom": "visuel du site",
+      "note": 9
+    },
+    {
+      "id": "WS36",
+      "url": "https://kotorpharma.com/wp-content/uploads/2024/03/KotorPharma_safran-millepertuis.jpg",
+      "nom": "visuel du site",
+      "note": 9
+    }
+  ],
+  "pubs_client": [],
+  "pubs_concurrents": [
+    {
+      "id": "CC01",
+      "annonceur": "Novoma",
+      "url": "https://scontent-lga3-1.xx.fbcdn.net/v/t39.35426-6/777801115_1379936700262657_2906063029005476388_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=103&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=go3OSktbc1QQ7kNvwEYDH-G&_nc_oc=AdoyZr8lwpC_XmgnhjM11EConG2Bgnbifn-DgXVmoU0iWWiecKXnEkLn-F8jv5kpiec&_nc_zt=14&_nc_ht=scontent-lga3-1.xx&_nc_gid=Ui--fDnT-MHyea5eFhYxiA&_nc_ss=7f289&oh=00_AQMi8Vl2aT0_DozsviCfn3Y3kRTR0rPRMqEAzpRwQgOpdA&oe=6AC3BB61",
+      "texte": "Shilajit : le boost sans coup de barre · Ça vient de sortir : Découvrez le Shilajit ! 👉 Énergie naturelle & durable ☺️ Réduction du stress & soutien du système nerveux 🧠 Concentration & clarté mentale renforcées 🇫🇷 F"
+    },
+    {
+      "id": "CC02",
+      "annonceur": "Novoma",
+      "url": "https://scontent-lga3-3.xx.fbcdn.net/v/t39.35426-6/763987735_1025180127164615_7692240510422474017_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=106&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=403UFiY_wvAQ7kNvwEqzeQM&_nc_oc=AdoXawVHAGUKNI6GxwVO2cJzJUkCSMXLJmKhC5nVN-av-NY-37Xkhrvl0_x_nl5Ww2g&_nc_zt=14&_nc_ht=scontent-lga3-3.xx&_nc_gid=Ui--fDnT-MHyea5eFhYxiA&_nc_ss=7f289&oh=00_AQPAOG-YLm48t4qHIAJbbyfqI3mSH2Q7I7E0bv_Xf8VIAw&oe=6AC3ACF4",
+      "texte": "Livraison offerte dès 50€ d’achat 📦 · ⭐️⭐️⭐️⭐️⭐️ 4,6 /5 sur plus de 7000 avis · Tu penses que tes oméga 3 sont utiles à ton cerveau, ton cœur et ta vision ? On n'en est pas si sûrs 💧 Huile de poisson ultra pure 💚 Rich"
+    },
+    {
+      "id": "CC03",
+      "annonceur": "Novoma",
+      "url": "https://scontent-lga3-2.xx.fbcdn.net/v/t39.35426-6/763120077_1439291051356430_8892437732822233808_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=107&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=AxQ4iZFi17QQ7kNvwEhtqpf&_nc_oc=AdpNrs_xgOFARppxwpnTthHMaxs9XacyuHZtsbgGyYIWwHXDZwy4I-PmMtvxTKP945A&_nc_zt=14&_nc_ht=scontent-lga3-2.xx&_nc_gid=Ui--fDnT-MHyea5eFhYxiA&_nc_ss=7f289&oh=00_AQPkAnAbHNa2CIBjVIVLKMlgJEtHTk4FkSnjr00B5a6jdQ&oe=6AC3D2BC",
+      "texte": "Shilajit : le boost sans coup de barre · Ça vient de sortir : Découvrez le Shilajit ! 👉 Énergie naturelle & durable ☺️ Réduction du stress & soutien du système nerveux 🧠 Concentration & clarté mentale renforcées 🇫🇷 F"
+    },
+    {
+      "id": "CC04",
+      "annonceur": "Novoma",
+      "url": "https://scontent-lga3-3.xx.fbcdn.net/v/t39.35426-6/764834919_1329345885852681_7990694051592349649_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=102&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=bM6CHXLZoo0Q7kNvwHSuyOc&_nc_oc=Adqg0UyWybAUFnToaOIRweX_AcIrL-zpyjdqP7SWLC33ligLUk5io2CmDaRonfIfmLk&_nc_zt=14&_nc_ht=scontent-lga3-3.xx&_nc_gid=Ui--fDnT-MHyea5eFhYxiA&_nc_ss=7f289&oh=00_AQOXVQadLc9vMAlpPv06nIEzYxFCyaItQvKJdshZA8Em4w&oe=6AC3BA54",
+      "texte": "Livraison offerte dès 50€ d’achat 📦 · ⭐️⭐️⭐️⭐️⭐️ 4,6 /5 sur plus de 7000 avis · Tu penses que tes oméga 3 sont utiles à ton cerveau, ton cœur et ta vision ? On n'en est pas si sûrs 💧 Huile de poisson ultra pure 💚 Rich"
+    },
+    {
+      "id": "CC05",
+      "annonceur": "Nutripure",
+      "url": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/814409828_1468379805178063_706556136212839538_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=106&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=cXe4lH_61AwQ7kNvwEKbVzl&_nc_oc=AdqOz0PN2VMJOoDE_TZJko_4Pmvt3WZ9htq_elPHHij96GfO9F7wALwv5JadGR9UqK8&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=v6BDVK3vSzEb8rHo8KB0Mw&_nc_ss=7f289&oh=00_AQN9AwZmu2MWviChpHZDSw1nUOIvvQf81psEU1DaiqAT8Q&oe=6AC3BDEB",
+      "texte": "Pour surmonter la fatigue et le stress · Régulez votre stress, ressentez moins de fatigue et profitez d'un réel apaisement au quotidien 🧘‍♂️ Pour les périodes de tension intellectuelle, nerveuse et d'anxiété, Nutripure "
+    },
+    {
+      "id": "CC06",
+      "annonceur": "Nutripure",
+      "url": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/757375166_963365770093276_7372946525501528924_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=102&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=6RRwJExvex4Q7kNvwGfVJDX&_nc_oc=AdrFZHySI6dXjH2wloGKiaLLvke0kUJ5__2CRzDBQytTqX16vItm9R4ZxW-Z4zpy0Ao&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=v6BDVK3vSzEb8rHo8KB0Mw&_nc_ss=7f289&oh=00_AQOLbXUlOv6ZM47KRQgIGU6lpUizWnGP1jqJCtn7-HrFeg&oe=6AC3D367",
+      "texte": "Incorporez le Collagène Peptan à votre routine · Et si votre routine collagène devenait le moment le plus gourmand de votre journée ? 🥤✨ Transformez votre prise de collagène en une boisson fruitée et ultra-rafraîchissan"
+    },
+    {
+      "id": "CC07",
+      "annonceur": "Nutripure",
+      "url": "https://scontent-lga3-3.xx.fbcdn.net/v/t39.35426-6/757375166_963365770093276_7372946525501528924_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=102&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=6RRwJExvex4Q7kNvwG7CSLI&_nc_oc=AdpQxnzNPGn-MnZeisk4DkyxjKRXp85txxmrBT-cTTQ_VUJqXsXjKLHyTeBEPLkQvr4&_nc_zt=14&_nc_ht=scontent-lga3-3.xx&_nc_gid=mT3UsBBDi4pUusRnOMyuyw&_nc_ss=7f289&oh=00_AQMW3B51azf4aZz7cKK85EaeYaog7oZJbvhL9znVPeS04g&oe=6AC3D367",
+      "texte": "Incorporez le Collagène Peptan à votre routine · Et si votre routine collagène devenait le moment le plus gourmand de votre journée ? 🥤✨ Transformez votre prise de collagène en une boisson fruitée et ultra-rafraîchissan"
+    },
+    {
+      "id": "CC08",
+      "annonceur": "Nutripure",
+      "url": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/742665663_1565238804947586_6990536234425259912_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=104&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=TcZrAkqOqA8Q7kNvwHHu6fL&_nc_oc=Adqba3qXCTncbzMGGCO1mcgpvRkAWKA0xEmivYyDev86JFPWPgWRLyijuenRipWhGiM&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=v6BDVK3vSzEb8rHo8KB0Mw&_nc_ss=7f289&oh=00_AQPpC8pU_zF9PittybREeCl5_QY_hcUG5w6zAnEdiGcCEA&oe=6AC3B3A3",
+      "texte": "🧘‍♂️ Retrouvez votre sérénité au quotidien · 2 gélules par jour suffisent pour rééquilibrer votre système nerveux et dire adieu aux coups de mou. 🔋 Que vous soyez ultra-actif ou grand sportif, le Magnésium Nutripure so"
+    }
+  ]
+}

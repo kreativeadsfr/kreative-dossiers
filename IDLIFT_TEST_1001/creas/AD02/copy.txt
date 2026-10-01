@@ -12,5 +12,3 @@ Créa 2 · IDlift TEST
 
 Idée du visuel : Même timeline en 3 étapes, mais sans les libellés de jour.
 Référence      : AG1-22 · timeline verticale en trois étapes
-
-Alerte : Le titre promet une identité en 3 jours alors que le site annonce une livraison en 48h : à vérifier avec le stratégiste pour éviter une promesse incohérente.

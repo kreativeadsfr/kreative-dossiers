@@ -1,13 +1,11 @@
 Créa 4 · IDlift
 
-1. Titre : Une marque qui inspire confiance.
-2. Liste à puces 1 : Un logo unique
-3. Détail puce 1 : Dessiné à la main, jamais généré
-4. Liste à puces 2 : Une charte complète
-6. Liste à puces 3 : Livré en 48h
-8. CTA : VOIR LES OFFRES
+1. Titre : Plus de 100 marques lancées en 48h.
+2. Sous-titre : Logo, charte et déclinaisons, dessinés à la main par nos designers.
+3. Badge preuve sociale : 4,8/5 sur plus de 40 avis · 100+ clients accompagnés
+4. CTA : Voir nos réalisations
 
-Idée du visuel : Garde le texte à gauche et le visuel à droite, mais remplace le flacon par une carte de visite IDlift posée sur du papier kraft.
-Référence      : EC1-20 · texte gauche, objet héros droite
+Idée du visuel : Garde l'éventail de projets au centre, avec nos vraies planches de réalisations.
+Référence      : AG1-47 · éventail de réalisations en cartes
 
-Alerte : Aucun asset n'est joint. Le nom de marque du haut est donc supprimé, et la carte de visite IDlift est générée vierge, aux couleurs du client, sans logo pour ne rien inventer. Le client demande d'éviter le rendu IA, ce qui est sensible pour une agence de branding : idéalement, joindre le logo IDlift ou une vraie photo de sa carte de visite. La deuxième ligne du titre, en italique dans la créa d'origine, passe en Poppins Bold pour respecter la charte.
+Alerte : L'éventail passe de cinq à quatre cartes, car quatre réalisations seulement sont jointes. Le mot pivot du titre est mis en valeur par la couleur en Poppins Bold, et non par un italique serif, pour respecter la charte.

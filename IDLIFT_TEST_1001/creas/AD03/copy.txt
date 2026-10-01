@@ -1,10 +1,10 @@
 Créa 3 · IDlift
 
-1. Titre : Avant de refaire ton logo sur Canva :
-2. Liste à puces 1 : Demande-toi si on te reconnaît à 3 mètres
-3. Liste à puces 2 : Regarde combien ça te coûte en clients perdus
-4. Liste à puces 3 : Compare avec une identité complète à 360 €
-5. CTA : Lien juste en dessous 👇
+1. Titre : J'ai lancé ma boîte avec un logo à 0 €.
+2. Phrase 2 de la note : Fait sur Canva un dimanche soir.
+3. Phrase 3 de la note : 2 ans plus tard, personne ne s'en souvient.
+4. Paragraphe de la note : Le mois dernier, j'ai tout refait avec IDlift. Logo, charte, déclinaisons. Livré en 48h, pour 360 €. Mes clients m'ont tous demandé qui avait fait ça.
+5. Phrase de chute : Honnêtement, j'aurais dû commencer par là.
 
-Idée du visuel : Une vraie note iPhone en mode sombre, rien d'autre.
-Référence      : UG1-13 · note iPhone native en mode sombre
+Idée du visuel : Une vraie note Apple, rien d'autre.
+Référence      : UG1-06 · note Apple native iPhone

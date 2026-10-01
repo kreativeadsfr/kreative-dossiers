@@ -1,4 +1,4 @@
-Créa 2 · IDlift TEST
+Créa 2 · IDlift
 
 1. Titre : Ton identité en 3 jours ?
 3. Étape 1 : Un brief de 15 minutes
@@ -12,3 +12,5 @@ Créa 2 · IDlift TEST
 
 Idée du visuel : Même timeline en 3 étapes, mais sans les libellés de jour.
 Référence      : AG1-22 · timeline verticale en trois étapes
+
+Alerte : Le site annonce une identité livrée en 48h alors que le titre dit 3 jours : à faire valider par le stratégiste pour éviter une incohérence avec la landing.

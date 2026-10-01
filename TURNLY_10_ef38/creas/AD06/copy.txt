@@ -4,6 +4,6 @@ Créa 6 · Turnly
 2. Titre : LES CLIENTS CHOISISSENT DÉSORMAIS LEUR RESTAURANT D'APRÈS LES AVIS GOOGLE, BIEN AVANT LA VITRINE
 
 Idée du visuel : Une fausse page d'actu sur la photo d'une rue commerçante, comme l'inspiration. Aucun nom de média réel.
-Référence      : UG6-01 · fausse page d'actu photo
+Référence      : UG6-01 · fausse une d'actualité sur photo
 
-Alerte : Le nom de média en haut à gauche n'a pas d'emplacement dans la fiche : il est supprimé plutôt qu'inventé, conformément à la consigne « aucun nom de média réel ». Le stratégiste peut fournir un nom fictif s'il veut le garder. Les deux mots en bleu (CHOISISSENT, AVIS GOOGLE) ont été choisis pour reproduire la mise en avant de la référence.
+Alerte : La fiche ne fournit pas de nom de média pour l'emplacement en haut à gauche, et l'idée interdit tout nom de média réel : cette zone est laissée vide. La fiche ne précise pas non plus quels mots du titre mettre en bleu : "AVIS GOOGLE" et "VITRINE" ont été choisis pour reprendre les deux mots en couleur du format.

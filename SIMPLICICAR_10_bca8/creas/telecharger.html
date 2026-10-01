@@ -42,7 +42,7 @@ h2{font-size:23px;line-height:1.25;letter-spacing:-.015em;margin:0 0 8px;font-we
 </style></head><body>
 <div class="boite">
   <h1>Simplicicar</h1>
-  <p>3 créas, 0 visuel et 3 assets</p>
+  <p>3 créas, 3 visuels et 3 assets</p>
   <button class="tout" id="tout" type="button">Télécharger le dossier</button>
   <div class="etat" id="etat">Préparation automatique…</div>
   <a class="lien" href="./">Voir l'aperçu des créas</a>
@@ -50,7 +50,7 @@ h2{font-size:23px;line-height:1.25;letter-spacing:-.015em;margin:0 0 8px;font-we
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script>
 
-const PLAN = [{"ad":"AD01","visuel":"","nom":"SIMPLI_STANDARD_01.jpg","assets":[{"url":"https://kreativeadsfr.github.io/kreative-dossiers/SIMPLICICAR_10_bca8/creas/AD01/assets/WS02-visuel-du-site.jpg","nom":"WS02-visuel-du-site.jpg"}]},{"ad":"AD02","visuel":"","nom":"SIMPLI_STANDARD_02.jpg","assets":[{"url":"https://kreativeadsfr.github.io/kreative-dossiers/SIMPLICICAR_10_bca8/creas/AD02/assets/WS02-visuel-du-site.jpg","nom":"WS02-visuel-du-site.jpg"}]},{"ad":"AD03","visuel":"","nom":"SIMPLI_STANDARD_03.jpg","assets":[{"url":"https://kreativeadsfr.github.io/kreative-dossiers/SIMPLICICAR_10_bca8/creas/AD03/assets/WS18-visuel-du-site.jpg","nom":"WS18-visuel-du-site.jpg"}]}];
+const PLAN = [{"ad":"AD01","visuel":"https://kreativeadsfr.github.io/kreative-dossiers/SIMPLICICAR_10_bca8/creas/AD01/visuel.jpg","nom":"SIMPLI_STANDARD_01.jpg","assets":[{"url":"https://kreativeadsfr.github.io/kreative-dossiers/SIMPLICICAR_10_bca8/creas/AD01/assets/WS02-visuel-du-site.jpg","nom":"WS02-visuel-du-site.jpg"}]},{"ad":"AD02","visuel":"https://kreativeadsfr.github.io/kreative-dossiers/SIMPLICICAR_10_bca8/creas/AD02/visuel.jpg","nom":"SIMPLI_STANDARD_02.jpg","assets":[{"url":"https://kreativeadsfr.github.io/kreative-dossiers/SIMPLICICAR_10_bca8/creas/AD02/assets/WS02-visuel-du-site.jpg","nom":"WS02-visuel-du-site.jpg"}]},{"ad":"AD03","visuel":"https://kreativeadsfr.github.io/kreative-dossiers/SIMPLICICAR_10_bca8/creas/AD03/visuel.jpg","nom":"SIMPLI_STANDARD_03.jpg","assets":[{"url":"https://kreativeadsfr.github.io/kreative-dossiers/SIMPLICICAR_10_bca8/creas/AD03/assets/WS18-visuel-du-site.jpg","nom":"WS18-visuel-du-site.jpg"}]}];
 const RACINE = "SIMPLI";
 
 function enregistre(blob, nom){

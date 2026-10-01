@@ -1,12 +1,12 @@
 Créa 6 · IDlift
 
-1. Titre : Ton branding, enfin pro.
-2. Liste à puces : Logo + charte + déclinaisons
-3. Liste à puces : Livré en 48h
-4. Liste à puces : Retouches gratuites
-5. Prix : Dès 360 €
-6. Avis client : « Enfin un logo qui nous ressemble. » Julie, fondatrice de Maison Loa
-7. CTA : Je démarre
+1. Titre : Pendant que tu bricoles ton logo, tes concurrents signent tes clients.
+2. Sous-titre : On crée ton identité de A à Z en 48h. Tu deviens la marque qu'on choisit, plus celle qu'on compare.
+3. CTA : Créer mon identité >
+4. Libellé du graphique : Marques lancées
+5. Chiffre mis en avant : 100+
 
-Idée du visuel : Titre en haut à gauche, les 3 bénéfices cochés dessous. À droite, nos 3 planches de projets en éventail qui se chevauchent. Prix en pastille sur les planches. Avis client en bas à gauche, CTA en bas à droite.
-Nouvelle idée, inspirations : AG1-24, AG1-47, AG2-05 · bénéfices et réalisations en éventail
+Idée du visuel : Garde la structure de l'inspiration. À la place du graphique, une courbe qui monte avec le chiffre mis en avant.
+Référence      : AG1-33 · titre centré, carte courbe de croissance
+
+Alerte : Aucune réalisation jointe alors que le client est une agence de branding et demande expressément que la créa ne paraisse pas faite à l'IA : la créa repose sur la typographie et un graphique généré, et ajouter une planche de réalisation renforcerait la crédibilité. Le chiffre "100+" associé à "Marques lancées" s'appuie sur la preuve "Plus de 100 clients accompagnés" : vérifier que le libellé "Marques lancées" est exact avant diffusion.

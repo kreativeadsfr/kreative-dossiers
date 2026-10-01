@@ -6,6 +6,6 @@ Créa 3 · Attar Studio
 4. CTA : Découvrir la collection
 
 Idée du visuel : L'avis en grand en haut, notre photo de la femme qui tient le flacon en dessous, le logo en petit.
-Nouvelle idée, inspirations : EC4-01, EC4-09 · témoignage éditorial avec portrait produit
+Nouvelle idée, inspirations : EC4-01, EC4-09 · avis client éditorial avec portrait produit
 
-Alerte : Le champ « À ne pas faire » contient seulement « Oui », sans interdit exploitable. L'accent #a6a398 imposé sur le mot pivot et sur le fond du CTA à texte blanc donne un contraste faible sur fond clair : à vérifier en vignette.
+Alerte : La photo en pièce jointe 2 est très verticale : gardée en entier sans recadrage, elle reste assez étroite dans la moitié inférieure du carré. Si le stratégiste veut un portrait plus grand, il faut demander un recadrage. Par ailleurs, le champ « À NE PAS FAIRE » ne contient que « Oui », aucun interdit précis n'a donc pu être appliqué.

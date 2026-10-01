@@ -6,6 +6,6 @@ Créa 24 · Turnly
 4. Mention : 1 semaine offerte, sans carte bancaire
 
 Idée du visuel : Gros titre en haut avec le mot « concurrent » en couleur. En bas, notre vraie fiche Google en carte, avec une courbe d'avis qui monte.
-Nouvelle idée, inspirations : AG1-33, AG1-13 · titre choc et fiche Google
+Nouvelle idée, inspirations : AG1-33, AG1-13 · titre accusateur et fiche Google
 
-Alerte : Aucun logo Turnly parmi les assets : l'icône de la pièce jointe 1 ne correspond pas au logo du site (roue multicolore et mot « turnly » en bleu). Elle est donc utilisée comme simple icône d'application et aucun logo n'est placé, à vérifier. Le fond sombre bleu marine a été préféré au fond clair des inspirations pour que l'accent #ffe29a reste lisible sur « concurrent ». Le texte blanc sur fond #ffe29a imposé par la charte pour le CTA offre un contraste faible, à surveiller à la génération.
+Alerte : VISUEL NON GÉNÉRÉ : Try spacing your requests out using the batching settings under 'Options' | La pièce jointe 1 ne correspond pas au logo vu sur le site (roue multicolore et mot « turnly » en bleu) : elle est placée comme icône en haut, à vérifier ; aucun logo Turnly confirmé n'est joint. Le mot pivot en #ffe29a serait illisible sur fond clair : il est écrit en bleu nuit #082b58 sur un surlignage #ffe29a. La courbe d'avis est générée sans chiffre, car aucune capture de courbe réelle n'est jointe.

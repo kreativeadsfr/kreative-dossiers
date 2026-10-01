@@ -7,6 +7,6 @@ Créa 5 · IDlift
 5. CTA : idlift.com/offres
 
 Idée du visuel : Vraie capture iMessage entre deux fondateurs. Le dernier message envoie le lien vers les offres.
-Nouvelle idée, inspirations : UG1-02, UG1-05 · capture conversation iMessage native
+Nouvelle idée, inspirations : UG1-02, UG1-05 · capture native conversation iMessage
 
-Alerte : La fiche ne fournit ni nom de contact, ni horodatage, ni mention de statut. L'en-tête montre donc l'avatar par défaut d'iOS sans nom, et la conversation n'a ni heure ni « Distribué ». Si le stratégiste veut plus de réalisme natif, il peut ajouter un nom de contact (par exemple un prénom) et un horodatage comme textes de la fiche.
+Alerte : Aucun nom de contact, horodatage ni statut « Distribué » n'est fourni dans la fiche : le nom est masqué par une barre de floutage et l'horodatage comme le statut sont omis, pour n'afficher aucun texte inventé. Les règles de fond travaillé et de CTA non-pilule ne s'appliquent pas, car l'ugly ad garde le rendu natif iMessage et le CTA est une bulle-lien.

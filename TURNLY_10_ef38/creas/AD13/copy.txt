@@ -5,6 +5,6 @@ Créa 13 · Turnly
 3. CTA : ESSAYER 7 JOURS GRATUITS →
 
 Idée du visuel : Sur le panneau, notre vraie photo de l'affiche Turnly sur le comptoir de la boulangerie.
-Référence      : EC1-14 · panneau publicitaire 4x3 dans le ciel
+Référence      : EC1-14 · panneau 4x3 dans le ciel
 
-Alerte : Aucun asset ne montre le logo Turnly du site (roue multicolore + "turnly" en bleu) : l'icône noire de la pièce jointe 2 est placée en marque, à confirmer avec le client. La charte impose un texte blanc sur un bouton #ffe29a : contraste faible et lisibilité du CTA à vérifier. Le mot pivot #ffe29a sur ciel bleu est soutenu par une ombre douce.
+Alerte : Aucune pièce jointe ne montre le logo Turnly vu sur le site (roue colorée bleue suivie du mot turnly). L'icône noire à l'anneau crème de la pièce jointe 2 ne lui correspond pas : elle est placée à l'emplacement de marque pour respecter l'obligation d'utiliser tous les assets, sans être nommée logo Turnly. Il faut vérifier qu'elle appartient bien à Turnly, sinon la retirer et fournir le vrai logo. L'accent #FFE29A sur le ciel bleu est peu contrasté : une ombre douce a été ajoutée, à contrôler en vignette.

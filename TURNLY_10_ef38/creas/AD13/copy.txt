@@ -1,0 +1,10 @@
+Créa 13 · Turnly
+
+1. Titre : Vos clients vous adorent. Google ne le sait pas.
+2. Texte du panneau : Turnly transforme chaque client content en avis Google.
+3. CTA : ESSAYER 7 JOURS GRATUITS →
+
+Idée du visuel : Sur le panneau, notre vraie photo de l'affiche Turnly sur le comptoir de la boulangerie.
+Référence      : EC1-14 · panneau d'affichage dans le ciel
+
+Alerte : Logo à vérifier : la pièce jointe 2 est une icône d'application qui ne correspond pas au logo vu sur turnly.fr (roue multicolore et mot turnly en bleu). Je l'ai placée à l'emplacement du logo sans la nommer logo. Lisibilité du CTA : la charte impose un texte blanc sur fond #ffe29a, un contraste très faible qui risque de rendre le bouton illisible en vignette. Je propose de passer le texte du bouton en bleu nuit #082b58, à valider.

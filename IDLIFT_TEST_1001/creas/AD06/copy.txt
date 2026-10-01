@@ -9,6 +9,6 @@ Créa 6 · IDlift
 7. CTA : Je démarre
 
 Idée du visuel : Titre en haut à gauche, les 3 bénéfices cochés dessous. À droite, nos 3 planches de projets en éventail qui se chevauchent. Prix en pastille sur les planches. Avis client en bas à gauche, CTA en bas à droite.
-Nouvelle idée, inspirations : AG1-24, AG1-47, AG2-05 · éventail de réalisations et bénéfices
+Nouvelle idée, inspirations : AG1-24, AG1-47, AG2-05
 
-Alerte : Le témoignage « Julie, fondatrice de Maison Loa » et le prix « Dès 360 € » ne figurent pas dans les preuves fournies, et aucune réalisation Maison Loa n'est jointe : il faut vérifier l'exactitude de cette attribution et de ce prix avant diffusion.
+Alerte : PROMPT NON LU (pas de JSON dans la reponse) : {"n": 6, "structure_reference": "Structure tirée de l'idée du stratégiste, recomposée en carré 1080 × 1080. Fond général clair blanc bleuté #F4F8FF avec un grain papier fin. Ce fond clair vient des trois inspirations ; la teinte bleutée vient du site IDlift. À droite, un grand panneau vertical à coi

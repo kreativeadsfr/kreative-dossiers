@@ -4,9 +4,9 @@ Créa 5 · IDlift
 2. Message envoyé : Frère… on le reconnaît à 3 km
 3. Message reçu : Tu connais mieux ?
 4. Message envoyé : IDlift. Identité complète en 48h, 360 €.
-5. CTA : Voir les offres
+5. CTA : idlift.com/offres
 
-Idée du visuel : Conversation iMessage en plein cadre, fond gris clair de l'app. Deux bulles grises à gauche, deux bleues à droite. Le logo IDlift tout en bas, petit, avec le CTA en texte souligné.
-Nouvelle idée, inspirations : UG1-02, UG1-05 · capture native conversation iMessage
+Idée du visuel : Vraie capture iMessage entre deux fondateurs. Le dernier message envoie le lien vers les offres.
+Nouvelle idée, inspirations : UG1-02, UG1-05 · capture conversation iMessage native
 
-Alerte : Les bulles sont en Poppins et non dans la police système iOS, pour respecter la charte du pack. Le nom du contact, l'heure, le statut et la barre de saisie sont retirés de l'interface car aucun de ces textes n'est dans la fiche.
+Alerte : La fiche ne fournit ni nom de contact, ni horodatage, ni mention de statut. L'en-tête montre donc l'avatar par défaut d'iOS sans nom, et la conversation n'a ni heure ni « Distribué ». Si le stratégiste veut plus de réalisme natif, il peut ajouter un nom de contact (par exemple un prénom) et un horodatage comme textes de la fiche.

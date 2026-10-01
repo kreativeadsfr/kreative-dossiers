@@ -14,6 +14,6 @@ Créa 2 · Simplicicar
 12. Ligne 4, colonne de droite : Zéro après-vente
 
 Idée du visuel : Même comparatif à deux colonnes. À droite, notre vraie photo de voiture en showroom.
-Référence      : UG4-06
+Référence      : UG4-06 · comparatif natif deux colonnes
 
-Alerte : PROMPT NON LU (pas de texte dans la reponse) : AUCUN BLOC TEXTE (arret : inconnu) {"error":{"message":"400 - \"{\\\"type\\\":\\\"error\\\",\\\"error\\\":{\\\"type\\\":\\\"invalid_request_error\\\",\\\"message\\\":\\\"Your credit balance is too low to access the Anthropic API. Pleas
+Alerte : La photo jointe porte déjà le logo et des mentions Simplicicar (enseigne murale, plaque avant, texte incrusté en bas) : pour une ugly ad, ces éléments auraient dû être retirés en amont, et ils restent visibles car l'asset ne peut pas être modifié. Un seul asset a été déposé pour deux emplacements visuels : la voiture de gauche est donc générée, générique et non identifiable. Le libellé « LEBONCOIN » nomme une marque concurrente réelle : faire valider le risque juridique de cette publicité comparative avant diffusion.

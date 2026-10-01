@@ -9,6 +9,6 @@ Créa 11 · Turnly
 7. Liste à puces 5 : Une roue, un QR code, des avis en continu
 
 Idée du visuel : Même structure problème à gauche, solution à droite. À droite, notre vraie affiche Turnly avec la roue.
-Référence      : UG3-03 · problème solution en deux colonnes
+Référence      : UG3-03 · comparaison problème solution deux colonnes
 
-Alerte : Aucun logo Turnly séparé n'est joint (seule la petite mention « Créé avec turnly » figure sur l'affiche), ce qui convient à une ugly ad sans logo. La référence montre trois produits pour un seul asset joint : le visuel est réduit à une seule affiche. L'emplacement 7 (« Une roue, un QR code, des avis en continu ») est une solution mais reste à sa place dans la colonne des problèmes, comme demandé par la fiche.
+Alerte : Aucun logo Turnly séparé n'a été joint. Ce n'est pas bloquant pour une ugly ad, qui n'en porte pas, et la mention "Créé avec turnly" reste visible dans l'affiche. La référence montre trois produits pour un seul asset : la colonne de droite est réduite à la seule affiche. Le texte 7 ("Une roue, un QR code, des avis en continu") est une phrase de solution placée par la fiche dans la cinquième carte de la colonne problème : il est conservé à cet emplacement comme demandé, mais le stratégiste doit le vérifier.

@@ -1,0 +1,10 @@
+Créa 1 · Simplicicar
+
+1. Titre : Vendre sa voiture, sans les galères.
+2. Texte du panneau : Nous rachetons votre véhicule en fin de vente.
+3. CTA : ESTIMER MA VOITURE →
+
+Idée du visuel : Sur le panneau, notre vraie photo de voiture en showroom.
+Référence      : EC1-14
+
+Alerte : PROMPT NON LU (pas de texte dans la reponse) : AUCUN BLOC TEXTE (arret : inconnu) {"error":{"message":"400 - \"{\\\"type\\\":\\\"error\\\",\\\"error\\\":{\\\"type\\\":\\\"invalid_request_error\\\",\\\"message\\\":\\\"Your credit balance is too low to access the Anthropic API. Pleas

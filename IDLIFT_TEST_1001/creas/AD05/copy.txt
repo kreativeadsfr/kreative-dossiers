@@ -7,6 +7,6 @@ Créa 5 · IDlift TEST
 5. CTA : Voir les offres
 
 Idée du visuel : Conversation iMessage en plein cadre, fond gris clair de l'app. Deux bulles grises à gauche, deux bleues à droite. Le logo IDlift tout en bas, petit, avec le CTA en texte souligné.
-Nouvelle idée, inspirations : UG1-02, UG1-05 · capture conversation iMessage native
+Nouvelle idée, inspirations : UG1-02, UG1-05 · conversation iMessage native plein cadre
 
-Alerte : Le client demande de ne pas tout faire à l'IA : ici, seul le logo est un asset réel et toute la capture iMessage est générée. Pour une crédibilité maximale, prévoir de refaire la conversation en vraie capture iPhone.
+Alerte : Les éléments natifs d'iMessage qui portent du texte (nom du contact, heure, « Distribué », texte du champ de saisie) sont retirés, car ils ne figurent pas dans la fiche. Le champ de saisie est remplacé par la bande du logo et du CTA. Poppins remplace la police système iOS, comme l'impose la charte. Le logo est fourni en noir alors que le site l'affiche en bleu : il est gardé tel quel. Vu la consigne du client sur l'IA, une vraie capture iMessage refaite à la main donnerait un rendu encore plus crédible.

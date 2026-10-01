@@ -1,11 +1,15 @@
 Créa 4 · IDlift
 
-1. Titre : Plus de 100 marques lancées en 48h.
-2. Sous-titre : Logo, charte et déclinaisons, dessinés à la main par nos designers.
-3. Badge preuve sociale : 4,8/5 sur plus de 40 avis · 100+ clients accompagnés
-4. CTA : Voir nos réalisations
+1. Titre : Ton branding, au niveau de tes ambitions.
+2. Sous-titre : Des designers, pas une IA. Livré en 48h.
+3. Avis client : « Enfin une identité qui nous ressemble. » Julie, fondatrice de Maison Loa
+4. Badge : 4,8/5 sur plus de 40 avis
+5. Prix : Dès 360 €
+6. Garantie : Retouches gratuites jusqu'à validation
+7. CTA : Je démarre
 
-Idée du visuel : Garde l'éventail de projets au centre, avec nos vraies planches de réalisations.
-Référence      : AG1-47 · éventail de réalisations en cartes
+Idée du visuel : Titre en haut à gauche, avis client dessous avec les étoiles. À droite, nos 3 planches en éventail. Le prix en pastille sur l'éventail, la garantie en petit sous le CTA.
+Assets : logo IDlift + planches LandingLab, Pilot, PropertEase
+Nouvelle idée, inspirations : AG1-24, AG1-30, AG1-03 · réalisations en éventail, avis client
 
-Alerte : Quatre réalisations jointes pour cinq cartes : l'éventail passe donc à quatre cartes. Ces cartes sont carrées et non verticales, pour garder chaque planche en entier. Le mot mis en avant en italique serif est rendu en Poppins Bold bleu #007bff, comme l'impose la charte.
+Alerte : L'idée ne plaçait ni le sous-titre ni le badge. Le sous-titre est sous le titre, et le badge en pastille sur la ligne des étoiles de l'avis client. Le type « Garantie » est traité comme une petite mention sous le CTA. Le logo joint est noir alors que le site l'utilise en bleu #007bff : il reste noir, car seul un passage en blanc ou en noir uni est permis.

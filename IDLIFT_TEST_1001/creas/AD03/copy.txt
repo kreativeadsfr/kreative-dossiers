@@ -7,6 +7,6 @@ Créa 3 · IDlift TEST
 5. CTA : Lien juste en dessous 👇
 
 Idée du visuel : Une vraie note iPhone en mode sombre, rien d'autre.
-Référence      : UG1-13 · capture native note iPhone sombre
+Référence      : UG1-13 · note iPhone native mode sombre
 
-Alerte : Aucun asset déposé sur cette créa. L'heure de la barre d'état et le libellé du bouton retour ont été retirés, car ce sont des textes de la créa de départ absents de la fiche : la barre d'état garde ses icônes sans heure. Les textes sont alignés à gauche, comme sur la capture d'origine, et non au centre comme l'indique la fiche.
+Alerte : Aucun asset joint, créa 100 % typographique et native, sans logo. L'heure de la barre d'état et le libellé « Notes » à côté du chevron sont retirés car ils ne figurent pas dans la fiche : seules les icônes natives sont conservées. Le jaune natif de l'app passe en #007bff et le mot pivot « Canva » prend l'accent, conformément à la charte.

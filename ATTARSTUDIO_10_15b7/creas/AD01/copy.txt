@@ -1,0 +1,16 @@
+Créa 1 · Attar Studio
+
+2. Mention sous la note : +5 000 clientes conquises
+3. Titre : Même sillage. Prix différent.
+4. Prix, ticket de gauche : 300 €
+5. Prix, ticket de droite : 39,95 €
+6. Libellé, ticket de gauche : L'ORIGINAL
+7. Libellé, ticket de droite : ATTAR STUDIO · 15 ML
+
+Idée du visuel : Les deux flacons côte à côte sur leurs tickets. À droite, notre vrai flacon.
+Référence      : EC5-03 · comparaison deux tickets de caisse
+
+Alerte : 1. Volume incohérent : le libellé du ticket de droite indique « ATTAR STUDIO · 15 ML », mais le flacon joint est un 50 ml (son étiquette l'affiche). Il faut joindre la photo d'un flacon 15 ml ou corriger le libellé.
+2. Logo : aucun logo Attar Studio n'est joint. La structure n'en prévoit pas, donc aucun n'a été ajouté.
+3. Étoiles : elles sont retirées avec la note.
+4. Contraste : l'accent #a6a398 imposé par la charte est peu contrasté sur fond très pâle. Il faut vérifier la lisibilité de « Prix différent. » en vignette.

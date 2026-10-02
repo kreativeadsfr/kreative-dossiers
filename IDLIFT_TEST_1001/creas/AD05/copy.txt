@@ -1,0 +1,12 @@
+Créa 5 · IDlift
+
+1. Message reçu : T'as vu mon nouveau logo ? Fait sur Canva en 10 min
+2. Message envoyé : Frère… on le reconnaît à 3 km
+3. Message reçu : Tu connais mieux ?
+4. Message envoyé : IDlift. Identité complète en 48h, 360 €.
+5. CTA : idlift.com/offres
+
+Idée du visuel : Vraie capture iMessage entre deux fondateurs. Le dernier message envoie le lien vers les offres.
+Nouvelle idée, inspirations : UG1-02, UG1-05 · capture native conversation iMessage
+
+Alerte : Aucun prénom de contact fourni pour l'en-tête iMessage : le nom est laissé absent, l'avatar par défaut d'Apple reste seul, et ni l'heure ni la barre d'état ne sont affichées pour n'imprimer aucun texte hors fiche.

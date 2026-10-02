@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" type="image/png" sizes="16x16" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABWElEQVR42qVTvUoDQRicvYsGQsAQtAtia29lYSUIdr6CvWBh4wP4KGKnleBDRDsrDQeRBBZO8rt3uf25sfCCR7iLJ067M7M7+80H/BOi7ICkl+OkQghWNiVZKzCskRRrlXnCKB7taa3vjDG34/G4XcQpFHe73Q2t9ZVz7pMkrbUfUspmHMfnUspmoQlJQVJEUbRrjHnmN1KSjKLocD6fn2Rmb0qpzpKfN/ABYDKZnGbiKBM8AYC1NiDprLWvUspmqcFsNjsm6Uha51ykQtVZLPQ1STrn9HQ6PcrzAcBbM97UbbqFEK71cw+Tsg9cjaCyCPdZBJlFeBkMBg2S3jKCl3MXAN6ttQGABoDU9/0zpdSB1voCgEdyu16vtwGwdIxBELTiOL4xxsyzVwS9Xm9LKXXZ7/fblboAAGEY7idJ8qC1fhwOhzu/FmmlE37VKldZJgDgX5bpT/gCMctOfJRY/pcAAAAASUVORK5CYII=">
+<link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAADUUlEQVR42u1XPWwcRRR+s+fgEwgkAhKBiiIoCGpEwU+DRBqUSFSpKBFIUNEiLQUKWEqJEBR0qdZCcnWIAtkNTeQisiw7kS1jr863MXe73r3b3dnd+fkoPHMZTkrku3No8Gt2Vzs773vf996bt0Tn9n83NuuHABgRtcyjYozhP0MNoPUIQE/WgiBoWUf7+/svl2X5Q1EU329sbDxvQTwRIGZjGzUriuLzRogHMCaF7CZJ8q51btZ7Z+J8dXV1wd4nSfJeXdd/4qHVAGop5SgMw8tERJubmxcd4AvzZSg7YfOvo6NLZVn+pJSyjgUAZa7IsuwrIqJOp7NYVdXduq5/6/V6b8zl3Pd9LwiC1nA4/FQIERnHGoB0r3Vd319fX3+aiChN0y/GCKUoi6L4djAYPOf7vjdVbljqhsPhZw7dAoDW0C4QDAaDj4mI7t07fLER4sgw05g1SNP0xtRyOABuAZBKqdoBAqWUBICqqv6wvSQvilsPgSoFQDVNsxeG4cWpq8MCOD7ObppNGxu2jV5KKXu93lsA2OHh4etSSm6i18AJwCRJPnlU3zglgOPvLAANbQEIACiK4he7vuT8V0cmCQCc83WjvTdL3f8LgFJKWPYBaCFE7+Dg4BUALEmSj5RSbnIqpVQdx/E7p4n+VOg8z3P7PANQlWU5MqX6kud5jIjgvEdZliMAbHl5mWZmIMsyRwJMSrBkynWBc37HNkX73iTo9PpPALhpJdBaQ2sNQ7eSUvJut3uFiKjb7X5gmpTbI9Dv96/NlYRpli2ZMjQMaLcngHO+Yr/J83wyEXXVNJtRFD3zuDJ8bA5opXIianmex0CkCGOhW0Sk2u329TiOrxIR9fv9r6WU3OwJItKLFy682W63P2SMYW1trTXt6ce2trZeyLLsRyGEtBqrE67HNDdNs9HpdBaNZEvjE1JKZFn280yNaNL29vbeHo1Gv7ttWUFpK0Wapl/ak5BX/AHn/E4Yhu+f9RxA0d/RDc75faclNwAaIWUSRdGrRES7u7uv+b7/lE2+MxlQAIxPs5WVlWfjOP6mbupsPBTUNT+K46uusyAIWnTW5rKxs7NzOc/z23meL29vb1+xjE199M4ry7xD6TxjuTcxPenzv5xzm8X+ARemC+8MlEfcAAAAAElFTkSuQmCC">
+<link rel="icon" type="image/png" sizes="48x48" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAFPklEQVR42u1ZT2gjVRh/M2llZcUKK3tSKu6h3iyroIIHQfDgSXGLB3XLXgQ9KQVZ0d1B2JMoigcvylYsCA4URLzUWnKxS1untLX2D/2bNJ0kk0wmyUzmX2be+zzkvZmXtJVdzNAu5CulTTOTed/v+/1+7/teEepFL3rRi178jxCS+mAAEBBCKfoSC4IA9w0qAJC6m791I/q6vHARIQSCIOD5+fkLQ0ND7xJCzImJie8FQfDPMuICj7BhGFd9388CDc/z/i6Xy69JkiRSap1NumSz2Wcdx/kd4mgCQMBe6IZxk90DACL9KZzWwiM0p6enL9Rqta+azSZbbIgBY0IIAAABgGYYhr6qqi8ep4ek9HFXdNF1/arv+xm6cIIxDuOFE2AVqNVq39H7+xFCSNO0N6rV6i1Zlh/kABETR52jyzO2bfN0CSjahBACNAkMANj3fWNlZeUxRpt0Ov2Q53lZAADXddc0Tb9y3DOS8HWkKMqAaZqfB0HgM7rQhQJHGUI49DVNu04/4wFatRtM3yx7x3F+y+VyT/PP6jrfi8XiC57n7bCH4tbiCQBh0HN5tN5zHWdramrqPBPu6urq481ms86qgzHG9FoIgsCrVCpvdtK0a9QxTTPNIde2WvY7RZ6wReXz+Ss8+qZp3maUY0kTQgBj7FGtfEmv7+s6fSzLutNCLhJqWxD6RSsDjUYjjRASmHAzmczlIAhCiCoHx2oFIYQkSRK7noBpmrPQqvvxCcQaCMMwDPf29p7jnafRsP9g90fpkjatfJyIrXIVmGXCpVSBo2lEtvkDTx1VVV/nRB/Vi1XD87xdqhUxCRHTClizMYKxXbZQbKNCfXFxcZCJcXx8/JzjOBu8NvhqAQCoqvpWYptaZwJtFWCGyaGv6/qnPPqlkv4B/z7DnwIBjUbjDu2Tkt0DogpENIiD2iF4nreyvLzMbFNYW1sbbDabOqtOm+YBcBiG7v7+/vMIISTL8j2jf49WxWYSggCE9nFIFAEhhDDGxvDwsA0A/YIg4N3d3YuiKF5ACBGEUDTVAEJIbDkUtm1bpyBBshWIRBy7ENc2RHwuFotv8+5TqVR+5ClEYgEHAACWZf2SaFPX6UK8jXKbF6MR8X3/YG5u7mFGo4WFhSd93zdjGrVZaEgIgUwm83LiIo4SoA+NviNLjVGtVKu3eCEXCoXP2nZgiHbgkPZCysjISIoKWUiYQhDyiwCuGgzlIAjsra2tS8xKZVkecF03Q1tu3NF2BAAABU27luhGVresP/myd9ooZ6iM25O8Fg4ODq5FAJC4bhgDo15OUZQBmrSQBIX+oiL2+Z2YnNDMEULg8PCQcbtfkqQ+y7LmIh21A+ABABiG8UkSzVwKIYTy+fyHXA8UAgCOdcC301GLAI7jLEuS1McWtLG98VIQBIRr6HDkToSAVi6/kyiN1tfXXzFNc47vfTDGLC0SDzQxlbRy+X1e0IZh/NQ50Jimubyzs/NqIgNNZxIIob5sNvtew7YP+ET4CnS0yaXNzc1H2VCjKMol3/dtOlKWC4XCR6Ojo+cSXTwLWZZTgtB6xuTk5EWtVPrC8zyX6ygwgaP9Ub1e/4YXdL5YvKnr+s8zMzODp3E60TbyLS0tDVer1V+P0iq2yTAMHbWkXj7pWOVUzoc6Z9ft7e0R0zT/4WbmgDutgEql8jVzGHqv2NXJqxuHXGNjY+dzau6667o6d7Ro5vP5G+l0+hF63dk6XjyOw+l0+gld1781DOO2oihP3U9H68JJx+tn7mD3v4JOWClmnb3/JfWiF73oxZmMfwG+cdINHZdV5AAAAABJRU5ErkJggg==">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+<title>IDlift</title>
+<style>
+:root{--bg:#F5F3EE;--pan:#fff;--line:#E4E1D8;--tx:#0A1B33;--tx2:#5D6472;--tx3:#9E9B92}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);
+  font:15px/1.55 "DM Sans",-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+.w{max-width:1060px;margin:0 auto;padding:44px 26px 80px}
+header.h{display:flex;align-items:flex-end;gap:20px;flex-wrap:wrap;margin:0 0 30px}
+h1{font-size:30px;letter-spacing:-.025em;margin:0}
+.meta{color:var(--tx3);font-size:13.5px;margin:6px 0 0}
+.tout{margin-left:auto;padding:12px 20px;border:1px solid var(--tx);border-radius:11px;
+  background:var(--tx);color:#fff;font:inherit;font-size:14px;cursor:pointer;transition:.13s}
+.tout:hover:not(:disabled){background:#132845}
+.tout:disabled{opacity:.55;cursor:default}
+.c{display:grid;grid-template-columns:330px 1fr;gap:28px;background:var(--pan);
+  border:1px solid var(--line);border-radius:16px;padding:22px;margin-bottom:18px}
+.c.ko{border-color:var(--tx)}
+.im img{width:100%;border-radius:12px;display:block;border:1px solid var(--line)}
+.vide{aspect-ratio:1;border-radius:12px;background:#F3F2ED;display:flex;
+  align-items:center;justify-content:center;color:var(--tx3);font-size:13px}
+.tx{display:flex;flex-direction:column;align-items:flex-start}
+.num{font-size:12px;letter-spacing:.09em;color:var(--tx3);margin-bottom:12px}
+h2{font-size:23px;line-height:1.25;letter-spacing:-.015em;margin:0 0 8px;font-weight:600}
+.sub{margin:0 0 14px;color:var(--tx2);font-size:16px}
+.cta{display:inline-block;margin:0;padding:9px 18px;background:var(--tx);color:#fff;
+  border-radius:10px;font-size:14px}
+@media(max-width:780px){.c{grid-template-columns:1fr}.tout{margin-left:0}}</style></head><body><div class="w">
+<header class="h">
+  <div>
+    <h1>IDlift</h1>
+    <p class="meta">6 créas &middot; à livrer jeudi 01/10 22:27</p>
+  </div>
+  <button class="tout" id="tout" type="button">Tout télécharger</button>
+</header>
+
+<article class="c">
+  <div class="im"><img src="https://kreativeadsfr.github.io/kreative-dossiers/IDLIFT_TEST_1001/creas/AD01/visuel.jpg" alt="AD01" loading="lazy"></div>
+  <div class="tx">
+    <span class="num">AD01</span>
+    <h2>Une identité de marque complète pour 360 €.</h2>
+    <p class="sub">Une agence vous en demanderait 5 000.</p>
+    <p class="sub">Une agence</p>
+    <p class="sub">360 €</p>
+    <p class="sub">5 000 €</p>
+    <p class="sub">Livré en 48h</p>
+    <p class="sub">Livré en 4 semaines</p>
+    <p class="cta">Voir ce qui est inclus</p>
+  </div>
+</article>
+<article class="c">
+  <div class="im"><img src="https://kreativeadsfr.github.io/kreative-dossiers/IDLIFT_TEST_1001/creas/AD02/visuel.jpg" alt="AD02" loading="lazy"></div>
+  <div class="tx">
+    <span class="num">AD02</span>
+    <h2>Ton identité en 3 jours ?</h2>
+    <p class="sub">Un brief de 15 minutes</p>
+    <p class="sub">Tu nous dis l'essentiel, on s'occupe du reste.</p>
+    <p class="sub">Des pistes faites à la main</p>
+    <p class="sub">Pas d'IA, des designers qui dessinent pour ta marque.</p>
+    <p class="sub">Tu valides, on livre</p>
+    <p class="sub">Les fichiers, la charte, et des retouches gratuites.</p>
+    <p class="cta">Lancer mon projet</p>
+    <p class="sub">Noté 4,8/5 sur plus de 40 avis</p>
+  </div>
+</article>
+<article class="c">
+  <div class="im"><img src="https://kreativeadsfr.github.io/kreative-dossiers/IDLIFT_TEST_1001/creas/AD03/visuel.jpg" alt="AD03" loading="lazy"></div>
+  <div class="tx">
+    <span class="num">AD03</span>
+    <h2>Avant de refaire ton logo sur Canva :</h2>
+    <p class="sub">Demande-toi si on te reconnaît à 3 mètres</p>
+    <p class="sub">Regarde combien ça te coûte en clients perdus</p>
+    <p class="sub">Compare avec une identité complète à 360 €</p>
+    <p class="cta">Lien juste en dessous 👇</p>
+  </div>
+</article>
+<article class="c">
+  <div class="im"><img src="https://kreativeadsfr.github.io/kreative-dossiers/IDLIFT_TEST_1001/creas/AD04/visuel.jpg" alt="AD04" loading="lazy"></div>
+  <div class="tx">
+    <span class="num">AD04</span>
+    <h2>Plus de 100 marques lancées en 48h.</h2>
+    <p class="sub">Logo, charte et déclinaisons, dessinés à la main par nos designers.</p>
+    <p class="sub">4,8/5 sur plus de 40 avis · 100+ clients accompagnés</p>
+    <p class="cta">Voir nos réalisations</p>
+  </div>
+</article>
+<article class="c">
+  <div class="im"><img src="https://kreativeadsfr.github.io/kreative-dossiers/IDLIFT_TEST_1001/creas/AD05/visuel.jpg" alt="AD05" loading="lazy"></div>
+  <div class="tx">
+    <span class="num">AD05</span>
+    <h2>T'as vu mon nouveau logo ? Fait sur Canva en 10 min</h2>
+    <p class="sub">Frère… on le reconnaît à 3 km</p>
+    <p class="sub">Tu connais mieux ?</p>
+    <p class="sub">IDlift. Identité complète en 48h, 360 €.</p>
+    <p class="cta">idlift.com/offres</p>
+  </div>
+</article>
+<article class="c">
+  <div class="im"><img src="https://kreativeadsfr.github.io/kreative-dossiers/IDLIFT_TEST_1001/creas/AD06/visuel.jpg" alt="AD06" loading="lazy"></div>
+  <div class="tx">
+    <span class="num">AD06</span>
+    <h2>Ton branding, enfin pro.</h2>
+    <p class="sub">Logo + charte + déclinaisons</p>
+    <p class="sub">Livré en 48h</p>
+    <p class="sub">Retouches gratuites</p>
+    <p class="sub">Dès 360 €</p>
+    <p class="sub">« Enfin un logo qui nous ressemble. » Julie, fondatrice de Maison Loa</p>
+    <p class="cta">Je démarre</p>
+  </div>
+</article>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script>
+
+const PLAN = [{"ad":"AD01","visuel":"https://kreativeadsfr.github.io/kreative-dossiers/IDLIFT_TEST_1001/creas/AD01/visuel.jpg","nom":"IDLIFT_STANDARD_01.jpg","assets":[{"url":"https://kreativeadsfr.github.io/kreative-dossiers/IDLIFT_TEST_1001/creas/AD01/assets/IDlift-logo-noir.png","nom":"IDlift-logo-noir.png"}]},{"ad":"AD02","visuel":"https://kreativeadsfr.github.io/kreative-dossiers/IDLIFT_TEST_1001/creas/AD02/visuel.jpg","nom":"IDLIFT_STANDARD_02.jpg","assets":[{"url":"https://kreativeadsfr.github.io/kreative-dossiers/IDLIFT_TEST_1001/creas/AD02/assets/IDlift-logo-noir.png","nom":"IDlift-logo-noir.png"}]},{"ad":"AD03","visuel":"https://kreativeadsfr.github.io/kreative-dossiers/IDLIFT_TEST_1001/creas/AD03/visuel.jpg","nom":"IDLIFT_STANDARD_03.jpg","assets":[]},{"ad":"AD04","visuel":"https://kreativeadsfr.github.io/kreative-dossiers/IDLIFT_TEST_1001/creas/AD04/visuel.jpg","nom":"IDLIFT_STANDARD_04.jpg","assets":[{"url":"https://kreativeadsfr.github.io/kreative-dossiers/IDLIFT_TEST_1001/creas/AD04/assets/IDlift-logo-noir.png","nom":"IDlift-logo-noir.png"},{"url":"https://kreativeadsfr.github.io/kreative-dossiers/IDLIFT_TEST_1001/creas/AD04/assets/LandingLab.jpg","nom":"LandingLab.jpg"},{"url":"https://kreativeadsfr.github.io/kreative-dossiers/IDLIFT_TEST_1001/creas/AD04/assets/Pilot.jpg","nom":"Pilot.jpg"},{"url":"https://kreativeadsfr.github.io/kreative-dossiers/IDLIFT_TEST_1001/creas/AD04/assets/Eytic.jpg","nom":"Eytic.jpg"},{"url":"https://kreativeadsfr.github.io/kreative-dossiers/IDLIFT_TEST_1001/creas/AD04/assets/PropertEase.jpg","nom":"PropertEase.jpg"}]},{"ad":"AD05","visuel":"https://kreativeadsfr.github.io/kreative-dossiers/IDLIFT_TEST_1001/creas/AD05/visuel.jpg","nom":"IDLIFT_STANDARD_05.jpg","assets":[{"url":"https://kreativeadsfr.github.io/kreative-dossiers/IDLIFT_TEST_1001/creas/AD05/assets/IDlift-logo-noir.png","nom":"IDlift-logo-noir.png"}]},{"ad":"AD06","visuel":"https://kreativeadsfr.github.io/kreative-dossiers/IDLIFT_TEST_1001/creas/AD06/visuel.jpg","nom":"IDLIFT_STANDARD_06.jpg","assets":[{"url":"https://kreativeadsfr.github.io/kreative-dossiers/IDLIFT_TEST_1001/creas/AD06/assets/IDlift-logo-noir.png","nom":"IDlift-logo-noir.png"},{"url":"https://kreativeadsfr.github.io/kreative-dossiers/IDLIFT_TEST_1001/creas/AD06/assets/Ostoya.jpg","nom":"Ostoya.jpg"},{"url":"https://kreativeadsfr.github.io/kreative-dossiers/IDLIFT_TEST_1001/creas/AD06/assets/Bucon-Roofing.jpg","nom":"Bucon-Roofing.jpg"},{"url":"https://kreativeadsfr.github.io/kreative-dossiers/IDLIFT_TEST_1001/creas/AD06/assets/Jipra-Conseil.jpg","nom":"Jipra-Conseil.jpg"}]}];
+const RACINE = "IDLIFT";
+
+function enregistre(blob, nom){
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = nom;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+}
+
+/* ---------------------------------------------------------------
+   RECUPERER LES FICHIERS
+
+   Deux defauts corriges ici.
+
+   1. fetch REUSSIT sur un 404 : la version d origine rangeait la
+      page d erreur HTML de GitHub dans le zip sous le nom
+      « Logo-Only.png ». Bon nom, bon dossier, contenu illisible.
+      On verifie donc le code de reponse ET le type renvoye.
+
+   2. Les reessais etaient faits fichier apres fichier : 13 assets
+      absents x 6 essais x 2,5 s, plus de trois minutes d attente.
+      Maintenant tout part EN PARALLELE, et on ne fait que trois
+      tours, en ne redemandant que ce qui manque encore. Pire cas :
+      une dizaine de secondes.
+--------------------------------------------------------------- */
+const TOURS = 3;
+const ATTENTE = 3000;
+const EN_VOL = 6;          /* requetes simultanees, pour ne pas saturer */
+
+async function unFichier(url){
+  try{
+    const r = await fetch(url, { cache: 'no-store' });
+    if (!r.ok) return null;
+    const type = (r.headers.get('content-type') || '').toLowerCase();
+    if (type.includes('text/html')) return null;   /* page d erreur */
+    const b = await r.blob();
+    return b.size > 0 ? b : null;
+  }catch(e){ return null; }
+}
+
+async function enParallele(liste, avance, tour){
+  const restants = [];
+  let fait = 0;
+  for (let i = 0; i < liste.length; i += EN_VOL){
+    const tranche = liste.slice(i, i + EN_VOL);
+    const blobs = await Promise.all(tranche.map(f => unFichier(f.url)));
+    tranche.forEach((f, k) => {
+      fait++;
+      if (blobs[k]) f.blob = blobs[k]; else restants.push(f);
+    });
+    //  On ne parle PAS des reessais au designer : ca ne le concerne
+    //  pas, et « 13 fichiers pas encore publies » ressemble a une
+    //  panne alors que c est le fonctionnement normal.
+    avance('Préparation du dossier…');
+  }
+  return restants;
+}
+
+async function faireLeZip(avance){
+  /* la liste plate de tout ce qu il faut aller chercher */
+  const aPrendre = [];
+  for (const p of PLAN){
+    if (p.visuel) aPrendre.push({ url: p.visuel, ad: p.ad, nom: p.nom, dans: '' });
+    for (const a of p.assets) aPrendre.push({ url: a.url, ad: p.ad, nom: a.nom, dans: 'assets' });
+  }
+
+  let restants = aPrendre;
+  for (let tour = 1; tour <= TOURS && restants.length; tour++){
+    if (tour > 1){
+      avance('Préparation du dossier…');
+      await new Promise(r => setTimeout(r, ATTENTE));
+    }
+    restants = await enParallele(restants, avance, tour);
+  }
+
+  const pris = aPrendre.filter(f => f.blob);
+  const manques = aPrendre.filter(f => !f.blob);
+
+  if (typeof JSZip === 'undefined'){
+    avance('La compression n a pas pu se charger, telechargement un par un');
+    for (const f of pris){ enregistre(f.blob, f.nom); await new Promise(r => setTimeout(r, 400)); }
+    return manques.length === 0;
+  }
+
+  avance('Préparation du dossier…');
+  const zip = new JSZip();
+  const racine = zip.folder(RACINE);
+
+  for (const f of pris){
+    const d = racine.folder(f.ad);
+    (f.dans ? d.folder(f.dans) : d).file(f.nom, f.blob);
+  }
+
+  /* Un fichier introuvable n entre PAS dans le zip : mieux vaut une
+     absence visible qu un fichier qui ne s ouvre pas. On dit lesquels. */
+  if (manques.length){
+    racine.file('A_RECUPERER.txt', [
+      'Ces fichiers n ont pas pu etre recuperes au moment du telechargement.',
+      'La publication GitHub prend parfois une minute : reviens sur cette page',
+      'dans deux minutes et relance le telechargement.',
+      ''
+    ].concat(manques.map(f => f.ad + (f.dans ? ' / ' + f.dans : '') + ' / ' + f.nom + '  ->  ' + f.url))
+     .join(String.fromCharCode(10)));
+  }
+
+  enregistre(await zip.generateAsync({ type: 'blob' }), RACINE + '_creas.zip');
+  return manques.length === 0;
+}
+const tout = document.getElementById('tout');
+if (tout) tout.onclick = async () => {
+  tout.disabled = true;
+  await faireLeZip(t => { tout.textContent = t; });
+  tout.textContent = 'Tout télécharger';
+  tout.disabled = false;
+};
+</script>
+</body></html>

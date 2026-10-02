@@ -491,7 +491,7 @@ let NBENV={};
 try{const v=JSON.parse(localStorage.getItem(CLE_NB)||"{}");NBENV=(v&&typeof v==="object")?v:{}}catch(e){NBENV={}}
 const saveNb=()=>{try{localStorage.setItem(CLE_NB,JSON.stringify(NBENV))}catch(e){}};
 const nbEnvois=d=>Math.max(NBENV[d]||0, estEnvoyee(d)?1:0);
-const MSG_BLOQUE="Cette fiche a déjà été envoyée "+MAX_ENVOIS+" fois. Pour la renvoyer, préviens Evan.";
+const MSG_BLOQUE="Cette fiche a déjà été envoyée "+MAX_ENVOIS+" fois. Pour la renvoyer, contacte Kreative.";
 const jourFr=iso=>{
   try{return new Date(iso).toLocaleDateString("fr-FR",
     {day:"2-digit",month:"long",hour:"2-digit",minute:"2-digit"})}catch(e){return iso}
@@ -1171,7 +1171,7 @@ async function envoie(){
   if(r.status===413)throw new Error("envoi trop lourd pour le serveur (413) : retire quelques pieces et renvoie");
   if(r.status===409){
     let rep={};try{rep=await r.json()}catch(e){}
-    const e=new Error(rep.message||MSG_BLOQUE);e.bloque=true;e.envois=rep.envois;throw e;
+    const e=new Error(rep.envois>=MAX_ENVOIS?MSG_BLOQUE:"Un envoi de cette fiche vient de partir. Attends quelques minutes, puis contacte Kreative si besoin.");e.bloque=true;e.envois=rep.envois;throw e;
   }
   if(!r.ok)throw new Error("le webhook a repondu "+r.status);
   let rep={};try{rep=await r.json()}catch(e){}
@@ -1185,7 +1185,7 @@ $("send").onclick=async()=>{
   if(estEnvoyee(PRJ.dossier)&&
      !confirm("Cette fiche a déjà été reçue le "+jourFr(ENVOYEES[PRJ.dossier])+
               ".\nLa renvoyer relancera la production une deuxième fois."+
-              "\n\nC'est le seul renvoi possible : après, seul Evan pourra la débloquer.\n\nContinuer ?"))return;
+              "\n\nC'est le seul renvoi possible : après, seule Kreative pourra la débloquer.\n\nContinuer ?"))return;
   const n=nb();let miss=[];
   for(let i=1;i<=n;i++)if(!full(i))miss.push(String(i).padStart(2,"0"));
   if(miss.length&&!confirm("Crea "+miss.join(", ")+" incomplete(s).\nEnvoyer quand meme ?"))return;
@@ -1206,7 +1206,7 @@ $("send").onclick=async()=>{
       if(e.envois>=MAX_ENVOIS){NBENV[PRJ.dossier]=e.envois;saveNb();}
       say(e.message,"ko");
     }
-    else say("Envoi impossible : "+e.message+". Telecharge la fiche et previens Evan.","ko");
+    else say("Envoi impossible : "+e.message+". Télécharge la fiche et contacte Kreative.","ko");
   }
   $("send").disabled=false;
 };

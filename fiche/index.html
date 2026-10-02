@@ -480,6 +480,18 @@ function saveEnvois(){
   try{localStorage.setItem(CLE_ENVOI,JSON.stringify(ENVOYEES))}catch(e){}
 }
 const estEnvoyee=d=>!!(d&&ENVOYEES[d]);
+
+/* Une fiche part au plus 2 fois : l envoi, puis un seul renvoi en cas
+   d oubli. Le serveur tient le vrai compte (fichier envois.json dans le
+   dossier du projet) et refuse le 3e envoi. Ce compte local sert
+   seulement a prevenir avant d envoyer. */
+const MAX_ENVOIS=2;
+const CLE_NB="fiche:nb_envois";
+let NBENV={};
+try{const v=JSON.parse(localStorage.getItem(CLE_NB)||"{}");NBENV=(v&&typeof v==="object")?v:{}}catch(e){NBENV={}}
+const saveNb=()=>{try{localStorage.setItem(CLE_NB,JSON.stringify(NBENV))}catch(e){}};
+const nbEnvois=d=>Math.max(NBENV[d]||0, estEnvoyee(d)?1:0);
+const MSG_BLOQUE="Cette fiche a déjà été envoyée "+MAX_ENVOIS+" fois. Pour la renvoyer, préviens Evan.";
 const jourFr=iso=>{
   try{return new Date(iso).toLocaleDateString("fr-FR",
     {day:"2-digit",month:"long",hour:"2-digit",minute:"2-digit"})}catch(e){return iso}
@@ -1157,30 +1169,44 @@ async function envoie(){
     body:JSON.stringify(charge)
   });
   if(r.status===413)throw new Error("envoi trop lourd pour le serveur (413) : retire quelques pieces et renvoie");
+  if(r.status===409){
+    let rep={};try{rep=await r.json()}catch(e){}
+    const e=new Error(rep.message||MSG_BLOQUE);e.bloque=true;e.envois=rep.envois;throw e;
+  }
   if(!r.ok)throw new Error("le webhook a repondu "+r.status);
-  return true;
+  let rep={};try{rep=await r.json()}catch(e){}
+  return rep;
 }
 
 $("send").onclick=async()=>{
   if(!PRJ)return say("Choisis d abord un projet.","ko");
+  const dejaNb=nbEnvois(PRJ.dossier);
+  if(dejaNb>=MAX_ENVOIS)return say(MSG_BLOQUE,"ko");
   if(estEnvoyee(PRJ.dossier)&&
      !confirm("Cette fiche a déjà été reçue le "+jourFr(ENVOYEES[PRJ.dossier])+
-              ".\nLa renvoyer relancera la production une deuxième fois.\n\nContinuer ?"))return;
+              ".\nLa renvoyer relancera la production une deuxième fois."+
+              "\n\nC'est le seul renvoi possible : après, seul Evan pourra la débloquer.\n\nContinuer ?"))return;
   const n=nb();let miss=[];
   for(let i=1;i<=n;i++)if(!full(i))miss.push(String(i).padStart(2,"0"));
   if(miss.length&&!confirm("Crea "+miss.join(", ")+" incomplete(s).\nEnvoyer quand meme ?"))return;
   $("send").disabled=true;say("Envoi en cours...");
   try{
-    await envoie();
+    const rep=await envoie();
     say("");
     ENVOYEES[PRJ.dossier]=new Date().toISOString();
     saveEnvois();
+    NBENV[PRJ.dossier]=(rep&&rep.envoi)||(dejaNb+1);
+    saveNb();
     $("donef").textContent=(PRJ.brand_name||PRJ.dossier)+" · "+n+" créas";
     $("done").hidden=false;
     accueil();
     menu();
   }catch(e){
-    say("Envoi impossible : "+e.message+". Telecharge la fiche et previens Evan.","ko");
+    if(e.bloque){
+      if(e.envois>=MAX_ENVOIS){NBENV[PRJ.dossier]=e.envois;saveNb();}
+      say(e.message,"ko");
+    }
+    else say("Envoi impossible : "+e.message+". Telecharge la fiche et previens Evan.","ko");
   }
   $("send").disabled=false;
 };

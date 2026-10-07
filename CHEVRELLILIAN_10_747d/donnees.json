@@ -1,0 +1,356 @@
+{
+  "dossier": "CHEVRELLILIAN_10_747d",
+  "brand_name": "CHEVREL LILIAN",
+  "website": "https://puretrek.fr/?srsltid=AU7gw4Xt1tgjbAGy85mn0oq8OamNFaLuUTb-QivbibhDfM-gJbTMt8b3",
+  "secteur": "E-commerçant",
+  "pack": "starter",
+  "nb_creas": 6,
+  "deadline": "2026-10-09T19:17:32.301Z",
+  "deadline_heures": 48,
+  "deadline_strategiste": "2026-10-08T11:17:32.301Z",
+  "deadline_designer": "2026-10-09T11:17:32.301Z",
+  "nb_ugly": 2,
+  "date": "2026-10-07",
+  "couleurs": [
+    "#173f2c",
+    "#f6f5f1",
+    "#ffffff",
+    "#142fbd",
+    "#1532cb",
+    "#eb001b",
+    "#f79e1b",
+    "#ff5f00"
+  ],
+  "couleurs_client": [
+    "#173f2c",
+    "#f6f5f1",
+    "#ffffff"
+  ],
+  "couleurs_site": [
+    "#142fbd",
+    "#1532cb",
+    "#eb001b",
+    "#f79e1b",
+    "#ff5f00",
+    "#4285f4"
+  ],
+  "polices": [
+    "sans"
+  ],
+  "polices_client": [],
+  "polices_site": [
+    "sans"
+  ],
+  "captures": [
+    {
+      "page": "accueil",
+      "url": "https://storage.googleapis.com/firecrawl-scrape-media/screenshot-c1424c1c-14b1-4169-8d6e-f52f27f54d1a.png?GoogleAccessId=scrape-bucket-accessor%40firecrawl.iam.gserviceaccount.com&Expires=1792005297&Signature=wfhDU7ZJBU7GABl87u0BB4dCyzqpb1RAndECKUfXhwPq18B2arQYYIY0tcr01F4PhnjyONk8LpaH9N9NwmqyNo09C4n1%2BM03D9f3WD8lDfaSzJl527s12ZGltXMXKQ8sYUqxs9jkzwNZsZmQ5D6zGBCK8ewkiRRaL9P1RP2On7JF1%2BdK1npZt%2BGB6wuPgVytXK7%2BloVqCXeqwvIDrc0cisYPH9Rb6ZTrpCgh8eMWuTdWYXxWV9PVcoR1PBvfforvO3zJazTGpN%2BIuGwu5eQE9AF80pvaynCgbGirKcNKjwATJ8jkm9HnVPzfy%2FSlpnz1WfgqmTIC9At6dYpDpDIVsw%3D%3D"
+    }
+  ],
+  "ton": "Direct & percutant (oral, sans détour)",
+  "adresse": "Tutoiement",
+  "ambiance": "Outdoor, naturel, premium",
+  "consignes": "PURETREK doit être positionné avant tout comme une solution d’hygiène ponctuelle pensée pour le trek sur plusieurs jours, notamment lorsqu’on n’a pas accès à une douche. Le cœur du message est le nettoyage à l’eau, avec un produit compact et adapté au sac à dos.\nLa cible principale est composée d’hommes et femmes de 31 à 45 ans pratiquant le trek. Les créatives doivent partir de situations réelles : plusieurs jours dehors, sensation de ne plus être propre, toilette compliquée en pleine nature, dépendance au papier toilette et nécessité de gérer ses déchets.\nPriorité : casser les objections (« est-ce vraiment utile ? », « l’eau suffit-elle ? », « où trouver l’eau ? », « est-ce encombrant ? », « pourquoi 49,99 € ? ») avec des situations concrètes, des démonstrations et des bénéfices simples. Le ton doit rester direct, naturel et 100 % orienté trek.",
+  "promo": "Accroche principale : « Reste propre en trek. »\n1 PURETREK à 49,99 € au lieu de 59,99 € + housse de transport offerte.\nPack Duo à 84,99 € au lieu de 142,98 € + 2 serviettes microfibre offertes + 2 housses de transport offertes + livraison à domicile offerte.\nGarantie 30 jours satisfait ou remboursé.",
+  "interdits": "Oui",
+  "preuves": "",
+  "offre": "",
+  "differenciation": "",
+  "client_ideal": "Homme ou femme de 31 à 45 ans pratiquant le trek, la randonnée itinérante ou le bivouac sur plusieurs jours. Son problème principal est de maintenir une bonne hygiène lorsqu’il passe plusieurs jours sans accès à une douche : transpiration, frottements, inconfort et sensation de ne plus être vraiment propre. Il utilise généralement du papier toilette, mais cherche une solution ponctuelle, pratique et adaptée au trek pour se nettoyer à l’eau.",
+  "freins": "Ils se demandent principalement si le nettoyage à l’eau est réellement plus efficace que le papier, si le jet est suffisamment puissant, où trouver l’eau, comment se sécher et si l’utilisation est pratique. Les autres freins sont le poids, l’encombrement dans le sac, le prix de 49,99 € et la peur d’acheter un gadget qui ne sera finalement pas utilisé.",
+  "objectif": "Générer des ventes en faisant comprendre la différence entre s’essuyer et se nettoyer à l’eau, puis lever les principales objections autour de PURETREK. L’objectif est de positionner le produit comme une solution d’hygiène ponctuelle, pratique et adaptée aux treks de plusieurs jours.",
+  "assets": [
+    {
+      "id": "PJ01",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-hSWiGFjTVhus/453fb5dc-5fdb-4a8d-9b1a-85478a9f18da-jd31AW5sLG4TBFoKBGCLa1yl6nYliT3lLUkbErtZMwydzluToQxE92lxSZbakOPWS5900Qq4ENIjELipLlcRAXkevqis7oR8Y0P/BOPAYS-(22).png",
+      "type": "logo"
+    },
+    {
+      "id": "PJ02",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-hSWiGFjTVhus/750ae379-cdcc-45f6-a7e6-a24357e1b4e2-W0u4M03lg9rxNxubBmQDcqc8nkRgqWuwHeew4zOtr0BQPukiKB05VzO7gLCa6zxLAOVqyWPmgcmRPRsEqftil9L1WkMIBhqcaaI/20260929_131709.jpg",
+      "type": "produit"
+    },
+    {
+      "id": "PJ03",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-hSWiGFjTVhus/b3f3531f-d5ea-4482-a4ec-ea9fea671f57-4uJ953PDxgX1dgQc3xDBBBvPGRO2rUfL933WSmcapk0M5NxqmgjtWSsxgu8fW9ijTHEYtyuo55Jj2rLurii4XY3qjAnStuKNQmi/20260929_131703.jpg",
+      "type": "produit"
+    },
+    {
+      "id": "PJ04",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-hSWiGFjTVhus/6fff2f35-866a-4bf3-a71c-81cd1de318a1-dHYidZR3jghIWrohHBFGK2ZkpyCJq79i0a7KXb3eZbi4HFTIF3zk2MPKIzSEfgPDgoPDMfLoj8uCTChdJeEJMqm78pbvZbyMOeM/20260929_131658.jpg",
+      "type": "produit"
+    },
+    {
+      "id": "PJ05",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-hSWiGFjTVhus/14c7c7e4-679e-4374-a0fc-8d116a6871f3-Xa5tv0KwA7F8KsFuAkOxdMYZI1CP6ZwNRF74MoC9m54bPL8BF32LAJEmZGZbDdXc4Vwq59A6u4qrOEey5U1RtEeM8SOCcgnFoHq/20260929_131143.jpg",
+      "type": "produit"
+    },
+    {
+      "id": "PJ06",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-hSWiGFjTVhus/59eda93e-c896-48b0-a3cb-2f1b88e378db-QmVsC9xq0errVfZw9JE5Wii6Mkw6tUXikUmb6BDgHvifJUZzTfvHXNr5PUGy75DGP9CMD3cuIHV9T1JK9YKG7Ybvq093pSYcUML/20260929_131042.jpg",
+      "type": "produit"
+    },
+    {
+      "id": "PJ07",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-hSWiGFjTVhus/5924bc4f-005a-4a10-8e03-d9a2b89d3227-o4ub8MCgg5KRwgGB35edxT15izq24eDdabww7ddXC61GJPf0Vumb0srLKKsKuk7hllopcWpHTnFA7ruNkRy68DpOSWn4NRwUhi6/20260929_130951.jpg",
+      "type": "produit"
+    },
+    {
+      "id": "PJ08",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-hSWiGFjTVhus/67840da2-c789-44b0-8b76-e3e34ec1a0c7-NDaQbjpCbMvldDusQCOIud50NqujIx2YYHNOuNlopgErvQVH3I0kCPUuQ4oIpWqQsHkrgQt2H1fwvpghPjIxHyygpf9WRl156e0/20260929_130853.jpg",
+      "type": "produit"
+    },
+    {
+      "id": "PJ09",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-hSWiGFjTVhus/7b71a50f-6cad-49aa-b750-cc5e3d58c6e7-3Rw9P96WN5rxaRda5HgGDvyMGrpdTapi9nWdYV9EXEu8FxagbvyyJKHwDOYPy0i08cYNlSpvjH9eQN8JHfreM4HSC7jJ2FBhd2i/20260929_130819.jpg",
+      "type": "produit"
+    },
+    {
+      "id": "PJ10",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-hSWiGFjTVhus/59efafa1-1153-41e7-9b12-02f688158c60-PdAnIow4dX6A3NGairKfR3yzKBwZLIAOaCfPm88r4vQDFX4IrCdaPIUQkPmwkPo82eyl77uAmwpCOt7OvOvGexteRsc8WFlE4WR/20260929_130708.jpg",
+      "type": "produit"
+    },
+    {
+      "id": "PJ11",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-hSWiGFjTVhus/44a9789e-ccea-44e3-9754-da16734515dd-pOf3WsWJsUrbQMQS2cPZnkesDOAlOi72GTn04DkYTM79PijqwlOxihBYRP6rIsHd3Fh7aDtJGcE7WPpNMI3CLIwRqVQOk7W3YU3/20261007_144439.jpg",
+      "type": "produit"
+    },
+    {
+      "id": "PJ12",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-hSWiGFjTVhus/c7d8b0a8-8b3d-4f6a-8465-8581690e8d48-VYz95lSD1CUhwNgwDXNqBlZZZk5FUIewmi3APfcvXgQBcgNXHv3M5XOlLfOIyz6fMYItFgTRxvN5ITLH34QiN6I6Ig9Jg7LO5PI/Bidet-nomade-devant-une-cascade-brumeuse.png",
+      "type": "ambiance"
+    },
+    {
+      "id": "PJ13",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-hSWiGFjTVhus/b661840f-01f9-46f2-ba18-ff20ec97d05f-SMNmegMYAtke2MW94pb0e6tN4onYiULATDxL0kLkmqoaOtA2LuKLZeoZ6u1kmLWcl87cry3ioEOF6TzPvZvfIQ0eVaPOvVa4c3N/hf_20261005_210512_095864e2-e09e-4cf2-b0ac-a401e6b86058-(1).png",
+      "type": "ambiance"
+    }
+  ],
+  "assets_site": [
+    {
+      "id": "WS01",
+      "url": "https://puretrek.fr/cdn/shop/files/preview_images/46551ad441484c788161356c13f68905.thumbnail.0000000000.jpg?v=1791285579&width=1946",
+      "nom": "visuel du site",
+      "note": 14
+    },
+    {
+      "id": "WS02",
+      "url": "https://puretrek.fr/cdn/shop/t/9/assets/placeholder-banner_x2880.jpg?v=80220948179647170751791146962",
+      "nom": "visuel du site",
+      "note": 11
+    },
+    {
+      "id": "WS03",
+      "url": "https://cdn.shopify.com/s/files/1/1062/1786/5548/files/Design_sans_titre_20260731_003455_0000.png?v=1785450939",
+      "nom": "visuel du site",
+      "note": 9
+    },
+    {
+      "id": "WS04",
+      "url": "https://puretrek.fr/cdn/shop/files/BOPAYS_19.png?height=147&v=1790458226",
+      "nom": "visuel du site",
+      "note": 7
+    },
+    {
+      "id": "WS05",
+      "url": "https://puretrek.fr/cdn/shop/t/9/assets/placeholder-article_x1000.jpg?v=116672812344062179541791146962",
+      "nom": "visuel du site",
+      "note": 7
+    },
+    {
+      "id": "WS06",
+      "url": "https://puretrek.fr/cdn/shop/files/PURETREK_5.png?v=1791316429&width=1200",
+      "nom": "visuel du site",
+      "note": 14
+    },
+    {
+      "id": "WS07",
+      "url": "https://puretrek.fr/cdn/shop/files/preview_images/ee41213fffe749d5a9b82dd41b718204.thumbnail.0000000000.jpg?v=1791152386&width=1946",
+      "nom": "visuel du site",
+      "note": 13
+    },
+    {
+      "id": "WS08",
+      "url": "https://puretrek.fr/cdn/shop/files/PURETREK_6.png?v=1791316784&width=1200",
+      "nom": "visuel du site",
+      "note": 12
+    },
+    {
+      "id": "WS09",
+      "url": "https://puretrek.fr/cdn/shop/files/2.png?v=1791239216&width=1200",
+      "nom": "visuel du site",
+      "note": 12
+    },
+    {
+      "id": "WS10",
+      "url": "https://puretrek.fr/cdn/shop/files/3_e8d616f0-1b27-4d26-b113-9b91e3ff3ce0.png?v=1791239216&width=1200",
+      "nom": "visuel du site",
+      "note": 12
+    },
+    {
+      "id": "WS11",
+      "url": "https://puretrek.fr/cdn/shop/files/4_7911a079-e29c-4d1d-ae78-b627f17b5f4f.png?v=1791239217&width=1200",
+      "nom": "visuel du site",
+      "note": 12
+    },
+    {
+      "id": "WS12",
+      "url": "https://puretrek.fr/cdn/shop/files/PURETREK_7.png?v=1791391462&width=1200",
+      "nom": "visuel du site",
+      "note": 12
+    },
+    {
+      "id": "WS13",
+      "url": "https://puretrek.fr/cdn/shop/files/6_7509c16d-982b-4143-8678-7993192d359a.png?v=1791239216&width=1200",
+      "nom": "visuel du site",
+      "note": 11
+    },
+    {
+      "id": "WS14",
+      "url": "https://puretrek.fr/cdn/shop/files/Trek_-_2026-10-05T204542.319.png?v=1791225947&width=1200",
+      "nom": "visuel du site",
+      "note": 11
+    },
+    {
+      "id": "WS15",
+      "url": "https://puretrek.fr/cdn/shop/files/hf_20260916_091048_6a89233d-7b28-4467-96db-df28c48c8f2c.png?v=1789550124&width=1200",
+      "nom": "visuel du site",
+      "note": 11
+    },
+    {
+      "id": "WS16",
+      "url": "https://puretrek.fr/cdn/shop/files/preview_images/46551ad441484c788161356c13f68905.thumbnail.0000000000_2500x.jpg?v=1791285579",
+      "nom": "visuel du site",
+      "note": 9
+    },
+    {
+      "id": "WS17",
+      "url": "https://puretrek.fr/cdn/shop/files/Toilet_et_sac_sur_le_sentier.png?v=1791149875&width=3840",
+      "nom": "visuel du site",
+      "note": 9
+    },
+    {
+      "id": "WS18",
+      "url": "https://puretrek.fr/cdn/shop/files/Design_sans_titre_95.png?v=1791242924&width=1200",
+      "nom": "visuel du site",
+      "note": 9
+    },
+    {
+      "id": "WS19",
+      "url": "https://puretrek.fr/cdn/shop/files/Design_sans_titre_94.png?v=1791242910&width=1200",
+      "nom": "visuel du site",
+      "note": 9
+    },
+    {
+      "id": "WS20",
+      "url": "https://puretrek.fr/cdn/shop/files/Design_sans_titre_93.png?v=1791242898&width=1200",
+      "nom": "visuel du site",
+      "note": 9
+    },
+    {
+      "id": "WS21",
+      "url": "https://puretrek.fr/cdn/shop/files/Bivouac_alpin_au_coucher_du_soleil.png?v=1791226531&width=3840",
+      "nom": "visuel du site",
+      "note": 9
+    },
+    {
+      "id": "WS22",
+      "url": "https://puretrek.fr/cdn/shop/files/PureTrek_4.png?v=1791151363&width=3840",
+      "nom": "visuel du site",
+      "note": 8
+    },
+    {
+      "id": "WS23",
+      "url": "https://puretrek.fr/cdn/shop/files/PureTrek_3.png?v=1791151259&width=3840",
+      "nom": "visuel du site",
+      "note": 8
+    },
+    {
+      "id": "WS24",
+      "url": "https://puretrek.fr/cdn/shop/files/147_Grammes.png?v=1791227741&width=3840",
+      "nom": "visuel du site",
+      "note": 8
+    },
+    {
+      "id": "WS25",
+      "url": "https://puretrek.fr/cdn/shop/files/147_Grammes_1.png?v=1791228070&width=3840",
+      "nom": "visuel du site",
+      "note": 8
+    },
+    {
+      "id": "WS26",
+      "url": "https://puretrek.fr/cdn/shop/files/147_Grammes_2.png?v=1791228278&width=3840",
+      "nom": "visuel du site",
+      "note": 8
+    },
+    {
+      "id": "WS27",
+      "url": "https://puretrek.fr/cdn/shop/files/147_Grammes_3.png?v=1791228753&width=3840",
+      "nom": "visuel du site",
+      "note": 8
+    },
+    {
+      "id": "WS28",
+      "url": "https://puretrek.fr/cdn/shop/files/147_Grammes_4.png?v=1791228813&width=3840",
+      "nom": "visuel du site",
+      "note": 8
+    },
+    {
+      "id": "WS29",
+      "url": "https://puretrek.fr/cdn/shop/files/147_Grammes_5.png?v=1791228993&width=3840",
+      "nom": "visuel du site",
+      "note": 8
+    },
+    {
+      "id": "WS30",
+      "url": "https://puretrek.fr/cdn/shop/files/NowWash_10_70ee4257-a502-4986-85f2-fa288b12c80f.png?v=1791201392&width=500",
+      "nom": "visuel du site",
+      "note": 6
+    },
+    {
+      "id": "WS31",
+      "url": "https://puretrek.fr/cdn/shop/files/Trek_-_2026-09-27T135057.488.png?v=1790509864&width=500",
+      "nom": "visuel du site",
+      "note": 6
+    },
+    {
+      "id": "WS32",
+      "url": "https://puretrek.fr/cdn/shop/files/PureTrek_IMG_2.png?v=1791200147&width=500",
+      "nom": "visuel du site",
+      "note": 6
+    },
+    {
+      "id": "WS33",
+      "url": "https://puretrek.fr/cdn/shop/files/Trek_-_2026-09-27T135903.422.png?v=1790510351&width=500",
+      "nom": "visuel du site",
+      "note": 6
+    },
+    {
+      "id": "WS34",
+      "url": "https://puretrek.fr/cdn/shop/files/PureTrek_IMG_1.png?v=1791200037&width=500",
+      "nom": "visuel du site",
+      "note": 6
+    },
+    {
+      "id": "WS35",
+      "url": "https://puretrek.fr/cdn/shop/files/20260910_154230.jpg?v=1789047855&width=500",
+      "nom": "visuel du site",
+      "note": 6
+    },
+    {
+      "id": "WS36",
+      "url": "https://puretrek.fr/cdn/shop/files/preview_images/ee41213fffe749d5a9b82dd41b718204.thumbnail.0000000000_2500x.jpg?v=1791152386",
+      "nom": "visuel du site",
+      "note": 5
+    }
+  ],
+  "pubs_client": [],
+  "pubs_concurrents": [
+    {
+      "id": "CC01",
+      "annonceur": "ASICS",
+      "url": "https://scontent-phl2-1.xx.fbcdn.net/v/t39.35426-6/682661109_950229341265274_505645707103367730_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=103&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=CKMj847e6TQQ7kNvwEUWnju&_nc_oc=Adr3X9GX6U0i3xxRk6NffBMGV_iv_Vt1Y3bFd35BdjcwHR1cEegQwXbaydBXMEIbgtM&_nc_zt=14&_nc_ht=scontent-phl2-1.xx&_nc_gid=gOEW3bqXUheCktZTsDhSIA&_nc_ss=78289&oh=00_AQOl1x--Qehvzje3VRc061jlOUaNnR1xdrzCEeAj4cH70g&oe=6ACC6A48",
+      "texte": "Réservé aux membres OneASICS™. · Profitez de votre adhésion pour trouver l'équipement parfait. · asics.com"
+    }
+  ]
+}

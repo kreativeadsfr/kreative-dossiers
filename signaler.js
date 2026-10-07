@@ -1,6 +1,7 @@
 /* Kreative · aperçu designer
-   Ajoute sous chaque visuel un lien « Signaler un problème sur le visuel ».
-   La demande part à Kreative, qui décide. */
+   Ajoute sous chaque visuel un lien « Report a problem with the visual ».
+   La demande part à Kreative, qui décide.
+   Le designer lit l'anglais ; les motifs partent en français pour Kreative. */
 (function () {
   var WEBHOOK = 'https://n8n.srv1536015.hstgr.cloud/webhook/regeneration';
   var parties = location.pathname.split('/').filter(Boolean);
@@ -24,8 +25,13 @@
     '.sig-r{margin:10px 0 0;font-size:13.5px;color:#5D6472}';
   document.head.appendChild(css);
 
-  var MOTIFS = ['Logo déformé ou faux', 'Texte faux ou illisible', 'Élément mal placé ou coupé', 'Visuel inutilisable'];
-  var ERREUR = 'La demande n\'est pas passée. Préviens Kreative sur Telegram.';
+  var MOTIFS = [
+    ['Distorted or wrong logo', 'Logo déformé ou faux'],
+    ['Wrong or unreadable text', 'Texte faux ou illisible'],
+    ['Misplaced or cut-off element', 'Élément mal placé ou coupé'],
+    ['Unusable visual', 'Visuel inutilisable']
+  ];
+  var ERREUR = 'The request did not go through. Please message Kreative on Telegram.';
 
   document.querySelectorAll('article.c').forEach(function (carte) {
     var img = carte.querySelector('.im img');
@@ -40,12 +46,12 @@
     var z = document.createElement('div');
     z.className = 'sig';
     z.innerHTML =
-      '<button class="sig-b" type="button">Signaler un problème sur le visuel</button>' +
-      '<form class="sig-f" hidden><p class="sig-t">Qu\'est-ce qui ne va pas ?</p>' +
-      MOTIFS.map(function (m) { return '<label><input type="checkbox" value="' + m + '"> ' + m + '</label>'; }).join('') +
-      '<textarea rows="2" placeholder="Précise en une phrase (facultatif)"></textarea>' +
-      '<div class="sig-a"><button class="sig-e" type="submit">Envoyer à Kreative</button>' +
-      '<button class="sig-x" type="button">Annuler</button></div></form>' +
+      '<button class="sig-b" type="button">Report a problem with the visual</button>' +
+      '<form class="sig-f" hidden><p class="sig-t">What is wrong?</p>' +
+      MOTIFS.map(function (m) { return '<label><input type="checkbox" value="' + m[1] + '"> ' + m[0] + '</label>'; }).join('') +
+      '<textarea rows="2" placeholder="Describe it in one sentence (optional)"></textarea>' +
+      '<div class="sig-a"><button class="sig-e" type="submit">Send to Kreative</button>' +
+      '<button class="sig-x" type="button">Cancel</button></div></form>' +
       '<p class="sig-r" hidden></p>';
     tx.appendChild(z);
 
@@ -56,19 +62,19 @@
       ev.preventDefault();
       var motifs = Array.prototype.map.call(f.querySelectorAll('input:checked'), function (x) { return x.value; });
       var commentaire = f.querySelector('textarea').value.trim();
-      if (!motifs.length && !commentaire) { r.hidden = false; r.textContent = 'Coche au moins une case ou précise le problème.'; return; }
+      if (!motifs.length && !commentaire) { r.hidden = false; r.textContent = 'Tick at least one box or describe the problem.'; return; }
       var e = f.querySelector('.sig-e');
-      e.disabled = true; e.textContent = 'Envoi…';
+      e.disabled = true; e.textContent = 'Sending…';
       fetch(WEBHOOK, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ dossier: DOSSIER, crea: crea, motifs: motifs, commentaire: commentaire })
       }).then(function (rep) {
         return rep.json().catch(function () { return {}; }).then(function (j) {
-          return (j && j.message) ? j.message : (rep.ok ? 'Demande envoyée à Kreative. Tu seras prévenu sur Telegram.' : ERREUR);
+          return (j && j.message) ? j.message : (rep.ok ? 'Request sent to Kreative. You will get an answer on Telegram.' : ERREUR);
         });
       }).catch(function () { return ERREUR; }).then(function (msg) {
         f.hidden = true; r.hidden = false; r.textContent = msg;
-        e.disabled = false; e.textContent = 'Envoyer à Kreative';
+        e.disabled = false; e.textContent = 'Send to Kreative';
       });
     };
   });

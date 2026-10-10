@@ -1,0 +1,306 @@
+{
+ "dossier": "TEST_NJ9REZ",
+ "brand_name": "Turnly",
+ "website": "turnly.fr",
+ "secteur": "SaaS",
+ "pack": "starter",
+ "nb_creas": 6,
+ "nb_ugly": 2,
+ "date": "2026-10-10",
+ "couleurs": [
+  "#ffe29a",
+  "#f3d07a",
+  "#8b94a5",
+  "#ffb020",
+  "#082b58",
+  "#fbbc05"
+ ],
+ "couleurs_client": [],
+ "couleurs_site": [
+  "#ffe29a",
+  "#f3d07a",
+  "#8b94a5",
+  "#ffb020",
+  "#082b58",
+  "#fbbc05"
+ ],
+ "polices": [
+  "une police qui se rapproche (ou identique) de celle de notre logo",
+  "Inter",
+  "DM Sans",
+  "Plus Jakarta Sans",
+  "Caveat"
+ ],
+ "polices_client": [
+  "une police qui se rapproche (ou identique) de celle de notre logo"
+ ],
+ "polices_site": [
+  "Inter",
+  "DM Sans",
+  "Plus Jakarta Sans",
+  "Caveat"
+ ],
+ "captures": [
+  {
+   "page": "accueil",
+   "url": "https://storage.googleapis.com/firecrawl-scrape-media/screenshot-82337292-46bd-4cdd-9aec-a31131d58510.png?GoogleAccessId=scrape-bucket-accessor%40firecrawl.iam.gserviceaccount.com&Expires=1791486301&Signature=m1mV8RpD31Iip7njObSurTEgKbodpYqetYJSiIA%2FFo7pAvFqup4X3gwNHAZRJqntBYXI0D6PRdEelbd%2BG%2BhDEqiQzabvTUr258JVf8Gzh5DNzj4%2FlYdX%2BwIXLWFoTMzTPDHc2OwsphEKRMQ%2F%2BANVlnL3G46wGDzpVS%2BMTAl8MVMxWbY9l9du4vr4mT%2B30m6XfW6XP9dcV5ix2E9NIWBz05P9pakxV22jX5U1kPWayM5Vlm1JZTnAqpCO6rjqnTYa9avcNA3VFnbl7KNQ%2FheOH9%2BM%2BLkECIys2RuPdTzBNRdcH98ZN8e3G0njUgDoeiypH1PtCOX205MY%2BRhWeHhGzQ%3D%3D"
+  }
+ ],
+ "ton": "Direct & percutant (oral, sans détour)",
+ "adresse": "Les deux",
+ "ambiance": "",
+ "consignes": "On veut des pubs qui sortent du lot.",
+ "promo": "1 semaine gratuite",
+ "interdits": "",
+ "preuves": "",
+ "offre": "Turnly aide les commerces à avoir plus d'avis Google. Le client scanne un QR code, tourne une roue pour gagner un lot et laisse un avis. Abonnement mensuel sans engagement.",
+ "differenciation": "C'est simple à mettre en place et pas cher (14,90 €/mois).",
+ "client_ideal": "Les commerçants (restaurants, coiffeurs, salles de sport...) qui n'ont pas assez d'avis Google.",
+ "freins": "Le prix. Ils pensent aussi que c'est compliqué.",
+ "objectif": "Avoir des inscriptions à l'essai gratuit.",
+ "assets": [],
+ "assets_site": [
+  {
+   "id": "WS01",
+   "url": "https://framerusercontent.com/images/NwUl2PnKFfLjQpWdpczqyS1xiI.png?width=512&height=512",
+   "nom": "visuel du site",
+   "note": 11
+  },
+  {
+   "id": "WS02",
+   "url": "https://framerusercontent.com/images/AIKr1slM5c8yjRJbj5YQXFe4Q.png?width=1280&height=1120",
+   "nom": "visuel du site",
+   "note": 8
+  },
+  {
+   "id": "WS03",
+   "url": "https://framerusercontent.com/images/qYQNVbIhRuwVLv95HGhvFd5TtI.png?width=900&height=900",
+   "nom": "visuel du site",
+   "note": 11
+  },
+  {
+   "id": "WS04",
+   "url": "https://framerusercontent.com/images/gqeZJ2IeDC1zrwSw1CCcqxFaY.png?width=2000&height=1016",
+   "nom": "visuel du site",
+   "note": 7
+  },
+  {
+   "id": "WS05",
+   "url": "https://framerusercontent.com/images/yQvPTZqKYm3y3OVkHQzow53pOc.png?width=512&height=512",
+   "nom": "visuel du site",
+   "note": 10
+  },
+  {
+   "id": "WS06",
+   "url": "https://framerusercontent.com/images/M1o91bdxa9FqxoVnJcCc8nzEOc.webp?width=1280&height=961",
+   "nom": "visuel du site",
+   "note": 7
+  },
+  {
+   "id": "WS07",
+   "url": "https://framerusercontent.com/images/UJzL9tf6iiGMVJPn2ZRypyA8oc.png?width=512&height=512",
+   "nom": "visuel du site",
+   "note": 10
+  },
+  {
+   "id": "WS08",
+   "url": "https://framerusercontent.com/images/xIuYiwceP2eC8nN6LU9zw7LlloE.webp?width=2162&height=1920",
+   "nom": "visuel du site",
+   "note": 7
+  },
+  {
+   "id": "WS09",
+   "url": "https://framerusercontent.com/images/8WRR2Tqx9X9H537scpGzzxlzT2M.png?width=512&height=512",
+   "nom": "visuel du site",
+   "note": 10
+  },
+  {
+   "id": "WS10",
+   "url": "https://framerusercontent.com/images/XebUkpA7rUXcTFbpJmrQnn3q8Y.webp?width=1246&height=922",
+   "nom": "visuel du site",
+   "note": 7
+  },
+  {
+   "id": "WS11",
+   "url": "https://framerusercontent.com/images/nnRYuPpakEW8N8lo1RoLZ2xM3TY.png?width=1461&height=2073",
+   "nom": "visuel du site",
+   "note": 10
+  },
+  {
+   "id": "WS12",
+   "url": "https://framerusercontent.com/images/eau8dpBdBKAZaksELX0YEu8xs.png?width=500&height=545",
+   "nom": "visuel du site",
+   "note": 6
+  },
+  {
+   "id": "WS13",
+   "url": "https://framerusercontent.com/images/DzOwzMaPgYjSmiuvyXZVTLll4.png?width=1024&height=1024",
+   "nom": "visuel du site",
+   "note": 6
+  },
+  {
+   "id": "WS14",
+   "url": "https://framerusercontent.com/images/UE55BNzM9PLrAdOtckjTfKLuIQ.jpg?width=562&height=375",
+   "nom": "visuel du site",
+   "note": 6
+  },
+  {
+   "id": "WS15",
+   "url": "https://framerusercontent.com/images/n03LpuQ2brTPMK6KbhMpptr1RIM.png?width=439&height=468",
+   "nom": "visuel du site",
+   "note": 3
+  },
+  {
+   "id": "WS16",
+   "url": "https://framerusercontent.com/images/8Wi3PuC86aUcGxmEVd26I2vP1oA.png?width=1280&height=1280",
+   "nom": "visuel du site",
+   "note": 6
+  },
+  {
+   "id": "WS17",
+   "url": "https://framerusercontent.com/images/i5rQdsHLp2Bk7jCyAPAKz6mk7s.webp?width=569&height=620",
+   "nom": "visuel du site",
+   "note": 5
+  },
+  {
+   "id": "WS18",
+   "url": "https://framerusercontent.com/images/bcxASDVMiyIFDKIuZgW4Ex1ocE.webp?width=700&height=467",
+   "nom": "visuel du site",
+   "note": 5
+  },
+  {
+   "id": "WS19",
+   "url": "https://framerusercontent.com/images/Paih5wKyz27GpirGbHvK2mgmNn0.webp?width=1024&height=768",
+   "nom": "visuel du site",
+   "note": 5
+  },
+  {
+   "id": "WS20",
+   "url": "https://framerusercontent.com/images/AvjrTu4uMIzS3i5S41W4UDg.png?width=942&height=720",
+   "nom": "visuel du site",
+   "note": 5
+  },
+  {
+   "id": "WS21",
+   "url": "https://framerusercontent.com/images/jlBgoubCtHs8QKI39lw4WeK6Og.png?width=948&height=1134",
+   "nom": "visuel du site",
+   "note": 5
+  },
+  {
+   "id": "WS22",
+   "url": "https://framerusercontent.com/images/9PC67pceIhDpRrEue0ud1ZbJ8a0.webp?width=896&height=1116",
+   "nom": "visuel du site",
+   "note": 5
+  },
+  {
+   "id": "WS23",
+   "url": "https://framerusercontent.com/images/Kl3MInuUFwiUUYyyQ1a6STrGQs.webp?width=848&height=1264",
+   "nom": "visuel du site",
+   "note": 5
+  },
+  {
+   "id": "WS24",
+   "url": "https://framerusercontent.com/images/LqElVMIJqVogOESasMIYvfjVm0.webp?width=896&height=1114",
+   "nom": "visuel du site",
+   "note": 5
+  },
+  {
+   "id": "WS25",
+   "url": "https://framerusercontent.com/images/fcRFlqxiLdWer4QtVum8fJLG5AI.webp?width=896&height=1114",
+   "nom": "visuel du site",
+   "note": 5
+  },
+  {
+   "id": "WS26",
+   "url": "https://framerusercontent.com/images/P4pYS84S7htwjjYmxhC5HlaQM.png?width=1140&height=480",
+   "nom": "visuel du site",
+   "note": 5
+  },
+  {
+   "id": "WS27",
+   "url": "https://framerusercontent.com/images/qFGgYRhEryRm2IYQIpN5xnkSRg.png?width=450&height=300",
+   "nom": "visuel du site",
+   "note": 3
+  },
+  {
+   "id": "WS28",
+   "url": "https://framerusercontent.com/images/RtZCq6DU13PGFpdIblMIv7cPPbQ.png?width=300&height=280",
+   "nom": "visuel du site",
+   "note": 3
+  },
+  {
+   "id": "WS29",
+   "url": "https://framerusercontent.com/images/cCn2SmdC12XEOkQPXQaeQhLn0Ps.png?width=383&height=549",
+   "nom": "visuel du site",
+   "note": 2
+  },
+  {
+   "id": "WS30",
+   "url": "https://framerusercontent.com/images/78HpeUiTrMh899Tv63CMtYaiKjY.webp?width=372&height=433",
+   "nom": "visuel du site",
+   "note": 1
+  },
+  {
+   "id": "WS31",
+   "url": "https://framerusercontent.com/images/B4Vu3zrlgyybnXQXTpVdzPvnhRY.png?width=372&height=266",
+   "nom": "visuel du site",
+   "note": 1
+  }
+ ],
+ "pubs_client": [
+  {
+   "id": "AD01",
+   "url": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/805784675_3549833385176842_5767461124713226757_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=108&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=9hgOraoQcm4Q7kNvwHJqzTE&_nc_oc=Adpmn0u_5tuyb79nvkHM61hjaqjRg7zKjJf1j0Es_BGU9IIO3gn5RcVldxQ7Lr6U8E4&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=UtZvEs2mr5NC5G-xWbAiLA&_nc_ss=78289&oh=00_AQMCneSqkzHqZIM5TgBJJTteVSbq-h-Pj1AfE0fK3Net1Q&oe=6AC46B8F",
+   "texte": "Multipliez vos avis Google 5★ en magasin 🎯 · Transformez vos clients satisfaits en avis Google grâce à un jeu ludique et instantané. · Boostez la note de votre établissement et multipliez vos avis Google 5 étoiles ! Ave"
+  },
+  {
+   "id": "AD02",
+   "url": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/799675929_1598407612019699_7607921609276537389_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=108&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=P97MHb4X1-sQ7kNvwGksUbS&_nc_oc=Ado1aJlQXmWb01zd4ky4cnRjIwn5QgXUEZG06Sznoa3B0jn_29nIprkeANwaYKHypuw&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=UtZvEs2mr5NC5G-xWbAiLA&_nc_ss=78289&oh=00_AQMD2FUTcwqDKI-bJDe0tIDJuth6cNvhsZhbZil9fIzPaQ&oe=6AC49863",
+   "texte": "Multipliez vos avis Google 5★ en magasin 🎯 · Transformez vos clients satisfaits en avis Google grâce à un jeu ludique et instantané. · Boostez la note de votre établissement et multipliez vos avis Google 5 étoiles ! Ave"
+  },
+  {
+   "id": "AD03",
+   "url": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/797841485_942036362281787_8104562170854241540_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=100&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=_9W5W0uZs2UQ7kNvwGNPjqJ&_nc_oc=Adp0ajC8Rj0R-S4tUMgMs2l3BvA38fOD2EPWhP1NGwIpB9HacXIbTa8ZAjFjAAHxO1s&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=UtZvEs2mr5NC5G-xWbAiLA&_nc_ss=78289&oh=00_AQNqFv1JezkbwvKFaokCgDbeGmBaWsLiSwVyqmaqSKihkQ&oe=6AC492E5",
+   "texte": "Multipliez vos avis Google 5★ en magasin 🎯 · Transformez vos clients satisfaits en avis Google grâce à un jeu ludique et instantané. · Boostez la note de votre établissement et multipliez vos avis Google 5 étoiles ! Ave"
+  },
+  {
+   "id": "AD04",
+   "url": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/790847243_1059427913459844_2435144400796361332_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=109&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=zu_Tz2LfqiUQ7kNvwE4YD4Q&_nc_oc=AdquSFqG-69gMothAPCClP2erpXjRCUufWCoiw_NKcuB8P_sjn71aZt0P-aPP7SBu4c&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=UtZvEs2mr5NC5G-xWbAiLA&_nc_ss=78289&oh=00_AQMljEL0ELvNOyXHzybUH7xVziUcCdBloQpupYXqRPLTAw&oe=6AC47C93",
+   "texte": "Multipliez vos avis Google 5★ en magasin 🎯 · Transformez vos clients satisfaits en avis Google grâce à un jeu ludique et instantané. · Boostez la note de votre établissement et multipliez vos avis Google 5 étoiles ! Ave"
+  },
+  {
+   "id": "AD05",
+   "url": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/790071807_1589990972788596_3430980653029041140_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=100&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=9hM0p3KFBB0Q7kNvwHemuGX&_nc_oc=AdoBdgTPHgaLXLAER_00QPE0X6Iiy-1lYqN8gwTVlQfF-7GrrMOSq_6C4MkAAGRTbqI&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=UtZvEs2mr5NC5G-xWbAiLA&_nc_ss=78289&oh=00_AQNTmlAOlipArp0k4LSunhSsILyqcAqsDT_x0-FD86jI_g&oe=6AC47389",
+   "texte": "Multipliez vos avis Google 5★ en magasin 🎯 · Transformez vos clients satisfaits en avis Google grâce à un jeu ludique et instantané. · Boostez la note de votre établissement et multipliez vos avis Google 5 étoiles ! Ave"
+  },
+  {
+   "id": "AD06",
+   "url": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/783374872_1054063864080564_6526765554918504306_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=101&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=7VkhP03Vcs8Q7kNvwEUjqa6&_nc_oc=Adq5pRFYmbUcQaO8H1zCDQPy3YAvLJsCXY2dptJK-9q_mU-zAprY3bRQ3O__dtEYh_M&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=UtZvEs2mr5NC5G-xWbAiLA&_nc_ss=78289&oh=00_AQNj0R6Dg7WLGntd9OTsB4VgVCpRG2CGnAQRg1ALvq966g&oe=6AC4714A",
+   "texte": "Multipliez vos avis Google 5★ en magasin 🎯 · Transformez vos clients satisfaits en avis Google grâce à un jeu ludique et instantané. · Boostez la note de votre établissement et multipliez vos avis Google 5 étoiles ! Ave"
+  },
+  {
+   "id": "AD07",
+   "url": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/783507794_1702317811071232_3484678198182006690_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=100&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=Gm8ruXMY14kQ7kNvwEyzT19&_nc_oc=AdpHUt3bKF2Pc0sTi827QtxLpJO-eE4CBAGVjD9d-VwCsAbj_zbmava_ZwYf4gC99Lg&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=UtZvEs2mr5NC5G-xWbAiLA&_nc_ss=78289&oh=00_AQOBdCxEcxO5fSuAF67wXmwiC0ka6Q4qHy9F8PclN_kTAw&oe=6AC47F34",
+   "texte": "Multipliez vos avis Google 5★ en magasin 🎯 · Transformez vos clients satisfaits en avis Google grâce à un jeu ludique et instantané. · Boostez la note de votre établissement et multipliez vos avis Google 5 étoiles ! Ave"
+  },
+  {
+   "id": "AD08",
+   "url": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/783673539_1724376475501363_3900841590994954512_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=105&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=_TGrOVRLhjsQ7kNvwGwdjlG&_nc_oc=AdrgBOlfxNm-S6Vel0AJ-THTD2fedtdkQQkAXlKCeXA3kLiGdWEqEr6Tjg7xH_lpe6M&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=UtZvEs2mr5NC5G-xWbAiLA&_nc_ss=78289&oh=00_AQM6ZgYe5hyFVtZUF5Uqf4w6-GVfq-cB9z_u0ijDawjNpQ&oe=6AC49B3A",
+   "texte": "Multipliez vos avis Google 5★ en magasin 🎯 · Transformez vos clients satisfaits en avis Google grâce à un jeu ludique et instantané. · Boostez la note de votre établissement et multipliez vos avis Google 5 étoiles ! Ave"
+  }
+ ],
+ "pubs_concurrents": [
+  {
+   "id": "CC01",
+   "annonceur": "Aviseo",
+   "url": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/753848911_982887431442272_991659651594294423_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=105&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=m273D4-qqDAQ7kNvwHHLFka&_nc_oc=AdrKimUc78IMtnPQM7Lq-ppK9kOFExyWkgddAGTjA6IIzBaaICwHW7djrN5Kfgkp-pw&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=LJ53o1igpK1XUMPMQWJflg&_nc_ss=78289&oh=00_AQO_d9M5dqPzyOl0F5Phm9LkyQ6MBv0D_pkEJLNhxq_XUA&oe=6AC48CF1",
+   "texte": "Vos avis Google gérés en automatique · Connecté à Doctolib • Sans engagement · Demander un avis à un patient, c'est gênant. Alors on ne le fait pas et les patients satisfaits repartent sans laisser de trace ... AVISEO s'"
+  },
+  {
+   "id": "CC02",
+   "annonceur": "Aviseo",
+   "url": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/732889366_1210777777784807_6239650443028558689_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=101&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=QWgYcOmzE1EQ7kNvwHdvnGx&_nc_oc=Adp-P1ViMxweJ1mXK5L5-BKtQGQw9rOISiVBSKdpfux4uF0eKjVVB7kpP0Ezh_FjByA&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=LJ53o1igpK1XUMPMQWJflg&_nc_ss=78289&oh=00_AQOQplzWZ5ADUzoBWqEX-Je-yt3wcGTj5UOXKlvgV6eMcw&oe=6AC495E2",
+   "texte": "La visibilité Google des pros de santé · Sans engagement • Connecté à Doctolib · La solution de visibilité Google pensée pour les professionnels de santé sur Doctolib : collecte d'avis automatisée, tri des retours, fiche"
+  }
+ ]
+}

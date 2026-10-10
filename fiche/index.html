@@ -440,11 +440,15 @@ const WEBHOOK = "https://n8n.srv1536015.hstgr.cloud/webhook/fiche-creas";
 const URL_PROJETS = "../projets.json";
 const urlDonnees  = d => "../" + d + "/donnees.json";
 
-/* MODE TEST (recrutement des strategistes) : fiche/?test
-   Un seul projet, le projet test. « Envoyer » telecharge la fiche
-   remplie : rien ne part vers n8n, rien n est depense. */
+/* MODE TEST (recrutement des strategistes) : fiche/?test=XXXXXX
+   Un lien par candidat. La fiche n affiche que son projet test, et
+   l envoi lance la vraie production des visuels. n8n n accepte un
+   projet test que s il est dans sa liste, et une seule fois : apres
+   l envoi, ou quand Kreative vide la liste, le lien ne lance plus rien. */
+const ID_TEST = (new URLSearchParams(location.search).get("test")||"").trim().toUpperCase();
 const TEST = new URLSearchParams(location.search).has("test");
-const PROJET_TEST = {dossier:"TEST_STRATEGISTE", brand_name:"Turnly", nb_creas:6, pack:"starter"};
+const PROJET_TEST = /^[A-Z0-9]{6}$/.test(ID_TEST)
+  ? {dossier:"TEST_"+ID_TEST, brand_name:"Turnly", nb_creas:6, pack:"starter"} : null;
 
 /* LE CODE KREATIVE : demande au premier envoi, garde dans ce
    navigateur, verifie par n8n avant de lancer quoi que ce soit.
@@ -722,6 +726,7 @@ async function chargeProjets(){
 
   // mode test : le projet test seul, jamais la vraie liste
   if(TEST){
+    if(!PROJET_TEST) return rate("Lien de test incomplet. Demande le bon lien à Kreative.");
     PROJETS=[PROJET_TEST];
     menu();
     $("projet").value=PROJET_TEST.dossier;
@@ -1203,7 +1208,7 @@ async function envoie(code){
   if(r.status===409){
     let rep={};try{rep=await r.json()}catch(e){}
     if(rep.code_invalide){oublieCode();const e=new Error("Code Kreative incorrect. Clique sur Envoyer et entre le bon code.");e.bloque=true;throw e;}
-    const e=new Error(rep.envois>=MAX_ENVOIS?MSG_BLOQUE:"Un envoi de cette fiche vient de partir. Attends quelques minutes, puis contacte Kreative si besoin.");e.bloque=true;e.envois=rep.envois;throw e;
+    const e=new Error(TEST&&rep.message?rep.message:rep.envois>=MAX_ENVOIS?MSG_BLOQUE:"Un envoi de cette fiche vient de partir. Attends quelques minutes, puis contacte Kreative si besoin.");e.bloque=true;e.envois=rep.envois;throw e;
   }
   if(!r.ok)throw new Error("le webhook a repondu "+r.status);
   let rep={};try{rep=await r.json()}catch(e){}
@@ -1212,14 +1217,6 @@ async function envoie(code){
 
 $("send").onclick=async()=>{
   if(!PRJ)return say("Choisis d abord un projet.","ko");
-  if(TEST){
-    const n=nb();let miss=[];
-    for(let i=1;i<=n;i++)if(!full(i))miss.push(String(i).padStart(2,"0"));
-    if(miss.length&&!confirm("Crea "+miss.join(", ")+" incomplete(s).\nTelecharger quand meme ?"))return;
-    await $("dl").onclick();
-    say("Fiche téléchargée. Envoie ce fichier à Kreative, avec ton temps.","ok");
-    return;
-  }
   const dejaNb=nbEnvois(PRJ.dossier);
   if(dejaNb>=MAX_ENVOIS)return say(MSG_BLOQUE,"ko");
   if(estEnvoyee(PRJ.dossier)&&
@@ -1229,8 +1226,8 @@ $("send").onclick=async()=>{
   const n=nb();let miss=[];
   for(let i=1;i<=n;i++)if(!full(i))miss.push(String(i).padStart(2,"0"));
   if(miss.length&&!confirm("Crea "+miss.join(", ")+" incomplete(s).\nEnvoyer quand meme ?"))return;
-  const code=codeKreative();
-  if(!code)return say("Il faut le code Kreative pour envoyer la fiche.","ko");
+  const code=TEST?"":codeKreative();
+  if(!TEST&&!code)return say("Il faut le code Kreative pour envoyer la fiche.","ko");
   $("send").disabled=true;say("Envoi en cours...");
   try{
     const rep=await envoie(code);

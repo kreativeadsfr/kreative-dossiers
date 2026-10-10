@@ -1,0 +1,51 @@
+Créa 1 · Turnly
+
+1. Titre : “Je vous laisse un avis ce soir 😊”
+2. Sous-titre : Puis plus rien.
+3. Sous-titre : Vos clients sont satisfaits. Mais entre le dire et laisser un avis Google, il y a souvent TOUT un monde.
+4. CTA : Testez Turnly gratuitement
+5. Mention : 7 jours gratuits · Sans CB · Sans engagement
+
+Idée du visuel : Format : faux screenshot de conversation SMS / iMessage
+Style : très natif, très simple, pas designé comme une pub
+
+Texte à afficher dans la conversation
+Client :
+Merci encore, c’était top 😊
+Je vous laisse un avis ce soir
+Commerçant :
+Merci beaucoup 🙏
+
+Puis en bas :
+3 semaines plus tard…
+Aucun nouvel avis.
+Texte de conclusion sur la créa;
+
+Satisfaits en vrai. Invisibles sur Google.
+
+Placement du texte
+- En haut : mini accroche ou rien du tout pour garder l’effet natif
+- Centre : la conversation SMS prend la majorité de la place
+- En bas : la chute + petit bloc Turnly
+- Tout en bas : CTA
+
+Structure visuelle
+1. Faux écran de conversation
+2. Petit saut de temps : “3 semaines plus tard…”
+3. Chute : “Toujours aucun avis.”
+4. Bloc final Turnly :
+   Turnly aide vos clients à passer à l’action, sur place.
+   Essayez gratuitement pendant 7 jours.
+
+Intention du test
+Tester un angle ultra parlant pour les commerçants :
+le vrai problème n’est pas que les clients soient mécontents,
+c’est qu’ils oublient de laisser un avis.
+
+Hook alternatif
+- «Je vous laisse un avis ce soir 😊»
+- «Le message préféré des commerçants. Jusqu’à ce qu’on attende toujours l’avis.»
+- «Ils disent qu’ils vont le faire. Puis la vie reprend.»
+Nouvelle idée, inspirations : UG1-02 · capture de conversation iMessage
+
+Alerte : Le titre contient des guillemets typographiques recopiés tels quels dans la bulle grise : ils peuvent faire moins natif, à retirer de la fiche si non voulus. Les répliques de l'idée absentes des textes numérotés n'ont pas été affichées : « Merci encore, c'était top 😊 », « Merci beaucoup 🙏 », « 3 semaines plus tard… », « Aucun nouvel avis. », « Satisfaits en vrai. Invisibles sur Google. » et le bloc Turnly. Le sous-titre 3 et le CTA sont placés en bulles bleues envoyées, seule façon native de les intégrer à la conversation. Le prénom de contact « Camille » et l'horodatage « Hier 19:06 » ont été ajoutés pour éviter un texte d'interface inventé par le générateur.

@@ -1,0 +1,21 @@
+Créa 5 · Turnly
+
+1. Titre : Ils disent que ça prend 3 minutes. »
+2. Sous-titre : « J'ai lancé le chrono. ⏱️ »
+3. Sous-titre : Encore un logiciel compliqué ? On va vérifier ça.
+4. CTA : À vous de relever le défi
+5. Mention : 7 jours gratuits · Sans CB
+
+Idée du visuel : Style	Classique, mais inspiré d'un vrai challenge UGC
+Haut	Accroche sous forme de défi
+Centre	Chronomètre très visible + capture réelle de la mise en place
+En Bas	CTA et offre gratuite
+
+Couleurs:	Charte officielle de Turnly, avec une couleur contrastante pour le chrono
+Assets:	Logo Turnly, capture de l'interface « Ma roue », visuel de chronomètre
+
+Détail important : pour rendre le concept vraiment crédible, le résultat chronométré doit provenir d'un véritable test de l'installation, pas d'un temps fabriqué.
+Intention du test : transformer l'objection « Je n'ai pas le temps » en curiosité : « Et si ça prenait vraiment trois minutes ? »
+Nouvelle idée, inspirations : EC2-02 · défi chronomètre, objet héro studio
+
+Alerte : La capture de l'interface « Ma roue » et le visuel de chronomètre prévus par le stratégiste ne sont pas joints. L'emplacement de la capture est donc supprimé sans rien inventer. Le chronomètre est généré comme objet conceptuel, aiguille sur la position de départ et cadran sans chiffres, pour n'afficher aucun temps fabriqué : un vrai temps chronométré devra être fourni pour l'afficher. Un guillemet » parasite a été retiré en fin de titre. Les guillemets « » du texte 2 sont conservés car ils font partie de la citation. L'emoji ⏱️ risque d'être rendu imparfaitement par le générateur.

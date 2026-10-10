@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" type="image/png" sizes="16x16" href="https://kreativeadsfr.github.io/kreative-dossiers/favicon-16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://kreativeadsfr.github.io/kreative-dossiers/favicon-32.png">
+<link rel="icon" type="image/png" sizes="48x48" href="https://kreativeadsfr.github.io/kreative-dossiers/favicon-48.png">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+<title>Turnly</title>
+<style>
+:root{--bg:#F5F3EE;--pan:#fff;--line:#E4E1D8;--tx:#0A1B33;--tx2:#5D6472;--tx3:#9E9B92}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);
+  font:15px/1.55 "DM Sans",-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+.w{max-width:1060px;margin:0 auto;padding:44px 26px 80px}
+header.h{display:flex;align-items:flex-end;gap:20px;flex-wrap:wrap;margin:0 0 30px}
+h1{font-size:30px;letter-spacing:-.025em;margin:0}
+.meta{color:var(--tx3);font-size:13.5px;margin:6px 0 0}
+.tout{margin-left:auto;padding:12px 20px;border:1px solid var(--tx);border-radius:11px;
+  background:var(--tx);color:#fff;font:inherit;font-size:14px;cursor:pointer;transition:.13s}
+.tout:hover:not(:disabled){background:#132845}
+.tout:disabled{opacity:.55;cursor:default}
+.c{display:grid;grid-template-columns:330px 1fr;gap:28px;background:var(--pan);
+  border:1px solid var(--line);border-radius:16px;padding:22px;margin-bottom:18px}
+.c.ko{border-color:var(--tx)}
+.im img{width:100%;border-radius:12px;display:block;border:1px solid var(--line)}
+.vide{aspect-ratio:1;border-radius:12px;background:#F3F2ED;display:flex;
+  align-items:center;justify-content:center;color:var(--tx3);font-size:13px}
+.tx{display:flex;flex-direction:column;align-items:flex-start}
+.num{font-size:12px;letter-spacing:.09em;color:var(--tx3);margin-bottom:12px}
+h2{font-size:23px;line-height:1.25;letter-spacing:-.015em;margin:0 0 8px;font-weight:600}
+.sub{margin:0 0 14px;color:var(--tx2);font-size:16px}
+.cta{display:inline-block;margin:0;padding:9px 18px;background:var(--tx);color:#fff;
+  border-radius:10px;font-size:14px}
+@media(max-width:780px){.c{grid-template-columns:1fr}.tout{margin-left:0}}
+.boite{max-width:460px;margin:16vh auto 0;text-align:center;background:var(--pan);
+  border:1px solid var(--line);border-radius:18px;padding:40px 34px}
+.boite h1{font-size:25px;margin:0 0 6px}
+.boite p{color:var(--tx2);font-size:14.5px;margin:0 0 24px}
+.etat{font-size:13.5px;color:var(--tx3);min-height:20px;margin-top:16px}
+.boite .tout{margin:0 auto;display:inline-block}
+.lien{display:block;margin-top:22px;font-size:13.5px;color:var(--tx2)}
+</style></head><body>
+<div class="boite">
+  <h1>Turnly</h1>
+  <p>6 creatives, 6 visuals and 4 assets</p>
+  <button class="tout" id="tout" type="button">Download the folder</button>
+  <div class="etat" id="etat">Preparing automatically…</div>
+  <a class="lien" href="./">See the creatives preview</a>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script>
+
+const PLAN = [{"ad":"AD01","visuel":"https://kreativeadsfr.github.io/kreative-dossiers/TEST_RKM7QJ/creas/AD01/visuel.jpg","nom":"TURNLY_STANDARD_01.jpg","assets":[]},{"ad":"AD02","visuel":"https://kreativeadsfr.github.io/kreative-dossiers/TEST_RKM7QJ/creas/AD02/visuel.jpg","nom":"TURNLY_STANDARD_02.jpg","assets":[]},{"ad":"AD03","visuel":"https://kreativeadsfr.github.io/kreative-dossiers/TEST_RKM7QJ/creas/AD03/visuel.jpg","nom":"TURNLY_STANDARD_03.jpg","assets":[]},{"ad":"AD04","visuel":"https://kreativeadsfr.github.io/kreative-dossiers/TEST_RKM7QJ/creas/AD04/visuel.jpg","nom":"TURNLY_STANDARD_04.jpg","assets":[{"url":"https://kreativeadsfr.github.io/kreative-dossiers/TEST_RKM7QJ/creas/AD04/assets/Screenshot_10-10-2026_11119_chatgpt.com.jpeg","nom":"Screenshot_10-10-2026_11119_chatgpt.com.jpeg"},{"url":"https://kreativeadsfr.github.io/kreative-dossiers/TEST_RKM7QJ/creas/AD04/assets/PJ01__1_.png","nom":"PJ01__1_.png"}]},{"ad":"AD05","visuel":"https://kreativeadsfr.github.io/kreative-dossiers/TEST_RKM7QJ/creas/AD05/visuel.jpg","nom":"TURNLY_STANDARD_05.jpg","assets":[{"url":"https://kreativeadsfr.github.io/kreative-dossiers/TEST_RKM7QJ/creas/AD05/assets/PJ01__1_.png","nom":"PJ01__1_.png"}]},{"ad":"AD06","visuel":"https://kreativeadsfr.github.io/kreative-dossiers/TEST_RKM7QJ/creas/AD06/visuel.jpg","nom":"TURNLY_STANDARD_06.jpg","assets":[{"url":"https://kreativeadsfr.github.io/kreative-dossiers/TEST_RKM7QJ/creas/AD06/assets/PJ01__1_.png","nom":"PJ01__1_.png"}]}];
+const RACINE = "TURNLY";
+
+function enregistre(blob, nom){
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = nom;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+}
+
+/* ---------------------------------------------------------------
+   RECUPERER LES FICHIERS
+
+   Deux defauts corriges ici.
+
+   1. fetch REUSSIT sur un 404 : la version d origine rangeait la
+      page d erreur HTML de GitHub dans le zip sous le nom
+      « Logo-Only.png ». Bon nom, bon dossier, contenu illisible.
+      On verifie donc le code de reponse ET le type renvoye.
+
+   2. Les reessais etaient faits fichier apres fichier : 13 assets
+      absents x 6 essais x 2,5 s, plus de trois minutes d attente.
+      Maintenant tout part EN PARALLELE, et on ne fait que trois
+      tours, en ne redemandant que ce qui manque encore. Pire cas :
+      une dizaine de secondes.
+--------------------------------------------------------------- */
+const TOURS = 3;
+const ATTENTE = 3000;
+const EN_VOL = 6;          /* requetes simultanees, pour ne pas saturer */
+
+async function unFichier(url){
+  try{
+    const r = await fetch(url, { cache: 'no-store' });
+    if (!r.ok) return null;
+    const type = (r.headers.get('content-type') || '').toLowerCase();
+    if (type.includes('text/html')) return null;   /* page d erreur */
+    const b = await r.blob();
+    return b.size > 0 ? b : null;
+  }catch(e){ return null; }
+}
+
+async function enParallele(liste, avance, tour){
+  const restants = [];
+  let fait = 0;
+  for (let i = 0; i < liste.length; i += EN_VOL){
+    const tranche = liste.slice(i, i + EN_VOL);
+    const blobs = await Promise.all(tranche.map(f => unFichier(f.url)));
+    tranche.forEach((f, k) => {
+      fait++;
+      if (blobs[k]) f.blob = blobs[k]; else restants.push(f);
+    });
+    //  On ne parle PAS des reessais au designer : ca ne le concerne
+    //  pas, et « 13 fichiers pas encore publies » ressemble a une
+    //  panne alors que c est le fonctionnement normal.
+    avance('Preparing the folder…');
+  }
+  return restants;
+}
+
+async function faireLeZip(avance){
+  /* la liste plate de tout ce qu il faut aller chercher */
+  const aPrendre = [];
+  for (const p of PLAN){
+    if (p.visuel) aPrendre.push({ url: p.visuel, ad: p.ad, nom: p.nom, dans: '' });
+    for (const a of p.assets) aPrendre.push({ url: a.url, ad: p.ad, nom: a.nom, dans: 'assets' });
+  }
+
+  let restants = aPrendre;
+  for (let tour = 1; tour <= TOURS && restants.length; tour++){
+    if (tour > 1){
+      avance('Preparing the folder…');
+      await new Promise(r => setTimeout(r, ATTENTE));
+    }
+    restants = await enParallele(restants, avance, tour);
+  }
+
+  const pris = aPrendre.filter(f => f.blob);
+  const manques = aPrendre.filter(f => !f.blob);
+
+  if (typeof JSZip === 'undefined'){
+    avance('Compression could not load, downloading the files one by one');
+    for (const f of pris){ enregistre(f.blob, f.nom); await new Promise(r => setTimeout(r, 400)); }
+    return manques.length === 0;
+  }
+
+  avance('Preparing the folder…');
+  const zip = new JSZip();
+  const racine = zip.folder(RACINE);
+
+  for (const f of pris){
+    const d = racine.folder(f.ad);
+    (f.dans ? d.folder(f.dans) : d).file(f.nom, f.blob);
+  }
+
+  /* Un fichier introuvable n entre PAS dans le zip : mieux vaut une
+     absence visible qu un fichier qui ne s ouvre pas. On dit lesquels. */
+  if (manques.length){
+    racine.file('MISSING_FILES.txt', [
+      'These files could not be retrieved when you downloaded the folder.',
+      'Publishing sometimes takes a minute: come back to this page',
+      'in two minutes and download the folder again.',
+      ''
+    ].concat(manques.map(f => f.ad + (f.dans ? ' / ' + f.dans : '') + ' / ' + f.nom + '  ->  ' + f.url))
+     .join(String.fromCharCode(10)));
+  }
+
+  enregistre(await zip.generateAsync({ type: 'blob' }), RACINE + '_creatives.zip');
+  return manques.length === 0;
+}
+const b = document.getElementById('tout'), e = document.getElementById('etat');
+async function lance(){
+  b.disabled = true;
+  const ok = await faireLeZip(t => { e.textContent = t; });
+  e.textContent = ok ? 'Downloaded. The folder is in your Downloads.'
+                     : 'Done.';
+  b.disabled = false;
+  b.textContent = 'Download again';
+}
+b.onclick = lance;
+/* On ne depend PAS de l evenement « load » : il attend toutes les
+   ressources, polices Google comprises, et une police lente suffit a
+   ce que le telechargement ne parte jamais tout seul. On part des que
+   le document est lisible, et JSZip a de toute facon son repli. */
+if (document.readyState === 'loading'){
+  document.addEventListener('DOMContentLoaded', () => setTimeout(lance, 600));
+} else {
+  setTimeout(lance, 600);
+}
+</script>
+</body></html>

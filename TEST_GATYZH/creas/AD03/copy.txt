@@ -1,0 +1,11 @@
+Créa 3 · Turnly
+
+1. Titre : Tes clients t’adorent. Fais-le-leur dire.
+2. Sous-titre : Une roue, un lot que tu choisis, et ils repartent avec le sourire en laissant un avis.
+3. Badge : 1 semaine gratuite
+4. CTA : Tester gratuitement
+
+Idée du visuel : Au centre, la roue de Turnly en grand, avec des lots visibles (café offert, -10 %). Titre en haut, sous-titre sous la roue, badge en coin, CTA en bas centré.
+Nouvelle idée, inspirations : EC1-03 · écran produit héros en studio
+
+Alerte : Les lots demandés dans l'idée (« café offert », « -10 % ») n'existent dans aucun asset joint : la roue visible est celle de la capture réelle (Cheese offert, Boisson offerte), car l'inventer ou la modifier est interdit. Pour afficher ces lots, il faut fournir une capture d'une roue configurée avec eux. La capture étant verticale et non recadrable, la roue est moins grande que dans l'idée. Le fichier logo ne contient que le symbole roue, sans le nom Turnly. La police du logo n'est donc pas lisible : Plus Jakarta Sans est déduite de l'interface de l'application.

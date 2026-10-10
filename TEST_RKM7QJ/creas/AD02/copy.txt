@@ -1,0 +1,25 @@
+Créa 2 · Turnly
+
+1. Titre : Ma to-do list du jour
+2. Phrase 2 de la note : ouvirir la boutique
+3. Phrase 3 de la note : Gérer les clients
+4. Paragraphe de la note : Répondre aux fournisseurs
+5. Phrase de chute : Faire la caisse
+
+Idée du visuel : Format	Capture d'écran type application Notes sur iPhone
+En haut	« Ma to-do list du jour  »
+Au centre	Liste des tâches, avec la dernière non cochée
+En bas	« Encore oublié. » + transition courte vers Turnly
+Style	Typographie système, mise en page imparfaite, aucune décoration publicitaire
+Point d'attention: Le commerçant doit se reconnaître dans une vraie journée de travail, pas dans une to-do list marketing
+
+Champ du Contenu à insérer
+Titre:	Ma to-do list du jour 
+Sous-titre:	Encore oublié les avis Google.
+Texte principal:	Une journée chargée, des clients satisfaits… et toujours cette tâche qui passe à la trappe.
+CTA  	Une chose de moins à gérer.
+Offre:	Turnly · 7 jours gratuits, sans CB
+
+Référence      : UG1-06 · note iPhone, to-do list cochée
+
+Alerte : 1. Correction de l'emplacement 2 : « ouvirir la boutique » devient « Ouvrir la boutique », avec la faute corrigée et une majuscule alignée sur les autres tâches. 2. Textes ajoutés : pour respecter l'idée du visuel (« Encore oublié » et une transition vers Turnly), le sous-titre, le CTA et l'offre de la fiche sont ajoutés en trois lignes natives de la note, sous la liste. Le texte principal est laissé de côté pour ne pas alourdir la note. 3. Point de cohérence à arbitrer par le stratégiste : la dernière tâche non cochée est « Faire la caisse », alors que la tâche oubliée dans la copy est « les avis Google ». Ajouter une tâche « Demander des avis Google » non cochée rendrait la chute plus nette.

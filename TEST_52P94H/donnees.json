@@ -5,7 +5,7 @@
  "secteur": "SaaS",
  "pack": "starter",
  "nb_creas": 6,
- "nb_ugly": 2,
+ "nb_ugly": 3,
  "date": "2026-10-10",
  "couleurs": [
   "#ffe29a",
@@ -49,16 +49,53 @@
  "ton": "Direct & percutant (oral, sans détour)",
  "adresse": "Les deux",
  "ambiance": "",
- "consignes": "On veut des pubs qui sortent du lot.",
- "promo": "1 semaine gratuite",
+ "consignes": "Je souhaiterais avoir un maximum de variétés dans les angles.\n\nOn veut un maximum de creativité, n'hesitez pas a etre decallé / marrant",
+ "promo": "1 semaine gratuite (pas sur toutes les statiques)",
  "interdits": "",
  "preuves": "",
- "offre": "Turnly aide les commerces à avoir plus d'avis Google. Le client scanne un QR code, tourne une roue pour gagner un lot et laisse un avis. Abonnement mensuel sans engagement.",
- "differenciation": "C'est simple à mettre en place et pas cher (14,90 €/mois).",
- "client_ideal": "Les commerçants (restaurants, coiffeurs, salles de sport...) qui n'ont pas assez d'avis Google.",
- "freins": "Le prix. Ils pensent aussi que c'est compliqué.",
- "objectif": "Avoir des inscriptions à l'essai gratuit.",
- "assets": [],
+ "offre": "Turnly est un outil de collecte d'avis Google pour les commerces de proximité. \n\nLe commerçant installe un QR code dans son établissement, ses clients le scannent et atterrissent sur une roue qu'ils tournent pour tenter de gagner un lot, et pour tourner cette roue ils doivent laisser un avis.\n\nL'experience est simple et ludique, et l'outil se met en place en 3 minutes, sans matériel ni compétence technique.\n\nLe commerçant peut suivre ses résultats, ses avis etc depuis son tableau de bord. \n\nAbonnement mensuel sans engagement.",
+ "differenciation": "Prêt en moins de 3 minutes. Pas d'installation, pas de matériel, pas de paramétrage compliqué. Vous créez votre compte, vous imprimez votre QR code, c'est en place.\n\nLe meilleur rapport qualité/prix du marché. 14,90€/mois, sans engagement. Vous testez, vous jugez, vous arrêtez quand vous voulez.\n\nUne expérience client qui donne envie de participer. Une roue, un lot choisi par vous, et vos clients repartent avec le sourire — et votre note google augmente.\n\nUne interface pensée pour les commerçants. Vos résultats en un coup d'œil sur votre dashboard.",
+ "client_ideal": "Notre client idéal est un commerçant de proximité indépendant : restaurant, salon de coiffure ou d'esthétique, salle de sport, garage, boulangerie. \nPeu de personnes en boutique, pas de service marketing, pas de temps.\n\nSon problème : sa visibilité locale dépend directement de sa fiche Google, mais il n'a que quelques dizaines d'avis quand le concurrent d'en face en a plusieurs centaines voire milliers. \n\nSes clients sont satisfaits, ils ne le disent jamais. \nIl sait qu'il devrait « demander des avis », mais il n'ose pas, il oublie, ou il n'a pas le temps de le faire à chaque passage. \n\nRésultat : il perd des clients au profit d'établissements moins bons mais mieux notés.",
+ "freins": "« C'est encore un truc compliqué à installer. » Il redoute la config, le matériel, la formation, il a la flemme de creer et parramétrer son compte, il ne veut pas que ca lui prenne trop de temps.\n\n« Ça va me prendre du temps que je n'ai pas. » Il est seul en boutique, il ne veut pas gérer un logiciel de plus.\n\n« Est-ce que ça marche vraiment ? » Pas de preuve tangible du retour, il ne sait pas mesurer l'impact d'un avis sur son chiffre.\n\n« Mes clients ne vont pas jouer le jeu. » Il pense que ses clients n'ont pas envie de sortir leur téléphone.\n\nLe prix et l'engagement. Sur des marges serrées, tout abonnement mensuel est scruté ; l'engagement est rédhibitoire.",
+ "objectif": "Générer un maximum d'inscriptions à l'essai gratuit de 7 jours, sans engagement et sans carte bancaire. \n\nObjectif de conversion : Redirection vers notre LP puis inscription immédiate depuis la LP, avec une mise en route en moins de 3 minutes. \n\nL'indicateur principal est le coût par inscription ; l'indicateur secondaire, le taux de conversion de l'essai vers l'abonnement payant à l'issue des 7 jours.",
+ "assets": [
+  {
+   "id": "PJ01",
+   "url": "https://kreativeadsfr.github.io/kreative-dossiers/TEST_STRATEGISTE/assets/PJ01.png",
+   "type": "capture",
+   "nom": "landing (ordinateur)"
+  },
+  {
+   "id": "PJ02",
+   "url": "https://kreativeadsfr.github.io/kreative-dossiers/TEST_STRATEGISTE/assets/PJ02.png",
+   "type": "capture",
+   "nom": "landing (mobile)"
+  },
+  {
+   "id": "PJ03",
+   "url": "https://kreativeadsfr.github.io/kreative-dossiers/TEST_STRATEGISTE/assets/PJ03.png",
+   "type": "capture",
+   "nom": "tableau de bord (ordinateur)"
+  },
+  {
+   "id": "PJ04",
+   "url": "https://kreativeadsfr.github.io/kreative-dossiers/TEST_STRATEGISTE/assets/PJ04.png",
+   "type": "capture",
+   "nom": "appli : ma roue"
+  },
+  {
+   "id": "PJ05",
+   "url": "https://kreativeadsfr.github.io/kreative-dossiers/TEST_STRATEGISTE/assets/PJ05.png",
+   "type": "capture",
+   "nom": "appli : récompenses"
+  },
+  {
+   "id": "PJ06",
+   "url": "https://kreativeadsfr.github.io/kreative-dossiers/TEST_STRATEGISTE/assets/PJ06.png",
+   "type": "capture",
+   "nom": "appli : vue d'ensemble"
+  }
+ ],
  "assets_site": [
   {
    "id": "WS01",

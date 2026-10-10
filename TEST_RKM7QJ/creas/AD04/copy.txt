@@ -1,0 +1,23 @@
+Créa 4 · Turnly
+
+1. Titre : Vos clients vous adorent.
+2. Sous-titre : Google n'est pas au courant.
+3. Sous-titre : Vos clients sont satisfaits. Faites en sorte que ça se voie aussi en ligne.
+4. CTA : Faites connaître votre commerce
+5. Mention : 7 jours gratuits · Sans CB
+
+Idée du visuel : Format:	1080 × 1350, publicité Meta
+En haut:	Titre principal, avec « adorent » mis en couleur
+Au centre:	Contraste entre le compliment client et l'absence de nouvel avis
+En bas:	Argument Turnly + CTA + essai gratuit
+Style:	Design SaaS soigné, peu de texte, hiérarchie très lisible
+
+Couleurs officielles de Turnly à reprendre dans les assets, plutôt que celles de la maquette 
+asset à reprendre:logo
+
+Nouvelle idée, inspirations : EC4-01 · compliment contre avis vides
+
+Alerte : 1. La pièce jointe 1 n'est pas intégrée au visuel. C'est la maquette du stratégiste : la reprendre imprimerait des textes absents de la fiche, le libellé « CREATIVE MOCKUP » et des couleurs non officielles. Le stratégiste ne demande que le logo, il vaut donc mieux retirer ce fichier des pièces jointes envoyées au générateur.
+2. La citation du client et le « 0 nouvel avis » ne figurent pas dans les textes de la fiche. Le contraste central est donc rendu sans texte : des cœurs dans une bulle de parole face à cinq étoiles vides.
+3. L'idée était prévue en 1080 × 1350. Elle est recomposée en carré, selon la charte.
+4. La police du logo est approchée par une police proche de Poppins, à confirmer.

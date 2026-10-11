@@ -9,8 +9,10 @@
  "date": "2026-10-10",
  "couleurs": [
   "#004AAB",
-  "#002E67",
+  "#08489C",
   "#3775FF",
+  "#012C64",
+  "#0A0A0A",
   "#FAFAFA",
   "#E4E3FB",
   "#FBF1E4"
@@ -18,8 +20,10 @@
  "couleurs_client": [],
  "couleurs_site": [
   "#004AAB",
-  "#002E67",
+  "#08489C",
   "#3775FF",
+  "#012C64",
+  "#0A0A0A",
   "#FAFAFA",
   "#E4E3FB",
   "#FBF1E4"
@@ -35,17 +39,21 @@
  ],
  "captures": [
   {
-   "page": "accueil (ordinateur)",
-   "url": "https://kreativeadsfr.github.io/kreative-dossiers/TEST_STRATEGISTE/assets/PJ01.png"
+   "page": "accueil",
+   "url": "https://kreativeadsfr.github.io/kreative-dossiers/TEST_STRATEGISTE/da/site-accueil.png"
   },
   {
-   "page": "accueil (mobile)",
-   "url": "https://kreativeadsfr.github.io/kreative-dossiers/TEST_STRATEGISTE/assets/PJ02.png"
+   "page": "section bleue",
+   "url": "https://kreativeadsfr.github.io/kreative-dossiers/TEST_STRATEGISTE/da/site-section-bleue.png"
+  },
+  {
+   "page": "accueil (page entière, ordinateur)",
+   "url": "https://kreativeadsfr.github.io/kreative-dossiers/TEST_STRATEGISTE/assets/PJ01.png"
   }
  ],
  "ton": "Direct & percutant (oral, sans détour)",
  "adresse": "Les deux",
- "ambiance": "",
+ "ambiance": "Fond blanc cassé #FAFAFA avec un quadrillage fin gris très clair #EFEFEF en carrés réguliers, comme une feuille quadrillée, et un dégradé très doux lavande #E4E3FB et pêche #FBF1E4 qui monte du bas. Sections pleines bleu roi #08489C avec un grain bien visible, jamais un bleu lisse. Titres noirs #0A0A0A très gras et serrés (Plus Jakarta Sans ExtraBold, interlettrage resserré). Les mots clés du titre sont soulignés d'un trait épais bleu vif #3775FF. Bouton principal : rectangle aux coins arrondis, dégradé bleu marine #012C64 vers bleu #004AAB, texte blanc et flèche →. Bouton secondaire blanc avec une bordure grise très fine. Petites mentions grises avec une icône au trait. Annotations manuscrites noires avec une flèche dessinée, et la roue colorée Turnly (jaune #FFB310, indigo #1800AC, vert d'eau #49C59F, bleu #004AAB).",
  "consignes": "Je souhaiterais avoir un maximum de variétés dans les angles.\n\nOn veut un maximum de creativité, n'hesitez pas a etre decallé / marrant",
  "promo": "1 semaine gratuite (pas sur toutes les statiques)",
  "interdits": "",

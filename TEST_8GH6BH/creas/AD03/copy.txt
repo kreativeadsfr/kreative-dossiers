@@ -1,0 +1,11 @@
+Créa 3 · Turnly
+
+1. Titre : Tes clients t’adorent. Fais-le-leur dire.
+2. Sous-titre : Une roue, un lot que tu choisis, et ils repartent avec le sourire en laissant un avis.
+3. Badge : 1 semaine gratuite
+4. CTA : Tester gratuitement
+
+Idée du visuel : Au centre, la roue de Turnly en grand, avec des lots visibles (café offert, -10 %). Titre en haut, sous-titre sous la roue, badge en coin, CTA en bas centré.
+Nouvelle idée, inspirations : EC1-03 · roue héro façon packshot studio
+
+Alerte : Les lots demandés par le stratégiste (« café offert », « -10 % ») n'existent pas dans la roue jointe, qui affiche « Cheese offert », « Boisson offerte », « Rejouer » et « Perdu » : je ne peux pas les modifier sans dénaturer l'asset, donc la roue garde ses vrais libellés, case « Perdu » comprise, ce qui est moins vendeur. Il faut joindre une capture de roue avec ces lots si on les veut à l'image. Par ailleurs, la roue est extraite seule de la capture, parce que l'idée demande « la roue en grand ».

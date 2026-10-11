@@ -1,0 +1,32 @@
+Créa 5 · Turnly
+
+1. Titre : J'ai ouvert un commerce. Pas un centre d'appels pour réclamer des avis Google.
+2. Liste à puces 1 : ✅ Gérer les commandes
+3. Liste à puces 2 : ✅ Accueillir les clients
+4. Liste à puces 3 : ❌ Penser à demander des avis Google
+5. CTA : Simplifiez la demande d'avis avec Turnly ↓
+
+Idée du visuel : Reprendre fidèlement la structure de l'inspiration UG1-13 : une capture d'écran de l'application Notes sur iPhone, en mode sombre.
+
+En haut : afficher l'accroche « J'ai ouvert un commerce. Pas un centre d'appels pour réclamer des avis Google. »
+
+Au centre : présenter une checklist de trois tâches quotidiennes, comme si elle avait été rédigée spontanément par un commerçant débordé :
+
+✅ Gérer les commandes
+
+✅ Accueillir les clients
+
+❌ Penser à demander des avis Google
+
+Les deux premières tâches sont cochées en vert, tandis que la troisième est marquée d'une croix rouge. Cette rupture visuelle doit immédiatement attirer l'attention sur le problème : le commerçant est tellement occupé qu'il oublie de solliciter ses clients.
+
+En bas : intégrer discrètement le CTA « Simplifiez la demande d'avis avec Turnly ↓ », suivi de la mention « 7 jours d'essai gratuit · Sans carte bancaire ».
+
+Direction artistique : conserver l'apparence authentique d'une note personnelle sur smartphone : fond noir, typographie système blanche, alignements naturels et espacement simple. L'ensemble doit ressembler à une véritable capture d'écran, et non à une publicité conçue par une agence.
+
+Aucun logo, aucune photographie produit, aucun élément décoratif superflu.
+
+Intention créative : utiliser l'humour et l'identification pour illustrer la surcharge mentale des commerçants. Présenter Turnly comme une solution permettant de simplifier la sollicitation des avis Google, sans promettre une automatisation complète ni des résultats garantis.
+Référence      : UG1-13 · capture note Apple sombre
+
+Alerte : La mention « 7 jours d'essai gratuit · Sans carte bancaire » ne figure dans aucun emplacement numéroté. Elle vient de l'idée du visuel et a été ajoutée comme une simple ligne de la note sous le CTA : à confirmer. Les pastilles jaunes de la checklist Notes sont remplacées par les emojis ✅ et ❌ tapés par le stratégiste, comme le demande son idée. L'heure de la barre d'état, « 10:17 », est inventée pour éviter un texte généré au hasard.

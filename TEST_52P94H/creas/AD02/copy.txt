@@ -1,0 +1,32 @@
+Créa 2 · Turnly
+
+1. Titre : Demandez des avis Google sans y penser toute la journée.
+2. Ligne 1, colonne de gauche : QR code prêt à l'emploi
+3. Ligne 2, colonne de gauche : Installation en moins de 3 min
+4. Ligne 3, colonne de gauche : Parcours client plus engageant
+5. Ligne 4, colonne de gauche : Expérience simple à proposer
+6. Ligne 5, colonne de gauche : Essai gratuit 7 jours
+7. Ligne 6, colonne de gauche : Sans carte bancaire
+8. Libellé colonne de droite : Méthode classique
+9. Ligne 1, colonne de droite : Penser à le demander soi-même
+10. Ligne 2, colonne de droite : Le faire entre deux clients
+11. Ligne 3, colonne de droite : Répéter toujours la même chose
+12. Ligne 4, colonne de droite : Dépendre de la motivation du client
+13. Lignes 5 et 6, colonne de droite : Laisser passer des avis potentiels
+14. CTA : Essayer Turnly →
+
+Idée du visuel : Reprendre la structure comparative de l’inspiration AG2-07. 
+
+Adapter la créa à Turnly avec une approche claire et pédagogique. 
+
+- Titre principal en haut : “Demandez des avis Google sans y penser toute la journée.”
+- Bloc de gauche : version positive, intitulée “Turnly”, avec check verts / design rassurant / bénéfices simples et concrets.
+- Bloc de droite : version “Méthode classique”, avec croix rouges / contraintes du quotidien / formulation plus frustrante.
+- En bas : bouton CTA “Essayer Turnly →”.
+- Direction artistique : claire, lisible, moderne, orientée SaaS.
+- Utiliser l’identité visuelle de Turnly, en gardant une logique de comparaison très immédiate.
+- Objectif : montrer qu’un commerçant n’a pas besoin d’ajouter une tâche mentale de plus pour obtenir davantage d’avis.
+Ne pas inventer de chiffres ni de résultats non prouvés.
+Référence      : AG2-07 · comparaison deux cartes, coches contre croix
+
+Alerte : Aucun fichier logo isolé de Turnly n'est joint : le logo du haut est retiré et l'en-tête de la carte de gauche est écrit en texte "Turnly", comme le demande l'idée du stratégiste. La structure n'a aucun emplacement visuel : les deux captures sont donc posées en calques de profondeur derrière les cartes. Le texte 13 couvre deux lignes d'origine, la carte de droite compte donc cinq lignes. La capture mobile contient la phrase du site "Triple tes avis Google en 90 jours", partiellement visible, à valider si ce chiffre n'est pas prouvé.

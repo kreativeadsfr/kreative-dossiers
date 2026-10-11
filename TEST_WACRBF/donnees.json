@@ -8,42 +8,39 @@
  "nb_ugly": 3,
  "date": "2026-10-10",
  "couleurs": [
-  "#ffe29a",
-  "#f3d07a",
-  "#8b94a5",
-  "#ffb020",
-  "#082b58",
-  "#fbbc05"
+  "#004AAB",
+  "#002E67",
+  "#3775FF",
+  "#FAFAFA",
+  "#E4E3FB",
+  "#FBF1E4"
  ],
  "couleurs_client": [],
  "couleurs_site": [
-  "#ffe29a",
-  "#f3d07a",
-  "#8b94a5",
-  "#ffb020",
-  "#082b58",
-  "#fbbc05"
+  "#004AAB",
+  "#002E67",
+  "#3775FF",
+  "#FAFAFA",
+  "#E4E3FB",
+  "#FBF1E4"
  ],
  "polices": [
-  "une police qui se rapproche (ou identique) de celle de notre logo",
-  "Inter",
-  "DM Sans",
   "Plus Jakarta Sans",
-  "Caveat"
+  "Inter"
  ],
- "polices_client": [
-  "une police qui se rapproche (ou identique) de celle de notre logo"
- ],
+ "polices_client": [],
  "polices_site": [
-  "Inter",
-  "DM Sans",
   "Plus Jakarta Sans",
-  "Caveat"
+  "Inter"
  ],
  "captures": [
   {
-   "page": "accueil",
-   "url": "https://storage.googleapis.com/firecrawl-scrape-media/screenshot-82337292-46bd-4cdd-9aec-a31131d58510.png?GoogleAccessId=scrape-bucket-accessor%40firecrawl.iam.gserviceaccount.com&Expires=1791486301&Signature=m1mV8RpD31Iip7njObSurTEgKbodpYqetYJSiIA%2FFo7pAvFqup4X3gwNHAZRJqntBYXI0D6PRdEelbd%2BG%2BhDEqiQzabvTUr258JVf8Gzh5DNzj4%2FlYdX%2BwIXLWFoTMzTPDHc2OwsphEKRMQ%2F%2BANVlnL3G46wGDzpVS%2BMTAl8MVMxWbY9l9du4vr4mT%2B30m6XfW6XP9dcV5ix2E9NIWBz05P9pakxV22jX5U1kPWayM5Vlm1JZTnAqpCO6rjqnTYa9avcNA3VFnbl7KNQ%2FheOH9%2BM%2BLkECIys2RuPdTzBNRdcH98ZN8e3G0njUgDoeiypH1PtCOX205MY%2BRhWeHhGzQ%3D%3D"
+   "page": "accueil (ordinateur)",
+   "url": "https://kreativeadsfr.github.io/kreative-dossiers/TEST_STRATEGISTE/assets/PJ01.png"
+  },
+  {
+   "page": "accueil (mobile)",
+   "url": "https://kreativeadsfr.github.io/kreative-dossiers/TEST_STRATEGISTE/assets/PJ02.png"
   }
  ],
  "ton": "Direct & percutant (oral, sans détour)",
@@ -59,6 +56,12 @@
  "freins": "« C'est encore un truc compliqué à installer. » Il redoute la config, le matériel, la formation, il a la flemme de creer et parramétrer son compte, il ne veut pas que ca lui prenne trop de temps.\n\n« Ça va me prendre du temps que je n'ai pas. » Il est seul en boutique, il ne veut pas gérer un logiciel de plus.\n\n« Est-ce que ça marche vraiment ? » Pas de preuve tangible du retour, il ne sait pas mesurer l'impact d'un avis sur son chiffre.\n\n« Mes clients ne vont pas jouer le jeu. » Il pense que ses clients n'ont pas envie de sortir leur téléphone.\n\nLe prix et l'engagement. Sur des marges serrées, tout abonnement mensuel est scruté ; l'engagement est rédhibitoire.",
  "objectif": "Générer un maximum d'inscriptions à l'essai gratuit de 7 jours, sans engagement et sans carte bancaire. \n\nObjectif de conversion : Redirection vers notre LP puis inscription immédiate depuis la LP, avec une mise en route en moins de 3 minutes. \n\nL'indicateur principal est le coût par inscription ; l'indicateur secondaire, le taux de conversion de l'essai vers l'abonnement payant à l'issue des 7 jours.",
  "assets": [
+  {
+   "id": "PJ07",
+   "url": "https://kreativeadsfr.github.io/kreative-dossiers/TEST_STRATEGISTE/assets/PJ07.png",
+   "type": "logo",
+   "nom": "logo Turnly"
+  },
   {
    "id": "PJ01",
    "url": "https://kreativeadsfr.github.io/kreative-dossiers/TEST_STRATEGISTE/assets/PJ01.png",
@@ -104,22 +107,10 @@
    "note": 11
   },
   {
-   "id": "WS02",
-   "url": "https://framerusercontent.com/images/AIKr1slM5c8yjRJbj5YQXFe4Q.png?width=1280&height=1120",
-   "nom": "visuel du site",
-   "note": 8
-  },
-  {
    "id": "WS03",
    "url": "https://framerusercontent.com/images/qYQNVbIhRuwVLv95HGhvFd5TtI.png?width=900&height=900",
    "nom": "visuel du site",
    "note": 11
-  },
-  {
-   "id": "WS04",
-   "url": "https://framerusercontent.com/images/gqeZJ2IeDC1zrwSw1CCcqxFaY.png?width=2000&height=1016",
-   "nom": "visuel du site",
-   "note": 7
   },
   {
    "id": "WS05",
@@ -140,12 +131,6 @@
    "note": 10
   },
   {
-   "id": "WS08",
-   "url": "https://framerusercontent.com/images/xIuYiwceP2eC8nN6LU9zw7LlloE.webp?width=2162&height=1920",
-   "nom": "visuel du site",
-   "note": 7
-  },
-  {
    "id": "WS09",
    "url": "https://framerusercontent.com/images/8WRR2Tqx9X9H537scpGzzxlzT2M.png?width=512&height=512",
    "nom": "visuel du site",
@@ -164,18 +149,6 @@
    "note": 10
   },
   {
-   "id": "WS12",
-   "url": "https://framerusercontent.com/images/eau8dpBdBKAZaksELX0YEu8xs.png?width=500&height=545",
-   "nom": "visuel du site",
-   "note": 6
-  },
-  {
-   "id": "WS13",
-   "url": "https://framerusercontent.com/images/DzOwzMaPgYjSmiuvyXZVTLll4.png?width=1024&height=1024",
-   "nom": "visuel du site",
-   "note": 6
-  },
-  {
    "id": "WS14",
    "url": "https://framerusercontent.com/images/UE55BNzM9PLrAdOtckjTfKLuIQ.jpg?width=562&height=375",
    "nom": "visuel du site",
@@ -192,12 +165,6 @@
    "url": "https://framerusercontent.com/images/8Wi3PuC86aUcGxmEVd26I2vP1oA.png?width=1280&height=1280",
    "nom": "visuel du site",
    "note": 6
-  },
-  {
-   "id": "WS17",
-   "url": "https://framerusercontent.com/images/i5rQdsHLp2Bk7jCyAPAKz6mk7s.webp?width=569&height=620",
-   "nom": "visuel du site",
-   "note": 5
   },
   {
    "id": "WS18",
@@ -256,12 +223,6 @@
   {
    "id": "WS27",
    "url": "https://framerusercontent.com/images/qFGgYRhEryRm2IYQIpN5xnkSRg.png?width=450&height=300",
-   "nom": "visuel du site",
-   "note": 3
-  },
-  {
-   "id": "WS28",
-   "url": "https://framerusercontent.com/images/RtZCq6DU13PGFpdIblMIv7cPPbQ.png?width=300&height=280",
    "nom": "visuel du site",
    "note": 3
   },

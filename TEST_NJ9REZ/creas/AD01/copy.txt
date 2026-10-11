@@ -1,0 +1,11 @@
+Créa 1 · Turnly
+
+1. Titre : Ton concurrent n’est pas meilleur. Il a juste plus d’avis.
+2. Sous-titre : Sur Google, celui qui a le plus d’avis récupère le client.
+3. CTA : Essayer Turnly
+4. Mention : Sans engagement
+
+Idée du visuel : Écran coupé en deux. À gauche, une fiche Google de commerce à 4,6 étoiles et 37 avis, en teintes grisées. À droite, une fiche concurrente à 4,6 étoiles et 812 avis, mise en avant avec une flèche vers le chiffre. Titre en haut sur deux lignes avec “plus d’avis” en couleur, sous-titre en dessous, CTA en bas centré, mention sous le CTA.
+Nouvelle idée, inspirations : AG2-02, AG2-03 · comparaison de deux fiches Google
+
+Alerte : Les deux fiches Google ne sont pas des assets : ce sont des cartes génériques générées, sans nom ni logo Google, exigées par l'idée du stratégiste. Les chiffres 4,6, 37 avis et 812 avis viennent de son idée. La flèche annotée est blanche et non noire, pour rester lisible sur l'encart bleu. La promo 1 semaine gratuite n'est pas utilisée, car elle n'est pas dans la fiche.

@@ -1,0 +1,23 @@
+Créa 3 · Turnly
+
+1. Titre : 3 minutes pour installer Turnly. Et si c'était votre meilleure pause de la journée ?
+2. CTA : Essayer gratuitement →
+3. Adresse du site : turnly.fr
+4. Nom sur la maquette : Turnly
+
+Idée du visuel : Reprendre la structure de l'inspiration AG1-65 (Wix), avec une accroche forte en partie supérieure, un CTA central et une mise en scène du produit en partie basse.
+
+- En haut : titre principal avec « 3 minutes » particulièrement mis en évidence.
+
+- Au centre : bouton « Essayer gratuitement → », suivi de la mention « 7 jours gratuits · Sans carte bancaire ».
+
+- Dans la partie inférieure : un smartphone montrant une capture réelle de l'interface Turnly ou de son expérience QR code, accompagné d'un petit chronomètre graphique affichant « 03:00 ».
+
+- Ajouter trois petits repères visuels : « Installation », « QR code », « Expérience interactive ».
+
+- Respecter les couleurs, la typographie et le logo de Turnly. Privilégier une composition SaaS moderne, lumineuse et très lisible sur mobile.
+
+L'objectif est de transformer l'objection « Je n'ai pas le temps de mettre un nouvel outil en place » en motivation pour découvrir le produit.
+Référence      : AG1-65 · écrans produit en profondeur
+
+Alerte : Aucun logo Turnly n'est joint en fichier séparé : la petite roue de l'app n'apparaît que dans les captures, et aucun logo n'est donc ajouté (la référence n'en a pas non plus). Il y a 3 emplacements visuels pour 2 assets : l'emplacement de gauche reçoit le chronomètre graphique « 03:00 » demandé dans l'idée. La mention « 7 jours gratuits · Sans carte bancaire » et les trois repères viennent de l'idée du stratégiste et n'existent pas sur la référence. La flèche « → » est conservée car elle fait partie du texte du CTA, alors que la référence n'en a pas. Le nom « Turnly » est posé par-dessus la fenêtre, car on ne peut pas l'écrire dans les captures réelles. La police du logo n'est pas visible en grand : Plus Jakarta Sans est retenue comme police la plus proche. Les visuels du site (portraits, badge Google Partners) n'apportent aucune indication de couleur exploitable : la teinte bleue est déduite des captures de l'app.

@@ -1,0 +1,35 @@
+Créa 4 · Turnly
+
+1. Message reçu 1 : Super service aujourd'hui, merci encore ! 🙏
+2. Message envoyé 1 : Merci beaucoup ! 😊
+
+Idée du visuel : Reprendre l'esthétique d'une capture d'écran SMS de l'inspiration UG1-02.
+
+La conversation est fictive et se déroule entre un client satisfait et un commerçant.
+
+Le client écrit : « Super service aujourd'hui, merci encore ! 🙏 »
+
+Le commerçant répond simplement : « Merci beaucoup ! 😊 »
+
+En dessous, dans la zone de saisie du smartphone, afficher un message en cours de rédaction, mais non envoyé :
+
+« Vous pourriez nous laisser un petit avis Google ? Ça nous aiderait beaucoup… »
+
+Le curseur est visible à la fin du brouillon. Aucun indicateur d'envoi ou de lecture.
+
+Sous la capture SMS, ajouter une accroche en typographie simple :
+
+« Demander des avis ne devrait pas être aussi gênant. »
+
+Puis une phrase de conclusion plus discrète :
+
+« Turnly. Une autre façon de solliciter vos clients. »
+
+Terminer par « 7 jours d'essai gratuit · Sans carte bancaire ».
+
+Conserver l'aspect d'une véritable capture d'écran de smartphone. Pas de mise en page publicitaire premium, pas de logo, pas de fausse preuve sociale.
+
+L'effet recherché est une situation familière et légèrement embarrassante dans laquelle un commerçant peut se reconnaître. Le message non envoyé est l'élément central de la publicité.
+Référence      : UG1-02 · capture iMessage avec brouillon
+
+Alerte : L'idée du stratégiste ajoute des blocs absents de la capture d'origine : le brouillon dans le champ de saisie, l'accroche, la phrase de conclusion et la mention d'offre. Ces trois derniers textes sont traités comme une bande de texte système iOS sous la capture, sans couleur ni logo de marque. Le nom de contact « Julie » et l'horodatage « Aujourd'hui 18:42 » ont été écrits pour éviter que le générateur en invente. Le statut « Distribué » a été retiré conformément à la consigne « aucun indicateur d'envoi ou de lecture ». L'avatar photo devient la silhouette iOS par défaut, faute d'asset.

@@ -1,0 +1,25 @@
+Créa 1 · Turnly
+
+1. Titre : Vos clients vous adorent. Google n'en sait rien.
+2. Sous-titre : Chaque jour, des clients satisfaits repartent sans laisser d'avis. Et si vous changiez ça ?
+3. CTA : Découvrir Turnly →
+4. Mention preuve sociale : 7 jours d'essai gratuit · Sans carte bancaire.
+
+Idée du visuel : Reprendre la structure éditoriale et la hiérarchie typographique de l'inspiration AG1-28, en respectant l'identité visuelle de Turnly.
+
+En haut : logo Turnly discret.
+
+Au centre : accroche principale très lisible, sur deux lignes, en mettant « Google n'en sait rien » en évidence avec la couleur d'accent de la marque.
+
+En dessous : sous-titre plus petit.
+
+Dans la partie inférieure : une composition en deux éléments. À gauche, une photo authentique d'un commerçant souriant face à un client satisfait. À droite, un smartphone affichant une fiche Google Business avec peu d'avis, sans chiffre inventé ni fausse note.
+
+L'objectif est de matérialiser le décalage entre une satisfaction réelle et sa faible visibilité en ligne.
+
+En bas : bouton CTA « Découvrir Turnly → » et mention de l'essai gratuit.
+
+Direction artistique : professionnelle, contemporaine, épurée, avec un contraste marqué entre l'accroche et les éléments visuels. Éviter la surcharge et les fausses preuves sociales.
+Référence      : AG1-28 · produit en action, message aligné gauche
+
+Alerte : Aucun logo Turnly fourni en fichier séparé : il n'apparaît que dans la barre de navigation de la capture du site, en haut du cadre, et le bloc logo au-dessus du titre est retiré. La photo du commerçant face à un client et l'écran de fiche Google Business demandés dans l'idée ne sont pas joints : ils ne sont ni générés ni inventés, et les deux captures Turnly prennent les emplacements visuels. Les avatars de la mention sont retirés pour éviter de faux visages. Le jaune #ffe29a est illisible en texte sur fond clair : il est appliqué en surlignage sous le mot pivot écrit en bleu marine #082b58. La capture du site montre des marques tierces (McDonald's, Domino's, Burger King…) : vérifier que leur affichage en pub est autorisé.

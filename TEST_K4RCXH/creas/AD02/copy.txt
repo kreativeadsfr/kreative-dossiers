@@ -1,0 +1,14 @@
+Créa 2 · Turnly
+
+1. Titre : Prêt en 3 minutes. Chrono en main.
+2. Liste à puces : Tu crées ton compte
+3. Liste à puces : Tu imprimes ton QR code
+4. Liste à puces : Tes clients tournent la roue et laissent un avis
+5. Badge : 1 semaine gratuite
+6. CTA : Je lance mon essai
+7. Mention : Sans carte bancaire. Sans engagement.
+
+Idée du visuel : À gauche, un gros chronomètre affichant 03:00. À droite, les 3 étapes alignées verticalement avec des numéros. En bas, la capture de l’appli. Badge en haut à droite, CTA en bas, mention sous le CTA.
+Nouvelle idée, inspirations : AG1-22 · chrono héros et étapes numérotées
+
+Alerte : Le texte « 03:00 » du chronomètre et les numéros « 1 », « 2 », « 3 » des étapes ne figurent pas dans les textes numérotés : je les ai ajoutés parce que l'idée du visuel les demande explicitement. L'idée ne précise pas la place du titre : je l'ai mis en haut, à gauche, sous le logo. La capture mobile est très haute et doit rester entière : elle apparaîtra donc à taille modérée dans le carré.

@@ -1,0 +1,27 @@
+Créa 1 · Turnly
+
+
+Idée du visuel : CREA 01 · LA GÊNE DE DEMANDER
+
+Angle : Le frein n°1 du gérant : demander un avis le met mal à l'aise. Turnly enlève cette gêne.
+
+Idée du visuel :
+Structure reprise de la ref : grosse accroche, produit en situation, promesse courte et CTA.
+Pour Turnly : fond clair. En haut, une bulle de dialogue « Euh… vous pourriez nous laisser un avis ? » barrée d'un trait rouge, avec la légende « Toi, entre deux encaissements. Gênant. ». Titre principal : « Laisse ton comptoir demander à ta place. », le mot « comptoir » sur une pastille bleue Turnly. En bas à gauche, le chevalet de caisse Turnly (roue aux couleurs du logo et QR code). À droite : « Le QR demande. Toi, tu sers. », le bouton « Essayer gratuitement » et la mention « 7 jours offerts, sans carte bancaire ». Logo Turnly en haut à gauche.
+
+Texte principal :
+Tu sais que les avis Google font venir du monde. Mais glisser « vous pourriez nous laisser un avis ? » entre deux encaissements, c'est gênant.
+
+Avec Turnly, tu poses un QR code sur ton comptoir. Tes clients scannent, tournent la roue et repartent avec le sourire. Toi, tu n'as rien à dire.
+
+Prêt en 5 minutes. 7 jours gratuits, sans carte bancaire.
+
+Titre : Le QR code qui demande à ta place
+Bouton Meta : S'inscrire
+
+Variante d'accroche à tester : « Vous pourriez nous laisser un avis ? » Plus jamais.
+
+Hypothèse de test : Angle émotionnel. Je le testerais face à la Crea 02 pour savoir ce qui fait le plus réagir cette cible : la gêne ou la peur du concurrent. Indicateur : taux de clic.
+Référence      :  · bulle barrée, titre, chevalet produit
+
+Alerte : L'image et l'identifiant de la créa d'inspiration manquent : la structure vient de l'idée du stratégiste et de sa maquette en pièce jointe 1, et le CTA prend la forme par défaut, sans flèche. Les trois emplacements sont marqués « À RETIRER » alors que l'idée du visuel impose un titre, une promesse, un CTA et une mention : j'ai suivi l'idée, à confirmer. La pièce jointe 1 est une maquette complète et non un logo ou une photo produit : seuls le logo et le chevalet en sont extraits. Ses textes absents de l'idée (« Pour les commerces de quartier », « Un QR code sur ton comptoir. Tes clients jouent, ta fiche Google se remplit. ») ne sont pas repris. Le rouge du trait barré (#E5533D) n'est pas dans la DA : il est ajouté parce que l'idée demande un trait rouge.

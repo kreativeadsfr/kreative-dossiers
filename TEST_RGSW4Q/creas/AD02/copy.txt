@@ -1,0 +1,11 @@
+Créa 2 · Turnly
+
+1. Titre : TON DERNIER MAUVAIS AVIS ACCUEILLE TES FUTURS CLIENTS
+2. Sous-titre : Ne laisse pas les clients mécontents être les seuls à parler de toi.
+3. CTA : Découvre comment
+4. Mention : Déjà utilisé dans des établissements Burger King, CGR et Mercure
+
+Idée du visuel : Reprendre la composition d’AG1-14 avec la maquette WS18 en fond et un voile bleu nuit pour rendre le texte lisible. Afficher le titre en blanc et mettre « MAUVAIS AVIS » en évidence. Placer le sous-titre puis le bouton « Découvre comment ». Sous le bouton, ajouter la mention accompagnée des logos Burger King, CGR et Mercure, alignés sur une même ligne avec un poids visuel équilibré. Garder le logo Turnly en haut.
+Référence      : AG1-14 · titre centré sur photo voilée
+
+Alerte : Le mot pivot « MAUVAIS AVIS » est en #3775FF et non en #004AAB : sur le voile bleu nuit, #004AAB serait illisible (#004AAB reste la couleur du bouton). La photo WS18, verticale, est agrandie en fond carré, donc ses bords haut et bas sortent du cadre, comme le demande l'idée « en fond ». Les trois logos clients sont posés sur de petites cartes blanc cassé, sinon Mercure (gris) et CGR (bleu nuit) disparaîtraient sur le fond sombre.

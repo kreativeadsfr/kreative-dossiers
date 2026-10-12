@@ -1,0 +1,9 @@
+Créa 5 · Turnly
+
+1. Rubrique : COMMERCES
+2. Titre : Ces commerces ont plus que doublé leurs avis Google en invitant leurs clients à tourner une roue de cadeaux.
+
+Idée du visuel : Reprendre la structure d’UG6-01 avec une photo en haut et un bandeau noir portant le titre en bas. Utiliser WS16, la maquette sur une terrasse de café, comme photo d’illustration. Afficher « COMMERCES » à la jonction entre la photo et le bandeau. Mettre le titre en blanc et souligner visuellement « PLUS QUE DOUBLÉ » en jaune, comme dans la référence. Supprimer la signature « Nouvelles économiques ». Aucun logo Turnly ni bouton CTA.
+Référence      : UG6-01 · faux post éditorial d'actualité
+
+Alerte : Le fichier WS16-Turnly-terrasse-cafe.png, que le stratégiste voulait comme photo, a été retiré parce qu'il était traité comme un logo. Sans lui, la photo est générée en terrasse de café générique, sans produit Turnly. Il faut rejoindre WS16 comme visuel (pas comme logo) pour avoir la vraie maquette. Le jaune de "PLUS QUE DOUBLÉ" suit la demande du stratégiste, alors que la créa d'inspiration met ses mots en avant en bleu clair. Le titre est écrit en capitales pour reprendre le style natif, avec les mêmes mots que la fiche.

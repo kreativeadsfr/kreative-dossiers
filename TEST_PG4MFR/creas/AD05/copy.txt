@@ -1,0 +1,13 @@
+Créa 5 · Turnly
+
+1. Titre : Aucun avis.
+2. Avis client : Pourtant, on a adoré.
+3. Nom de l'auteur : Tes clients satisfaits
+4. CTA : Essayer gratuitement
+
+Idée du visuel : On remplace le logo de la bible par le logo Turnly et Application Bible par Turnly. 
+
+L'ad copy viendra renforcer l'angle que meme si les clients sont satisfaits, ils ne sont pas pour autant inciter à laisser un avis sur google
+Référence      : UG5-06
+
+Alerte : VISUEL NON GÉNÉRÉ : pas de prompt | PROMPT NON LU (pas de texte dans la reponse) : AUCUN BLOC TEXTE (arret : inconnu) {"error":{"message":"400 - \"{\\\"type\\\":\\\"error\\\",\\\"error\\\":{\\\"type\\\":\\\"invalid_request_error\\\",\\\"message\\\":\\\"messages.0.content.4.image.source.base64.media_type: Input should

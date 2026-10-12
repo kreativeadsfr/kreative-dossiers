@@ -1,0 +1,27 @@
+Créa 5 · Turnly
+
+1. Titre : . Ta fiche Google va enfin se remplir Bouton Meta : S'inscrire
+
+Idée du visuel : CREA 05 · LES NOTIFICATIONS
+
+Angle : Faire ressentir le résultat avant même l'achat : le plaisir de voir les avis 5 étoiles tomber sur son téléphone. La simplicité et le prix viennent en appui dans le texte.
+
+Idée du visuel :
+Nouvelle idée, sans ref : fond bleu Turnly, logo blanc. Titre : « Ce son-là, tu vas l'entendre souvent. ». En dessous, une pile de notifications de téléphone qui s'accumulent, chacune « Nouvel avis ★★★★★ » avec un court commentaire client (« Super accueil, on reviendra ! », « Les meilleures pâtisseries du quartier. », « Équipe adorable, service rapide. », « Rapport qualité-prix imbattable. »), horodatées de « maintenant » à « il y a 21 min », de plus en plus transparentes vers le bas. En bas : « Un QR code sur ton comptoir. Prêt en 5 minutes. » et le bouton moutarde « Essayer 7 jours gratuits ». Les notifications cassent le scroll parce qu'elles ressemblent à du contenu natif du téléphone.
+
+Texte principal :
+Tu poses un QR code sur ton comptoir. Tes clients scannent, tournent la roue… et ton téléphone se met à vibrer.
+
+Pas de technicien, pas de formation, rien à gérer : ta roue est prête en 5 minutes, à tes couleurs, avec ton affiche prête à imprimer.
+
+À partir de 0,24 € par jour. 7 jours gratuits, sans carte bancaire.
+
+Titre : Ta fiche Google va enfin se remplir
+Bouton Meta : S'inscrire
+
+Variante d'accroche à tester : Ton téléphone va vibrer plus souvent. Et c'est une bonne nouvelle.
+
+Hypothèse de test : Format « pattern interrupt » pensé pour arrêter le pouce. Indicateur clé : le taux d'arrêt dans les 3 premières secondes, puis le coût par inscription.
+Nouvelle idée, inspirations :  · pile de notifications natives
+
+Alerte : Les textes numérotés reçus sont faux : le seul texte fourni est le titre et le bouton de l'annonce Meta (« Ta fiche Google va enfin se remplir », « S'inscrire »), qui ne s'affichent pas sur l'image. J'ai donc utilisé les textes écrits dans l'idée du visuel : le titre, les quatre avis, la ligne du bas et le CTA. Les horodatages « il y a 2 min » et « il y a 9 min » viennent de la maquette en pièce jointe 1. Aucune image d'inspiration n'a été chargée : la structure vient de l'idée seule. La pièce jointe 1 est une maquette complète de la créa, pas un asset : seul son logo est repris, recadré (aucun autre fichier logo n'a été fourni). Le CTA est moutarde #FFB310 avec un texte #012C64, comme le demande le stratégiste, et non #004AAB comme le veut la charte : sur le fond bleu, un bouton #004AAB serait illisible. Pour la même raison, le mot pivot est souligné en #3775FF et non en #004AAB. À valider.

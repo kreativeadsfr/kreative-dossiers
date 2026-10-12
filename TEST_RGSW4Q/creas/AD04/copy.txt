@@ -1,0 +1,10 @@
+Créa 4 · Turnly
+
+1. Titre : NOUS SOMMES DÉSOLÉS POUR LES EFFETS SECONDAIRES.
+2. Paragraphe 1 : À vous qui souhaitez récolter davantage d’avis Google. Nous devons vous prévenir. Lire un compliment sur votre commerce peut provoquer un sourire devant votre téléphone. Voir un client remercier votre équipe peut vous donner envie de partager une capture. Et découvrir qu’un habitué a pris le temps d’écrire peut vous faire relire son commentaire plusieurs fois.
+3. Paragraphe 2 : Nous comprenons. Vous avez déjà suffisamment de choses à faire. Turnly a pourtant été conçu pour donner envie à vos clients de laisser un avis, avec une roue de cadeaux à la clé. Pour les sourires, les captures et les messages envoyés à l’équipe, nous assumerons.
+
+Idée du visuel : Reprendre la feuille blanche façon communiqué officiel d’UG6-03. Agrandir la feuille pour accueillir le texte avec une taille lisible sur mobile. Placer le titre en gras, puis les deux blocs de texte avec les sauts de paragraphe indiqués. Utiliser une police simple et un fond uni discret. Retirer l’enveloppe avec le logo de la référence. Aucun logo Turnly, photo produit ou bouton : le communiqué constitue tout le visuel.
+Référence      : UG6-03 · faux communiqué d'excuses officiel
+
+Alerte : Les deux paragraphes sont très longs (environ 110 mots au total) : même en agrandissant la feuille à presque tout le carré, le corps de texte restera petit et risque d'être peu lisible en vignette mobile ; un raccourcissement par le stratégiste améliorerait la lecture. Le stratégiste demandait un fond uni discret : j'ai gardé le dégradé bleu natif du format, rendu discret, avec un grain fin, car un aplat nu est exclu et une ugly ad conserve le rendu d'origine. Le triangle d'avertissement est conservé comme élément natif du communiqué.

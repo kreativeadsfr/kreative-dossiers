@@ -1,0 +1,16 @@
+Créa 3 · Turnly
+
+1. Titre : TA PLAQUE RESSEMBLE À TOUTES LES AUTRES. TON COMMERCE MÉRITE MIEUX.
+2. Ligne 1, colonne de gauche : Une invitation à jouer
+3. Ligne 2, colonne de gauche : Des cadeaux choisis par ton commerce
+4. Ligne 3, colonne de gauche : Une raison de participer
+8. Libellé colonne de droite : Plaque d’avis classique
+9. Ligne 1, colonne de droite : Le même « Laissez-nous un avis »
+10. Ligne 2, colonne de droite : Aucun cadeau à gagner
+11. Ligne 3, colonne de droite : Un avis demandé comme un service
+14. CTA : Découvre Turnly
+
+Idée du visuel : Reprendre les deux cartes comparatives d’AG2-07. À gauche, remplacer le logo Highlanding par le logo Turnly et garder trois arguments avec des coches vertes. À droite, afficher « Plaque d’avis classique » avec les trois arguments négatifs et des croix rouges. Supprimer les lignes laissées vides et rééquilibrer les cartes pour qu’elles aient la même hauteur. Utiliser le bleu Turnly pour mettre en valeur la colonne de gauche et le bouton. Garder le titre bien visible au-dessus.
+Référence      : AG2-07 · comparatif deux cartes nous vs eux
+
+Alerte : Le titre en capitales est long et tient sur quatre lignes : il reste le plus gros texte, mais la respiration est plus serrée qu'avec le titre d'origine. Le mot pivot n'étant pas désigné par le stratégiste, j'ai choisi "MÉRITE MIEUX", en bleu #004AAB souligné #3775FF, l'italique serif d'origine étant exclu par la charte. Les coches vertes et les croix rouges, demandées par l'idée, ne figurent pas dans la palette du client.

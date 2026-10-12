@@ -1,0 +1,35 @@
+Créa 4 · Turnly
+
+1. Message reçu 1 : Super service aujourd'hui, merci encore ! 🙏
+2. Message envoyé 1 : Merci beaucoup ! 😊
+
+Idée du visuel : Reprendre l'esthétique d'une capture d'écran SMS de l'inspiration UG1-02.
+
+La conversation est fictive et se déroule entre un client satisfait et un commerçant.
+
+Le client écrit : « Super service aujourd'hui, merci encore ! 🙏 »
+
+Le commerçant répond simplement : « Merci beaucoup ! 😊 »
+
+En dessous, dans la zone de saisie du smartphone, afficher un message en cours de rédaction, mais non envoyé :
+
+« Vous pourriez nous laisser un petit avis Google ? Ça nous aiderait beaucoup… »
+
+Le curseur est visible à la fin du brouillon. Aucun indicateur d'envoi ou de lecture.
+
+Sous la capture SMS, ajouter une accroche en typographie simple :
+
+« Demander des avis ne devrait pas être aussi gênant. »
+
+Puis une phrase de conclusion plus discrète :
+
+« Turnly. Une autre façon de solliciter vos clients. »
+
+Terminer par « 7 jours d'essai gratuit · Sans carte bancaire ».
+
+Conserver l'aspect d'une véritable capture d'écran de smartphone. Pas de mise en page publicitaire premium, pas de logo, pas de fausse preuve sociale.
+
+L'effet recherché est une situation familière et légèrement embarrassante dans laquelle un commerçant peut se reconnaître. Le message non envoyé est l'élément central de la publicité.
+Référence      : UG1-02 · capture iMessage avec brouillon
+
+Alerte : Plusieurs écarts sont à valider. 1) L'accroche, la conclusion et la ligne d'offre demandées sous la capture sortent du format natif pur : je les ai traitées comme une simple légende texte en police système, sans aucun habillage publicitaire. 2) Le prénom du contact « Camille », son initiale et l'horodatage « Aujourd'hui 18:42 » ont été inventés, car aucun n'était fourni. 3) L'avatar photo a été remplacé par une pastille d'initiale pour éviter un visage inventé. 4) La mention de statut sous le message envoyé a été supprimée, conformément à l'idée du visuel.

@@ -1,0 +1,10 @@
+Créa 1 · Turnly
+
+1. Titre : « VOUS POUVEZ NOUS LAISSER UN AVIS ? » COMBIEN DE FOIS TU L’AS DEMANDÉ ?
+2. Sous-titre : Donne-leur une raison de le faire.
+3. CTA : Découvre comment
+
+Idée du visuel : Reprendre la hiérarchie d’AG1-09 : grand titre en haut, sous-titre puis bouton. Mettre « COMBIEN DE FOIS » en bleu Turnly. Remplacer les exemples de sites en bas par la maquette WS15, cadrée sur le chevalet posé au comptoir de la boulangerie. Garder le chevalet bien visible et ajouter le logo PJ07 en haut.
+Référence      : AG1-09 · titre gauche, photo comptoir en carte
+
+Alerte : La référence montre plusieurs cartes de sites pour un seul asset visuel joint : les cartes sont réduites à une seule grande carte photo, sans remplissage inventé. La charte donne deux rayons de CTA (8 px et 12 px) : 12 px a été retenu, comme demandé pour l'écriture du prompt.

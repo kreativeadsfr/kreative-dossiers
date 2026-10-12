@@ -1,0 +1,12 @@
+Créa 6 · Turnly
+
+1. Titre : Comment j'ai triplé mes avis Google en 90 jours
+2. Phrase 2 de la note : Je suis coiffeuse depuis 9 ans. J'avais 41 avis.
+3. Phrase 3 de la note : Mes clients étaient contents. Ils ne le disaient juste jamais.
+4. Paragraphe de la note : J'ai posé un QR code Turnly à l'accueil. Ils scannent, laissent leur avis, tournent la roue et repartent parfois avec un soin offert ou -10% sur la prochaine coupe.
+5. Phrase de chute : 3 mois plus tard. 127 avis. Et de nouveaux clients qui me disent m'avoir trouvée sur Google.
+
+Idée du visuel : On reprend la structure note
+Référence      : UG1-06 · capture native note Apple
+
+Alerte : La copy est nettement plus longue que les textes d'origine et la note est recomposée du 9:16 vers le carré : le texte sera dense, à vérifier pour la lisibilité en vignette. Les textes natifs de l'interface ont été remplacés par "10:22" et "Notes" pour ne reprendre aucun texte de l'image d'origine.

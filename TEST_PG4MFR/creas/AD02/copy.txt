@@ -1,0 +1,12 @@
+Créa 2 · Turnly
+
+1. Message reçu 1 : tu te rappelles du QR code avec la roue que tu m'as conseillé ?
+2. Message envoyé 1 : ouiiii Turnly, ça donne quoi?
+3. Message reçu 2 : meuf, je pensais que personne allait scanner. Bah figure toi que mes clientes kiffent le côté intéractif
+4. Message reçu 3 : J'ai pris genre 135 avis en 30 jours, sans rien avoir à demander
+5. Message reçu 4 : bref, manucure offerte quand tu veux, merci ma belle
+
+Idée du visuel : Modifier "soeur" par un prénom
+Référence      : UG1-02 · capture conversation iMessage native
+
+Alerte : Faute d'orthographe corrigée dans le message reçu 2 : « intéractif » devient « interactif ». Les tournures orales (« tu te rappelles du », « figure toi », « quoi? ») sont gardées telles quelles, car elles relèvent du ton SMS. Le prénom « Camille » a été choisi pour remplacer « Sœur », comme demandé. L'avatar est une photo générée, floue et non identifiable, car aucun asset n'était joint. L'horodatage et la mention « Distribué » sont des textes natifs de l'interface, ajoutés pour le réalisme. Le chiffre de 135 avis en 30 jours est à valider côté client.

@@ -1,0 +1,27 @@
+Créa 2 · Turnly
+
+
+Idée du visuel : CREA 02 · LE VOISIN MIEUX NOTÉ
+
+Angle : La peur de perdre des clients face au concurrent d'à côté, mieux noté sur Google.
+
+Idée du visuel :
+Structure reprise de la ref : comparaison côte à côte, un perdant et un gagnant, avec une conclusion qui pointe vers le produit.
+Pour Turnly : sur-titre « Même rue. Même prix. Même qualité. », titre « Devine où il va manger ce soir. ». Une barre de recherche « resto près de moi ». En dessous, deux fiches d'établissement : « Ton resto », 3,9 étoiles et 87 avis, en grisé, et « Le resto d'en face », 4,7 étoiles et 612 avis, encadré en bleu Turnly, avec une main qui clique dessus. En bas : « Sur Google, le plus noté gagne. Deviens-le. », le logo et le bouton « Créer ma roue ».
+
+Texte principal :
+Ton concurrent ne cuisine pas forcément mieux que toi. Il a juste plus d'avis.
+
+Quand quelqu'un cherche « resto près de moi », il choisit la fiche la mieux notée. Turnly transforme chaque passage en caisse en occasion de laisser un avis, avec un QR code et une roue ludique.
+
+Reprends ta place dans le quartier. Essai gratuit 7 jours.
+
+Titre : Deviens le mieux noté du quartier
+Bouton Meta : S'inscrire
+
+Variante d'accroche à tester : Ton concurrent n'est pas meilleur que toi. Il a juste plus d'avis.
+
+Hypothèse de test : Angle le plus facile à décliner par métier (resto, coiffeur, boulangerie, hôtel) en changeant juste les fiches. S'il gagne, c'est celui que je multiplierais. Indicateur : coût par inscription.
+Référence      :  · fiches Google perdant vs gagnant
+
+Alerte : 1. L'image de la référence n'a pas été chargée et aucun identifiant n'était fourni : la structure vient de l'idée du stratégiste et de sa maquette. 2. Les trois emplacements (Titre, Sous-titre, CTA) sont marqués À RETIRER alors que l'idée donne toute la copy entre guillemets : j'ai appliqué l'idée, à confirmer avec le stratégiste. 3. La pièce jointe 1 est une maquette de la créa entière et non un asset à placer : seul son logo turnly est extrait, sans demande explicite de recadrage. 4. Le sous-titre « Un QR code sur ton comptoir, une roue, et ta fiche reprend des couleurs. » et les mentions « Restaurant · 120 m » et « Restaurant · 140 m » de la maquette ne figurent pas dans la fiche, je les ai écartés. 5. Les zones « PHOTO DEVANTURE » de la maquette sont remplacées par deux photos de devanture générées, génériques et sans enseigne. Si un vrai visuel est préféré, il faudra le fournir. 6. La forme du CTA est le rectangle à 12 px par défaut, sans flèche, faute de référence.

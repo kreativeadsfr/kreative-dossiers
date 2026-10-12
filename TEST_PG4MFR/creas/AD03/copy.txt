@@ -1,0 +1,21 @@
+Créa 3 · Turnly
+
+1. Titre : Un QR code à poser. Une réputation qui ne fait que grimper.
+2. CTA : Essayer gratuitement
+3. Libellé colonne de gauche : Avant Turnly
+4. Libellé colonne de droite : Avec Turnly
+5. Ligne 1, colonne de gauche : Réputation -> Une fiche Google qui n'inspire pas confiance
+6. Ligne 1, colonne de droite : Réputation -> Le commerce que tout le monde recommande
+7. Ligne 2, colonne de gauche : Visibilité -> Le concurrent passe devant
+8. Ligne 2, colonne de droite : Visibilité -> Le mieux noté du quartier
+9. Ligne 3, colonne de gauche : Expérience client -> Aucune raison de laisser un avis
+10. Ligne 3, colonne de droite : Expérience client -> Un petit jeu qui les fait revenir
+11. Ligne 4, colonne de gauche : Effort -> Demander un avis à chaque passage
+12. Ligne 4, colonne de droite : Effort -> Posé à l'accueil, ça tourne tout seul
+13. Ligne 5, colonnes de gauche et de droite : Coût -> Des clients perdus chaque semaine / Coût -> 14.90€/mois, sans engagement
+14. Mention : 4.9/5  +20 000 entreprises
+
+Idée du visuel : Logo de la marque et on accentue sur QR CODE
+Référence      : AG3-01 · comparaison avant/avec en deux cartes
+
+Alerte : Les « -> » des lignes 5 à 13 ont été traités comme la flèche graphique séparant la pastille de catégorie et le texte, comme sur la référence ; « 14.90€/mois » et « 4.9/5 » sont gardés tels qu'écrits (la typographie française donnerait « 14,90 €/mois »), à corriger dans la fiche si souhaité.

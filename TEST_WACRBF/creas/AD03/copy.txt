@@ -1,0 +1,27 @@
+Créa 3 · Turnly
+
+
+Idée du visuel : CREA 03 · LA PREUVE CHIFFRÉE
+
+Angle : La preuve sociale : un vrai commerce, de vrais chiffres avant et après Turnly.
+
+Idée du visuel :
+Structure reprise de la ref : chiffre résultat en très grand, contexte en petit, témoignage client en bas.
+Pour Turnly : fond bleu nuit. Pastille « Cas client · Burger King Paris 11 ». Accroche : « Il n'a rien changé en cuisine. Juste posé un QR code. ». Chiffre géant : « 3 300 → 6 650 avis Google », puis l'encart « 3,7 ★ → 4,7 ★ ». En bas, la photo du gérant avec sa citation : « Je demandais jamais, ça me mettait mal à l'aise. Maintenant c'est le QR qui demande. » (Sylas, gérant). Bouton moutarde « Voir comment ça marche ».
+
+Texte principal :
+Sylas ne demandait jamais d'avis à ses clients, ça le mettait mal à l'aise.
+
+Il a installé Turnly sur son comptoir. Résultat : deux fois plus d'avis Google et une note passée de 3,7 à 4,7. Ses clients jouent le jeu, sans qu'il ait à dire un mot.
+
+Et toi, combien d'avis tu laisses passer chaque jour ?
+
+Titre : Double tes avis sans rien demander
+Bouton Meta : En savoir plus
+
+Variante d'accroche à tester : De 3,7 à 4,7 étoiles. Sans changer la recette.
+
+Hypothèse de test : Preuve sociale : souvent plus efficace en retargeting, auprès de ceux qui ont déjà visité le site sans s'inscrire. Indicateur : taux de conversion après clic.
+Référence      :  · carte cas client chiffrée
+
+Alerte : L'image et l'identifiant de la référence manquent : la structure a été reprise de l'idée du stratégiste et de sa maquette en pièce jointe 1. La maquette contient encore le disque vide marqué PHOTO SYLAS, qui sera imprimé tel quel : il faut fournir une vraie photo de Sylas, ou une maquette où ce disque est remplacé. Le bouton de la maquette est une pilule moutarde, alors que la charte demande un rectangle #004AAB à coins de 12 px environ : la maquette doit être corrigée en amont, car elle ne peut pas être modifiée à la génération. Le nombre 3 300 est coupé sur deux lignes dans la maquette (3 / 300). La maquette étant en 4:5, elle sera plus petite une fois posée dans le carré. Le logo Turnly n'existe pas en fichier séparé, il apparaît seulement à l'intérieur de la maquette. Enfin, le chiffre de 6 650 avis Google pour un seul Burger King est à vérifier avant diffusion.

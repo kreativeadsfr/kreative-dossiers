@@ -1,0 +1,11 @@
+{
+  "dossier": "TEST_52P94H",
+  "livre": true,
+  "livraisons": [
+    {
+      "le": "2026-10-12T01:08:18.800Z",
+      "lien": "https://www.figma.com/design/TEST-kreative-livraison",
+      "note": "Test Kreative de la livraison, à ignorer"
+    }
+  ]
+}

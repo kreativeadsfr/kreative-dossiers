@@ -1,0 +1,27 @@
+Créa 6 · Turnly
+
+
+Idée du visuel : CREA 06 · UGLY AD
+
+Angle : Le format natif : ressembler à un post de gérant, pas à une pub, pour casser la méfiance.
+
+Idée du visuel :
+Structure reprise de la ref : fond blanc, texte brut type post perso, photo amateur au milieu, annotation à la main.
+Pour Turnly : en haut, en texte simple : « j'ai posé ce truc sur mon comptoir il y a 3 mois. ». Au centre, une photo prise au smartphone, un peu de travers et scotchée, du chevalet Turnly posé à côté de la caisse et d'une corbeille de viennoiseries. Une flèche rouge manuscrite « ce truc là » pointe le chevalet. En dessous : « ma fiche Google ne ressemble plus du tout à la même. ». En bas, à la main : « (et les clients adorent tourner la roue) » et turnly.fr souligné. Pas de logo imposant ni de bouton, pour garder l'aspect authentique. À réaliser avec un vrai client Turnly qui accepte de témoigner.
+
+Texte principal :
+Honnêtement je n'y croyais pas trop. Un QR code, une roue…
+
+Mais les clients adorent tourner la roue et ils reviennent chercher leur gain. Et ma fiche Google a enfin le nombre d'avis qu'elle méritait.
+
+Si t'as un commerce, teste. C'est gratuit 7 jours.
+
+Titre : Un QR code. C'est tout.
+Bouton Meta : En savoir plus
+
+Variante d'accroche à tester : Je l'ai posé pour essayer. Je ne l'ai jamais enlevé.
+
+Hypothèse de test : Format natif, souvent moins cher en diffusion. À produire avec un vrai client Turnly qui accepte de témoigner, jamais avec un faux témoignage. Indicateurs : coût pour 1 000 vues et taux de clic.
+Référence      :  · post perso avec photo scotchée
+
+Alerte : Voici les points à régler avant diffusion. 1) La référence ne s'est pas chargée et aucun identifiant n'a été transmis : la structure suit l'idée du stratégiste et sa maquette. 2) Les emplacements Titre, Sous-titre et CTA sont tous marqués À RETIRER, alors que l'idée du visuel écrit des textes entre guillemets : ce sont ces textes qui sont affichés, mot pour mot. Le stratégiste doit le confirmer. 3) La pièce jointe 1 n'est pas une vraie photo de client mais une maquette en aplats, portant la fausse légende « PHOTO RÉELLE · COMPTOIR CLIENT ». Le prompt la fait retirer, mais c'est déjà une modification de l'asset. Le stratégiste exige un vrai client témoin : il faut remplacer cette maquette par une vraie photo prise au smartphone sur le comptoir d'un client Turnly qui accepte de témoigner. Sans cela, la créa reste un faux témoignage et ne doit pas être diffusée. 4) Aucun logo Turnly n'est joint ; l'ugly ad n'en a de toute façon pas besoin.

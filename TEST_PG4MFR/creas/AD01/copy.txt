@@ -1,0 +1,13 @@
+Créa 1 · Turnly
+
+1. Titre : Votre fiche Google vous fait perdre des clients.
+2. Sous-titre : Augmentez vos avis grâce à un simple QR code.
+3. CTA : Essayer Turnly
+4. Libellé carte de droite : Note Google
+5. Libellé carte de gauche : Évolution des avis
+6. Chiffre mis en avant : +38
+
+Idée du visuel : Logo du client avec le nom en haut
+La roue affiché sur la landing page en bas
+Les stats prises directement par le dashboard
+Référence      : AG1-25 · dashboard et roue en profondeur

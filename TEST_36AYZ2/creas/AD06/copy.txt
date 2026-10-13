@@ -1,0 +1,24 @@
+Créa 6 · Turnly
+
+1. Libellé colonne de droite : TURNLY
+2. Ligne 1, colonne de gauche : Et si ça ne me plaît pas ?
+3. Ligne 1, colonne de droite : 7 jours gratuits
+4. Ligne 2, colonne de gauche : Je dois donner ma carte ?
+5. Ligne 2, colonne de droite : Sans carte bancaire
+6. Ligne 3, colonne de gauche : Et si je veux arrêter ?
+7. Ligne 3, colonne de droite : 14,90 €/mois, sans engagement
+8. Conclusion, colonne de gauche : J'hésite encore…
+9. Conclusion, colonne de droite : Je teste. Je décide.
+
+Idée du visuel : Reprendre la structure comparative à deux colonnes d’UG4-03, mais supprimer entièrement les marques Aeyla et THEM ainsi que les photos de couvertures. 
+
+La colonne de gauche présente les hésitations d’un commerçant ; celle de droite, intitulée « TURNLY », apporte les réponses concrètes. 
+
+Placer les trois paires de textes dans les rangées correspondantes, puis les deux conclusions en bas. 
+
+Conserver un style de tableau comparatif simple et natif, avec des séparations fines, un fond clair et un léger surlignage jaune sur les réponses Turnly. 
+
+Aucun logo, aucune photo de produit, aucun élément des marques originales. Veiller à la lisibilité des neuf textes sur mobile.
+Référence      : UG4-03 · tableau comparatif natif deux colonnes
+
+Alerte : Les pictogrammes ont été inversés par rapport à la référence : coches vertes à droite et croix rouges à gauche, sinon les réponses TURNLY auraient porté des croix rouges, ce qui nuit à la conversion. L'emplacement du logo Aeyla en haut à gauche reste vide, faute de texte prévu par le stratégiste. Des séparations fines et un surlignage jaune ont été ajoutés, conformément à son idée du visuel.

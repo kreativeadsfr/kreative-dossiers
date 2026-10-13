@@ -1,0 +1,12 @@
+Créa 3 · Turnly
+
+1. Titre : Vos scans et avis, au même endroit.
+2. Sous-titre : Suivez l’activité de votre QR dans le tableau de bord Turnly.
+3. Badge : Tableau de bord inclus
+4. Badge, petit : 14,90 € / mois
+5. CTA : Voir Turnly
+
+Idée du visuel : Reprendre la composition d’AG1-12 : placer le titre en haut ; sous celui-ci le sous-titre ; mettre la capture authentique de PJ03 au centre, sans modifier ni inventer de données; disposer le badge « Tableau de bord inclus » près de la capture; placer le petit badge « 14,90 € / mois » au-dessus du CTA en pied. Logo Turnly discret. Ne pas ajouter de mention « sans engagement » qui n’est pas saisie dans les champs; ne pas montrer d’avis fictif ni de résultat chiffré reconstitué.
+Référence      : AG1-12 · produit en action, tableau de bord
+
+Alerte : La capture PJ03 affiche le nom d'un client (Clickway, Agence Web) et une adresse e-mail en bas de la barre latérale : vérifier l'accord pour leur diffusion. Les deux cartes produit de la structure sont fusionnées en un seul écran agrandi et les tuiles 3D décoratives sont refaites en bleu de marque, faute d'autres assets.

@@ -859,7 +859,7 @@ async function chargeRetour(dossier){
   const src=f=>f.chemin?"../"+f.chemin:(f.url||"");
   const imgs=(titre,l)=>l&&l.length?'<div><div class="rl">'+esc(titre)+'</div><div class="rimgs">'+
     l.map(f=>'<a href="'+esc(src(f))+'" target="_blank" rel="noopener" title="'+esc(f.nom||"")+'">'+
-      (/\.pdf$/i.test(src(f))?'<span class="rtx">PDF</span>':'<img src="'+esc(src(f))+'" alt="'+esc(f.nom||"")+'" loading="lazy">')+'</a>').join("")+'</div></div>':"";
+      (/\.pdf$/i.test(src(f))?'<span class="rtx">PDF</span>':'<img src="'+esc(src(f))+'"'+(f.chemin&&f.url?' data-u="'+esc(f.url)+'" onerror="if(this.dataset.u){this.src=this.dataset.u;this.parentNode.href=this.dataset.u;this.removeAttribute(\'data-u\')}"':'')+' alt="'+esc(f.nom||"")+'" loading="lazy">')+'</a>').join("")+'</div></div>':"";
   const txt=(titre,t)=>t?'<div class="rtx"><b>'+esc(titre)+' :</b> '+esc(t)+'</div>':"";
   const m=r.mix;
   const quand=r.recu_le?new Date(r.recu_le).toLocaleDateString("fr-FR",{day:"numeric",month:"long"}):"";

@@ -289,8 +289,8 @@ body.envoyee .deja{display:block}
 .grp+.grp{padding-top:16px;border-top:1px solid var(--line)}
 .defaut{font-size:12.5px;color:var(--tx3)}
 /* les retours du client sur la livraison precedente */
-.retour{margin:0 0 22px;border:1px solid #BFD9C8;border-radius:14px;background:#F4FAF6;overflow:hidden}
-.retour summary{cursor:pointer;padding:13px 16px;font-size:14px;font-weight:600;list-style:none;display:flex;gap:8px;align-items:baseline}
+.retour{margin:0 0 18px;border:1px solid #BFD9C8;border-radius:14px;background:#F4FAF6;overflow:hidden}
+.retour summary{cursor:pointer;padding:11px 16px;font-size:14px;font-weight:600;list-style:none;display:flex;gap:8px;align-items:baseline}
 .retour summary::-webkit-details-marker{display:none}
 .retour summary small{font-weight:400;color:var(--tx3);font-size:12.5px}
 .retour .rb{padding:0 16px 16px;display:flex;flex-direction:column;gap:12px}
@@ -301,7 +301,10 @@ body.envoyee .deja{display:block}
 .retour .rimgs img{width:100%;height:100%;object-fit:cover;display:block}
 .retour .rtx{font-size:13.5px;line-height:1.5;color:var(--tx2)}
 .retour .rtx b{color:var(--tx);font-weight:500}
-.retour .rprev{font-size:13px;color:var(--tx);text-underline-offset:3px}
+.retour summary::after{content:"";margin-left:auto;width:7px;height:7px;border-right:1.5px solid var(--tx3);border-bottom:1.5px solid var(--tx3);transform:rotate(45deg);align-self:center;transition:transform .15s}
+.retour[open] summary::after{transform:rotate(-135deg)}
+.retour .rvoir{align-self:flex-start;display:inline-flex;padding:9px 15px;border-radius:10px;background:var(--tx);color:#fff;font-size:13px;font-weight:500;text-decoration:none}
+.retour .rvoir:hover{opacity:.88}
 /* declinaisons de texte : plusieurs versions du texte sur le meme visuel */
 .vers{display:flex;flex-direction:column;gap:8px;padding-top:16px;border-top:1px solid var(--line)}
 .vchoix{display:flex;gap:6px;flex-wrap:wrap}
@@ -401,7 +404,7 @@ body.envoyee .deja{display:block}
   <section class="pane left">
     <div class="lin">
       <div class="htitle"><b id="ctitle">Crea 01</b><span id="cst">en cours</span></div>
-      <details class="retour" id="retour" open hidden></details>
+      <details class="retour" id="retour" hidden></details>
       <div class="deja" id="deja"></div>
       <div class="mode" id="mode" role="tablist" aria-label="Façon de remplir la créa">
         <button type="button" id="m-inspi" role="tab">Reprendre une créa d'inspiration</button>
@@ -873,28 +876,19 @@ async function ouvre(dossier){
 /* 13/10 : les retours du client sur la livraison precedente
    (sur-mesure et abonnement), ecrits par n8n dans retour.json */
 async function chargeRetour(dossier){
-  const box=$("retour"); box.hidden=true; box.innerHTML="";
+  const box=$("retour"); box.hidden=true; box.open=false; box.innerHTML="";
   let r=null;
   try{const x=await fetch("../"+dossier+"/retour.json?t="+Date.now(),{cache:"no-store"});if(x.ok)r=await x.json()}catch(e){r=null}
   if(!r||r.dossier!==dossier)return;
+  /* 14/10 : replie, juste les gagnantes et le lien vers la page des retours */
+  const g=r.gagnantes||[];
   const src=f=>f.chemin?"../"+f.chemin:(f.url||"");
-  const imgs=(titre,l)=>l&&l.length?'<div><div class="rl">'+esc(titre)+'</div><div class="rimgs">'+
-    l.map(f=>'<a href="'+esc(src(f))+'" target="_blank" rel="noopener" title="'+esc(f.nom||"")+'">'+
-      (/\.pdf$/i.test(src(f))?'<span class="rtx">PDF</span>':'<img src="'+esc(src(f))+'"'+(f.chemin&&f.url?' data-u="'+esc(f.url)+'" onerror="if(this.dataset.u){this.src=this.dataset.u;this.parentNode.href=this.dataset.u;this.removeAttribute(\'data-u\')}"':'')+' alt="'+esc(f.nom||"")+'" loading="lazy">')+'</a>').join("")+'</div></div>':"";
-  const txt=(titre,t)=>t?'<div class="rtx"><b>'+esc(titre)+' :</b> '+esc(t)+'</div>':"";
-  const m=r.mix;
-  const quand=r.recu_le?new Date(r.recu_le).toLocaleDateString("fr-FR",{day:"numeric",month:"long"}):"";
-  box.innerHTML='<summary>Retours du client sur la livraison précédente'+(quand?' <small>reçus le '+esc(quand)+'</small>':'')+'</summary><div class="rb">'+
-    (m?'<div class="rmix"><b>'+(m.derives!=null?m.derives+' dérivés des gagnantes · '+m.nouveaux+' nouveaux concepts':m.derives_pct+' % dérivés · '+m.nouveaux_pct+' % nouveaux concepts')+'</b></div>':'')+
-    imgs("Les créas qui ont le mieux marché",r.gagnantes)+
-    imgs("Les créas à ne pas refaire",r.perdantes)+
-    txt("Nouveau dans l'offre",r.offre)+
-    txt("À ne plus utiliser",r.interdits)+
-    imgs("Nouveaux visuels du client (à déposer dans les assets des créas)",r.nouveaux_visuels)+
-    imgs("Ses résultats publicitaires",r.captures)+
-    txt("À savoir",r.autre)+
-    (r.apres?'<a class="rprev" href="../'+esc(r.apres)+'/creas/" target="_blank" rel="noopener">Voir la livraison précédente</a>':'')+
-    '</div>';
+  const img=f=>'<a href="'+esc(src(f))+'" target="_blank" rel="noopener" title="'+esc(f.nom||"")+'">'+
+    '<img src="'+esc(src(f))+'"'+(f.chemin&&f.url?' data-u="'+esc(f.url)+'" onerror="if(this.dataset.u){this.src=this.dataset.u;this.parentNode.href=this.dataset.u;this.removeAttribute(\'data-u\')}"':'')+
+    ' alt="'+esc(f.nom||"")+'" loading="lazy"></a>';
+  box.innerHTML='<summary>Retours du client'+(g.length?' <small>'+g.length+' créa'+(g.length>1?'s':'')+' gagnante'+(g.length>1?'s':'')+'</small>':'')+'</summary>'+
+    '<div class="rb">'+(g.length?'<div class="rimgs">'+g.map(img).join("")+'</div>':'')+
+    '<a class="rvoir" href="../retours/?projet='+encodeURIComponent(dossier)+'" target="_blank" rel="noopener">Voir les retours ↗</a></div>';
   box.hidden=false;
 }
 

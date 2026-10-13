@@ -105,6 +105,8 @@ body.vide .aucun{display:block}
 body.vide .strip{display:none}
 body.vide .left{opacity:.38;pointer-events:none;user-select:none}
 body.vide .foot button{opacity:.38;pointer-events:none}
+.chip sup{font-size:10px;margin-left:1px;vertical-align:4px}
+.chip.v{width:auto;min-width:46px;padding:0 9px}
 .chip{flex:none;width:46px;height:36px;border:1px solid var(--line);border-radius:10px;
   background:var(--panel);color:var(--tx2);font-size:13px;font-variant-numeric:tabular-nums;
   cursor:pointer;transition:.12s}
@@ -286,6 +288,17 @@ body.envoyee .deja{display:block}
 .grp{display:flex;flex-direction:column;gap:12px;padding-top:4px}
 .grp+.grp{padding-top:16px;border-top:1px solid var(--line)}
 .defaut{font-size:12.5px;color:var(--tx3)}
+/* declinaisons de texte : plusieurs versions du texte sur le meme visuel */
+.vers{display:flex;flex-direction:column;gap:8px;padding-top:16px;border-top:1px solid var(--line)}
+.vchoix{display:flex;gap:6px;flex-wrap:wrap}
+.vchoix button{min-width:44px;padding:8px 12px;font-size:13.5px}
+.vchoix button.on{background:var(--tx);color:#fff;border-color:var(--tx)}
+.vaide{font-size:12.5px;color:var(--tx3);line-height:1.45}
+.vin{display:grid;grid-template-columns:22px minmax(0,1fr);gap:6px;align-items:center}
+.vin i{font-style:normal;font-size:12px;font-weight:600;color:var(--tx3);text-align:center}
+.vins{display:flex;flex-direction:column;gap:6px}
+.repr{display:flex;flex-direction:column;gap:7px;padding-top:16px;border-top:1px solid var(--line)}
+.repr select{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--panel);font-size:14px}
 
 /* idee libre */
 .moods{display:flex;gap:10px;flex-wrap:wrap}
@@ -527,6 +540,17 @@ const nb=()=>{
   if(PRJ&&PRJ.nb_creas)return PRJ.nb_creas;
   return +$("custom").value||0;
 };
+/* 13/10 : declinaisons de texte. Une crea « inspi » peut porter 2 a 4
+   versions de son texte sur le meme visuel : elle compte alors pour 2 a
+   4 creas. nb() reste le nombre de creas commandees ; nc() est le
+   nombre de cartes a remplir (les versions en prennent la place). */
+const MAX_VERSIONS = 4;
+const LETTRES = "ABCD";
+const versionsDe = i => { const d = data[i]; return d && d.mode !== "libre" && d.versions > 1 ? Math.min(MAX_VERSIONS, d.versions) : 1; };
+const nc = () => { const tot = nb(); let used = 0, cartes = 0;
+  while (used < tot) { cartes++; used += Math.min(versionsDe(cartes), tot - used); }
+  return cartes; };
+const placeDe = i => { let avant = 0; for (let j = 1; j < i; j++) avant += versionsDe(j); return avant; };
 // revenir à l'accueil, sans toucher aux brouillons enregistrés
 function accueil(){
   PRJ=null; data={}; AS=[]; cur=1;
@@ -655,7 +679,12 @@ function full(i){
   if (d.mode === "libre")
     return d.moods.length > 0 && d.lignes.some(l => (l.t || "").trim()) && !!(d.idee || "").trim();
   if (!d.ref) return false;
-  return Object.values(textesDe(d)).some(v => (v || "").trim());
+  const t = textesDe(d), V = versionsDe(i);
+  for (let v = 0; v < V; v++) {
+    const ok = Object.keys(t).some(k => (v ? k.endsWith("@" + v) : !k.includes("@")) && (t[k] || "").trim());
+    if (!ok) return false;
+  }
+  return true;
 }
 let selK = -1;   /* le numero selectionne dans la crea ouverte */
 const thumb=id=>{const b=BANK.find(x=>x.id===id);return b?b.src:null};
@@ -795,7 +824,7 @@ async function ouvre(dossier){
   const all=await dbAll();
   AS=all.filter(a=>a.dossier===dossier);
   cur=1;
-  const dn=nb();for(let i=1;i<=dn;i++)if(!full(i)){cur=i;break}
+  const dn=nc();for(let i=1;i<=dn;i++)if(!full(i)){cur=i;break}
   form();grid();strip();
   if(estEnvoyee(dossier))
     say("Cette fiche a déjà été reçue.","ko");
@@ -838,40 +867,72 @@ function grid(){
 
 
 function strip(){
-  const n=nb();let h="";
-  for(let i=1;i<=n;i++)h+='<button class="chip '+(i===cur?'on ':'')+(full(i)?'full':'')+'" data-i="'+i+'">'+String(i).padStart(2,"0")+'</button>';
+  const n=nb(),cartes=nc();let h="";
+  for(let i=1;i<=cartes;i++){const v=versionsDe(i);
+    h+='<button class="chip '+(v>1?'v ':'')+(i===cur?'on ':'')+(full(i)?'full':'')+'" data-i="'+i+'">'+String(i).padStart(2,"0")+(v>1?'<sup>×'+v+'</sup>':'')+'</button>';}
   $("strip").innerHTML=h;
   $("strip").querySelectorAll(".chip").forEach(c=>c.onclick=()=>{cur=+c.dataset.i;selK=-1;form();grid();strip()});
-  let c=0;for(let i=1;i<=n;i++)if(full(i))c++;
+  let c=0;for(let i=1;i<=cartes;i++)if(full(i))c+=versionsDe(i);
+  c=Math.min(c,n);
   $("count").textContent=c+" / "+n;
   $("jauge").style.width=(n?Math.round(c*100/n):0)+"%";
 }
 
 const FL = '<svg class="fl" viewBox="0 0 12 8" fill="none" aria-hidden="true"><path d="M1 1.5 6 6.5l5-5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
-function champ(s, k, v){
+const cleV = (k, v) => v ? k + "@" + v : String(k);
+function champ(s, k, t, V){
+  V = V || 1;
+  const un = vi => '<input id="s' + k + (vi ? '_' + vi : '') + '" data-k="' + k + '" data-v="' + vi + '" value="' + esc(t[cleV(k, vi)] || "") +
+    '" placeholder="' + (vi ? 'Vide = même texte que A' : esc(s.role)) + '">';
+  let ins = '';
+  if (V === 1) ins = un(0);
+  else { ins = '<div class="vins">'; for (let vi = 0; vi < V; vi++) ins += '<div class="vin"><i>' + LETTRES[vi] + '</i>' + un(vi) + '</div>'; ins += '</div>'; }
   return '<div class="slot' + (s.p ? '' : ' sec') + (k === selK ? ' sel' : '') + '" data-k="' + k + '">' +
     '<button type="button" class="n" data-k="' + k + '" tabindex="-1" aria-label="Emplacement ' + (k + 1) + '">' + (k + 1) + '</button>' +
-    '<div class="fld"><label for="s' + k + '">' + esc(s.role) + '</label>' +
-    '<input id="s' + k + '" data-k="' + k + '" value="' + esc(v || "") + '" placeholder="' + esc(s.role) + '">' +
+    '<div class="fld"><label for="s' + k + '">' + esc(s.role) + '</label>' + ins +
     (s.ex ? '<div class="orig">Original : « ' + esc(s.ex) + ' »</div>' : '') + '</div></div>';
+}
+
+/* reprendre les textes d une autre crea : meme type de texte, meme place */
+function zoneReprendre(){
+  const n = nc(); let o = '';
+  for (let i = 1; i <= n; i++) {
+    if (i === cur || !data[i]) continue;
+    const tx = textesPourEnvoi(crea(i)).filter(x => x.texte);
+    if (!tx.length) continue;
+    o += '<option value="' + i + '">Créa ' + String(i).padStart(2, "0") + ' · ' + esc(tx[0].texte.slice(0, 50)) + '</option>';
+  }
+  if (!o) return '';
+  return '<div class="repr"><span class="lbl"><b>Même texte qu\'une autre créa ?</b></span>' +
+    '<select id="repr"><option value="">Reprendre les textes de…</option>' + o + '</select></div>';
+}
+function zoneVersions(d){
+  const V = versionsDe(cur);
+  let b = '';
+  for (let v = 1; v <= MAX_VERSIONS; v++) b += '<button type="button" data-ver="' + v + '" class="' + (v === V ? 'on' : '') + '">' + (v === 1 ? '1 texte' : v + ' textes') + '</button>';
+  return '<div class="vers"><span class="lbl"><b>Déclinaisons de texte</b> · le même visuel, avec plusieurs textes</span>' +
+    '<div class="vchoix">' + b + '</div>' +
+    (V > 1 ? '<div class="vaide">Cette créa compte pour ' + V + ' créas. Le visuel est fait une seule fois, sans texte, et chaque version de texte est posée dessus. Un champ B, C ou D laissé vide reprend le texte de A.</div>' : '') +
+    '</div>';
 }
 
 function zoneInspi(d){
   if (!d.ref) return '<div class="vide-ref">Choisis une inspiration à droite.</div>';
   const bk = BANK.find(x => x.id === d.ref) || {};
   const sl = slotsDe(d.ref), t = textesDe(d), analysee = !!SLOTS[d.ref];
-  let dup = false; const n = nb();
+  let dup = false; const n = nc();
   for (let i = 1; i <= n; i++) if (i !== cur && data[i] && data[i].mode !== "libre" && data[i].ref === d.ref) dup = true;
   const pins = analysee ? sl.map((x, k) => x.x == null ? '' :
     '<button type="button" class="pin' + (x.p ? '' : ' sec') + (k === selK ? ' sel' : '') + '" data-k="' + k + '" style="left:' + x.x + '%;top:' + x.y + '%" aria-label="' + esc(x.role) + '">' + (k + 1) + '</button>').join("") : '';
   let h = '<div class="prev"><div class="prevhead"><b>' + esc(d.ref) + '</b><small>' + esc(nomFmt(bk.fmt)) + '</small>' +
     (dup ? '<span class="dup">déjà utilisée dans ce batch</span>' : '') + '</div>' +
     '<div class="stage"><div class="pinbox"><img src="' + esc(urlHD(d.ref) || bk.src) + '" data-mini="' + esc(bk.src || "") + '" alt="Inspiration ' + esc(d.ref) + '">' + pins + '</div></div></div>';
-  const prin = [], autres = [];
-  sl.forEach((x, k) => (x.p ? prin : autres).push(champ(x, k, t[k])));
+  const prin = [], autres = [], V = versionsDe(cur);
+  sl.forEach((x, k) => (x.p ? prin : autres).push(champ(x, k, t, V)));
   h += '<div class="grp"><span class="lbl"><b>Copywriting</b> · laisse vide si tu ne souhaites pas l\'afficher</span><div class="slots">' + prin.join("") + '</div></div>';
   if (autres.length) h += '<div class="grp"><span class="lbl"><b>Autres textes</b></span><div class="slots">' + autres.join("") + '</div></div>';
+  h += zoneVersions(d) + zoneReprendre();
   return h;
 }
 
@@ -898,6 +959,7 @@ function zoneLibre(d){
       '<input data-t="' + i + '" value="' + esc(l.t || "") + '" placeholder="Le texte" aria-label="Texte ' + (i + 1) + '">' +
       '<button type="button" class="x" data-del="' + i + '" aria-label="Supprimer ce texte">&times;</button></div>').join("") +
     '</div><button type="button" class="addline" id="addline">+ Ajouter un texte</button></div>';
+  h += zoneReprendre();
   return h;
 }
 
@@ -930,7 +992,7 @@ function form(){
       '<span class="sz">' + ko(a.size) + '</span><button class="x" data-id="' + a.id + '" title="Retirer">&times;</button></div>' }).join("");
   $("assets").querySelectorAll(".x").forEach(b => b.onclick = async () => {
     await dbDel(b.dataset.id); AS = AS.filter(a => a.id !== b.dataset.id); form() });
-  const n = nb();
+  const n = nc();
   $("prev").disabled = cur <= 1;
   const last = cur >= n;
   $("next").style.display = last ? "none" : "";
@@ -960,7 +1022,7 @@ const zone = $("zone");
 zone.addEventListener("input", e => {
   if (!PRJ) return;
   const c = crea(cur), t = e.target;
-  if (t.dataset.k !== undefined) textesDe(c)[t.dataset.k] = t.value;
+  if (t.dataset.k !== undefined) textesDe(c)[cleV(t.dataset.k, +(t.dataset.v || 0))] = t.value;
   else if (t.dataset.t !== undefined) c.lignes[+t.dataset.t].t = t.value;
   else if (t.dataset.lib !== undefined) c.lignes[+t.dataset.lib].lib = t.value;
   save(); etat();
@@ -971,6 +1033,8 @@ zone.addEventListener("click", e => {
   const c = crea(cur);
   const pin = e.target.closest(".pin, .slot .n");
   if (pin) { choisitK(+pin.dataset.k, false); return; }
+  const vb = e.target.closest("[data-ver]");
+  if (vb) { changeVersions(+vb.dataset.ver); return; }
   const rm = e.target.closest("[data-rm]");
   if (rm) { c.moods = c.moods.filter(m => m !== rm.dataset.rm); save(); form(); grid(); strip(); return; }
   const del = e.target.closest("[data-del]");
@@ -998,6 +1062,42 @@ zone.addEventListener("click", e => {
       r.querySelector(".rselbtn").focus();
     }
   }
+});
+
+function changeVersions(v){
+  const c = crea(cur), avant = c.versions || 1;
+  if (v === avant) return;
+  c.versions = v;
+  /* les cartes poussees hors du total doivent etre vides */
+  const n = nc(), tot = (() => { let x = 0; for (let i = 1; i <= n; i++) x += versionsDe(i); return x; })();
+  let perdues = [];
+  for (let i = n + 1; i <= nb(); i++) if (data[i] && full(i)) perdues.push(String(i).padStart(2, "0"));
+  if (perdues.length || placeDe(cur) + v > nb()) {
+    c.versions = avant;
+    say(perdues.length ? "Pas assez de place : la créa " + perdues.join(", ") + " n'est pas vide. Vide-la d'abord." :
+      "Pas assez de créas restantes pour " + v + " textes.", "ko");
+    form(); return;
+  }
+  save(); form(); strip();
+  say(v > 1 ? "Créa " + String(cur).padStart(2, "0") + " : " + v + " versions de texte, elle compte pour " + v + " créas." : "");
+}
+zone.addEventListener("change", e => {
+  if (e.target.id !== "repr" || !e.target.value || !PRJ) return;
+  const src = crea(+e.target.value), c = crea(cur);
+  const tx = textesPourEnvoi(src).filter(x => x.texte);
+  if (c.mode === "libre") {
+    c.lignes = tx.map(x => ROLES.includes(x.role) ? {role:x.role, t:x.texte} : {role:AUTRE, lib:x.role, t:x.texte});
+  } else {
+    if (!c.ref) { say("Choisis d'abord l'inspiration de cette créa.", "ko"); e.target.value = ""; return; }
+    const sl = slotsDe(c.ref), t = textesDe(c), pris = new Set(); let mis = 0;
+    sl.forEach((s, k) => {
+      const j = tx.findIndex((x, n) => !pris.has(n) && x.role === s.role);
+      if (j >= 0) { pris.add(j); t[k] = tx[j].texte; mis++; }
+    });
+    const reste = tx.filter((x, n) => !pris.has(n)).map(x => x.role);
+    say(mis + " texte" + (mis > 1 ? "s" : "") + " repris" + (reste.length ? ". Sans place équivalente ici : " + reste.join(", ") : "."), reste.length ? "ko" : "ok");
+  }
+  save(); form(); strip();
 });
 
 function ouvreRole(r){
@@ -1048,11 +1148,11 @@ $("back").onclick=()=>{$("done").hidden=true};
 $("done").onclick=e=>{if(e.target===$("done"))$("done").hidden=true};
 
 $("prev").onclick=()=>{if(cur>1){cur--;selK=-1;form();grid();strip()}};
-$("next").onclick=()=>{if(cur<nb()){cur++;selK=-1;form();grid();strip()}};
+$("next").onclick=()=>{if(cur<nc()){cur++;selK=-1;form();grid();strip()}};
 $("custom").oninput=()=>{
   if(!PRJ)return;
   PRJ.nb_creas=+$("custom").value||0;
-  if(cur>nb())cur=1;
+  if(cur>nc())cur=1;
   majEtat();form();strip();
 };
 $("projet").onchange=()=>{const v=$("projet").value;if(v)ouvre(v);else accueil()};
@@ -1079,18 +1179,20 @@ $("reset").onclick=async()=>{
 /* Chaque crea part avec la liste de ses textes, emplacement par
    emplacement. titre, sous_titre et cta restent remplis tant que
    VISUELS n a pas ete mis a jour. */
-function textesPourEnvoi(c){
+function textesPourEnvoi(c, vi){
+  vi = vi || 0;
   if (c.mode === "libre")
     return c.lignes.filter(l => (l.t || "").trim()).map((l, k) => ({n:k + 1,
       role:l.role === AUTRE ? ((l.lib || "").trim() || "Autre") : l.role,
       autre:l.role === AUTRE, texte:l.t.trim()}));
   if (!c.ref) return [];
   const t = textesDe(c);
-  return slotsDe(c.ref).map((s, k) => ({n:k + 1, role:s.role, texte:(t[k] || "").trim(),
+  /* une version vide a un emplacement reprend le texte de la version A */
+  return slotsDe(c.ref).map((s, k) => ({n:k + 1, role:s.role, texte:((vi ? (t[cleV(k, vi)] || "").trim() || t[k] : t[k]) || "").trim(),
     sur_inspi:s.ex || "", x:s.x == null ? null : s.x, y:s.y == null ? null : s.y}));
 }
 function lignes(){
-  const n = nb(), rows = [];
+  const n = nc(), rows = [];
   for (let i = 1; i <= n; i++){
     const c = data[i] ? crea(i) : {mode:"inspi", moods:[], lignes:[], tx:{}};
     const libre = c.mode === "libre";
@@ -1098,7 +1200,10 @@ function lignes(){
     const bk = ref ? BANK.find(x => x.id === ref) : null;
     const tx = textesPourEnvoi(c);
     const role = r => (tx.find(t => t.role === r && t.texte) || {}).texte || "";
+    const V = versionsDe(i), vers = [];
+    if (V > 1) for (let v = 0; v < V; v++) vers.push({lettre:LETTRES[v], textes:textesPourEnvoi(c, v)});
     rows.push({n:i, mode:libre ? "libre" : "inspi",
+      versions:V, sans_texte:V > 1, textes_versions:vers,
       reference:ref, inspirations:libre ? c.moods.slice() : [],
       textes:tx, idee_visuel:c.idee || "",
       titre:role("Titre"), sous_titre:role("Sous-titre"), cta:role("CTA"),
@@ -1166,7 +1271,7 @@ async function allege(blob){
 }
 
 async function envoie(code){
-  const n=nb();
+  const n=nc();
   const charge=charge_utile();
   charge.fichiers={};
   charge.code=code||"";
@@ -1223,7 +1328,7 @@ $("send").onclick=async()=>{
      !confirm("Cette fiche a déjà été reçue le "+jourFr(ENVOYEES[PRJ.dossier])+
               ".\nLa renvoyer relancera la production une deuxième fois."+
               "\n\nC'est le seul renvoi possible : après, seule Kreative pourra la débloquer.\n\nContinuer ?"))return;
-  const n=nb();let miss=[];
+  const n=nc();let miss=[];
   for(let i=1;i<=n;i++)if(!full(i))miss.push(String(i).padStart(2,"0"));
   if(miss.length&&!confirm("Crea "+miss.join(", ")+" incomplete(s).\nEnvoyer quand meme ?"))return;
   const code=TEST?"":codeKreative();
@@ -1255,7 +1360,7 @@ function b64(blob){return new Promise(r=>{const f=new FileReader();
   f.onload=()=>r(f.result);f.onerror=()=>r(null);f.readAsDataURL(blob)})}
 
 async function buildFiche(){
-  const n=nb(),client=(PRJ&&PRJ.brand_name)||"Client",
+  const n=nc(),client=(PRJ&&PRJ.brand_name)||"Client",
         dt=new Date().toLocaleDateString("fr-FR",{day:"2-digit",month:"long",year:"numeric"});
   let cards="";
   for(let i=1;i<=n;i++){
@@ -1268,7 +1373,8 @@ async function buildFiche(){
          :'<span class="tag warn">sans reference</span>')+
       '</header><div class="body"><div class="txt">'+
       (c.mode==='libre'?'<h3>Nouvelle idée · inspirations '+esc(c.moods.join(', '))+'</h3>':'')+
-      (tx.length?tx.map(t=>'<p><b>'+t.n+' · '+esc(t.role)+'</b> : '+esc(t.texte)+'</p>').join(''):'<p><i>aucun texte</i></p>')+
+      (versionsDe(i)>1?[...Array(versionsDe(i)).keys()].map(v=>'<h3>Version '+LETTRES[v]+'</h3>'+textesPourEnvoi(c,v).filter(t=>t.texte).map(t=>'<p><b>'+t.n+' · '+esc(t.role)+'</b> : '+esc(t.texte)+'</p>').join('')).join(''):
+      (tx.length?tx.map(t=>'<p><b>'+t.n+' · '+esc(t.role)+'</b> : '+esc(t.texte)+'</p>').join(''):'<p><i>aucun texte</i></p>'))+
       '<h3>Idee du visuel</h3><p>'+(c.idee?esc(c.idee):"<i>a definir</i>")+'</p>'+
       '<h3>Assets de cette crea</h3>'+
       (files.length?'<div class="as">'+files.map(f=>'<figure>'+
@@ -1307,7 +1413,7 @@ async function buildFiche(){
   '@media(max-width:720px){.body{flex-direction:column}.ref,.ref img{width:100%}}'+
   '</style></head><body><div class="w">'+
   '<h1>Fiche creas - '+esc(client)+'</h1>'+
-  '<p class="meta">'+n+' creas &middot; '+esc(dt)+'</p>'+cards+'</div>'+
+  '<p class="meta">'+nb()+' creas &middot; '+esc(dt)+'</p>'+cards+'</div>'+
   '<script type="application/json" id="fiche-creas">'+meta+'<\/script>'+
   '</body></html>';
 }

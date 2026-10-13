@@ -475,6 +475,10 @@ const urlDonnees  = d => "../" + d + "/donnees.json";
    l envoi, ou quand Kreative vide la liste, le lien ne lance plus rien. */
 const ID_TEST = (new URLSearchParams(location.search).get("test")||"").trim().toUpperCase();
 const TEST = new URLSearchParams(location.search).has("test");
+/* 14/10 : lien direct vers un projet, fiche/?projet=TURNLY_10_f665_L2
+   (envoye par n8n avec les retours du client). Ouvre ce projet meme
+   s il n est pas (ou plus) dans projets.json, si son dossier existe. */
+const PROJET_LIEN = (new URLSearchParams(location.search).get("projet")||"").replace(/[^A-Za-z0-9_]/g,"");
 const PROJET_TEST = /^[A-Z0-9]{6}$/.test(ID_TEST)
   ? {dossier:"TEST_"+ID_TEST, brand_name:"Turnly", nb_creas:6, pack:"starter"} : null;
 
@@ -795,9 +799,26 @@ async function chargeProjets(){
   if(!Array.isArray(PROJETS))
     return rate("projets.json doit contenir une liste.");
 
+  if(PROJET_LIEN && !PROJETS.some(p=>p&&p.dossier===PROJET_LIEN)){
+    try{
+      const x=await fetch(urlDonnees(PROJET_LIEN)+"?t="+Date.now(),{cache:"no-store"});
+      if(x.ok){const d=await x.json();
+        if(d&&d.dossier===PROJET_LIEN){const l=d.livraison;
+          PROJETS.unshift({dossier:PROJET_LIEN,
+            brand_name:(d.brand_name||PROJET_LIEN)+(l&&l.sur>1?" · livraison "+l.n+"/"+l.sur:""),
+            nb_creas:d.nb_creas||0,pack:d.pack||""})}}
+    }catch(e){}
+  }
+
   if(!PROJETS.length)
     return rate("projets.json est vide. Le moteur ecrira la liste au prochain dossier livre.");
   menu();
+  if(PROJET_LIEN && PROJETS.some(p=>p&&p.dossier===PROJET_LIEN)){
+    $("projet").value=PROJET_LIEN;
+    majLabel(); dessineSel();
+    await ouvre(PROJET_LIEN);
+    return;
+  }
   // On ne rouvre jamais un projet tout seul : la fiche s'ouvre
   // toujours sur « choisis un projet ».
   $("projet").value="";

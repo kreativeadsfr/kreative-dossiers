@@ -1,0 +1,30 @@
+name: Copier les images Meta
+on:
+  push:
+    branches: [main]
+    paths: ['*/index.html']
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: images-meta
+  cancel-in-progress: false
+jobs:
+  copier:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Copier les images dans le dépôt
+        run: python3 outils/rapatrier_meta.py
+      - name: Publier
+        run: |
+          git config user.name "kreative-bot"
+          git config user.email "kreative-bot@users.noreply.github.com"
+          git add -A '*/pubs/*' '*/index.html'
+          if git diff --cached --quiet; then echo "rien à publier"; exit 0; fi
+          git commit -m "images Meta copiées dans le dépôt"
+          for i in 1 2 3 4 5; do
+            git pull --rebase origin main && git push origin HEAD:main && exit 0
+            sleep 5
+          done
+          exit 1

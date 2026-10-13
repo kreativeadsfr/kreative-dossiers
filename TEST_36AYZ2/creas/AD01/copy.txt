@@ -1,0 +1,15 @@
+Créa 1 · Turnly
+
+1. Titre : Vos clients repartent contents. Mais combien laissent un avis ?
+2. CTA : Découvrir Turnly
+
+Idée du visuel : Reprendre la structure publicitaire d'AG1-01 : une accroche forte dans le tiers supérieur et une présentation visuelle du produit dans la partie inférieure.
+
+Remplacer entièrement l'univers MAËLYS par celui de Turnly. Mettre au centre un smartphone affichant la véritable interface de la roue Turnly (PJ04). Utiliser des cadrages complémentaires de cette même interface si nécessaire pour conserver la dynamique de la référence, sans inventer de fonctionnalités.
+
+Intégrer discrètement le logo Turnly (PJ07) et respecter les couleurs de la marque. Placer le CTA « Découvrir Turnly » dans un bouton bien visible.
+
+Le résultat doit être moderne, épuré et immédiatement compréhensible pour un commerçant. Aucun texte anglais, aucune statistique inventée, aucun faux avis Google et aucune promesse de récompense contre un avis.
+Référence      : AG1-01 · smartphone héro sur fond sombre
+
+Alerte : Une seule capture d'interface est jointe, et la règle limite à deux écrans lisibles : les trois cartes en éventail de la référence deviennent donc un seul smartphone central agrandi. Le bas de l'écran (onglets) se fond dans le fond pour garder la roue lisible dans le carré. Le mot pivot est en #3775FF plutôt qu'en #004AAB, illisible sur le fond marine très sombre. La consigne client « décalé / marrant » n'est pas exploitable sur cette structure produit en action.

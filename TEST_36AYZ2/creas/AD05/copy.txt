@@ -1,0 +1,9 @@
+Créa 5 · Turnly
+
+1. Message reçu 1 : J’ai pas le temps de demander des avis à chaque client.
+2. Message envoyé 1 : Et si vous mettiez simplement un QR Turnly sur votre comptoir ?
+
+Idée du visuel : Reprendre le format de conversation smartphone UG1-02. Utiliser une bulle reçue à gauche pour le premier message, puis une bulle envoyée à droite pour la réponse. Laisser le reste de l’écran vide, sans notifications, nom, avatar ni marque d’application. 
+
+Ne pas afficher de troisième texte. Le dialogue est une illustration publicitaire fictive, pas une capture de conversation authentique. Aucun logo Turnly.
+Référence      : UG1-02 · conversation smartphone native, deux bulles

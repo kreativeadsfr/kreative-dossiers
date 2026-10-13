@@ -1,0 +1,9 @@
+Créa 2 · Turnly
+
+1. Titre : 3 minutes pour installer. Zéro matériel.
+2. CTA : Essai gratuit 7 jours
+
+Idée du visuel : Même mise en page, capture du dashboard.
+Référence      : AG1-04 · titre, CTA, triptyque de cartes
+
+Alerte : Aucun asset n'est joint : il n'y a ni capture du dashboard demandée par l'idée du visuel, ni logo Turnly. Le bloc logos est donc retiré, et les trois cartes montrent une roue graphique Turnly générée sans texte plutôt qu'un faux dashboard. Déposer la capture du dashboard et le logo permettrait de suivre l'idée du stratégiste à la lettre.

@@ -1,0 +1,44 @@
+{
+ "dossier": "TURNLY_10_f665_L2",
+ "apres": "TURNLY_10_f665_L1",
+ "marque": "Turnly",
+ "recu_le": "2026-10-13T22:15:32.298Z",
+ "gagnantes": [
+  {
+   "chemin": "TURNLY_10_f665_L2/retour/gagnante-01.jpg",
+   "nom": "gagnante-roue.jpg"
+  },
+  {
+   "chemin": "TURNLY_10_f665_L2/retour/gagnante-02.png",
+   "nom": "gagnante-dashboard.png"
+  }
+ ],
+ "perdantes": [
+  {
+   "chemin": "TURNLY_10_f665_L2/retour/a-eviter-01.png",
+   "nom": "a-eviter.png"
+  }
+ ],
+ "captures": [
+  {
+   "chemin": "TURNLY_10_f665_L2/retour/capture-01.png",
+   "nom": "resultats.png"
+  }
+ ],
+ "nouveaux_visuels": [
+  {
+   "chemin": "TURNLY_10_f665_L2/retour/nouveau-visuel-01.png",
+   "nom": "nouveau.png"
+  }
+ ],
+ "offre": "TEST : nouvelle offre de lancement, 2 mois offerts sur l'abonnement annuel.",
+ "interdits": "TEST : ne plus parler de roue de la fortune.",
+ "autre": "TEST : ceci est un test automatique Kreative.",
+ "mix": {
+  "derives_pct": 70,
+  "nouveaux_pct": 30,
+  "nb_creas": 20,
+  "derives": 14,
+  "nouveaux": 6
+ }
+}

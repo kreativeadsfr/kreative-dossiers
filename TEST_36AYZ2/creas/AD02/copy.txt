@@ -1,0 +1,15 @@
+Créa 2 · Turnly
+
+1. Titre : Votre QR est prêt en quelques minutes. Sans équipe marketing.
+2. CTA : Tester gratuitement
+
+Idée du visuel : Conserver la structure d’AG1-03 avec une grande accroche en haut, un CTA contrasté juste en dessous et trois panneaux visuels dans la partie inférieure. Supprimer entièrement les marques MAËLYS et Statiq et leurs produits. 
+
+Afficher uniquement le logo Turnly dans la zone de marque supérieure. 
+
+Adapter les trois panneaux pour illustrer le parcours produit : à gauche, un QR code sur un chevalet de comptoir ; au centre, la véritable interface mobile Turnly (PJ02) ; à droite, la capture de la roue Turnly (PJ04). Garder des proportions cohérentes et une identité visuelle fidèle à Turnly. 
+
+Le titre et le CTA doivent rester dominants et faciles à lire sur mobile. Ne pas ajouter de textes supplémentaires, de témoignages, de chiffres inventés ni de promesse de récompense contre un avis.
+Référence      : AG1-03 · titre, CTA, deux écrans
+
+Alerte : Aucun asset ne montre le chevalet QR sur un comptoir demandé pour le panneau de gauche : il n'est pas inventé, et la structure passe de trois à deux panneaux. Pour rester lisibles, les deux captures sont coupées par les bords du cadre, comme les panneaux d'origine. La capture d'accueil (PJ02) affiche son propre grand titre et un second logo turnly, à surveiller pour ne pas concurrencer le titre.

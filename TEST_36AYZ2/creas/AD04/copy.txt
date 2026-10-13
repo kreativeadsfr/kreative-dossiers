@@ -1,0 +1,13 @@
+Créa 4 · Turnly
+
+1. Rubrique : Demander un avis, c'est gênant. Un QR sur le comptoir, c'est plus simple.
+2. Titre : NOTE DE COMPTOIR
+
+Idée du visuel : Reprendre la structure éditoriale d’UG6-01. Remplacer la photographie industrielle par une photo naturelle d’un comptoir de commerce de proximité, sans marque identifiable. 
+
+Supprimer toutes les mentions originales, notamment « NOUVELLES ÉCONOMIQUES ». Dans le petit emplacement numéroté 1, afficher « NOTE DE COMPTOIR ». Dans le grand bloc sombre inférieur, afficher le titre « Demander un avis, c’est gênant. Un QR sur le comptoir, c’est plus simple. » en caractères blancs, avec une légère mise en évidence de la deuxième phrase. 
+
+Conserver l’apparence d’une publication éditoriale spontanée, lisible sur mobile. Aucun logo, aucune étoile Google, aucun faux avis.
+Référence      : UG6-01 · faux post d'actualité éditorial
+
+Alerte : L'attribution des textes de la fiche était inversée par rapport à l'idée du visuel (la phrase longue dans la rubrique, « NOTE DE COMPTOIR » dans le titre). J'ai suivi l'idée du visuel : « NOTE DE COMPTOIR » dans la petite rubrique centrale, la phrase dans le grand titre du bas. Le titre est passé en capitales et découpé en quatre lignes pour respecter le style natif, les mots restant inchangés. La mention de média en haut à gauche est supprimée sans remplacement. La photo du comptoir est générée, générique et sans QR code, pour ne pas inventer le chevalet Turnly, qui n'est pas joint.

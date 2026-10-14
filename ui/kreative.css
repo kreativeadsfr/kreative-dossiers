@@ -1,0 +1,211 @@
+/* ============================================================
+   KREATIVE · DA COMMUNE DES PAGES
+   Une seule feuille pour toutes les pages : dossier de production,
+   page des retours, aperçu du designer, téléchargement.
+   Couleurs du site kreativeads.fr :
+     #f9f6f4 fond crème · #000000 texte · #4d94ff bleu · #1f1f1f sombre
+   Modifier ce fichier change toutes les pages d'un coup, y compris
+   les pages déjà publiées.
+   ============================================================ */
+@import url("https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;600;700&family=Inter:wght@400;500;600&display=swap");
+
+:root{
+  --k-bg:#f9f6f4; --k-ink:#000000; --k-blue:#4d94ff; --k-blue-h:#3584fb; --k-dark:#1f1f1f;
+  --k-pan:#ffffff; --k-soft:#efebe7; --k-soft-h:#e6e1dc; --k-blue-soft:#eaf2ff;
+  --k-line:#ebe5df; --k-line2:#ddd5cd;
+  --k-tx2:#4f4f4f; --k-tx3:#8b8580;
+  --k-r:22px; --k-r-s:14px;
+  --k-titre:"Inter Tight","Inter",-apple-system,"Segoe UI",sans-serif;
+  --k-texte:"Inter",-apple-system,"Segoe UI",sans-serif;
+  --k-ombre:0 1px 2px rgba(0,0,0,.04),0 8px 28px rgba(0,0,0,.04);
+  --k-halo:0 0 0 1px rgba(77,148,255,.35),0 8px 30px rgba(77,148,255,.16);
+  --k-mark:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%22-4%20-4%2096%20108%22%3E%3Cg%20fill%3D%22%23000000%22%20stroke%3D%22%23000000%22%20stroke-width%3D%225%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M43.2%200L56.2%206.5L32.6%2050.4L56.2%2092.7L43.2%20100L2.4%2075.9L0%2071V29L2.4%2024.1Z%22/%3E%3Cpath%20d%3D%22M67.6%2013L86.3%2023.9L88%2027.5L75.8%2050.4L88%2073L86.3%2076.4L67.6%2087.6L46.9%2050.4Z%22/%3E%3C/g%3E%3C/svg%3E");
+  --k-mark-blanc:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%22-4%20-4%2096%20108%22%3E%3Cg%20fill%3D%22%23ffffff%22%20stroke%3D%22%23ffffff%22%20stroke-width%3D%225%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M43.2%200L56.2%206.5L32.6%2050.4L56.2%2092.7L43.2%20100L2.4%2075.9L0%2071V29L2.4%2024.1Z%22/%3E%3Cpath%20d%3D%22M67.6%2013L86.3%2023.9L88%2027.5L75.8%2050.4L88%2073L86.3%2076.4L67.6%2087.6L46.9%2050.4Z%22/%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* ---------- base ---------- */
+body.k *,body.k *::before,body.k *::after{box-sizing:border-box}
+html body.k{margin:0;background:var(--k-bg);color:var(--k-ink);font-family:var(--k-texte);
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+body.k ::selection{background:var(--k-blue);color:#fff}
+body.k h1,body.k h2,body.k h3{font-family:var(--k-titre);letter-spacing:-.02em;color:var(--k-ink)}
+body.k a{color:inherit}
+
+/* ---------- le logo ---------- */
+.k-logo{display:inline-flex;align-items:center;gap:7px;text-decoration:none;color:var(--k-ink);
+  font:700 19px/1 var(--k-titre);letter-spacing:-.035em;white-space:nowrap}
+.k-logo::before{content:"";width:19px;height:21px;background:var(--k-mark) center/contain no-repeat;flex:none}
+
+/* ---------- l'en-tête en pilule, comme le menu du site ---------- */
+.k-top{position:sticky;top:14px;z-index:20;max-width:1060px;margin:16px auto 0;
+  display:flex;align-items:center;gap:18px;padding:12px 14px 12px 26px;
+  background:rgba(255,255,255,.92);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-radius:999px;box-shadow:var(--k-halo)}
+.k-top-t{font-size:14px;color:var(--k-tx2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.k-top-t b{color:var(--k-ink);font-weight:600}
+.k-top .k-btn,.k-top .k-btn2{margin-left:auto}
+
+/* ---------- boutons ---------- */
+.k-btn,body.k .tout,body.k .dl,body.k .go{display:inline-flex;align-items:center;justify-content:center;gap:9px;
+  padding:12px 22px;border:0;border-radius:999px;background:var(--k-blue);color:#fff !important;
+  font:500 14.5px/1.1 var(--k-texte);letter-spacing:-.01em;text-decoration:none;cursor:pointer;
+  transition:background .15s,transform .15s;white-space:nowrap}
+.k-btn::after,body.k .tout::after,body.k .dl::after{content:"→";font-size:15px;transition:transform .15s}
+.k-btn:hover,body.k .tout:hover:not(:disabled),body.k .dl:hover{background:var(--k-blue-h)}
+.k-btn:hover::after,body.k .tout:hover:not(:disabled)::after,body.k .dl:hover::after{transform:translateX(3px)}
+body.k .tout:disabled{opacity:.55;cursor:default}
+.k-btn2,body.k .adlib-b,body.k .lien{display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:11px 20px;border:0;border-radius:999px;background:var(--k-soft);color:var(--k-ink) !important;
+  font:500 14px/1.1 var(--k-texte);text-decoration:none;cursor:pointer;transition:background .15s;white-space:nowrap}
+.k-btn2:hover,body.k .adlib-b:hover,body.k .lien:hover{background:var(--k-soft-h);transform:none}
+
+/* ---------- titres de section : la pastille bleue ---------- */
+body.k .sh{display:flex;align-items:center;gap:14px;margin-bottom:22px}
+body.k .sh .n{flex:none;width:30px;height:30px;border-radius:999px;background:var(--k-blue);color:#fff;
+  font:600 12.5px/1 var(--k-texte);display:flex;align-items:center;justify-content:center;font-variant-numeric:tabular-nums}
+body.k .sh h2{font:600 30px/1.1 var(--k-titre);letter-spacing:-.022em;margin:0}
+
+/* ============================================================
+   DOSSIER DE PRODUCTION (et page des retours, qui le reprend)
+   ============================================================ */
+body.k-dossier{font-size:15px;line-height:1.6}
+body.k-dossier .head{position:sticky;top:0;z-index:20;padding:14px 20px 0;background:linear-gradient(var(--k-bg) 70%,rgba(249,246,244,0))}
+body.k-dossier .top{background:rgba(255,255,255,.94);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  color:var(--k-ink);max-width:1060px;margin:0 auto;padding:12px 26px;border-radius:999px;box-shadow:var(--k-halo)}
+body.k-dossier .top .in{max-width:none;display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:nowrap}
+body.k-dossier .top h1{display:flex;align-items:center;gap:12px;font:600 19px/1.1 var(--k-titre);letter-spacing:-.025em;
+  margin:0;color:var(--k-ink);min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body.k-dossier .top h1::before{content:"";flex:none;width:20px;height:22px;background:var(--k-mark) center/contain no-repeat}
+body.k-dossier .top .infos{font-size:13.5px;color:var(--k-tx2);white-space:nowrap}
+body.k-dossier nav{background:transparent;border:0;backdrop-filter:none}
+body.k-dossier nav .in{max-width:1060px;margin:10px auto 0;padding:0 6px;display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+body.k-dossier nav a{color:var(--k-ink);font-size:13.5px;font-weight:500;padding:8px 14px;border-radius:999px;border:0;margin:0;
+  background:transparent;transition:background .15s,color .15s}
+body.k-dossier nav a:hover{background:var(--k-pan);color:var(--k-blue);border:0}
+body.k-dossier .wrap{max-width:1060px;margin:0 auto;padding:0 32px 100px}
+body.k-dossier section{padding-top:56px;scroll-margin-top:120px}
+body.k-dossier .card{background:var(--k-pan);border:1px solid var(--k-line);border-radius:var(--k-r);padding:8px 32px;box-shadow:var(--k-ombre)}
+body.k-dossier .sitecard{display:flex;align-items:center;justify-content:space-between;gap:18px;background:var(--k-pan);
+  border:1px solid var(--k-line);border-radius:var(--k-r);padding:22px 22px 22px 30px;text-decoration:none;box-shadow:var(--k-ombre);transition:box-shadow .15s}
+body.k-dossier .sitecard:hover{box-shadow:var(--k-halo)}
+body.k-dossier .sitecard .u{font:600 24px/1.2 var(--k-titre);letter-spacing:-.03em}
+body.k-dossier .qa{display:grid;grid-template-columns:210px 1fr;gap:28px;padding:24px 0;border-bottom:1px solid var(--k-line)}
+body.k-dossier .qa:last-child{border-bottom:0}
+body.k-dossier .qa h3{margin:0;font:600 15.5px/1.4 var(--k-titre);letter-spacing:-.005em}
+body.k-dossier .qa .rep{margin:0;font-size:15.5px;line-height:1.75;color:var(--k-tx2);white-space:pre-wrap}
+body.k-dossier .qa .rep strong{color:var(--k-ink)}
+body.k-dossier .vide,body.k-dossier .def{color:var(--k-tx3)}
+body.k-dossier .def b{color:var(--k-tx2)}
+body.k-dossier .shelf{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+body.k-dossier .thumb,body.k-dossier .asset{background:var(--k-pan);border:1px solid var(--k-line);border-radius:18px;overflow:hidden;box-shadow:var(--k-ombre);transition:box-shadow .15s,transform .15s}
+body.k-dossier a.thumb:hover,body.k-dossier .asset:hover{box-shadow:var(--k-halo);transform:translateY(-2px);border-color:var(--k-line)}
+body.k-dossier .thumb .ph,body.k-dossier .asset .ph{background:var(--k-soft)}
+body.k-dossier .thumb .cap,body.k-dossier .asset .cap{color:var(--k-tx2)}
+body.k-dossier .thumb .cap b,body.k-dossier .asset .cap b{color:var(--k-ink)}
+body.k-dossier .asset .cap small{color:var(--k-blue);font-weight:500}
+body.k-dossier .age{color:var(--k-tx3)}
+body.k-dossier .sub{color:var(--k-ink);font-weight:600;font-size:13px;letter-spacing:.01em}
+body.k-dossier .sub::after{background:var(--k-line2)}
+body.k-dossier .sh .dl{margin-left:auto}
+body.k-dossier .adlib{background:var(--k-pan);border:1px solid var(--k-line);border-radius:var(--k-r);padding:20px 22px 20px 26px;box-shadow:var(--k-ombre)}
+body.k-dossier .adlib p{opacity:1;color:var(--k-tx2)}
+@media(max-width:900px){body.k-dossier .shelf{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:720px){
+  body.k-dossier .head{padding:10px 12px 0}
+  body.k-dossier .top{padding:10px 18px;border-radius:22px}
+  body.k-dossier .top .in{flex-wrap:wrap;gap:4px 14px}
+  body.k-dossier .top h1{font-size:17px}
+  body.k-dossier nav .in{flex-wrap:nowrap;overflow-x:auto;justify-content:flex-start;scrollbar-width:none}
+  body.k-dossier nav .in::-webkit-scrollbar{display:none}
+  body.k-dossier .wrap{padding:0 16px 80px}
+  body.k-dossier .sh h2{font-size:24px}
+  body.k-dossier .qa{grid-template-columns:1fr;gap:8px;padding:20px 0}
+  body.k-dossier .card{padding:6px 20px}
+  body.k-dossier .shelf{grid-template-columns:repeat(2,1fr)}
+  body.k-dossier .sitecard{flex-direction:column;align-items:flex-start;padding:20px}
+}
+
+/* ---------- page des retours (en plus du dossier) ---------- */
+body.k-retours .liens{display:flex;gap:8px;flex-wrap:wrap;margin-top:34px}
+body.k-retours .mix .bloc{border-radius:var(--k-r);border:1px solid var(--k-line);box-shadow:var(--k-ombre)}
+body.k-retours .mix .nb{font-family:var(--k-titre);letter-spacing:-.04em;color:var(--k-ink)}
+body.k-retours .mix .bloc:first-child .nb{color:var(--k-blue)}
+body.k-retours .barre{background:var(--k-soft)}
+body.k-retours .barre i{background:var(--k-blue)} body.k-retours .barre i+i{background:var(--k-dark)}
+body.k-retours .thumb .ph{background:#fff}
+
+/* ============================================================
+   APERÇU DU DESIGNER (creas/index.html)
+   ============================================================ */
+body.k-apercu{margin:0;font-size:15px;line-height:1.55}
+body.k-apercu .w{max-width:1060px;margin:0 auto;padding:0 24px 90px}
+body.k-apercu header.h{display:flex;align-items:flex-end;gap:20px;flex-wrap:wrap;margin:46px 0 28px}
+body.k-apercu h1{font:600 44px/1.02 var(--k-titre);letter-spacing:-.045em;margin:0}
+body.k-apercu h1 em{font-style:normal;color:var(--k-blue)}
+body.k-apercu .meta{color:var(--k-tx2);font-size:15px;margin:10px 0 0}
+body.k-apercu .meta b{color:var(--k-ink);font-weight:600}
+body.k-apercu header.h .tout{margin-left:auto}
+body.k-apercu .kit,body.k-apercu .c{background:var(--k-pan);border:1px solid var(--k-line);border-radius:var(--k-r);box-shadow:var(--k-ombre)}
+body.k-apercu .kit{padding:22px 26px;margin:0 0 18px}
+body.k-apercu .kit h3,body.k-apercu .liv h3{margin:0 0 4px;font:600 19px/1.2 var(--k-titre);letter-spacing:-.025em}
+body.k-apercu .kith{margin:0 0 16px;color:var(--k-tx2);font-size:14px}
+body.k-apercu .kitl{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;margin:0 0 10px}
+body.k-apercu .kitt{font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--k-tx3);min-width:58px}
+body.k-apercu .font b,body.k-apercu .col b{font-weight:600}
+body.k-apercu .font i,body.k-apercu .col i{color:var(--k-tx2);font-style:normal;font-size:13.5px}
+body.k-apercu .col{display:inline-flex;align-items:center;gap:8px;padding:5px 12px 5px 5px;background:var(--k-bg);border-radius:999px}
+body.k-apercu .sw{width:24px;height:24px;border-radius:999px;border:1px solid rgba(0,0,0,.08);display:inline-block}
+body.k-apercu .c{display:grid;grid-template-columns:340px 1fr;gap:30px;padding:22px;margin-bottom:16px}
+body.k-apercu .c.ko{box-shadow:0 0 0 2px var(--k-blue)}
+body.k-apercu .im img{width:100%;border-radius:var(--k-r-s);display:block;border:1px solid var(--k-line)}
+body.k-apercu .vide{aspect-ratio:1;border-radius:var(--k-r-s);background:var(--k-soft);display:flex;align-items:center;justify-content:center;color:var(--k-tx3);font-size:13px}
+body.k-apercu .tx{display:flex;flex-direction:column;align-items:flex-start;padding-top:4px}
+body.k-apercu .num{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;letter-spacing:.06em;color:var(--k-blue);
+  background:var(--k-blue-soft);padding:5px 11px;border-radius:999px;margin-bottom:16px}
+body.k-apercu h2{font:600 25px/1.2 var(--k-titre);letter-spacing:-.02em;margin:0 0 10px}
+body.k-apercu .sub{margin:0 0 16px;color:var(--k-tx2);font-size:16px}
+body.k-apercu .cta{display:inline-flex;margin:0;padding:10px 18px;background:var(--k-ink);color:#fff;border-radius:999px;font-size:14px;font-weight:500}
+body.k-apercu .vnote{margin:0 0 14px;color:var(--k-tx2);font-size:14px}
+body.k-apercu .vtab{display:flex;flex-direction:column;gap:10px;width:100%}
+body.k-apercu .vrow{display:flex;flex-direction:column;gap:4px;padding:12px 16px;background:var(--k-bg);border-radius:var(--k-r-s)}
+body.k-apercu .vrow b{font-size:12.5px;letter-spacing:.04em}
+body.k-apercu .vrow span{font-size:14.5px}
+body.k-apercu .vrow i{font-style:normal;color:var(--k-tx3);font-size:12px;margin-right:6px}
+/* la livraison : le bandeau sombre du site */
+body.k-apercu .liv{background:var(--k-dark);color:#fff;border-radius:28px;padding:34px 34px 30px;margin:26px 0 0;border:0}
+body.k-apercu .liv h3{color:#fff;font-size:28px;letter-spacing:-.035em;margin-bottom:8px}
+body.k-apercu .liv h3::before{content:"";display:inline-block;width:22px;height:24px;margin-right:10px;vertical-align:-3px;background:var(--k-mark-blanc) center/contain no-repeat}
+body.k-apercu .livh{margin:0 0 14px;color:rgba(255,255,255,.72);font-size:14px;max-width:760px}
+body.k-apercu .livfmt{margin:0 0 14px;padding-left:18px;color:rgba(255,255,255,.82);font-size:14px;line-height:1.8}
+body.k-apercu .livfmt b{color:#fff}
+body.k-apercu .livfmt code{font-size:12.5px;background:rgba(255,255,255,.1);color:#fff;padding:2px 7px;border-radius:6px}
+body.k-apercu .liv input,body.k-apercu .liv textarea{display:block;width:100%;font:inherit;font-size:14.5px;padding:14px 18px;
+  border:1px solid rgba(255,255,255,.14);border-radius:16px;margin:0 0 10px;background:rgba(255,255,255,.06);color:#fff;outline:0}
+body.k-apercu .liv input::placeholder,body.k-apercu .liv textarea::placeholder{color:rgba(255,255,255,.45)}
+body.k-apercu .liv input:focus,body.k-apercu .liv textarea:focus{border-color:var(--k-blue)}
+body.k-apercu .liv .tout{margin:6px 0 0}
+body.k-apercu .etatliv{margin:12px 0 0;font-size:14px;color:rgba(255,255,255,.8);min-height:18px}
+@media(max-width:780px){
+  body.k-apercu .w{padding:0 16px 70px}
+  body.k-apercu h1{font-size:34px}
+  body.k-apercu .c{grid-template-columns:1fr;gap:18px;padding:16px}
+  body.k-apercu header.h .tout{margin-left:0}
+  body.k-apercu .liv{padding:26px 20px;border-radius:22px}
+  .k-top{margin:10px 10px 0;padding:10px 10px 10px 18px;gap:12px}
+  .k-top-t{display:none}
+}
+
+/* ============================================================
+   TÉLÉCHARGEMENT (creas/telecharger.html)
+   ============================================================ */
+body.k-telech{margin:0;min-height:100vh;display:flex;flex-direction:column}
+body.k-telech .boite{max-width:480px;width:calc(100% - 32px);margin:14vh auto 40px;text-align:center;background:var(--k-pan);
+  border:1px solid var(--k-line);border-radius:28px;padding:44px 34px 34px;box-shadow:var(--k-ombre)}
+body.k-telech .boite::before{content:"";display:block;width:44px;height:48px;margin:0 auto 18px;background:var(--k-mark) center/contain no-repeat}
+body.k-telech .boite h1{font:600 34px/1.05 var(--k-titre);letter-spacing:-.04em;margin:0 0 8px}
+body.k-telech .boite p{color:var(--k-tx2);font-size:15px;margin:0 0 26px}
+body.k-telech .etat{font-size:13.5px;color:var(--k-tx3);min-height:20px;margin-top:16px}
+body.k-telech .lien{margin-top:20px}
+
+/* le lien « signaler un visuel » de l'aperçu */
+body.k-apercu .tx a[href="#"],body.k-apercu .tx button.sig,body.k-apercu .tx .signaler{color:var(--k-tx3)}

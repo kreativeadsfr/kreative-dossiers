@@ -12,17 +12,17 @@
   var css = document.createElement('style');
   css.textContent =
     '.sig{margin-top:auto;padding-top:18px;width:100%}' +
-    '.sig-b{background:none;border:0;padding:0;color:#9E9B92;font:inherit;font-size:13px;text-decoration:underline;cursor:pointer}' +
-    '.sig-b:hover{color:#0A1B33}' +
-    '.sig-f{border:1px solid #E4E1D8;border-radius:12px;padding:14px 16px;margin-top:10px;background:#FAF9F6}' +
+    '.sig-b{background:none;border:0;padding:0;color:#8b8580;font:inherit;font-size:13px;text-decoration:underline;cursor:pointer}' +
+    '.sig-b:hover{color:#4d94ff}' +
+    '.sig-f{border:1px solid #ebe5df;border-radius:12px;padding:14px 16px;margin-top:10px;background:#f9f6f4}' +
     '.sig-t{margin:0 0 8px;font-size:13.5px;font-weight:600}' +
-    '.sig-f label{display:block;font-size:13.5px;color:#5D6472;margin:4px 0;cursor:pointer}' +
-    '.sig-f textarea{width:100%;margin-top:8px;border:1px solid #E4E1D8;border-radius:9px;padding:8px 10px;font:inherit;font-size:13.5px;resize:vertical;box-sizing:border-box}' +
+    '.sig-f label{display:block;font-size:13.5px;color:#4f4f4f;margin:4px 0;cursor:pointer}' +
+    '.sig-f textarea{width:100%;margin-top:8px;border:1px solid #ebe5df;border-radius:9px;padding:8px 10px;font:inherit;font-size:13.5px;resize:vertical;box-sizing:border-box}' +
     '.sig-a{display:flex;gap:10px;margin-top:10px}' +
-    '.sig-e{padding:8px 14px;border:0;border-radius:9px;background:#0A1B33;color:#fff;font:inherit;font-size:13.5px;cursor:pointer}' +
+    '.sig-e{padding:8px 14px;border:0;border-radius:999px;background:#4d94ff;color:#fff;font:inherit;font-size:13.5px;cursor:pointer}' +
     '.sig-e:disabled{opacity:.55;cursor:default}' +
-    '.sig-x{background:none;border:0;color:#9E9B92;font:inherit;font-size:13.5px;cursor:pointer}' +
-    '.sig-r{margin:10px 0 0;font-size:13.5px;color:#5D6472}';
+    '.sig-x{background:none;border:0;color:#8b8580;font:inherit;font-size:13.5px;cursor:pointer}' +
+    '.sig-r{margin:10px 0 0;font-size:13.5px;color:#4f4f4f}';
   document.head.appendChild(css);
 
   var MOTIFS = [

@@ -14,7 +14,7 @@
 <style>
 :root{
   --bg:#f9f6f4; --panel:#FFFFFF; --panel2:#efebe7; --line:#ebe5df;
-  --tx:#000000; --tx2:#4f4f4f; --tx3:#8b8580; --ok:#4d94ff; --blue:#4d94ff; --blue-h:#3584fb; --dark:#1f1f1f;
+  --tx:#1f1f1f; --tx2:#4f4f4f; --tx3:#8b8580; --ok:#4d94ff; --blue:#4d94ff; --blue-h:#3584fb; --dark:#1f1f1f;
   --gut:30px; --thumb:158px;
   box-sizing:border-box;
   padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
@@ -402,6 +402,12 @@ button.p:hover:not(:disabled){background:var(--blue-h);border-color:var(--blue-h
 .ov{background:rgba(31,31,31,.55)}
 .ov .box{border-radius:24px}
 .foot .msg.ok{color:var(--blue)}
+#reprsel{display:block}
+#reprsel .selbtn{width:100%;min-width:0;max-width:none;border-radius:14px;background:var(--panel)}
+#reprsel .selpan{width:100%;max-width:none}
+#reprsel.ouvert .selbtn{border-color:var(--blue);box-shadow:0 0 0 3px rgba(77,148,255,.18)}
+.bar1 h1{font-size:27px;letter-spacing:-.03em;line-height:1.1}
+.bar1 h1::after{display:none}
 </style>
 </head>
 <body>
@@ -685,6 +691,17 @@ document.addEventListener("keydown",e=>{
     return;
   }
   if(e.key==="Enter"&&i>=0){e.preventDefault();opts[i].click()}
+});
+
+/* le menu « Reprendre les textes de… » */
+document.addEventListener("click",e=>{
+  const sel=$("reprsel"); if(!sel)return;
+  const btn=e.target.closest("#reprbtn"), opt=e.target.closest("#reprpan .selopt");
+  const pan=$("reprpan");
+  if(btn){const ouvrir=pan.hidden;pan.hidden=!ouvrir;sel.classList.toggle("ouvert",ouvrir);btn.setAttribute("aria-expanded",String(ouvrir));return}
+  if(opt){const s=$("repr");s.value=opt.dataset.v;pan.hidden=true;sel.classList.remove("ouvert");
+    s.dispatchEvent(new Event("change",{bubbles:true}));return}
+  if(!sel.contains(e.target)){pan.hidden=true;sel.classList.remove("ouvert")}
 });
 
 function say(t,k){const m=$("msg");m.textContent=t||"";m.className="msg"+(k?" "+k:"")}
@@ -983,16 +1000,24 @@ function champ(s, k, t, V){
 
 /* reprendre les textes d une autre crea : meme type de texte, meme place */
 function zoneReprendre(){
-  const n = nc(); let o = '';
+  const n = nc(); let o = '', li = '';
   for (let i = 1; i <= n; i++) {
     if (i === cur || !data[i]) continue;
     const tx = textesPourEnvoi(crea(i)).filter(x => x.texte);
     if (!tx.length) continue;
     o += '<option value="' + i + '">Créa ' + String(i).padStart(2, "0") + ' · ' + esc(tx[0].texte.slice(0, 50)) + '</option>';
+    li += '<div class="selopt" role="option" data-v="' + i + '"><span class="nm">Créa ' + String(i).padStart(2, "0") + '</span>' +
+      '<span class="meta">' + esc(tx[0].texte.slice(0, 44)) + (tx[0].texte.length > 44 ? '…' : '') + '</span></div>';
   }
   if (!o) return '';
+  /* 14/10 : le select reste la source (son « change » recopie les textes),
+     mais il est cache ; on affiche le meme menu maison que celui des projets */
   return '<div class="repr"><span class="lbl"><b>Même texte qu\'une autre créa ?</b></span>' +
-    '<select id="repr"><option value="">Reprendre les textes de…</option>' + o + '</select></div>';
+    '<select id="repr" hidden><option value="">Reprendre les textes de…</option>' + o + '</select>' +
+    '<div class="sel" id="reprsel"><button class="selbtn rien" id="reprbtn" type="button" aria-haspopup="listbox" aria-expanded="false">' +
+    '<span class="lab">Reprendre les textes de…</span>' +
+    '<svg class="fl" viewBox="0 0 12 8" fill="none" aria-hidden="true"><path d="M1 1.5 6 6.5l5-5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+    '</button><div class="selpan" id="reprpan" role="listbox" hidden>' + li + '</div></div></div>';
 }
 function zoneVersions(d){
   const V = versionsDe(cur);

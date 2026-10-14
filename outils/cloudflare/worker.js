@@ -78,13 +78,64 @@ async function traiter(req, env, ctx) {
   if (PUBLICS.test(chemin)) return servir(chemin.slice(1), env, ctx, { brut: false, origine: url.origin, req });
 
   // ---------- tout le reste : connecté seulement ----------
+  const page = /\.html?$|\/$/.test(chemin) || !/\.[a-z0-9]{1,5}$/i.test(chemin);
   const qui = await session(req, env);
   if (!qui) {
-    const page = /\.html?$|\/$/.test(chemin) || !/\.[a-z0-9]{1,5}$/i.test(chemin);
-    if (page) return new Response(null, { status: 302, headers: { 'Location': '/_connexion?suite=' + encodeURIComponent(chemin + url.search), 'Cache-Control': 'no-store' } });
+    if (page) return redirection('/_connexion?suite=' + encodeURIComponent(chemin + url.search));
     return texte('Connexion requise', 401);
   }
-  return servir(chemin.slice(1), env, ctx, { brut: false, origine: url.origin, req });
+
+  // chacun arrive dans son espace
+  const accueil = ACCUEILS[qui.role];
+  if (chemin === '/' || chemin === '/index.html') return redirection(accueil);
+  if (chemin === '/_moi') return json({ nom: qui.nom, role: qui.role, accueil });
+  if (chemin === '/_admin/dossiers.json') {
+    if (qui.role !== 'admin') return texte('Accès refusé', 403);
+    return listeDossiers(env);
+  }
+
+  // chacun ne voit que ce qui le concerne
+  if (!autorise(qui.role, chemin)) {
+    if (page) return redirection(accueil);
+    return texte('Accès refusé', 403);
+  }
+  return servir(chemin.slice(1), env, ctx, { brut: false, origine: url.origin, req, qui });
+}
+
+// ============================================================
+//  LES RÔLES
+//    admin       : tout, plus le tableau de bord /admin/
+//    strategiste : son espace, la fiche, les dossiers, les retours,
+//                  l'aperçu des livraisons ; pas l'espace designer
+//    designer    : son espace et l'aperçu / téléchargement de ses
+//                  projets ; ni la fiche, ni les dossiers, ni les retours
+// ============================================================
+const ACCUEILS = { admin: '/admin/', strategiste: '/strategiste/', designer: '/designer/' };
+const DESIGNER_OK = /^\/(designer\/.*|[A-Za-z0-9_-]+\/creas\/.*|projets\.json|[A-Za-z0-9_-]+\/(donnees|envois|livraison)\.json|signaler\.js|ui\/.*|favicon-\d+\.png|logo-kreative\.png)$/;
+function autorise(role, chemin) {
+  if (role === 'admin') return true;
+  if (/^\/(admin|_admin)(\/|$)/.test(chemin)) return false;
+  if (role === 'designer') return DESIGNER_OK.test(chemin) || chemin === '/designer';
+  if (role === 'strategiste') return !/^\/designer(\/|$)/.test(chemin);
+  return false;
+}
+
+// la liste de tous les dossiers du dépôt (tableau de bord)
+async function listeDossiers(env) {
+  const api = (env.GITHUB_API || 'https://api.github.com').replace(/\/$/, '');
+  const r = await fetch(api + '/repos/' + DEPOT + '/contents/?ref=' + BRANCHE, { headers: {
+    'Authorization': 'Bearer ' + (env.GITHUB_TOKEN || ''), 'Accept': 'application/vnd.github+json',
+    'User-Agent': 'kreative-espace', 'X-GitHub-Api-Version': '2022-11-28' } });
+  if (!r.ok) return json({ erreur: r.status }, 502);
+  const liste = (await r.json()).filter(x => x.type === 'dir' && /^[A-Z0-9][A-Za-z0-9_]+$/.test(x.name)).map(x => x.name);
+  return json(liste);
+}
+
+function redirection(lieu) {
+  return new Response(null, { status: 302, headers: { 'Location': lieu, 'Cache-Control': 'no-store' } });
+}
+function json(o, statut) {
+  return new Response(JSON.stringify(o), { status: statut || 200, headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' } });
 }
 
 // ============================================================
@@ -119,7 +170,16 @@ async function servir(chemin, env, ctx, o) {
   }
 
   const r = await lireGithub(fichier, env, 'GET');
-  if (r.status === 404) return texte(o.brut ? 'Introuvable' : 'Page introuvable', 404);
+  if (r.status === 404) {
+    if (o.brut || !/^text\/html/.test(type)) return texte('Introuvable', 404);
+    const en = o.qui && o.qui.role === 'designer';
+    return new Response('<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">' +
+      '<title>Kreative</title><link rel="stylesheet" href="/ui/kreative.css"></head><body class="k" style="display:flex;min-height:100vh;align-items:center;justify-content:center;padding:24px">' +
+      '<div style="text-align:center"><h1 style="font-size:34px;margin:0 0 10px">' + (en ? 'Page not found' : 'Page introuvable') + '</h1>' +
+      '<p style="color:#4f4f4f;margin:0 0 22px">' + (en ? 'This page does not exist or is no longer online.' : 'Cette page n\'existe pas ou n\'est plus en ligne.') + '</p>' +
+      '<a class="k-btn" href="' + (o.qui ? ACCUEILS[o.qui.role] : '/') + '">' + (en ? 'My projects' : 'Retour à mon espace') + '</a></div></body></html>',
+      { status: 404, headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' } });
+  }
   if (!r.ok) return texte('GitHub ne répond pas (' + r.status + ')', 502);
 
   const entetes = new Headers({
@@ -137,7 +197,7 @@ async function servir(chemin, env, ctx, o) {
 
   // les pages : les anciens liens GitHub deviennent ce site
   const base = o.origine + '/';
-  if (/^text\/html/.test(type)) return reecrireHtml(new Response(r.body, { status: 200, headers: entetes }), base);
+  if (/^text\/html/.test(type)) return reecrireHtml(new Response(r.body, { status: 200, headers: entetes }), base, barre(o.qui, '/' + chemin));
   const longueur = Number(r.headers.get('content-length') || 0);
   if (longueur > LIMITE_REECRITURE) return new Response(r.body, { status: 200, headers: entetes });
   let t = await r.text();
@@ -151,7 +211,27 @@ function remplacer(t, base) {
   return t.replace(/https:\/\/kreativeadsfr\.github\.io\/kreative-dossiers(?=["'\s<)])/g, base.replace(/\/$/, ''));
 }
 
-function reecrireHtml(rep, base) {
+// la petite barre en bas à gauche de chaque page : revenir en arrière,
+// retourner à son espace (et, pour l'admin, aller partout)
+function barre(qui, chemin) {
+  if (!qui) return '';
+  const accueil = ACCUEILS[qui.role];
+  if (chemin === accueil || chemin === accueil + 'index.html') return '';
+  const en = qui.role === 'designer';
+  const liens = qui.role === 'admin'
+    ? [['/admin/', 'Tableau de bord'], ['/strategiste/', 'Stratégiste'], ['/designer/', 'Designer'], ['/fiche/', 'Fiche']]
+    : [[accueil, en ? 'My projects' : 'Mes projets']];
+  return '<nav id="k-barre" style="position:fixed;left:16px;bottom:16px;z-index:2147483000;display:flex;gap:4px;align-items:center;' +
+    'background:#1f1f1f;padding:5px;border-radius:999px;box-shadow:0 8px 28px rgba(0,0,0,.18);font:500 13.5px/1 Inter,-apple-system,Segoe UI,sans-serif">' +
+    '<style>#k-barre a,#k-barre button{all:unset;cursor:pointer;color:#fff;padding:9px 14px;border-radius:999px;white-space:nowrap}' +
+    '#k-barre a:hover,#k-barre button:hover{background:#4d94ff}#k-barre .k-cur{background:rgba(255,255,255,.14)}' +
+    '@media print{#k-barre{display:none}}@media(max-width:600px){#k-barre .k-opt{display:none}}</style>' +
+    '<button type="button" onclick="history.length>1?history.back():location.assign(\'' + accueil + '\')" title="' + (en ? 'Back' : 'Retour') + '">← ' + (en ? 'Back' : 'Retour') + '</button>' +
+    liens.map(([h, t], i) => '<a href="' + h + '"' + (i > 0 ? ' class="k-opt' + (chemin.startsWith(h) ? ' k-cur' : '') + '"' : (chemin.startsWith(h) ? ' class="k-cur"' : '')) + '>' + t + '</a>').join('') +
+    '</nav>';
+}
+
+function reecrireHtml(rep, base, barreHtml) {
   const attrs = ['href', 'src', 'poster', 'action', 'data-src', 'content'];
   let rw = new HTMLRewriter();
   for (const at of attrs) {
@@ -163,6 +243,7 @@ function reecrireHtml(rep, base) {
     }
   }
   rw = rw.on('script', new ScriptInline(base));
+  if (barreHtml) rw = rw.on('body', { element(el) { el.append(barreHtml, { html: true }); } });
   return rw.transform(rep);
 }
 
@@ -215,13 +296,18 @@ async function apiGithub(chemin, env) {
 // ============================================================
 //  CONNEXION
 // ============================================================
+//  ACCES : une entrée par personne, séparées par des virgules :
+//    prénom=motdepasse:rôle      (rôle : admin, strategiste ou designer)
 function personnes(env) {
   const liste = [];
   for (const ligne of String(env.ACCES || '').split(/[\n,;]+/)) {
     const i = ligne.indexOf('=');
     if (i < 1) continue;
-    const nom = ligne.slice(0, i).trim().toLowerCase(), mdp = ligne.slice(i + 1).trim();
-    if (/^[a-z0-9_-]{1,40}$/.test(nom) && mdp.length >= 8) liste.push({ nom, mdp });
+    const nom = ligne.slice(0, i).trim().toLowerCase();
+    let mdp = ligne.slice(i + 1).trim(), role = '';
+    const j = mdp.lastIndexOf(':');
+    if (j > 0) { role = mdp.slice(j + 1).trim().toLowerCase().replace('stratégiste', 'strategiste'); mdp = mdp.slice(0, j).trim(); }
+    if (/^[a-z0-9_-]{1,40}$/.test(nom) && mdp.length >= 8 && ACCUEILS[role]) liste.push({ nom, mdp, role });
   }
   return liste;
 }
@@ -246,8 +332,8 @@ async function session(req, env) {
   const [nom, fin, sig] = c.slice(COOKIE.length + 1).split('.');
   if (!nom || !fin || !sig || Number(fin) < Date.now()) return null;
   if (!egal(sig, await signer(env, nom + '.' + fin))) return null;
-  if (!personnes(env).some(p => p.nom === nom)) return null;   // accès retiré
-  return nom;
+  const p = personnes(env).find(x => x.nom === nom);           // accès retiré : plus de session
+  return p ? { nom: p.nom, role: p.role } : null;
 }
 
 async function connexion(req, env, url) {
@@ -261,7 +347,7 @@ async function connexion(req, env, url) {
     if (p && env.CLE) {
       const fin = Date.now() + DUREE_JOURS * 864e5;
       const valeur = p.nom + '.' + fin + '.' + (await signer(env, p.nom + '.' + fin));
-      if (!/^\/(?!\/)/.test(suite)) suite = '/';
+      if (!/^\/(?!\/)/.test(suite) || suite === '/' || !autorise(p.role, suite.split('?')[0])) suite = ACCUEILS[p.role];
       return new Response(null, { status: 303, headers: {
         'Location': suite,
         'Set-Cookie': COOKIE + '=' + valeur + '; Path=/; Max-Age=' + DUREE_JOURS * 86400 + '; HttpOnly; Secure; SameSite=Lax',

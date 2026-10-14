@@ -532,7 +532,7 @@ function codeKreative(){
 }
 const oublieCode=()=>{try{localStorage.removeItem(CLE_CODE)}catch(e){}};
 
-const FAMS={agence:"Agence et SaaS",ecom:"E-commerce",ugly:"Ugly ads"};
+const FAMS={agence:"Service",ecom:"Produit",ugly:"Ugly ads"};
 const esc=t=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const ko=b=>!b?"":b<1024?b+" o":b<1048576?Math.round(b/1024)+" ko":(b/1048576).toFixed(1)+" Mo";
 const $=id=>document.getElementById(id);

@@ -205,3 +205,9 @@ body.k-telech .lien{margin-top:20px}
 
 /* le lien « signaler un visuel » de l'aperçu */
 body.k-apercu .tx a[href="#"],body.k-apercu .tx button.sig,body.k-apercu .tx .signaler{color:var(--k-tx3)}
+
+/* l'aperçu designer publié avant le 14/10 au soir avait encore le logo
+   dans l'en-tête : on le masque, et le nom du client reste en grand */
+.k-top .k-logo{display:none}
+.k-top-t:has(b){font:400 14px/1.2 var(--k-texte);letter-spacing:0;color:var(--k-tx2)}
+.k-top-t b{font:600 19px/1.2 var(--k-titre);letter-spacing:-.02em;color:var(--k-ink);margin-right:4px}

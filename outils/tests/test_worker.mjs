@@ -1,0 +1,58 @@
+import fs from 'node:fs';
+const sec = JSON.parse(fs.readFileSync(process.argv[2])); const R = new URL('../../', import.meta.url).pathname; const FIX = new URL('./fixtures', import.meta.url).pathname; const B = 'http://127.0.0.1:8787';
+let ok = 0, ko = 0; const t = (nom, c, info='') => { c ? ok++ : ko++; console.log((c ? '✅ ' : '❌ ') + nom + (c ? '' : '  → ' + info)); };
+const get = (p, o = {}) => fetch(B + p, { redirect: 'manual', ...o });
+// 1. non connecté
+let r = await get('/designer/'); t('page sans connexion → connexion', r.status === 302 && r.headers.get('location').startsWith('/_connexion?suite=%2Fdesigner%2F'), r.status);
+r = await get('/projets.json'); t('JSON sans connexion → 401', r.status === 401, r.status);
+r = await get('/TURNLY_10_bc5e/donnees.json'); t('donnees sans connexion → 401', r.status === 401, r.status);
+r = await get('/ui/kreative.css'); t('CSS public', r.status === 200, r.status);
+r = await get('/ui/logo-kreative-noir.png'); t('logo public', r.status === 200 && r.headers.get('content-type') === 'image/png', r.status);
+r = await get('/_connexion?suite=/designer/'); let h = await r.text(); t('page de connexion en anglais pour le designer', h.includes('Sign in') && h.includes('logo-kreative-noir'), h.slice(0,80));
+r = await get('/_connexion?suite=/fiche/'); h = await r.text(); t('page de connexion en français', h.includes('Mot de passe'), '');
+r = await get('/_connexion?suite=//evil.com'); h = await r.text(); t('suite externe neutralisée', h.includes('name="suite" value="/"'), '');
+// 2. connexion
+const post = (mdp, suite='/designer/') => get('/_connexion', { method: 'POST', body: new URLSearchParams({ mdp, suite }) });
+r = await post('mauvais-mdp'); t('mauvais mot de passe → 401', r.status === 401, r.status);
+r = await post(sec.ACCES.dario); const ck = (r.headers.get('set-cookie') || '').split(';')[0];
+t('bon mot de passe → cookie + retour à la page', r.status === 303 && r.headers.get('location') === '/designer/' && ck.startsWith('k_espace=dario.'), r.status + ' ' + ck);
+r = await post(sec.ACCES.dario, 'https://evil.com'); t('redirection externe refusée', r.headers.get('location') === '/admin/', r.headers.get('location'));
+const C = { headers: { Cookie: ck } };
+// 3. connecté
+r = await get('/designer/', C); h = await r.text(); t('espace designer', r.status === 200 && h.includes('Designer space'), r.status);
+r = await get('/designer', C); t('/designer → /designer/', r.status === 301 && r.headers.get('location') === '/designer/', r.status + ' ' + r.headers.get('location'));
+r = await get('/', C); t('racine', r.status === 302, r.status);
+r = await get('/projets.json?t=123', C); h = await r.text(); t('projets.json réécrit vers le nouveau site', h.includes(B + '/TURNLY_10_bc5e/') && !h.includes('github.io'), h.slice(0, 200));
+r = await get('/TURNLY_10_bc5e/creas/', C); h = await r.text();
+t('aperçu designer : plus aucun lien github.io', r.status === 200 && !/github\.io|raw\.githubusercontent/.test(h), (h.match(/.{40}github\.io.{40}/) || [''])[0]);
+t('aperçu designer : liens réécrits', h.includes(B + '/ui/kreative.css') && h.includes(B + '/signaler.js'), '');
+r = await get('/IDLIFT_TEST_1001/creas/telecharger.html', C); h = await r.text(); t('page téléchargement (liens dans les scripts)', !/github\.io/.test(h), (h.match(/.{40}github\.io.{40}/) || [''])[0]);
+let t0 = Date.now(); r = await get('/TRIGGERFLOW_09_e819/index.html', C); h = await r.text();
+const orig = fs.readFileSync(R + 'TRIGGERFLOW_09_e819/index.html', 'utf8');
+t('dossier de 8,7 Mo servi entier, lien DA réécrit (' + (Date.now() - t0) + ' ms)', !h.includes('github.io') && h.length - orig.length > 0 && h.length - orig.length < 12000 && h.includes('</div></div></div></div></body>') && h.includes(B + '/ui/kreative.css'), h.length + ' vs ' + orig.length);
+r = await get('/fiche/', C); h = await r.text(); const of = fs.readFileSync(R + 'fiche/index.html', 'utf8');
+t('fiche (script de 4,9 Mo) servie entière, dans la coquille', h.includes(of.slice(2000000, 2400000)) && h.includes(of.slice(-3000, -20)) && h.length - of.length > 0 && h.length - of.length < 12000, h.length + ' vs ' + of.length);
+const img = fs.readdirSync(FIX + '/TURNLY_10_bc5e/creas').find(x => /\.(png|jpg)$/.test(x)) ;
+const imgPath = 'TURNLY_10_bc5e/pubs/b6d9229a086e.jpg';
+r = await get('/' + imgPath, C); let b = Buffer.from(await r.arrayBuffer()); t('image identique octet pour octet (' + imgPath + ')', b.equals(fs.readFileSync(FIX + '/' + imgPath)), b.length);
+r = await get('/README.md', C); t('README lisible', r.status === 200, r.status);
+r = await get('/outils/rapatrier_meta.py', C); t('outils/ bloqué', r.status === 404, r.status);
+r = await get('/.github/workflows/images-meta.yml', C); t('.github/ bloqué', r.status === 404, r.status);
+r = await get('/nexiste/pas.json', C); t('fichier absent → 404', r.status === 404, r.status);
+r = await get('/designer/', { headers: { Cookie: ck.replace(/.$/, ck.endsWith('A') ? 'B' : 'A') } }); t('cookie trafiqué refusé', r.status === 302, r.status);
+r = await get('/designer/', { headers: { Cookie: 'k_espace=evan.' + (Date.now() + 1e9) + '.xxx' } }); t('cookie inventé refusé', r.status === 302, r.status);
+r = await get('/designer/', C); t('POST interdit hors connexion', (await get('/projets.json', { method: 'POST', ...C })).status === 405, '');
+r = await get('/_deconnexion', C); t('déconnexion', r.status === 303 && /Max-Age=0/.test(r.headers.get('set-cookie')), r.status);
+// 4. n8n
+const N = '/_n8n/' + sec.CLE + '/';
+r = await get('/_n8n/mauvaise/projets.json'); t('n8n mauvaise clé → 403', r.status === 403, r.status);
+r = await get(N + 'TURNLY_10_bc5e/donnees.json?t=1'); b = Buffer.from(await r.arrayBuffer());
+t('n8n : donnees.json brut, identique au dépôt', r.status === 200 && b.equals(fs.readFileSync(FIX + '/TURNLY_10_bc5e/donnees.json')) && r.headers.get('content-type').startsWith('application/json'), r.status);
+r = await get(N + 'projets.json'); h = await r.text(); t('n8n : projets.json non réécrit', h.includes('github.io'), '');
+r = await get(N + imgPath); b = Buffer.from(await r.arrayBuffer()); t('n8n : image', b.equals(fs.readFileSync(FIX + '/' + imgPath)), b.length);
+r = await get(N + '_api/git/ref/heads/main'); h = await r.json(); t('n8n : API GitHub (ref)', h.object && h.object.sha === 'abc123', JSON.stringify(h));
+r = await get(N + '_api/contents/projets.json?ref=main'); h = await r.json(); t('n8n : API GitHub (sha)', h.sha === 'sha-projets.json', JSON.stringify(h).slice(0, 80));
+r = await get(N + '_api/contents/NEXISTE/retour.json?ref=main'); t('n8n : API 404 transmis', r.status === 404, r.status);
+r = await get(N + 'nexiste.json'); t('n8n : 404', r.status === 404, r.status);
+r = await get(N + 'outils/x.py'); t('n8n : outils/ bloqué aussi', r.status === 404, r.status);
+console.log('\n' + ok + ' OK, ' + ko + ' en échec');

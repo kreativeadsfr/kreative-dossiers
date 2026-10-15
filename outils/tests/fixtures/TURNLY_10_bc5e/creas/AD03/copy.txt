@@ -1,0 +1,9 @@
+Créa 3 · Turnly
+
+1. Titre : J'avais 12 avis. J'en ai 140.
+2. Sous-titre : turnly.fr
+
+Idée du visuel : Façon note iPhone, ton brut.
+Référence      : UG1-01 · photo floue, texte centré natif
+
+Alerte : L'idée du stratégiste (« façon note iPhone ») ne correspond pas à la structure choisie, UG1-01 : c'est une photo floue avec un texte blanc centré, pas une note Apple. J'ai gardé la structure et le rendu de cette mise en page, et j'ai traduit l'idée par la typographie système iOS et le ton brut. Si une vraie note iPhone est voulue, il faut choisir une autre créa de la banque. Le sujet de la photo d'origine (crème sur une main) et son icône (feuille barrée) sont hors sujet pour Turnly. J'ai donc remplacé la photo par une ambiance floue et non identifiable de commerce (main tenant un smartphone au-dessus d'un comptoir) et la feuille par une étoile au trait. Cela s'écarte de la règle « seule la copy change » et génère une scène photographique sans asset fourni : à valider, ou à remplacer par une vraie photo du client. La mention du bas a été retirée comme demandé.

@@ -1,0 +1,11 @@
+{
+  "dossier": "TEST_DEMO_ORIA",
+  "livre": true,
+  "livraisons": [
+    {
+      "le": "2026-10-15T01:21:48.000Z",
+      "lien": "https://example.com/demo-livraison",
+      "note": "Livraison de démonstration."
+    }
+  ]
+}

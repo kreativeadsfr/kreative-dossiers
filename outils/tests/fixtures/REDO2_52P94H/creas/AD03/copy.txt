@@ -1,0 +1,23 @@
+Créa 3 · Turnly
+
+1. Titre : 3 minutes pour installer Turnly. Et si c'était votre meilleure pause de la journée ?
+2. CTA : Essayer gratuitement →
+3. Mention : 7 jours gratuits · Sans carte bancaire
+4. Adresse du site : turnly.fr
+
+Idée du visuel : Reprendre la structure de l'inspiration AG1-65 (Wix), avec une accroche forte en partie supérieure, un CTA central et une mise en scène du produit en partie basse.
+
+- En haut : titre principal avec « 3 minutes » particulièrement mis en évidence.
+
+- Au centre : bouton « Essayer gratuitement → », suivi de la mention « 7 jours gratuits · Sans carte bancaire ».
+
+- Dans la partie inférieure : un smartphone montrant une capture réelle de l'interface Turnly ou de son expérience QR code.
+
+- Respecter les couleurs, la typographie et le logo de Turnly. Privilégier une composition SaaS moderne, lumineuse et très lisible sur mobile.
+
+L'objectif est de transformer l'objection « Je n'ai pas le temps de mettre un nouvel outil en place » en motivation pour découvrir le produit.
+
+Pas de chronomètre ni de gadget décoratif. Le logo Turnly (la roue) en haut, une seule fois.
+Référence      : AG1-65 · smartphone héros sous accroche centrée
+
+Alerte : 1. La carte de gauche de la structure est supprimée : la règle limite la créa à deux écrans. 2. Les captures mobiles sont trop hautes pour tenir en entier à la moitié de la largeur. Le téléphone principal est donc coupé par le bord bas, comme les cartes de la structure, sans modifier leur contenu. 3. L'accent #004AAB de la charte est illisible sur le fond bleu repris de la structure. « 3 minutes » est donc mis en évidence en jaune #FFB310, issu du logo Turnly ; le CTA garde bien le fond #004AAB. 4. Le logo a été ajouté en haut à la demande du stratégiste, car la structure n'en comporte pas. 5. La mention, sans texte d'origine, est placée juste sous le bouton.

@@ -1,0 +1,68 @@
+{
+  "dossier": "TEST_DEMO_NORDIK_L2",
+  "apres": "TEST_DEMO_NORDIK",
+  "marque": "Nordik Café",
+  "recu_le": "2026-10-15T01:21:48.000Z",
+  "gagnantes": [
+    {
+      "chemin": "TURNLY_10_f665_L2/retour/gagnante-01.png",
+      "nom": "TURNLY_STANDARD_05.png",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-9pEDzM8K9Tus/38fd48c1-41e8-45d5-b59a-0732a129d64f-GgvgSAMeoAdMAAYlL8A5M6g7mcdMNTF5FOy8hh1J6Z3OrRWDkiMGY1SUencoORYlchDMstBwddWI0f4Y5LiczSjRuULVyR29uIN/TURNLY_STANDARD_05.png"
+    },
+    {
+      "chemin": "TURNLY_10_f665_L2/retour/gagnante-02.png",
+      "nom": "TURNLY_STANDARD_07.png",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-9pEDzM8K9Tus/0e5faf14-1548-433e-8d99-44bc19cbd735-Vow4Tpaq7S8hbEpKraDZqtHynqCzJbkdYUeJdrGzYKOvW0SXtWyft8Ns2c9DuxuNF1HVr73Ofsv8hf9s62UOpIXJj5K4mgEqklm/TURNLY_STANDARD_07.png"
+    },
+    {
+      "chemin": "TURNLY_10_f665_L2/retour/gagnante-03.png",
+      "nom": "TURNLY_STANDARD_06.png",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-9pEDzM8K9Tus/871e7e29-dee9-4223-88e4-021e1853af58-ogMY3f1mjSR5BzOybOROWQL6ogpu3RdIMZOXDVv0H3NZTlk7roOFGJn5hHww85btuyyyhcTxa6SsJNIW5QvRjC2OJcAVrcA5M4W/TURNLY_STANDARD_06.png"
+    },
+    {
+      "chemin": "TURNLY_10_f665_L2/retour/gagnante-04.png",
+      "nom": "TURNLY_STANDARD_02.png",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-9pEDzM8K9Tus/e9f5f355-d368-4dfb-8bff-d0092c3c4758-OdTg5Eo2K5okkB7BWfAgZIgrtaisSoQeQxLBJyFo0dOiL9qxGz3nh0bPkiYIuo0zgnibBSB4zdkWYq4DtjMEtabD7lLFuiF333H/TURNLY_STANDARD_02.png"
+    }
+  ],
+  "perdantes": [
+    {
+      "chemin": "TURNLY_10_f665_L2/retour/a-eviter-01.png",
+      "nom": "TURNLY_STANDARD_08.png",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-9pEDzM8K9Tus/4db0cedf-9fe7-44fd-bbc5-13acbe96fccf-mwNq5XrN8YPyuPIGGTWejML5q7eVUSO0RoHIe3GulvqSU8YSCMYFph8BxVS2H5sLTJRou9zipsvUhirA8O9UK0mazeabkCMMOQ2/TURNLY_STANDARD_08.png"
+    },
+    {
+      "chemin": "TURNLY_10_f665_L2/retour/a-eviter-02.png",
+      "nom": "TURNLY_STANDARD_03.png",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-9pEDzM8K9Tus/fc48200e-ebb3-4b03-b7fd-f052b04ab747-wrxxg3f80mS6LMNSninfKTcmWfT3fAN4AXaaLHmhtwMy13qMQfHVQSCWdhd9BLYV7CRAJpZVaGpSWob0N7gLX8NSlDo1gxcBO3T/TURNLY_STANDARD_03.png"
+    },
+    {
+      "chemin": "TURNLY_10_f665_L2/retour/a-eviter-03.png",
+      "nom": "TURNLY_STANDARD_01.png",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-9pEDzM8K9Tus/286cda20-bb2d-48c5-a0b5-e8db7b09d57d-wsImEPLFgOG2LaE1EkQHvpTv2n1MgxwSLrt8Yhjdbo0pbyR0EE0gABagOhxxb4KJ8nJRanuEn374kOMlbdlwDDq1b6D8svo9Fif/TURNLY_STANDARD_01.png"
+    }
+  ],
+  "captures": [],
+  "nouveaux_visuels": [
+    {
+      "chemin": "TURNLY_10_f665_L2/retour/nouveau-visuel-01.png",
+      "nom": "1.png",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-9pEDzM8K9Tus/98518214-ec15-4b43-a846-a6b530db4054-YR9XWn8GJYE9griSdpmjatXPUBEZ0wyMmvNt9jwwuFzR1I59yAOAwYJG167ODampORkJyTjk4LHBAevmzEfDZC0uufJ6RN7kWo0/1.png"
+    },
+    {
+      "chemin": "TURNLY_10_f665_L2/retour/nouveau-visuel-02.jpg",
+      "nom": "affiche(1).jpg",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-9pEDzM8K9Tus/2685ca72-73f8-4606-a79d-ba91e12491e7-1nmCZlgyuMOGvwdauJ5xQb6AcXO8PY17GU8OdHpvMkzGzUdTVQZMUjhmPqyjlBWBpzxKIiaETBPAXMUt1IK79H9vHQUgaOtfsLf/affiche(1).jpg"
+    }
+  ],
+  "offre": "Nouvelle offre de lancement : 2 mois offerts sur l’abonnement annuel, jusqu’au 30 novembre.",
+  "interdits": "Ne plus parler de « roue de la fortune », ne plus montrer de lots en argent.",
+  "autre": "",
+  "mix": {
+    "derives_pct": 60,
+    "nouveaux_pct": 40,
+    "nb_creas": 20,
+    "derives": 12,
+    "nouveaux": 8
+  }
+}

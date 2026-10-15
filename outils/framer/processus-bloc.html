@@ -1,0 +1,158 @@
+<!-- ============================================================
+     KREATIVE · « Notre processus en 3 étapes » (avec l'espace client)
+     À coller dans un bloc « Embed / Code HTML » de la landing.
+     Tout est préfixé « kp- » : rien ne déborde sur le reste du site.
+     Police : Inter (celle du site), chargée par le bloc lui-même.
+     ============================================================ -->
+<section class="kp" id="processus" aria-labelledby="kp-titre">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&display=swap">
+<style>
+.kp{--kp-bleu:#4d94ff;--kp-bleu-doux:#eaf2ff;--kp-encre:#000;--kp-gris:#6f6f6f;--kp-gris2:#a3a3a3;--kp-ligne:#ece7e1;--kp-fond:#f9f6f4;--kp-vert:#1e9e57;
+  font-family:'Inter','Inter Placeholder',system-ui,-apple-system,'Segoe UI',sans-serif;font-optical-sizing:auto;color:var(--kp-encre);background:var(--kp-fond);padding:96px 20px;-webkit-font-smoothing:antialiased}
+.kp *{box-sizing:border-box;margin:0;padding:0}
+.kp-tete{text-align:center;max-width:720px;margin:0 auto 64px}
+.kp-tete h2{font-size:clamp(38px,5vw,60px);line-height:1.02;letter-spacing:-.035em;font-weight:500}
+.kp-tete h2 span{display:block;color:var(--kp-bleu)}
+.kp-tete p{margin-top:14px;font-size:19px;color:var(--kp-gris)}
+.kp-grille{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:34px;max-width:1240px;margin:0 auto}
+.kp-carte{background:#fff;border:1px solid var(--kp-bleu);border-radius:18px;padding:22px 20px 30px;display:flex;flex-direction:column;min-width:0}
+.kp-num{font-size:64px;line-height:1;font-weight:300;letter-spacing:-.04em}
+.kp-carte h3{font-size:25px;font-weight:500;letter-spacing:-.02em;margin-top:26px}
+.kp-carte p{font-size:16px;line-height:1.6;color:var(--kp-gris);margin-top:14px;max-width:34ch}
+
+/* la mini fenêtre de l'espace client */
+.kp-ecran{margin-top:22px;height:236px;border-radius:14px;background:var(--kp-fond);border:1px solid var(--kp-ligne);display:flex;overflow:hidden;position:relative;font-size:11px;line-height:1.3}
+.kp-cote{width:58px;flex:none;padding:12px 9px;display:flex;flex-direction:column;gap:7px;border-right:1px solid var(--kp-ligne)}
+.kp-cote img{width:22px;height:22px;display:block;margin:0 0 6px 2px}
+.kp-cote i{display:block;height:7px;border-radius:4px;background:#e6e0d9}
+.kp-cote i.on{background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.06);height:14px;border-radius:5px;position:relative}
+.kp-cote i.on::after{content:'';position:absolute;left:5px;top:5px;width:18px;height:4px;border-radius:2px;background:var(--kp-encre)}
+.kp-cote i.bleu{background:var(--kp-bleu);height:14px;border-radius:5px}
+.kp-main{flex:1;min-width:0;background:#fff;margin:7px 7px 7px 0;border-radius:10px;border:1px solid var(--kp-ligne);padding:13px 14px;display:flex;flex-direction:column;gap:9px}
+.kp-h{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.kp-h b{font-size:14px;font-weight:600;letter-spacing:-.02em}
+.kp-pill{display:inline-flex;align-items:center;gap:5px;font-size:9.5px;font-weight:600;padding:3px 8px;border-radius:999px;background:var(--kp-bleu-doux);color:#2b6fd6;white-space:nowrap}
+.kp-pill.vert{background:#e6f6ec;color:var(--kp-vert)}
+.kp-pill svg{width:9px;height:9px}
+.kp-champ{border:1px solid var(--kp-ligne);border-radius:8px;padding:7px 9px}
+.kp-champ small{display:block;color:var(--kp-gris2);font-size:9.5px;margin-bottom:3px}
+.kp-champ span{font-size:11.5px;font-weight:500}
+.kp-curseur{display:inline-block;width:1.5px;height:12px;background:var(--kp-bleu);vertical-align:-2px;margin-left:1px;animation:kp-clign 1s steps(1) infinite}
+.kp-puces{display:flex;gap:5px;flex-wrap:wrap}
+.kp-puces em{font-style:normal;font-size:10px;padding:3px 8px;border-radius:999px;border:1px solid var(--kp-ligne);color:var(--kp-gris)}
+.kp-puces em.on{border-color:var(--kp-bleu);background:var(--kp-bleu-doux);color:#2b6fd6}
+.kp-bouton{margin-top:auto;height:26px;border-radius:7px;background:var(--kp-encre);color:#fff;font-size:10.5px;font-weight:600;display:grid;place-items:center}
+.kp-barre{height:6px;border-radius:4px;background:#eee8e1;overflow:hidden}
+.kp-barre i{display:block;height:100%;width:60%;background:var(--kp-bleu);border-radius:4px}
+.kp-etapes{display:flex;flex-direction:column;gap:7px;margin-top:2px}
+.kp-etape{display:flex;align-items:center;gap:7px;color:var(--kp-gris2)}
+.kp-etape .o{width:13px;height:13px;border-radius:50%;background:#eee8e1;display:grid;place-items:center;flex:none}
+.kp-etape.fait{color:var(--kp-encre)}
+.kp-etape.fait .o{background:var(--kp-vert);color:#fff}
+.kp-etape .o svg{width:8px;height:8px}
+.kp-etape.cours{color:var(--kp-encre);font-weight:600}
+.kp-etape.cours .o::after{content:'';width:5px;height:5px;border-radius:50%;background:var(--kp-bleu)}
+.kp-tuiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.kp-tuile{aspect-ratio:1;border-radius:7px;position:relative;overflow:visible;display:flex;flex-direction:column;justify-content:flex-end;padding:6px}
+.kp-tuile::before{content:'';position:absolute;inset:0;border-radius:7px;background:var(--fond)}
+.kp-tuile i{position:relative;display:block;height:4px;border-radius:2px;background:rgba(255,255,255,.85);margin-top:3px}
+.kp-tuile i:first-child{width:80%}.kp-tuile i:last-child{width:50%}
+.kp-ok{position:absolute;top:5px;left:5px;width:14px;height:14px;border-radius:50%;background:var(--kp-vert);color:#fff;display:grid;place-items:center;z-index:1}
+.kp-ok svg{width:8px;height:8px}
+.kp-pin{position:absolute;top:14%;left:62%;width:16px;height:16px;border-radius:50% 50% 50% 2px;background:#e5484d;color:#fff;font-size:9px;font-weight:700;display:grid;place-items:center;z-index:2;box-shadow:0 3px 8px rgba(229,72,77,.4)}
+.kp-bulle{position:absolute;left:-34px;top:44%;z-index:3;background:#fff;border:1px solid var(--kp-ligne);border-radius:8px;padding:6px 8px;font-size:10px;white-space:nowrap;box-shadow:0 8px 20px -6px rgba(0,0,0,.15)}
+.kp-bulle b{display:block;font-size:9px;color:var(--kp-gris2);font-weight:500;margin-bottom:1px}
+.kp-prevue{margin-top:auto;display:flex;align-items:center;gap:7px;padding:8px 10px;border-radius:8px;background:var(--kp-fond);color:var(--kp-gris);font-size:10.5px}
+.kp-prevue svg{width:12px;height:12px;flex:none}
+.kp-prevue b{color:var(--kp-encre);font-weight:600}
+.kp-actions{display:flex;gap:6px;margin-top:auto}
+.kp-actions span{flex:1;height:24px;border-radius:7px;border:1px solid var(--kp-ligne);display:grid;place-items:center;font-size:10px;font-weight:600}
+.kp-actions span.noir{background:var(--kp-encre);color:#fff;border-color:var(--kp-encre)}
+
+/* un seul moment animé, quand la section arrive à l'écran */
+.kp .kp-tape{display:inline-block;overflow:hidden;white-space:nowrap;vertical-align:bottom;max-width:0}
+.kp.vu .kp-tape{animation:kp-tape 1.1s steps(6) .5s forwards}
+.kp .kp-barre i{width:0}
+.kp.vu .kp-barre i{animation:kp-rempli 1.2s cubic-bezier(.3,.8,.2,1) .9s forwards}
+.kp .kp-pin,.kp .kp-bulle{opacity:0;transform:translateY(4px) scale(.9)}
+.kp.vu .kp-pin{animation:kp-pop .35s cubic-bezier(.2,1.4,.4,1) 1.6s forwards}
+.kp.vu .kp-bulle{animation:kp-pop .35s ease-out 1.85s forwards}
+@keyframes kp-tape{to{max-width:7ch}}
+@keyframes kp-rempli{to{width:60%}}
+@keyframes kp-pop{to{opacity:1;transform:none}}
+@keyframes kp-clign{50%{opacity:0}}
+@media (prefers-reduced-motion:reduce){.kp .kp-tape{max-width:none}.kp .kp-barre i{width:60%}.kp .kp-pin,.kp .kp-bulle{opacity:1;transform:none}.kp *{animation:none!important}}
+@media (max-width:980px){.kp-grille{grid-template-columns:1fr;max-width:480px}.kp{padding:72px 18px}.kp-tete{margin-bottom:44px}}
+</style>
+
+<div class="kp-tete">
+  <h2 id="kp-titre">Notre processus <span>en 3 étapes</span></h2>
+  <p>Tout se passe dans votre espace client.</p>
+</div>
+
+<div class="kp-grille">
+  <article class="kp-carte">
+    <div class="kp-num">1</div>
+    <div class="kp-ecran" aria-hidden="true">
+      <div class="kp-cote"><img src="data:image/png;base64,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" alt=""><i class="bleu"></i><i></i><i></i><i class="on"></i><i></i></div>
+      <div class="kp-main">
+        <div class="kp-h"><b>Mon brief</b><span class="kp-pill vert"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Paiement reçu</span></div>
+        <div class="kp-champ"><small>Le nom de votre marque</small><span><span class="kp-tape">Turnly</span><span class="kp-curseur"></span></span></div>
+        <div class="kp-champ"><small>Votre cible</small><div class="kp-puces"><em class="on">Restaurants</em><em class="on">Commerces</em><em>Hôtels</em></div></div>
+        <div class="kp-bouton">Envoyer mon brief</div>
+      </div>
+    </div>
+    <h3>Onboarding</h3>
+    <p>Payez via Stripe, votre espace client s'ouvre aussitôt. Un brief guidé de 15 minutes pour nous partager votre vision, votre cible et vos assets.</p>
+  </article>
+
+  <article class="kp-carte">
+    <div class="kp-num">2</div>
+    <div class="kp-ecran" aria-hidden="true">
+      <div class="kp-cote"><img src="data:image/png;base64,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" alt=""><i class="bleu"></i><i></i><i class="on"></i><i></i><i></i></div>
+      <div class="kp-main">
+        <div class="kp-h"><b>Pack Growth</b><span class="kp-pill">● En production</span></div>
+        <div class="kp-barre"><i></i></div>
+        <div class="kp-etapes">
+          <div class="kp-etape fait"><span class="o"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>Commande confirmée</div>
+          <div class="kp-etape fait"><span class="o"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>Brief envoyé</div>
+          <div class="kp-etape cours"><span class="o"></span>Production des visuels</div>
+          <div class="kp-etape"><span class="o"></span>Livraison de vos créatives</div>
+        </div>
+        <div class="kp-prevue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Livraison prévue <b>jeudi, 18 h</b></div>
+      </div>
+    </div>
+    <h3>Production de vos ads</h3>
+    <p>Notre équipe crée vos visuels de A à Z : angles psychologiques, hooks visuels. Vous suivez chaque étape en direct, sans rien avoir à faire.</p>
+  </article>
+
+  <article class="kp-carte">
+    <div class="kp-num">3</div>
+    <div class="kp-ecran" aria-hidden="true">
+      <div class="kp-cote"><img src="data:image/png;base64,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" alt=""><i class="bleu"></i><i></i><i class="on"></i><i></i><i></i></div>
+      <div class="kp-main">
+        <div class="kp-h"><b>Vos créatives</b><span class="kp-pill vert">2/3 approuvées</span></div>
+        <div class="kp-puces"><em class="on">1:1</em><em>4:5</em><em>9:16</em></div>
+        <div class="kp-tuiles">
+          <div class="kp-tuile" style="--fond:linear-gradient(160deg,#1d3fa8,#4d94ff)"><span class="kp-ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><i></i><i></i></div>
+          <div class="kp-tuile" style="--fond:linear-gradient(160deg,#c9a27c,#7a5638)"><span class="kp-pin">1</span><div class="kp-bulle"><b>Vous</b>Le logo un peu plus grand ?</div><i></i><i></i></div>
+          <div class="kp-tuile" style="--fond:linear-gradient(160deg,#20222a,#4a4f5c)"><span class="kp-ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><i></i><i></i></div>
+        </div>
+        <div class="kp-actions"><span>Tout approuver</span><span class="noir">Tout télécharger</span></div>
+      </div>
+    </div>
+    <h3>Révisions &amp; livraison</h3>
+    <p>Vos créatives livrées en 48h dans votre espace. Commentez directement sur l'image, validez, puis téléchargez tout en un clic.</p>
+  </article>
+</div>
+<script>
+(function () {
+  var s = document.currentScript && document.currentScript.closest('.kp') || document.querySelector('.kp');
+  if (!s) return;
+  if (!('IntersectionObserver' in window)) { s.classList.add('vu'); return; }
+  var o = new IntersectionObserver(function (e) { if (e[0].isIntersecting) { s.classList.add('vu'); o.disconnect(); } }, { threshold: .35 });
+  o.observe(s);
+})();
+</script>
+</section>

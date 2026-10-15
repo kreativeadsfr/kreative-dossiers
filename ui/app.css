@@ -815,3 +815,16 @@ a.lien-kpi:hover{border-color:var(--line2)}
 @keyframes app-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 
 @media(max-width:560px){.coches{grid-template-columns:1fr!important;gap:12px!important}}
+/* notification : choix des destinataires */
+.dests{margin-top:10px;border:1px solid var(--line);border-radius:12px;max-height:232px;overflow:auto}
+.dests-h{position:sticky;top:0;z-index:1;display:flex;justify-content:space-between;align-items:center;padding:9px 12px;background:var(--soft);border-bottom:1px solid var(--line);font-size:12.5px;color:var(--tx3)}
+.dests-h .lien{font-size:12.5px;font-weight:600;color:var(--blue);cursor:pointer}
+.dest,.champ label.dest{display:flex;align-items:center;gap:10px;padding:9px 12px;margin:0;cursor:pointer;border-bottom:1px solid var(--line);font-size:13.5px;font-weight:400}
+.dest:last-child{border-bottom:0}
+.dest:hover{background:var(--soft)}
+.dest input{width:16px;height:16px;accent-color:var(--blue);flex:none;cursor:pointer}
+.dest .tuile{width:28px;height:28px;font-size:12px;border-radius:8px}
+.dest span b{display:block;font-weight:600}
+.dest span small{display:block;color:var(--tx3);font-size:12px}
+.dest.off{cursor:default;opacity:.5}
+.dest.off input{cursor:default}

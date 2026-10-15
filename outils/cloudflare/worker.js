@@ -1171,10 +1171,15 @@ async function apiAdmin(req, env, ctx, url, chemin, methode) {
     const titre = propre(b.titre, 80), texte = propre(b.texte, 240), lien = /^\/client\//.test(String(b.url || '')) ? propre(b.url, 200) : '/client/';
     if (!titre || !texte) return json({ erreur: 'Écrivez un titre et un message.' }, 400);
     const ldb = await baseLiv(env);
-    const { results } = b.client ? { results: [{ client_id: String(b.client) }] } : await ldb.prepare('SELECT DISTINCT client_id FROM push_abos').all();
-    let appareils = 0;
-    for (const r of results) appareils += await notifier(env, r.client_id, { titre, texte, url: lien });
-    return json({ ok: true, clients: results.length, appareils, message: 'Notification envoyée à ' + results.length + ' client' + (results.length > 1 ? 's' : '') + '.' });
+    // tous ceux qui ont activé les notifications, un client (sa fiche), ou une sélection
+    const choix = b.client ? [String(b.client)] : Array.isArray(b.clients) ? [...new Set(b.clients.map(String).filter(x => /^c_[A-Za-z0-9_]+$/.test(x)))].slice(0, 500) : null;
+    if (choix && !choix.length) return json({ erreur: 'Choisissez au moins un client.' }, 400);
+    const { results } = await ldb.prepare('SELECT DISTINCT client_id FROM push_abos').all();
+    const cibles = results.map(r => r.client_id).filter(id => !choix || choix.includes(id));
+    if (b.client && !cibles.length) cibles.push(String(b.client));
+    let appareils = 0, touches = 0;
+    for (const id of cibles) { const n = await notifier(env, id, { titre, texte, url: lien }); appareils += n; if (n) touches++; }
+    return json({ ok: true, clients: touches, appareils, message: 'Notification envoyée à ' + touches + ' client' + (touches > 1 ? 's' : '') + '.' });
   }
   if (chemin === '/clients' && methode === 'GET') {
     await baseLiv(env);
@@ -2103,18 +2108,17 @@ function sessionStripe(d, o) {
   const p = {
     mode: m ? 'subscription' : 'payment', locale: 'fr', metadata: meta,
     success_url: o.succes, cancel_url: o.annule,
-    allow_promotion_codes: 'true', billing_address_collection: 'required', tax_id_collection: { enabled: 'true' },
+    allow_promotion_codes: 'true',
+    // depuis le site : l'email, le nom sur la carte et le nom de l'entreprise, rien de plus (l'adresse de la carte suffit pour la facture)
+    billing_address_collection: cl ? 'required' : 'auto', tax_id_collection: cl ? { enabled: 'true' } : undefined,
     consent_collection: { terms_of_service: 'required' },   // comme les liens de paiement : les CGV à accepter
     line_items: [{ quantity: 1, price_data: { currency: 'eur', unit_amount: String(Math.round(d.total * 100)),
       product_data: { name: d.nom, description: d.description }, recurring: m ? { interval: 'month' } : undefined } }]
   };
   if (cl) { p.client_reference_id = cl.id; if (cl.stripe_client) p.customer = cl.stripe_client; else if (cl.email) p.customer_email = cl.email; }
   else {
-    // depuis le site : un nouveau client, on demande une seule fois ce qu'il faut pour créer son espace
-    p.phone_number_collection = { enabled: 'true' };
-    p.custom_fields = [
-      { key: 'marque', type: 'text', label: { type: 'custom', custom: 'Nom de votre marque' }, text: { maximum_length: '80' } },
-      { key: 'site', type: 'text', optional: 'true', label: { type: 'custom', custom: 'Site web ou Instagram' }, text: { maximum_length: '200' } }];
+    // depuis le site : un nouveau client, une seule question en plus pour nommer son espace
+    p.custom_fields = [{ key: 'marque', type: 'text', label: { type: 'custom', custom: 'Nom de l\'entreprise' }, text: { maximum_length: '80' } }];
   }
   if (m) p.subscription_data = { metadata: meta };
   else {

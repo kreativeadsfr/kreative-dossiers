@@ -518,20 +518,44 @@ function raisonRelance(c) {
 // une notification (une promo, une nouvelle) aux clients qui ont activé les notifications de l'app
 // seul : un client précis (depuis sa fiche)
 function notifierClients(seul) {
-  const C = S.clients || [], avec = seul ? (seul.notifs > 0 ? 1 : 0) : C.filter(c => c.notifs > 0).length, app = C.filter(c => c.app_le).length;
+  const C = S.clients || [], avecNotifs = C.filter(c => c.notifs > 0), sansNotifs = C.filter(c => c.app_le && !(c.notifs > 0));
+  const avec = seul ? (seul.notifs > 0 ? 1 : 0) : avecNotifs.length;
   const intro = seul
     ? (seul.notifs > 0 ? 'Elle arrive sur ' + (seul.notifs > 1 ? 'ses ' + seul.notifs + ' appareils' : 'son téléphone') + ', comme un message.' : seul.app_le ? seul.marque + ' a installé l\'app, mais n\'a pas encore activé les notifications.' : seul.marque + ' n\'a pas encore installé l\'app, ni activé les notifications.')
-    : avec + ' client' + (avec > 1 ? 's' : '') + ' avec les notifications activées · ' + app + ' avec l\'app installée.';
+    : 'Elle arrive sur le téléphone des clients qui ont l\'app et les notifications activées.';
+  const ligne = (c, ok) => '<label class="dest' + (ok ? '' : ' off') + '"><input type="checkbox" value="' + esc(c.id) + '"' + (ok ? '' : ' disabled') + '>' + tuileClient(c) +
+    '<span><b>' + esc(c.marque) + '</b><small>' + (ok ? esc(c.contact || c.email || '') : 'notifications pas activées') + '</small></span></label>';
+  const dest = seul ? '' : '<div class="champ"><label>Envoyer à</label><select class="in" id="nt-dest"><option value="tous">Tous les clients avec les notifications (' + avecNotifs.length + ')</option><option value="choix">Choisir les clients</option></select>' +
+    '<div class="dests" id="nt-liste" hidden><div class="dests-h"><span id="nt-compte">0 sélectionné</span><button type="button" class="lien" id="nt-tout">Tout cocher</button></div>' +
+    (avecNotifs.length || sansNotifs.length ? avecNotifs.map(c => ligne(c, true)).join('') + sansNotifs.map(c => ligne(c, false)).join('') : '<p class="muted" style="padding:12px">Aucun client n\'a encore l\'app.</p>') + '</div></div>';
   const v = K.fenetre('<div class="fen-h"><h2>' + (seul ? 'Notification à ' + esc(seul.marque) : 'Envoyer une notification') + '</h2><p>' + intro + '</p></div>' +
-    '<div class="fen-b"><div class="champ"><label>Titre</label><input class="in" id="nt-titre" maxlength="80" placeholder="−20 % pendant 48 h"></div>' +
+    '<div class="fen-b">' + dest + '<div class="champ"><label>Titre</label><input class="in" id="nt-titre" maxlength="80" placeholder="−20 % pendant 48 h"></div>' +
     '<div class="champ"><label>Message</label><textarea class="in" id="nt-texte" rows="3" maxlength="240" style="height:auto;padding:10px 12px" placeholder="Code KREATIVE20 sur votre prochain pack, jusqu\'à dimanche minuit."></textarea></div>' +
     '<div class="champ"><label>Au clic, ouvrir</label><select class="in" id="nt-url"><option value="/client/#/commander">Commander des créas</option><option value="/client/">L\'accueil de l\'espace</option><option value="/client/#/projets">Mes projets</option></select></div></div>' +
-    '<div class="fen-f"><button class="btn btn-s" data-n>Annuler</button><button class="btn btn-p" data-o' + (avec ? '' : ' disabled') + '>' + (seul ? 'Envoyer' : 'Envoyer à ' + avec + ' client' + (avec > 1 ? 's' : '')) + '</button></div>');
+    '<div class="fen-f"><button class="btn btn-s" data-n>Annuler</button><button class="btn btn-p" data-o></button></div>');
+  const bouton = v.querySelector('[data-o]'), choisis = () => [...v.querySelectorAll('.dest input:checked')].map(x => x.value);
+  const maj = () => {
+    if (seul) { bouton.textContent = 'Envoyer'; bouton.disabled = !avec; return; }
+    const choix = K.$('#nt-dest').value === 'choix', n = choix ? choisis().length : avecNotifs.length;
+    K.$('#nt-liste').hidden = !choix;
+    K.$('#nt-compte').textContent = choisis().length + ' sélectionné' + (choisis().length > 1 ? 's' : '');
+    const libres = [...v.querySelectorAll('.dest input:not(:disabled)')];
+    K.$('#nt-tout').textContent = libres.length && libres.every(x => x.checked) ? 'Tout décocher' : 'Tout cocher';
+    bouton.textContent = 'Envoyer à ' + n + ' client' + (n > 1 ? 's' : ''); bouton.disabled = !n;
+  };
+  if (!seul) {
+    K.$('#nt-dest').onchange = maj;
+    v.querySelectorAll('.dest input').forEach(x => x.onchange = maj);
+    K.$('#nt-tout').onclick = () => { const libres = [...v.querySelectorAll('.dest input:not(:disabled)')], tout = libres.every(x => x.checked); libres.forEach(x => x.checked = !tout); maj(); };
+  }
+  maj();
   v.querySelector('[data-n]').onclick = K.fermer;
-  v.querySelector('[data-o]').onclick = async e => {
+  bouton.onclick = async e => {
     e.target.disabled = true;
-    try { const r = await K.api('/api/admin/notifier', { methode: 'POST', corps: { titre: K.$('#nt-titre').value, texte: K.$('#nt-texte').value, url: K.$('#nt-url').value, client: seul ? seul.id : undefined } }); K.fermer(); K.toast(seul ? 'Notification envoyée à ' + seul.marque + '.' : r.message); }
-    catch (x) { K.toast(x.message); e.target.disabled = false; }
+    const corps = { titre: K.$('#nt-titre').value, texte: K.$('#nt-texte').value, url: K.$('#nt-url').value };
+    if (seul) corps.client = seul.id; else if (K.$('#nt-dest').value === 'choix') corps.clients = choisis();
+    try { const r = await K.api('/api/admin/notifier', { methode: 'POST', corps }); K.fermer(); K.toast(seul ? 'Notification envoyée à ' + seul.marque + '.' : r.message); }
+    catch (x) { K.toast(x.message); maj(); }
   };
 }
 function ecranClients() {

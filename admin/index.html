@@ -49,19 +49,8 @@ async function charger(quoi, force) {
   }
   return S[quoi];
 }
-async function chargerProduction() {
-  let projets = await K.lireJson('/projets.json');
-  if (!Array.isArray(projets)) projets = [];
-  return (await Promise.all(projets.filter(p => p && p.dossier).map(async p => {
-    const [d, envois, liv, retour] = await Promise.all(['donnees', 'envois', 'livraison', 'retour'].map(f => K.lireJson('/' + p.dossier + '/' + f + '.json')));
-    if (!d) return null;
-    const ev = (envois && Array.isArray(envois.envois)) ? envois.envois : [];
-    const livs = (liv && liv.livraisons) || [], der = livs[livs.length - 1] || {};
-    return { dossier: p.dossier, d, retour: !!retour, envoye: ev.length > 0, envoyeLe: Date.parse(typeof ev[ev.length - 1] === 'string' ? ev[ev.length - 1] : (ev[ev.length - 1] || {}).le || '') || 0,
-      livre: !!(liv && liv.livre), livreLe: Date.parse(der.le || '') || 0, zip: der.lien || '',
-      strat: Date.parse(d.deadline_strategiste || '') || 0, desi: Date.parse(d.deadline_designer || '') || 0, client: Date.parse(d.deadline || '') || 0 };
-  }))).filter(Boolean);
-}
+// la production : le module partagé (ui/app.js, K.prod), le même que les espaces de l'équipe
+async function chargerProduction() { return K.prod.charger(true); }
 function rafraichir(...quoi) { quoi.forEach(q => { S[q] = null; }); K.rendre(); }
 
 // ---------- production : état d'un projet ----------
@@ -82,12 +71,12 @@ function etapesProd(x) {
 const nomProjet = x => (x.d.brand_name || x.dossier) + (x.d.livraison && x.d.livraison.sur > 1 ? ' · livraison ' + x.d.livraison.n + '/' + x.d.livraison.sur : '');
 function liensProjet(x, petit) {
   const prod = (x.d.livraison && x.d.livraison.projet) || x.dossier, b = [];
-  const l = (h, t, cls) => '<a class="btn ' + (cls || 'btn-s') + ' btn-sm" href="' + esc(h) + '" target="_blank" rel="noopener">' + t + '</a>';
-  b.push(l('/' + prod + '/', 'Dossier'));
-  b.push(l('/fiche/?projet=' + encodeURIComponent(x.dossier), 'Fiche'));
-  if (x.retour) b.push(l('/retours/?projet=' + encodeURIComponent(x.dossier), esc(nomBrief(x.d))));
-  if (x.envoye) { b.push(l('/' + x.dossier + '/creas/', 'Aperçu')); if (!petit) b.push(l('/' + x.dossier + '/creas/telecharger.html', 'Téléchargement')); }
-  if (x.zip) b.push(l(x.zip, 'Créas livrées', 'btn-p'));
+  const l = (h, t, cls, ext) => '<a class="btn ' + (cls || 'btn-s') + ' btn-sm" href="' + esc(h) + '"' + (ext ? ' target="_blank" rel="noopener"' : '') + '>' + t + '</a>';
+  b.push(l('#/dossier/' + x.dossier, 'Dossier'));
+  b.push(l('#/fiche/' + x.dossier, 'Fiche'));
+  if (x.retour) b.push(l('#/brief/' + x.dossier, esc(nomBrief(x.d))));
+  if (x.envoye) { b.push(l('#/visuels/' + x.dossier, 'Visuels')); if (!petit) b.push(l('#/telechargement/' + x.dossier, 'Téléchargement')); }
+  if (x.zip) b.push(l(x.zip, 'Créas livrées', 'btn-p', true));
   return '<div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">' + b.join('') + '</div>';
 }
 function nomBrief(d) {
@@ -110,9 +99,13 @@ function conf() {
         { id: 'commandes', texte: 'Commandes', icone: 'sac', href: '#/commandes' },
         { id: 'factures', texte: 'Factures', icone: 'recu', href: '#/factures' }] },
       { titre: 'Production', liens: [
-        { id: 'projets', texte: 'Projets', icone: 'dossier', href: '#/projets', nb: enCours || '' },
-        { id: 'dossiers', texte: 'Tous les dossiers', icone: 'calques', href: '#/dossiers' },
-        { id: 'fiche', texte: 'Fiche créas', icone: 'doc', href: '/fiche/' },
+        { id: 'projets', texte: 'Projets', icone: 'colonnes', href: '#/projets', nb: enCours || '' },
+        { id: 'fiche', texte: 'Fiches créas', icone: 'doc', href: '#/fiche' },
+        { id: 'dossier', texte: 'Dossiers de production', icone: 'calques', href: '#/dossier' },
+        { id: 'brief', texte: 'Briefs clients', icone: 'message', href: '#/brief' },
+        { id: 'visuels', texte: 'Visuels', icone: 'image', href: '#/visuels' },
+        { id: 'dossiers', texte: 'Tous les dossiers', icone: 'dossier', href: '#/dossiers' }] },
+      { titre: 'Espaces de l\'équipe', liens: [
         { id: 'strat', texte: 'Espace stratégiste', icone: 'ampoule', href: '/strategiste/' },
         { id: 'desi', texte: 'Designer space', icone: 'pinceau', href: '/designer/' }] },
       { titre: 'Équipe', liens: [{ id: 'equipe', texte: 'Équipe', icone: 'bouclier', href: '#/equipe' }] }
@@ -130,9 +123,9 @@ function rechercher(q) {
   (S.commandes || []).filter(c => ('#' + c.ref + ' ' + c.marque + ' ' + K.nomCommande(c)).toLowerCase().includes(q)).slice(0, 4)
     .forEach(c => r.push({ texte: c.marque + ' · ' + K.nomCommande(c), type: 'Commande #' + c.ref, icone: 'sac', href: '#/clients/' + c.client_id }));
   (S.prod || []).filter(x => (nomProjet(x) + ' ' + x.dossier).toLowerCase().includes(q)).slice(0, 4)
-    .forEach(x => r.push({ texte: nomProjet(x), type: 'Projet', icone: 'dossier', href: '/' + ((x.d.livraison && x.d.livraison.projet) || x.dossier) + '/', ext: true }));
+    .forEach(x => r.push({ texte: nomProjet(x), type: 'Projet', icone: 'dossier', href: '#/dossier/' + x.dossier }));
   (S.dossiers || []).filter(d => d.toLowerCase().includes(q)).slice(0, 4)
-    .forEach(d => r.push({ texte: d, type: 'Dossier', icone: 'calques', href: '/' + d + '/', ext: true }));
+    .forEach(d => r.push({ texte: d, type: 'Dossier', icone: 'calques', href: '#/dossier/' + d }));
   return r.slice(0, 12);
 }
 
@@ -156,8 +149,8 @@ function ecranAccueil() {
     kpi('Chez le stratégiste', nb('strat'), 'fiches à remplir') + kpi('Chez le designer', nb('desi'), 'visuels à livrer') +
     kpi('À livrer au client', aLivrer.length, 'livrés par le designer') + kpi('En retard', retards.length, retards.length ? 'à surveiller' : 'tout est dans les temps', retards.length ? 'color:var(--red)' : '') + '</div>';
   const todo = [
-    ...retards.map(y => ({ t: nomProjet(y.x), s: y.e.texte, ic: 'horloge', p: 'r', href: '/fiche/?projet=' + y.x.dossier, ext: 1 })),
-    ...aLivrer.map(y => ({ t: nomProjet(y.x), s: 'Livré par le designer, à envoyer au client', ic: 'envoi', p: 'n', href: y.x.zip || '/' + y.x.dossier + '/creas/', ext: 1 })),
+    ...retards.map(y => ({ t: nomProjet(y.x), s: y.e.texte, ic: 'horloge', p: 'r', href: '#/fiche/' + y.x.dossier })),
+    ...aLivrer.map(y => ({ t: nomProjet(y.x), s: 'Livré par le designer, à envoyer au client', ic: 'envoi', p: 'n', href: y.x.zip || '#/visuels/' + y.x.dossier, ext: !!y.x.zip })),
     ...briefs.map(c => ({ t: c.marque + ' · ' + K.nomCommande(c), s: 'Commande confirmée, brief attendu depuis ' + K.ilya(c.cree_le).replace('il y a ', ''), ic: 'doc', p: 'a', href: '#/clients/' + c.client_id })),
     ...(S.commandes || []).filter(c => c.statut === 'livre').map(c => ({ t: c.marque + ' · ' + K.nomCommande(c), s: 'Livré, en attente de validation du client', ic: 'coche', p: 'g', href: '#/clients/' + c.client_id }))
   ];
@@ -190,7 +183,7 @@ function ecranProjets() {
         (l.map(x => {
           const e = etatProd(x), et = etapesProd(x), pc = Math.round(et.filter(y => y.f).length * 100 / et.length);
           const ech = !x.envoye ? x.strat : !x.livre ? x.desi : x.client;
-          return '<a class="kcarte" href="/' + esc((x.d.livraison && x.d.livraison.projet) || x.dossier) + '/" target="_blank" rel="noopener"><b>' + esc(nomProjet(x)) + '</b><small>' + esc(x.d.nb_creas || '?') + ' créas · ' + esc(x.d.pack || '') + '</small>' +
+          return '<a class="kcarte" href="#/' + (x.envoye ? 'visuels' : 'fiche') + '/' + esc(x.dossier) + '"><b>' + esc(nomProjet(x)) + '</b><small>' + esc(x.d.nb_creas || '?') + ' créas · ' + esc(x.d.pack || '') + '</small>' +
             '<div class="barre"><i style="width:' + pc + '%"></i></div><div class="pied"><span>' + i.horloge.replace('<svg', '<svg width="13" height="13" style="vertical-align:-2px"') + ' ' + (ech ? esc(K.dateHeure(ech)) : '·') + '</span>' +
             (e.retard ? '<span class="pill r">Retard</span>' : '') + '</div></a>';
         }).join('') || '<div class="vide" style="padding:18px 8px">Aucun</div>') + '</div>';
@@ -502,7 +495,7 @@ function ecranDossiers() {
     '<div class="filtres"><div class="champ-r">' + i.chercher + '<input id="ch-dossiers" placeholder="Chercher une marque ou un code…" value="' + esc(S.chDossiers) + '"></div></div>';
   return h + '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Dossier</th><th>Mois</th><th></th></tr></thead><tbody>' +
     (l.map(d => { const m = d.match(/_(\d{2})_/); return '<tr><td><div class="nom">' + K.tuile(d.split('_')[0]) + '<b>' + esc(d) + '</b>' + (/^TEST|^REDO/.test(d) ? '<span class="pill">test</span>' : '') + '</div></td><td class="muted">' + (m && MOIS[m[1]] || '') + '</td>' +
-      '<td class="fin"><div style="display:flex;gap:6px;justify-content:flex-end">' + [['/' + d + '/', 'Dossier'], ['/fiche/?projet=' + d, 'Fiche'], ['/' + d + '/creas/', 'Aperçu']].map(([u, t]) => '<a class="btn btn-s btn-sm" href="' + esc(u) + '" target="_blank" rel="noopener">' + t + '</a>').join('') + '</div></td></tr>'; }).join('')
+      '<td class="fin"><div style="display:flex;gap:6px;justify-content:flex-end">' + [['#/dossier/' + d, 'Dossier'], ['#/fiche/' + d, 'Fiche'], ['#/visuels/' + d, 'Visuels']].map(([u, t]) => '<a class="btn btn-s btn-sm" href="' + esc(u) + '">' + t + '</a>').join('') + '</div></td></tr>'; }).join('')
       || '<tr><td colspan="3"><div class="vide">Aucun dossier.</div></td></tr>') + '</tbody></table></div></div>';
 }
 function brancherDossiers() {
@@ -533,10 +526,20 @@ const ECRANS = {
   dossiers: { id: 'dossiers', t: 'Tous les dossiers', a: 'calques', b: ['Production'], besoins: ['dossiers'], f: ecranDossiers, ap: brancherDossiers },
   equipe: { id: 'equipe', t: 'Équipe', a: 'bouclier', b: [], besoins: ['equipe'], f: ecranEquipe }
 };
+// les pages de production s'ouvrent dans l'admin (K.prod : liste des projets, ou la page en cadre)
+const TEXTES_PROD = { fiche: 'La fiche créas de chaque projet.', dossier: 'Le dossier de production de chaque projet.', brief: 'Les briefs des livraisons suivantes et des abonnements.', visuels: 'Les visuels générés, avant et après la livraison.', telechargement: 'Le dossier à télécharger de chaque projet.' };
+Object.keys(K.prod.sections).forEach(k => {
+  ECRANS[k] = { id: k === 'telechargement' ? 'visuels' : k, t: K.prod.sections[k].fr, a: K.prod.sections[k].icone, b: ['Production'], besoins: ['prod'], prod: true,
+    f: p => p[0] ? K.prod.vue(k, p[0], {}) : K.prod.liste_(k, { texte: TEXTES_PROD[k] }), ap: p => { if (p[0]) K.prod.brancher(k); } };
+});
 let rendu = 0;
+let derniereProd = '';
 K.rendre = async () => {
-  const n = ++rendu;
   const r = K.route(), e = ECRANS[r.ecran] || ECRANS[''];
+  // une page de production déjà ouverte ne se recharge pas (on ne perd rien dans la fiche)
+  if (e.prod && r.params[0] && derniereProd === location.hash && document.querySelector('.vp-cadre')) return;
+  derniereProd = e.prod ? location.hash : '';
+  const n = ++rendu;
   await charger('moi');
   const enAttente = e.besoins.filter(q => S[q] == null);
   if (enAttente.length && !document.querySelector('.app')) document.getElementById('racine').innerHTML = '<div class="chargement">Chargement…</div>';
@@ -544,8 +547,10 @@ K.rendre = async () => {
   const contenu = await e.f(r.params);
   if (n !== rendu) return;
   const c = conf();
-  const titre = r.ecran === 'clients' && FICHE && r.params[0] === FICHE.client.id ? FICHE.client.marque : e.t;
-  document.getElementById('racine').innerHTML = K.coquille(c, e.id, K.ariane(e.a, ...(e.b.length ? e.b : ['Admin']), titre), contenu, e.large);
+  const xp = e.prod && r.params[0] ? K.prod.trouver(r.params[0]) : null;
+  const titre = r.ecran === 'clients' && FICHE && r.params[0] === FICHE.client.id ? FICHE.client.marque : e.prod && r.params[0] ? (xp ? xp.nom : r.params[0]) : e.t;
+  const fil = e.prod && r.params[0] ? [...e.b, e.t] : (e.b.length ? e.b : ['Admin']);
+  document.getElementById('racine').innerHTML = K.coquille(c, e.id, K.ariane(e.a, ...fil, titre), contenu, e.prod && r.params[0] ? 'plein' : e.large);
   K.brancherCoquille(c);
   if (e.ap) e.ap(r.params);
   document.title = titre + ' · Admin Kreative';

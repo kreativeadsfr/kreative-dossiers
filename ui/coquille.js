@@ -65,8 +65,7 @@
           lien('/fiche/?projet=' + encodeURIComponent(P), 'doc', 'Fiche créas', t === 'fiche') +
           (aEnvoi || t === 'apercu' || t === 'telech' ? lien('/' + P + '/creas/', 'image', 'Visuels', t === 'apercu' || t === 'telech') : '');
       }
-      $('kc-projet-l').innerHTML = h;
-      $('kc-projet').hidden = false;
+      if ($('kc-projet-l')) { $('kc-projet-l').innerHTML = h; $('kc-projet').hidden = false; }
     });
   }
 
@@ -124,7 +123,7 @@
   // ---------- menus ----------
   function menus() {
     var kc = $('kc'), mb = $('kc-mb'), menu = $('kc-menu'), burger = $('kc-burger');
-    if (mb) mb.addEventListener('click', function (e) { e.stopPropagation(); menu.hidden = !menu.hidden; });
+    if (mb) mb.addEventListener('click', function (e) { e.stopPropagation(); menu.hidden = !menu.hidden; mb.setAttribute('aria-expanded', String(!menu.hidden)); });
     if (burger) burger.addEventListener('click', function (e) { e.stopPropagation(); kc.classList.toggle('menu-ouvert'); });
     document.addEventListener('click', function (e) {
       if (menu && !menu.hidden && !menu.contains(e.target)) menu.hidden = true;

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-clair>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -7,150 +7,174 @@
 <title>Designer space · Kreative</title>
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
 <link rel="stylesheet" href="/ui/app.css">
-<style>
-/* ============================================================
-   ESPACE DESIGNER (en anglais : la designer lit l'anglais)
-   Les projets à livrer avec leur échéance (aperçu, téléchargement,
-   livraison par lien SwissTransfer), puis les projets livrés.
-   La barre latérale et le bandeau du haut viennent du Worker
-   (ui/coquille.css), comme sur toutes les pages de l'équipe.
-   ============================================================ */
-.projet .pa{display:flex;flex-direction:column;gap:8px;margin-top:14px}
-.projet .pa .btn{margin-top:0}
-.projet .pa2{display:flex;gap:8px}
-.projet .pa2 .btn{flex:1}
-.projet .tuile{width:42px;height:42px;border-radius:12px;font-size:14px;margin-bottom:8px}
-.projet .lab{margin-top:4px}
-.liv{display:none;margin-top:14px;padding:16px;border-radius:12px;background:var(--soft);border:1px solid var(--line)}
-.projet.ouvert .liv{display:block}
-.liv p{font-size:13px;color:var(--tx2);margin-bottom:12px}
-.liv .in{margin-bottom:8px;font-size:13.5px}
-.liv textarea.in{min-height:64px}
-.liv .etat{font-size:13px;color:var(--tx2);margin-top:10px;min-height:18px}
-</style>
+<script src="/ui/app.js"></script>
 </head>
 <body>
-<div class="page">
-  <div class="ph">
-    <div><h1>Your projects</h1><p>Everything you have to deliver, with your deadline. Open the preview, download the folder, and deliver from here when you are done.</p></div>
-  </div>
-  <div class="grid g4" id="kpis">
-    <div class="card kpi"><div class="lab">To deliver</div><div class="v">·</div><div class="d">projects</div></div>
-    <div class="card kpi"><div class="lab">Late</div><div class="v">·</div><div class="d">&nbsp;</div></div>
-    <div class="card kpi"><div class="lab">Next deadline</div><div class="v s">·</div><div class="d">&nbsp;</div></div>
-    <div class="card kpi"><div class="lab">Delivered</div><div class="v">·</div><div class="d">in the last 30 days</div></div>
-  </div>
-  <div class="sec"><div><h2>To deliver</h2><p>Sorted by deadline, the closest first.</p></div></div>
-  <div id="afaire"><div class="card"><div class="chargement">Loading your projects…</div></div></div>
-  <div class="sec"><div><h2>Delivered</h2><p>What you already sent to Kreative.</p></div></div>
-  <div id="faits"></div>
-</div>
+<div id="racine"><div class="chargement">Loading your projects…</div></div>
 <script>
+/* ============================================================
+   ESPACE DESIGNER (portail, en anglais : la designer lit l'anglais)
+   Des sections permanentes : Overview, Projects, puis Previews,
+   Downloads et Deliver. Chaque page s'ouvre DANS le portail, avec
+   le choix du projet en haut. La livraison a sa propre section,
+   toujours visible (rien n'apparaît au clic).
+   ============================================================ */
 const WEBHOOK = 'https://n8n.srv1536015.hstgr.cloud/webhook/livraison-designer';
-const $ = id => document.getElementById(id);
-const esc = t => String(t == null ? '' : t).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const lire = async u => { try { const r = await fetch(u + '?t=' + Date.now(), {cache: 'no-store'}); return r.ok ? await r.json() : null; } catch (e) { return null; } };
-const H = 3600000;
+const { i, esc } = K;
+const E = { moi: null, filtre: 'todo' };
+const SECS = ['visuels', 'telechargement'];
+K.prod.autorisees = SECS;
+const mesProjets = () => (K.prod.liste || []).filter(x => x.envoye);          // seulement ce qui est arrivé chez la designer
 const quand = ms => {
   const p = {};
-  new Intl.DateTimeFormat('en-GB', {weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: 'Europe/Paris'})
+  new Intl.DateTimeFormat('en-GB', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: 'Europe/Paris' })
     .formatToParts(new Date(ms)).forEach(x => { p[x.type] = x.value; });
   return p.weekday + ' ' + p.day + ' ' + p.month + ', ' + p.hour + ':' + p.minute;
 };
-const jour = ms => new Date(ms).toLocaleDateString('en-GB', {day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Europe/Paris'});
-const court = ms => new Date(ms).toLocaleDateString('en-GB', {day: 'numeric', month: 'short', timeZone: 'Europe/Paris'});
-const TEINTES = ['#4d94ff', '#1f1f1f', '#e8834a', '#1e9e57', '#7c5cff', '#d6453d', '#c27a06', '#0f8b8d'];
-const teinte = t => { let h = 0; for (const c of String(t || '')) h = (h * 31 + c.charCodeAt(0)) >>> 0; return TEINTES[h % TEINTES.length]; };
-const initiales = t => String(t || '?').trim().split(/\s+/).slice(0, 2).map(x => x[0]).join('').toUpperCase() || '?';
-const fleche = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+const jour = ms => new Date(ms).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Europe/Paris' });
 
-function echeance(t){
-  if (!t) return {pill: '', texte: 'no deadline'};
-  const reste = t - Date.now();
-  if (reste < 0) return {pill: '<span class="pill r"><i></i>Late</span>', texte: 'late'};
-  if (reste < 12 * H) { const h = Math.max(1, Math.round(reste / H)); return {pill: '<span class="pill n">Due in ' + h + ' h</span>', texte: 'in ' + h + ' h'}; }
-  const j = Math.round(reste / 24 / H);
-  return {pill: '<span class="pill b"><i></i>Due in ' + j + ' day' + (j > 1 ? 's' : '') + '</span>', texte: 'in ' + j + ' day' + (j > 1 ? 's' : '')};
+function conf() {
+  const L = mesProjets(), admin = E.moi && E.moi.role === 'admin';
+  const sections = [];
+  if (admin) sections.push({ titre: 'Admin', liens: [{ id: 'admin', texte: 'Back to the dashboard', icone: 'gauche', href: '/admin/' }] });
+  sections.push({ titre: 'Workspace', liens: [
+    { id: 'accueil', texte: 'Overview', icone: 'accueil', href: '#/' },
+    { id: 'projets', texte: 'Projects', icone: 'dossier', href: '#/projets', nb: L.filter(x => !x.livre).length || '' }] });
+  sections.push({ titre: 'Production', liens: [
+    { id: 'visuels', texte: 'Previews', icone: 'image', href: '#/visuels' },
+    { id: 'telechargement', texte: 'Downloads', icone: 'telecharger', href: '#/telechargement' },
+    { id: 'livrer', texte: 'Deliver', icone: 'envoi', href: '#/livrer' }] });
+  const nom = E.moi && E.moi.nom ? E.moi.nom.charAt(0).toUpperCase() + E.moi.nom.slice(1) : 'Designer';
+  return { sections, clair: true, anglais: true, qui: { nom, role: admin ? 'Admin' : 'Designer' }, sortie: '/_deconnexion', recherche: rechercher, cherche: 'Search a project…' };
 }
-const nom = x => x.d.brand_name || x.dossier;
-const partie = x => { const l = x.d.livraison; return l && l.sur > 1 ? 'Part ' + l.n + '/' + l.sur + ' · ' : ''; };
-
-function carte(x){
-  const d = x.d, e = echeance(x.desi);
-  return '<div class="card projet" data-d="' + esc(x.dossier) + '"><div class="hd"><span class="tuile" style="background:' + teinte(nom(x)) + '">' + esc(initiales(nom(x))) + '</span>' + e.pill + '</div>' +
-    '<div class="lab">' + esc(partie(x)) + esc(d.nb_creas || '?') + ' creatives</div>' +
-    '<h3>' + esc(nom(x)) + '</h3>' +
-    '<div class="pc">' + (x.desi ? 'Due ' + esc(quand(x.desi)) + ' (Paris time)' : 'No deadline') + '</div>' +
-    '<div class="pa"><div class="pa2"><a class="btn btn-s btn-sm" href="/' + esc(x.dossier) + '/creas/" target="_blank" rel="noopener">Preview</a>' +
-    '<a class="btn btn-s btn-sm" href="/' + esc(x.dossier) + '/creas/telecharger.html" target="_blank" rel="noopener">Download</a></div>' +
-    '<button class="btn btn-p btn-bloc ouvrir" type="button">Deliver' + fleche + '</button></div>' +
-    '<div class="liv"><p>Export each creative in 1:1, 4:5 and 9:16, put the 3 folders in one zip, send it with SwissTransfer (or WeTransfer) and paste the link here.</p>' +
-    '<input type="url" class="in lienliv" placeholder="https://www.swisstransfer.com/d/..." autocomplete="off">' +
-    '<textarea class="in noteliv" rows="2" placeholder="Note for Kreative (optional)"></textarea>' +
-    '<button class="btn btn-d btn-bloc envoyer" type="button">Mark as delivered</button><p class="etat"></p></div>' +
-    '</div>';
+function rechercher(q) {
+  q = q.toLowerCase(); if (!q) return [];
+  return mesProjets().filter(x => (x.nom + ' ' + x.dossier).toLowerCase().includes(q)).slice(0, 10)
+    .map(x => ({ texte: x.nom, type: 'Preview', icone: 'image', href: '#/visuels/' + x.dossier }));
+}
+const nomEn = x => x.nom.replace(' · livraison ', ' · part ');
+const ligneNom = x => '<div class="nom">' + K.tuile(x.marque) + '<div><b>' + esc(nomEn(x)) + '</b><span class="sub">' + esc(x.dossier) + '</span></div></div>';
+function boutons(x) {
+  return '<div style="display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap">' +
+    '<a class="btn btn-s btn-sm" href="#/visuels/' + esc(x.dossier) + '">' + i.image + 'Preview</a>' +
+    '<a class="btn btn-s btn-sm" href="#/telechargement/' + esc(x.dossier) + '">' + i.telecharger + 'Download</a>' +
+    (x.livre ? '' : '<a class="btn btn-p btn-sm" href="#/livrer/' + esc(x.dossier) + '">' + i.envoi + 'Deliver</a>') + '</div>';
 }
 
-function ligne(x){
-  return '<tr><td><div class="nom"><span class="tuile" style="background:' + teinte(nom(x)) + '">' + esc(initiales(nom(x))) + '</span><div><b>' + esc(nom(x)) + '</b>' +
-    (partie(x) ? '<span class="sub">' + esc(partie(x).replace(/ · $/, '')) + '</span>' : '') + '</div></div></td>' +
-    '<td class="num">' + esc(x.d.nb_creas || '?') + '</td>' +
-    '<td>' + (x.livreLe ? esc(jour(x.livreLe)) : '·') + '</td>' +
-    '<td><span class="pill g"><i></i>Delivered</span></td>' +
-    '<td class="fin"><a class="btn btn-s btn-sm" href="/' + esc(x.dossier) + '/creas/" target="_blank" rel="noopener">Preview</a></td></tr>';
+// ---------- OVERVIEW ----------
+function ecranAccueil() {
+  const L = mesProjets(), now = Date.now();
+  const afaire = L.filter(x => !x.livre).sort((a, b) => (a.desi || 9e15) - (b.desi || 9e15));
+  const faits = L.filter(x => x.livre).sort((a, b) => b.livreLe - a.livreLe);
+  const retard = afaire.filter(x => x.desi && x.desi < now), prochain = afaire.find(x => x.desi && x.desi >= now);
+  const kpi = (l, v, d, st) => '<div class="card kpi"><div class="lab">' + l + '</div><div class="v' + (String(v).length > 4 ? ' s' : '') + '"' + (st ? ' style="' + st + '"' : '') + '>' + esc(v) + '</div><div class="d">' + esc(d) + '</div></div>';
+  let h = '<div class="ph"><div><h1>Overview</h1><p>Everything you have to deliver, with your deadlines.</p></div><div class="act"><a class="btn btn-p" href="#/livrer">' + i.envoi + 'Deliver a project</a></div></div>';
+  h += '<div class="grid g4">' + kpi('To deliver', afaire.length, 'project' + (afaire.length > 1 ? 's' : '')) +
+    kpi('Late', retard.length, retard.length ? 'deliver these first' : 'everything is on time', retard.length ? 'color:var(--red)' : '') +
+    kpi('Next deadline', prochain ? new Date(prochain.desi).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '·', prochain ? nomEn(prochain) + ', ' + K.prod.echeance(prochain.desi, true).texte : 'nothing waiting') +
+    kpi('Delivered', faits.filter(x => x.livreLe > now - 30 * 864e5).length, 'in the last 30 days') + '</div>';
+  h += '<div class="sec"><div><h2>To deliver</h2><p>Sorted by deadline, the closest first.</p></div></div>';
+  h += afaire.length ? '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Project</th><th class="num">Creatives</th><th>Deadline</th><th>Due (Paris time)</th><th></th></tr></thead><tbody>' +
+    afaire.map(x => '<tr><td>' + ligneNom(x) + '</td><td class="num">' + esc(x.nb || '?') + '</td><td>' + (K.prod.echeance(x.desi, true).pill || '<span class="muted">·</span>') + '</td>' +
+      '<td>' + (x.desi ? esc(quand(x.desi)) : '<span class="muted">·</span>') + '</td><td class="fin">' + boutons(x) + '</td></tr>').join('') + '</tbody></table></div></div>'
+    : '<div class="card"><div class="vide">' + i.coche + 'Nothing to deliver right now. New projects appear here as soon as they are ready.</div></div>';
+  h += '<div class="sec"><div><h2>Delivered</h2><p>What you already sent to Kreative.</p></div><a class="btn btn-g btn-sm" href="#/projets">All projects</a></div>';
+  h += faits.length ? '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Project</th><th class="num">Creatives</th><th>Delivered on</th><th>Status</th><th></th></tr></thead><tbody>' +
+    faits.slice(0, 8).map(x => '<tr><td>' + ligneNom(x) + '</td><td class="num">' + esc(x.nb || '?') + '</td><td>' + (x.livreLe ? esc(jour(x.livreLe)) : '·') + '</td><td><span class="pill g"><i></i>Delivered</span></td><td class="fin">' + boutons(x) + '</td></tr>').join('') +
+    '</tbody></table></div></div>' : '<div class="card"><div class="vide">No delivered project yet.</div></div>';
+  return h;
 }
 
-async function go(){
-  let projets = await lire('/projets.json');
-  if (!Array.isArray(projets)) projets = [];
-  const tous = (await Promise.all(projets.filter(p => p && p.dossier && !/^TEST_/i.test(p.dossier)).map(async p => {
-    const [d, envois, liv] = await Promise.all([lire('/' + p.dossier + '/donnees.json'), lire('/' + p.dossier + '/envois.json'), lire('/' + p.dossier + '/livraison.json')]);
-    if (!d) return null;
-    const lance = !!(envois && Array.isArray(envois.envois) && envois.envois.length);
-    if (!lance) return null;                       // pas encore chez le designer
-    const livs = (liv && liv.livraisons) || [];
-    const livreLe = livs.length ? Date.parse(livs[livs.length - 1].le) : 0;
-    return {dossier: p.dossier, d, livre: !!(liv && liv.livre), livreLe, desi: Date.parse(d.deadline_designer || '') || 0};
-  }))).filter(Boolean);
+// ---------- PROJECTS ----------
+function ecranProjets() {
+  const L = mesProjets(), f = E.filtre, now = Date.now();
+  const F = { todo: x => !x.livre, late: x => !x.livre && x.desi && x.desi < now, done: x => x.livre, all: () => true };
+  const chip = (k, t, c) => '<button class="chip' + (f === k ? ' on' : '') + '" onclick="E.filtre=\'' + k + '\';K.rendre(true)">' + (c ? '<i style="color:' + c + '"></i>' : '') + t + '<span class="c">' + L.filter(F[k]).length + '</span></button>';
+  const l = L.filter(F[f]).sort((a, b) => (a.livre - b.livre) || ((a.desi || 9e15) - (b.desi || 9e15)));
+  return '<div class="ph"><div><h1>Projects</h1><p>All your projects, and each of their pages in one click.</p></div></div>' +
+    '<div class="filtres">' + chip('todo', 'To deliver', 'var(--blue)') + chip('late', 'Late', 'var(--red)') + chip('done', 'Delivered', 'var(--green)') + chip('all', 'All') + '</div>' +
+    (l.length ? '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Project</th><th class="num">Creatives</th><th>Status</th><th>Due</th><th></th></tr></thead><tbody>' +
+      l.map(x => '<tr><td>' + ligneNom(x) + '</td><td class="num">' + esc(x.nb || '?') + '</td><td>' + K.prod.pill(x, true) + '</td><td>' + (x.desi ? esc(quand(x.desi)) : '·') + '</td><td class="fin">' + boutons(x) + '</td></tr>').join('') +
+      '</tbody></table></div></div>' : '<div class="card"><div class="vide">No project here.</div></div>');
+}
 
-  const afaire = tous.filter(x => !x.livre).sort((a, b) => (a.desi || 9e15) - (b.desi || 9e15));
-  const faits = tous.filter(x => x.livre).sort((a, b) => b.livreLe - a.livreLe).slice(0, 30);
-  const retard = afaire.filter(x => x.desi && x.desi < Date.now());
-  const prochain = afaire.find(x => x.desi && x.desi >= Date.now());
-  const mois = faits.filter(x => x.livreLe > Date.now() - 30 * 24 * H);
-
-  $('kpis').innerHTML =
-    '<div class="card kpi"><div class="lab">To deliver</div><div class="v">' + afaire.length + '</div><div class="d">project' + (afaire.length > 1 ? 's' : '') + '</div></div>' +
-    '<div class="card kpi"><div class="lab">Late</div><div class="v"' + (retard.length ? ' style="color:var(--red)"' : '') + '>' + retard.length + '</div><div class="d">' + (retard.length ? 'deliver these first' : 'everything is on time') + '</div></div>' +
-    '<div class="card kpi"><div class="lab">Next deadline</div><div class="v s">' + (prochain ? esc(court(prochain.desi)) : '·') + '</div><div class="d">' + (prochain ? esc(nom(prochain)) + ', ' + esc(echeance(prochain.desi).texte) : 'nothing waiting') + '</div></div>' +
-    '<div class="card kpi"><div class="lab">Delivered</div><div class="v">' + mois.length + '</div><div class="d">in the last 30 days</div></div>';
-
-  $('afaire').innerHTML = afaire.length ? '<div class="projets">' + afaire.map(carte).join('') + '</div>'
-    : '<div class="card"><div class="vide">Nothing to deliver right now. New projects appear here as soon as they are ready.</div></div>';
-  $('faits').innerHTML = faits.length
-    ? '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Project</th><th class="num">Creatives</th><th>Delivered on</th><th>Status</th><th></th></tr></thead><tbody>' + faits.map(ligne).join('') + '</tbody></table></div></div>'
-    : '<div class="card"><div class="vide">No delivered project yet.</div></div>';
-
-  document.querySelectorAll('.projet .ouvrir').forEach(b => b.onclick = () => {
-    const p = b.closest('.projet'); p.classList.toggle('ouvert');
-    if (p.classList.contains('ouvert')) p.querySelector('.lienliv').focus();
-  });
-  document.querySelectorAll('.projet .envoyer').forEach(b => b.onclick = async () => {
-    const p = b.closest('.projet'), etat = p.querySelector('.etat');
-    const lien = p.querySelector('.lienliv').value.trim(), note = p.querySelector('.noteliv').value.trim();
+// ---------- DELIVER ----------
+function ecranLivrer(id) {
+  const L = mesProjets(), aLivrer = L.filter(x => !x.livre).sort((a, b) => (a.desi || 9e15) - (b.desi || 9e15));
+  if (!id) {
+    return '<div class="ph"><div><h1>Deliver</h1><p>Pick the project you finished: the delivery form opens right here.</p></div></div>' +
+      (aLivrer.length ? '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Project</th><th class="num">Creatives</th><th>Deadline</th><th></th></tr></thead><tbody>' +
+        aLivrer.map(x => '<tr class="clic" onclick="location.hash=\'#/livrer/' + esc(x.dossier) + '\'"><td>' + ligneNom(x) + '</td><td class="num">' + esc(x.nb || '?') + '</td><td>' + (K.prod.echeance(x.desi, true).pill || '·') + '</td>' +
+          '<td class="fin"><span class="btn btn-p btn-sm">' + i.envoi + 'Deliver</span></td></tr>').join('') + '</tbody></table></div></div>'
+        : '<div class="card"><div class="vide">' + i.coche + 'Nothing to deliver right now.</div></div>');
+  }
+  const x = K.prod.trouver(id);
+  if (!x) return '<a class="retour" href="#/livrer">' + i.gauche + 'Deliver</a><div class="card"><div class="vide">Project not found.</div></div>';
+  const choix = L.filter(y => !y.livre || y === x);
+  let h = '<a class="retour" href="#/livrer">' + i.gauche + 'Deliver</a>' +
+    '<div class="ph"><div><h1>' + esc(nomEn(x)) + '</h1><p>' + esc(x.nb || '?') + ' creatives' + (x.desi ? ' · due ' + esc(quand(x.desi)) + ' (Paris time)' : '') + '</p></div>' +
+    '<div class="act" style="align-items:center">' + (x.livre ? '<span class="pill g"><i></i>Delivered</span>' : K.prod.echeance(x.desi, true).pill) +
+    '<div style="width:300px"><select class="in" id="lv-projet">' + choix.map(y => '<option value="' + esc(y.dossier) + '"' + (y === x ? ' selected' : '') + '>' + esc(nomEn(y)) + '</option>').join('') + '</select></div></div></div>';
+  h += '<div class="grid g2" style="align-items:start">' +
+    '<div class="card pad"><h3 style="font-size:16px">Send the final files</h3>' +
+    '<ol style="margin:14px 0 18px;padding-left:18px;color:var(--tx2);font-size:13.5px;line-height:1.8">' +
+    '<li>Export each creative in <b>1:1</b>, <b>4:5</b> and <b>9:16</b> (one folder per format).</li>' +
+    '<li>Put the 3 folders in one zip.</li><li>Send it with SwissTransfer or WeTransfer and paste the link below.</li></ol>' +
+    '<div class="champ"><label for="lv-lien">Download link</label><input class="in" id="lv-lien" type="url" placeholder="https://www.swisstransfer.com/d/..." autocomplete="off"></div>' +
+    '<div class="champ"><label for="lv-note">Note for Kreative (optional)</label><textarea class="in" id="lv-note" rows="3" placeholder="Anything we should know"></textarea></div>' +
+    '<button class="btn btn-p btn-bloc btn-lg" id="lv-envoyer">' + i.envoi + (x.livre ? 'Send a new version' : 'Mark as delivered') + '</button><p class="muted" id="lv-etat" style="font-size:13px;margin-top:10px;min-height:18px"></p></div>' +
+    '<div class="grid" style="gap:14px"><div class="card pad"><h3 style="font-size:15px">Project files</h3><p class="muted" style="font-size:13px;margin-top:4px">Check the brand kit and the copy before exporting.</p>' +
+    '<div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap"><a class="btn btn-s" href="#/visuels/' + esc(x.dossier) + '">' + i.image + 'Preview</a><a class="btn btn-s" href="#/telechargement/' + esc(x.dossier) + '">' + i.telecharger + 'Download</a></div></div>' +
+    '<div class="card"><div class="card-h"><h3>Delivery history</h3></div><div class="card-b liste">' +
+    ((x.livraisons || []).length ? x.livraisons.slice().reverse().map(l => '<div class="li"><span class="ic">' + i.envoi + '</span><span class="t">' + (l.lien ? '<a href="' + esc(l.lien) + '" target="_blank" rel="noopener">' + esc(l.lien.replace(/^https?:\/\//, '').slice(0, 48)) + '</a>' : 'Delivered') + '</span><small>' + (l.le ? esc(jour(Date.parse(l.le))) : '') + '</small></div>').join('')
+      : '<div class="vide">No delivery yet.</div>') + '</div></div></div></div>';
+  return h;
+}
+function brancherLivrer(id) {
+  const s = document.getElementById('lv-projet'); if (s) s.onchange = () => K.aller('#/livrer/' + s.value);
+  const b = document.getElementById('lv-envoyer'); if (!b) return;
+  b.onclick = async () => {
+    const etat = document.getElementById('lv-etat'), lien = document.getElementById('lv-lien').value.trim(), note = document.getElementById('lv-note').value.trim();
+    if (E.moi && E.moi.role === 'admin') { etat.textContent = 'Admin preview: deliveries are sent by the designer.'; return; }
     if (lien.indexOf('https://') !== 0) { etat.textContent = 'Please paste the full download link (it starts with https://).'; return; }
     if (/figma\.com/i.test(lien)) { etat.textContent = 'Please send the exported files (SwissTransfer or WeTransfer link to the zip), not the Figma link.'; return; }
     b.disabled = true; etat.textContent = 'Sending…';
     try {
-      const r = await fetch(WEBHOOK, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({dossier: p.dataset.d, lien, note})});
+      const r = await fetch(WEBHOOK, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ dossier: id, lien, note }) });
       let rep = {}; try { rep = await r.json(); } catch (e) {}
-      etat.textContent = rep.message || (r.ok ? 'Thank you! Kreative has been notified.' : 'Sending failed. Please message Kreative on Telegram.');
-      if (r.ok) { b.textContent = 'Delivered ✓'; setTimeout(go, 2500); return; }
+      if (r.ok) { K.toast(rep.message || 'Thank you! Kreative has been notified.'); await K.prod.charger(true); K.rendre(true); return; }
+      etat.textContent = rep.message || 'Sending failed. Please message Kreative on Telegram.';
     } catch (e) { etat.textContent = 'Sending failed. Please message Kreative on Telegram.'; }
     b.disabled = false;
-  });
+  };
 }
-go();
+
+// ---------- RENDU ----------
+const TITRES = { '': 'Overview', projets: 'Projects', visuels: 'Previews', telechargement: 'Downloads', livrer: 'Deliver' };
+const TEXTES = { visuels: 'The generated visuals and the copy for each project.', telechargement: 'Download a project folder: visuals, copy and assets.' };
+let derniere = '';
+K.rendre = async force => {
+  const r = K.route(), cle = (location.hash || '#/');
+  if (!force && cle === derniere && document.querySelector('.app')) return;
+  derniere = cle;
+  if (!E.moi) E.moi = await K.lireJson('/_moi');
+  await K.prod.charger();
+  const sec = r.ecran, id = r.params[0];
+  let contenu, plein = false, nomP = '';
+  if (sec === 'visuels' || sec === 'telechargement') {
+    if (id) { contenu = K.prod.vue(sec, id, { en: true, sections: SECS }); plein = true; const x = K.prod.trouver(id); nomP = x ? nomEn(x) : id; }
+    else { const tout = K.prod.liste; K.prod.liste = mesProjets(); contenu = K.prod.liste_(sec, { en: true, texte: TEXTES[sec] }); K.prod.liste = tout; }
+  } else if (sec === 'livrer') { contenu = ecranLivrer(id); const x = id && K.prod.trouver(id); nomP = x ? nomEn(x) : ''; }
+  else contenu = sec === 'projets' ? ecranProjets() : ecranAccueil();
+  const c = conf();
+  const ariane = nomP ? K.ariane('pinceau', 'Designer', TITRES[sec], nomP) : K.ariane('pinceau', 'Designer', TITRES[sec] || TITRES['']);
+  document.getElementById('racine').innerHTML = K.coquille(c, sec || 'accueil', ariane, contenu, plein ? 'plein' : false);
+  K.brancherCoquille(c);
+  if (plein) K.prod.brancher(sec);
+  if (sec === 'livrer') brancherLivrer(id);
+  document.title = (nomP || TITRES[sec] || 'Designer') + ' · Kreative';
+};
+K.rendre();
 </script>
 </body>
 </html>

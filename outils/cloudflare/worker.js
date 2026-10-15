@@ -108,7 +108,27 @@ async function traiter(req, env, ctx) {
     if (page) return redirection(accueil);
     return texte('Accès refusé', 403);
   }
+  if (chemin === '/_telecharger') return telechargerFichier(url);
+  if (req.headers.get('Sec-Fetch-Dest') === 'document' && !url.searchParams.has('integre')) {
+    const route = routePortail(chemin, url);
+    if (route) return redirection(accueil + '#/' + route);
+  }
   return servir(chemin.slice(1), env, ctx, { brut: false, origine: url.origin, req, qui });
+}
+
+// télécharger une image du site du client (récupérée par le dossier) avec son nom :
+// le navigateur refuse « download » sur une autre adresse, le Worker la relaie
+async function telechargerFichier(url) {
+  let cible;
+  try { cible = new URL(url.searchParams.get('u') || ''); } catch (e) { return texte('Adresse invalide', 400); }
+  if (!/^https?:$/.test(cible.protocol) || /^(localhost|127\.|10\.|192\.168\.|169\.254\.|0\.)/.test(cible.hostname) || /\.(local|internal)$/.test(cible.hostname)) return texte('Adresse refusée', 400);
+  const nom = (url.searchParams.get('nom') || cible.pathname.split('/').pop() || 'fichier').replace(/[^A-Za-z0-9._ -]/g, '_').slice(0, 80);
+  let r;
+  try { r = await fetch(cible.toString(), { headers: { 'User-Agent': 'Mozilla/5.0 (Kreative)' }, redirect: 'follow' }); } catch (e) { return texte('Le site ne répond pas', 502); }
+  const type = r.headers.get('content-type') || '';
+  if (!r.ok || !/^(image|video)\//.test(type)) return texte('Ce lien ne mène pas à une image', 415);
+  if (Number(r.headers.get('content-length') || 0) > 40e6) return texte('Fichier trop lourd', 413);
+  return new Response(r.body, { headers: { 'Content-Type': type, 'Content-Disposition': 'attachment; filename="' + nom + '"', 'Cache-Control': 'private, max-age=3600' } });
 }
 
 // ============================================================
@@ -263,6 +283,7 @@ const IC = (() => {
     points: p('<circle cx="12" cy="5" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="12" cy="19" r="1.2"/>'),
     sortie: p('<path d="M15 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4M10 17l5-5-5-5M15 12H3"/>'),
     menu: p('<path d="M4 6h16M4 12h16M4 18h16"/>'),
+    haut_bas: p('<path d="m8 9 4-4 4 4M8 15l4 4 4-4"/>'),
     image: p('<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9.5" r="1.5"/><path d="m4 17 5-5 4 4 2.5-2.5L20 17"/>'),
     telecharger: p('<path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5"/><path d="M4 17v2a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-2"/>'),
     message: p('<path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.8 8.8 0 0 1-3.5-.7L3 21l1.9-5A8.4 8.4 0 1 1 21 11.5Z"/>')
@@ -284,33 +305,31 @@ function typePage(chemin, url) {
 
 function coquille(qui, chemin, req) {
   if (!qui || !req) return null;
-  if (/^\/(admin|client)(\/|$)/.test(chemin)) return null;          // ont leur propre coquille
+  if (/^\/(admin|client|strategiste|designer)(\/|$)/.test(chemin)) return null;   // les portails ont leur propre coquille
   const url = new URL(req.url);
   const pg = typePage(chemin, url);
+  const page = '<link rel="stylesheet" href="/ui/coquille.css"><script src="/ui/page.js" defer></script>';
+  // ouverte dans le portail (cadre intégré) : la page seule, sans barre latérale
+  if (url.searchParams.has('integre') || req.headers.get('Sec-Fetch-Dest') === 'iframe')
+    return { tete: page, ouverture: '', fermeture: '', classe: 'kc-on kc-integre kc-' + pg.type };
   const role = qui.role, en = role === 'designer';
   const e = t => String(t == null ? '' : t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const lien = (href, icone, texte, on) => '<a class="kc-l' + (on ? ' on' : '') + '" href="' + e(href) + '">' + IC[icone] + '<span>' + e(texte) + '</span></a>';
   const lab = t => '<div class="kc-lab">' + e(t) + '</div>';
 
-  // la barre latérale de chaque rôle
+  // la barre latérale : les mêmes sections permanentes que dans le portail (/strategiste/, /designer/, /admin/)
+  const h = ACCUEILS[role];
+  const actif = { fiche: 'fiche', dossier: 'dossier', retours: 'brief', apercu: 'visuels', telech: 'telechargement' }[pg.type];
   let nav = '', cta = '';
   if (role === 'admin') {
     cta = '<a class="kc-cta" href="/admin/#/clients/nouveau"><span>Nouveau client</span>' + IC.fleche + '</a>';
     nav = lab('Espace') + '<div class="kc-nav">' + lien('/admin/#/', 'accueil', 'Vue d\'ensemble') + '</div>' +
-      lab('Commercial') + '<div class="kc-nav">' + lien('/admin/#/clients', 'gens', 'Clients') + lien('/admin/#/commandes', 'sac', 'Commandes') + '</div>' +
-      lab('Production') + '<div class="kc-nav">' + lien('/admin/#/projets', 'dossier', 'Projets') + lien('/admin/#/dossiers', 'calques', 'Tous les dossiers') +
-        lien('/fiche/', 'doc', 'Fiche créas', pg.type === 'fiche' && !pg.projet) +
-        lien('/strategiste/', 'ampoule', 'Espace stratégiste', pg.type === 'strategiste') +
-        lien('/designer/', 'pinceau', 'Designer space', pg.type === 'designer') + '</div>' +
-      lab('Équipe') + '<div class="kc-nav">' + lien('/admin/#/equipe', 'bouclier', 'Équipe') + '</div>';
-  } else if (role === 'strategiste') {
-    nav = lab('Espace') + '<div class="kc-nav">' + lien('/strategiste/', 'dossier', 'Mes projets', pg.type === 'strategiste') +
-      lien('/fiche/', 'doc', 'Fiche créas', pg.type === 'fiche' && !pg.projet) + '</div>';
-  } else {
-    nav = lab('Workspace') + '<div class="kc-nav">' + lien('/designer/', 'dossier', 'My projects', pg.type === 'designer') + '</div>';
-  }
-  // « Ce projet » : rempli par coquille.js (il lit le projet dans le dépôt)
-  if (pg.projet) nav += '<div id="kc-projet" hidden>' + lab(en ? 'This project' : 'Ce projet') + '<div class="kc-nav" id="kc-projet-l"></div></div>';
+      lab('Commercial') + '<div class="kc-nav">' + lien('/admin/#/clients', 'gens', 'Clients') + lien('/admin/#/commandes', 'sac', 'Commandes') + '</div>';
+  } else nav = lab(en ? 'Workspace' : 'Espace') + '<div class="kc-nav">' + lien(h + '#/', 'accueil', en ? 'Overview' : 'Vue d\'ensemble') + lien(h + '#/projets', 'dossier', en ? 'Projects' : 'Projets') + '</div>';
+  nav += lab('Production') + '<div class="kc-nav">' + (en
+    ? lien(h + '#/visuels', 'image', 'Previews', actif === 'visuels') + lien(h + '#/telechargement', 'telecharger', 'Downloads', actif === 'telechargement') + lien(h + '#/livrer', 'fleche', 'Deliver')
+    : lien(h + '#/fiche', 'doc', 'Fiches créas', actif === 'fiche') + lien(h + '#/dossier', 'calques', 'Dossiers de production', actif === 'dossier') +
+      lien(h + '#/brief', 'message', 'Briefs clients', actif === 'brief') + lien(h + '#/visuels', 'image', 'Visuels', actif === 'visuels' || actif === 'telechargement')) + '</div>';
 
   // le fil d'Ariane
   const racine = role === 'admin' ? 'Production' : en ? 'Designer' : 'Stratégiste';
@@ -328,17 +347,25 @@ function coquille(qui, chemin, req) {
 
   const ouverture = '<div class="kc" id="kc"><div class="kc-side" id="kc-side">' +
     '<a class="kc-logo" href="' + ACCUEILS[role] + '"><img src="/ui/logo-kreative-noir.png" alt="Kreative"></a>' + cta + nav +
-    '<div class="kc-foot"><span class="kc-av">' + e(nom.charAt(0) || '?') + '</span><div class="kc-qui"><b>' + e(nom) + '</b><small>' + e(titre) + '</small></div>' +
-    '<button class="kc-mb" id="kc-mb" type="button" aria-label="Menu">' + IC.points + '</button>' +
-    '<div class="kc-menu" id="kc-menu" hidden><a href="/_deconnexion">' + IC.sortie + '<span>' + (en ? 'Log out' : 'Se déconnecter') + '</span></a></div></div></div>' +
+    '<div class="kc-foot"><div class="kc-menu" id="kc-menu" hidden><a href="/_deconnexion">' + IC.sortie + '<span>' + (en ? 'Log out' : 'Se déconnecter') + '</span></a></div>' +
+    '<button class="kc-mb" id="kc-mb" type="button" aria-label="Menu du compte"><span class="kc-av">' + e(nom.charAt(0) || '?') + '</span><span class="kc-qui"><b>' + e(nom) + '</b><small>' + e(titre) + '</small></span>' + IC.haut_bas + '</button></div></div>' +
     '<div class="kc-main"><div class="kc-panel"><div class="kc-top">' +
     '<button class="kc-ib kc-burger" id="kc-burger" type="button" aria-label="Menu">' + IC.menu + '</button>' +
     '<div class="kc-ariane">' + ariane + '</div>' +
     '<div class="kc-search">' + IC.chercher + '<input id="kc-cherche" placeholder="' + (en ? 'Search a project…' : 'Rechercher un projet…') + '" autocomplete="off"><kbd>⌘K</kbd><div class="kc-res" id="kc-res" hidden></div></div>' +
     '</div><div class="kc-scroll" id="kc-scroll">';
   const fermeture = '</div></div></div></div>';
-  const tete = '<link rel="stylesheet" href="/ui/coquille.css"><script>window.KC=' + JSON.stringify(conf).replace(/</g, '\\u003c') + '</script><script src="/ui/coquille.js" defer></script>';
-  return { tete, ouverture, fermeture, classe: 'kc-on kc-' + pg.type };
+  const tete = page + '<script>window.KC=' + JSON.stringify(conf).replace(/</g, '\\u003c') + '</script><script src="/ui/coquille.js" defer></script>';
+  return { tete, ouverture, fermeture, classe: 'kc-on kc-shell kc-' + pg.type };
+}
+
+// une page de production ouverte directement (lien d'un email, d'une notification…)
+// s'ouvre dans le portail : même barre latérale, la page au milieu
+function routePortail(chemin, url) {
+  if (/^\/(admin|client|strategiste|designer|ui|_[a-z]+)(\/|$)/.test(chemin)) return null;
+  const pg = typePage(chemin, url);
+  const P = pg.projet ? '/' + encodeURIComponent(pg.projet) : '';
+  return { fiche: 'fiche' + P, dossier: 'dossier' + P, retours: P ? 'brief' + P : 'brief', apercu: 'visuels' + P, telech: 'telechargement' + P }[pg.type] || null;
 }
 
 function reecrireHtml(rep, base, coq) {

@@ -17,9 +17,12 @@
   --kc-titre:"Inter Tight","Inter",-apple-system,"Segoe UI",sans-serif;
   --kc-texte:"Inter",-apple-system,"Segoe UI",sans-serif;
 }
-html:has(body.kc-on){height:100%;overflow:hidden}
-body.kc-on{margin:0!important;padding:0!important;height:100%!important;min-height:0!important;overflow:hidden!important;
+html:has(body.kc-shell){height:100%;overflow:hidden}
+body.kc-shell{margin:0!important;padding:0!important;height:100%!important;min-height:0!important;overflow:hidden!important;
   display:block!important;background:var(--kc-bg)!important}
+/* ouverte dans le portail (cadre intégré) : fond blanc, comme le panneau autour */
+body.kc-integre{background:#fff!important}
+body.kc-integre.k-dossier .head{padding-top:26px}
 
 /* ---------- la structure ---------- */
 .kc{display:flex;height:100vh;height:100dvh}
@@ -49,15 +52,15 @@ body.kc-on{margin:0!important;padding:0!important;height:100%!important;min-heig
 .kc-side a.kc-l span{overflow:hidden;text-overflow:ellipsis}
 .kc-side a.kc-l:hover{background:var(--kc-soft);color:var(--kc-ink)}
 .kc-side a.kc-l.on{background:var(--kc-panel);color:var(--kc-ink);border-color:var(--kc-line);box-shadow:var(--kc-ombre)}
-.kc-foot{margin-top:auto;border-top:1px solid var(--kc-line);padding:12px 6px 2px;display:flex;align-items:center;gap:10px;position:relative}
+.kc-foot{margin-top:auto;border-top:1px solid var(--kc-line);padding:8px 0 0;position:relative}
 .kc-av{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--kc-blue-soft);color:#2b6fd6;font:700 12.5px var(--kc-texte);flex:none}
 .kc-qui{min-width:0;flex:1}
 .kc-qui b{display:block;font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.4}
 .kc-qui small{display:block;font-size:12px;color:var(--kc-tx3);line-height:1.4}
-.kc-side button.kc-mb{all:unset;width:30px;height:30px;border-radius:8px;display:grid;place-items:center;color:var(--kc-tx3);cursor:pointer}
-.kc-side button.kc-mb:hover{background:var(--kc-soft);color:var(--kc-ink)}
-.kc-side button.kc-mb svg{width:18px;height:18px}
-.kc-menu{position:absolute;bottom:52px;left:6px;right:6px;background:var(--kc-panel);border:1px solid var(--kc-line);border-radius:12px;box-shadow:var(--kc-ombre2);padding:6px;z-index:40}
+.kc-side button.kc-mb{all:unset;box-sizing:border-box;width:100%;display:flex;align-items:center;gap:10px;padding:8px;border-radius:12px;cursor:pointer;color:var(--kc-tx3)}
+.kc-side button.kc-mb:hover,.kc-side button.kc-mb[aria-expanded="true"]{background:var(--kc-soft)}
+.kc-side button.kc-mb svg{width:16px;height:16px;flex:none}
+.kc-menu{position:absolute;bottom:62px;left:0;right:0;background:var(--kc-panel);border:1px solid var(--kc-line);border-radius:12px;box-shadow:var(--kc-ombre2);padding:6px;z-index:40}
 .kc-menu[hidden]{display:none}
 .kc-menu a{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;font-size:13.5px;color:var(--kc-ink)}
 .kc-menu a:hover{background:var(--kc-soft)}
@@ -101,8 +104,8 @@ body.kc-on{margin:0!important;padding:0!important;height:100%!important;min-heig
   .kc-ariane>svg,.kc-ariane>span:first-of-type,.kc-ariane>span:first-of-type+i{display:none}
 }
 @media print{
-  html:has(body.kc-on){height:auto;overflow:visible}
-  body.kc-on{height:auto!important;overflow:visible!important}
+  html:has(body.kc-shell){height:auto;overflow:visible}
+  body.kc-shell{height:auto!important;overflow:visible!important}
   .kc{display:block;height:auto}.kc-side,.kc-top{display:none}
   .kc-main,.kc-panel{display:block;padding:0;border:0;box-shadow:none;transform:none}.kc-scroll{overflow:visible}
 }
@@ -170,3 +173,11 @@ body.kc-on.kc-fiche .bar1{padding:16px var(--gut)}
   body.kc-on.k-apercu header.h{margin:22px 0 20px}
   body.kc-on.k-apercu h1{font-size:28px}
 }
+
+/* ---------- dossier, section Assets : un « Tout télécharger » par groupe (ui/page.js) ---------- */
+body.kc-on.k-dossier #assets .sub{display:flex;align-items:center;gap:14px}
+body.kc-on.k-dossier #assets .sub::after{flex:1;order:2}
+body.kc-on.k-dossier #assets .kp-tout{order:3;height:34px;padding:0 16px;font-size:12.5px;flex:none}
+
+/* fiche ouverte dans le portail : le choix du projet est déjà dans la barre du portail */
+body.kc-integre.kc-fiche .bar1 .sel{display:none}

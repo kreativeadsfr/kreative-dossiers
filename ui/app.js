@@ -7,7 +7,8 @@
   const K = window.K = {};
 
   // ---------- thème (clair par défaut, sombre au choix, retenu) ----------
-  try { if (localStorage.getItem('k-theme') === 'dark') document.documentElement.dataset.theme = 'dark'; } catch (e) {}
+  // les espaces de l'équipe restent en clair (les pages de production le sont) : <html data-clair>
+  try { if (localStorage.getItem('k-theme') === 'dark' && !document.documentElement.hasAttribute('data-clair')) document.documentElement.dataset.theme = 'dark'; } catch (e) {}
   K.basculerTheme = () => {
     const sombre = document.documentElement.dataset.theme !== 'dark';
     document.documentElement.dataset.theme = sombre ? 'dark' : 'light';
@@ -56,6 +57,7 @@
     bouclier: p('<path d="M12 3 5 6v6c0 4.2 2.9 7.8 7 9 4.1-1.2 7-4.8 7-9V6Z"/>'),
     rafraichir: p('<path d="M20 11a8 8 0 0 0-14.6-4.5L4 8M4 4v4h4M4 13a8 8 0 0 0 14.6 4.5L20 16M20 20v-4h-4"/>'),
     menu: p('<path d="M4 6h16M4 12h16M4 18h16"/>'),
+    hautBas: p('<path d="m8 9 4-4 4 4M8 15l4 4 4-4"/>'),
     recu: p('<path d="M6 3h12v18l-3-2-3 2-3-2-3 2Z"/><path d="M9 8h6M9 12h6M9 16h3"/>'),
     telecharger: p('<path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5"/><path d="M4 17v2a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-2"/>'),
     utilisateur: p('<circle cx="12" cy="8" r="3.6"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/>'),
@@ -233,25 +235,26 @@
       '<aside class="side"><div class="side-logo"><img src="/ui/logo-kreative-noir.png" alt="Kreative"></div>' +
       (conf.cta ? '<a class="side-cta" href="' + K.esc(conf.cta.href) + '">' + K.esc(conf.cta.texte) + K.i.fleche.replace('<svg', '<svg width="16" height="16"') + '</a>' : '') +
       nav +
-      '<div class="side-foot">' + (conf.qui.photo ? '<img class="av-img" src="' + K.esc(conf.qui.photo) + '" alt="">' : conf.qui.tuile ? K.tuile(conf.qui.nom) : '<span class="av">' + K.esc(K.initiales(conf.qui.nom)) + '</span>') +
-      '<div class="qui"><b>' + K.esc(conf.qui.nom) + '</b><small>' + K.esc(conf.qui.role) + '</small></div>' +
-      '<button class="menu-btn" id="k-menu-btn" aria-label="Menu">' + K.i.points + '</button>' +
-      '<div class="menu" id="k-menu" hidden>' + (conf.menu || []).join('') +
-      (conf.sansTheme ? '' : '<button id="k-theme2">' + (sombre ? K.i.soleil : K.i.lune) + (sombre ? 'Thème clair' : 'Thème sombre') + '</button>') +
-      '<a href="' + K.esc(conf.sortie) + '">' + K.i.sortie + 'Se déconnecter</a></div></div></aside>' +
+      // toute la zone du profil ouvre le menu du compte
+      '<div class="side-foot"><div class="menu" id="k-menu" hidden>' + (conf.menu || []).join('') +
+      (conf.sansTheme || conf.clair ? '' : '<button id="k-theme2">' + (sombre ? K.i.soleil : K.i.lune) + (sombre ? 'Thème clair' : 'Thème sombre') + '</button>') +
+      '<a href="' + K.esc(conf.sortie) + '">' + K.i.sortie + (conf.anglais ? 'Log out' : 'Se déconnecter') + '</a></div>' +
+      '<button class="compte" id="k-menu-btn" aria-label="Menu du compte" aria-expanded="false">' +
+      (conf.qui.photo ? '<img class="av-img" src="' + K.esc(conf.qui.photo) + '" alt="">' : conf.qui.tuile ? K.tuile(conf.qui.nom) : '<span class="av">' + K.esc(K.initiales(conf.qui.nom)) + '</span>') +
+      '<span class="qui"><b>' + K.esc(conf.qui.nom) + '</b><small>' + K.esc(conf.qui.role) + '</small></span>' + K.i.hautBas + '</button></div></aside>' +
       '<div class="main"><div class="panel"><header class="top">' +
       '<button class="icon-btn burger" id="k-burger" aria-label="Menu">' + K.i.menu + '</button>' +
       '<div class="ariane">' + ariane + '</div>' +
-      (conf.recherche ? '<div class="search">' + K.i.chercher + '<input id="k-cherche" placeholder="Rechercher un client, un projet, un dossier…" autocomplete="off"><kbd>⌘K</kbd><div class="res" id="k-res" hidden></div></div>' : '') +
-      '<div class="top-r"><button class="icon-btn" id="k-theme" title="' + (sombre ? 'Thème clair' : 'Thème sombre') + '">' + (sombre ? K.i.soleil : K.i.lune) + '</button></div>' +
-      '</header><div class="scroll"><div class="page' + (large ? ' large' : '') + '">' + contenu + '</div></div></div></div></div>';
+      (conf.recherche ? '<div class="search">' + K.i.chercher + '<input id="k-cherche" placeholder="' + K.esc(conf.cherche || 'Rechercher un client, un projet, un dossier…') + '" autocomplete="off"><kbd>⌘K</kbd><div class="res" id="k-res" hidden></div></div>' : '') +
+      (conf.clair ? '' : '<div class="top-r"><button class="icon-btn" id="k-theme" title="' + (sombre ? 'Thème clair' : 'Thème sombre') + '">' + (sombre ? K.i.soleil : K.i.lune) + '</button></div>') +
+      '</header><div class="scroll"><div class="page' + (large === 'plein' ? ' plein' : large ? ' large' : '') + '">' + contenu + '</div></div></div></div></div>';
   };
   K.brancherCoquille = conf => {
     const b = id => document.getElementById(id);
     if (b('k-theme')) b('k-theme').onclick = K.basculerTheme;
     if (b('k-theme2')) b('k-theme2').onclick = K.basculerTheme;
     if (b('k-burger')) b('k-burger').onclick = () => b('k-app').classList.toggle('menu-ouvert');
-    if (b('k-menu-btn')) b('k-menu-btn').onclick = e => { e.stopPropagation(); b('k-menu').hidden = !b('k-menu').hidden; };
+    if (b('k-menu-btn')) b('k-menu-btn').onclick = e => { e.stopPropagation(); b('k-menu').hidden = !b('k-menu').hidden; b('k-menu-btn').setAttribute('aria-expanded', String(!b('k-menu').hidden)); };
     document.addEventListener('click', K.fermerMenu, { once: true });
     if (conf.recherche && b('k-cherche')) {
       const champ = b('k-cherche'), res = b('k-res'); let sel = 0, items = [];
@@ -272,7 +275,7 @@
       champ.onblur = () => setTimeout(() => { res.hidden = true; }, 150);
     }
   };
-  K.fermerMenu = () => { const m = document.getElementById('k-menu'); if (m) m.hidden = true; const a = document.getElementById('k-app'); if (a) a.classList.remove('menu-ouvert'); };
+  K.fermerMenu = () => { const m = document.getElementById('k-menu'); if (m) m.hidden = true; const mb = document.getElementById('k-menu-btn'); if (mb) mb.setAttribute('aria-expanded', 'false'); const a = document.getElementById('k-app'); if (a) a.classList.remove('menu-ouvert'); };
   document.addEventListener('keydown', e => {
     if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { const c = document.getElementById('k-cherche'); if (c) { e.preventDefault(); c.focus(); c.select(); } }
   });
@@ -287,4 +290,112 @@
       (cours ? '<span class="t"><b>' + K.esc(e.titre) + '</b>' + (e.detail ? '<small>' + K.esc(e.detail) + '</small>' : '') + '</span><span class="pill b"><i></i>' + (e.option ? 'À vous' : 'En cours') + '</span>'
         : '<span class="t">' + K.esc(e.titre) + '</span>') + '</div>';
   }).join('') + '</div>';
+
+  // ============================================================
+  //  PRODUCTION : les projets du dépôt et leurs pages, ouvertes
+  //  DANS le portail (cadre intégré), avec un choix du projet.
+  //  Utilisé par l'admin, l'espace stratégiste et l'espace designer.
+  // ============================================================
+  const P = K.prod = { liste: null };
+  P.charger = async force => {
+    if (P.liste && !force) return P.liste;
+    let projets = await K.lireJson('/projets.json');
+    if (!Array.isArray(projets)) projets = [];
+    P.liste = (await Promise.all(projets.filter(x => x && x.dossier && !/^TEST_/i.test(x.dossier)).map(async x => {
+      const [d, envois, liv, retour] = await Promise.all(['donnees', 'envois', 'livraison', 'retour'].map(f => K.lireJson('/' + x.dossier + '/' + f + '.json')));
+      if (!d) return null;
+      const ev = (envois && Array.isArray(envois.envois)) ? envois.envois : [];
+      const dernier = ev[ev.length - 1];
+      const livs = (liv && liv.livraisons) || [], der = livs[livs.length - 1] || {};
+      const l = d.livraison;
+      return { dossier: x.dossier, d, prod: (l && l.projet) || x.dossier, marque: d.brand_name || x.dossier,
+        nom: (d.brand_name || x.dossier) + (l && l.sur > 1 ? ' · livraison ' + l.n + '/' + l.sur : ''),
+        nb: d.nb_creas || x.nb_creas || 0, pack: d.pack || x.pack || '', retour: !!(retour && retour.dossier === x.dossier),
+        envoye: ev.length > 0, envoyeLe: Date.parse(typeof dernier === 'string' ? dernier : (dernier || {}).le || '') || 0,
+        livre: !!(liv && liv.livre), livreLe: Date.parse(der.le || '') || 0, zip: der.lien || '', livraisons: livs,
+        strat: Date.parse(d.deadline_strategiste || '') || 0, desi: Date.parse(d.deadline_designer || '') || 0, client: Date.parse(d.deadline || '') || 0 };
+    }))).filter(Boolean);
+    return P.liste;
+  };
+  P.trouver = id => (P.liste || []).find(x => x.dossier === id) || (P.liste || []).find(x => x.prod === id) || null;
+
+  // une échéance lisible : « Dans 2 jours », « Dans 5 h », « En retard »
+  P.echeance = (t, en) => {
+    if (!t) return { pill: '', texte: en ? 'no deadline' : 'pas d\'échéance', retard: false };
+    const reste = t - Date.now(), H = 36e5;
+    if (reste < 0) return { pill: '<span class="pill r"><i></i>' + (en ? 'Late' : 'En retard') + '</span>', texte: en ? 'late' : 'en retard', retard: true };
+    if (reste < 12 * H) { const h = Math.max(1, Math.round(reste / H)); return { pill: '<span class="pill n">' + (en ? 'Due in ' : 'Dans ') + h + ' h</span>', texte: (en ? 'in ' : 'dans ') + h + ' h' }; }
+    const j = Math.round(reste / 24 / H), t2 = (en ? 'in ' : 'dans ') + j + (en ? ' day' : ' jour') + (j > 1 ? 's' : '');
+    return { pill: '<span class="pill b"><i></i>' + t2.charAt(0).toUpperCase() + t2.slice(1) + '</span>', texte: t2 };
+  };
+  // où en est un projet de production
+  P.etat = (x, en) => {
+    if (!x.envoye) { const e = P.echeance(x.strat, en); return { cle: 'strat', texte: e.retard ? (en ? 'Brief late' : 'Fiche en retard') : (en ? 'With the strategist' : 'Fiche à remplir'), pill: e.retard ? 'r' : 'b' }; }
+    if (!x.livre) { const e = P.echeance(x.desi, en); return { cle: 'desi', texte: e.retard ? (en ? 'Late' : 'Designer en retard') : (en ? 'To deliver' : 'Chez le designer'), pill: e.retard ? 'r' : 'v' }; }
+    return { cle: 'livre', texte: en ? 'Delivered' : 'Livré par le designer', pill: 'g' };
+  };
+  P.pill = (x, en) => { const e = P.etat(x, en); return '<span class="pill ' + e.pill + '"><i></i>' + K.esc(e.texte) + '</span>'; };
+
+  // les sections et la page qu'elles ouvrent
+  P.sections = {
+    fiche: { fr: 'Fiches créas', en: 'Strategy briefs', icone: 'doc', ok: () => true, src: x => '/fiche/?projet=' + encodeURIComponent(x.dossier) },
+    dossier: { fr: 'Dossiers de production', en: 'Production files', icone: 'calques', ok: x => x.prod === x.dossier || !(P.liste || []).some(y => y.dossier === x.prod), src: x => '/' + x.prod + '/' },
+    brief: { fr: 'Briefs clients', en: 'Client briefs', icone: 'message', ok: x => x.retour, src: x => '/retours/?projet=' + encodeURIComponent(x.dossier) },
+    visuels: { fr: 'Visuels', en: 'Previews', icone: 'image', ok: x => x.envoye, src: x => '/' + x.dossier + '/creas/' },
+    telechargement: { fr: 'Téléchargements', en: 'Downloads', icone: 'telecharger', ok: x => x.envoye, src: x => '/' + x.dossier + '/creas/telecharger.html' }
+  };
+  const avecIntegre = u => u + (u.includes('?') ? '&' : '?') + 'integre=1';
+  // une adresse de page de production → la route du portail
+  P.route = chemin => {
+    const u = new URL(chemin, location.origin), q = u.searchParams.get('projet'), c = u.pathname;
+    let m;
+    if (/^\/fiche\/(index\.html)?$/.test(c)) return 'fiche' + (q ? '/' + q : '');
+    if (/^\/retours\/(index\.html)?$/.test(c)) return 'brief' + (q ? '/' + q : '');
+    if ((m = c.match(/^\/([A-Za-z0-9_-]+)\/creas\/telecharger\.html$/))) return 'telechargement/' + m[1];
+    if ((m = c.match(/^\/([A-Za-z0-9_-]+)\/creas\/(index\.html)?$/))) return 'visuels/' + m[1];
+    if ((m = c.match(/^\/([A-Za-z0-9_-]+)\/(index\.html)?$/)) && !/^(admin|client|strategiste|designer|fiche|retours|ui)$/.test(m[1])) return 'dossier/' + m[1];
+    return null;
+  };
+  // une page intégrée demande à ouvrir une autre page de production : on reste dans le portail
+  window.addEventListener('message', e => {
+    if (e.origin !== location.origin || !e.data || e.data.kreative !== 'aller') return;
+    const r = P.route(e.data.chemin);
+    if (r && P.autorisees && !P.autorisees.includes(r.split('/')[0])) { location.href = e.data.chemin; return; }
+    if (r) K.aller('#/' + r); else location.href = e.data.chemin;
+  });
+
+  // la liste des projets d'une section (quand aucun n'est choisi)
+  P.liste_ = (sec, opt) => {
+    const S = P.sections[sec], en = opt.en, l = (P.liste || []).filter(S.ok).sort((a, b) => (b.envoyeLe || b.strat || 0) - (a.envoyeLe || a.strat || 0));
+    let h = '<div class="ph"><div><h1>' + K.esc(en ? S.en : S.fr) + '</h1><p>' + K.esc(opt.texte || (en ? 'Choose a project.' : 'Choisissez un projet.')) + '</p></div>' +
+      (sec === 'fiche' && !en ? '<div class="act"><a class="btn btn-s" href="#/fiche/banque">' + K.i.grille + 'Banque d\'inspirations</a></div>' : '') + '</div>';
+    if (!l.length) return h + '<div class="card"><div class="vide">' + K.i[S.icone] + K.esc(en ? 'Nothing here yet.' : 'Rien ici pour le moment.') + '</div></div>';
+    return h + '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>' + (en ? 'Project' : 'Projet') + '</th><th class="num">' + (en ? 'Creatives' : 'Créas') + '</th><th>' + (en ? 'Status' : 'Statut') + '</th><th>' + (en ? 'Deadline' : 'Échéance') + '</th><th></th></tr></thead><tbody>' +
+      l.map(x => {
+        const ech = !x.envoye ? x.strat : !x.livre ? x.desi : x.client;
+        return '<tr class="clic" onclick="location.hash=\'#/' + sec + '/' + K.esc(x.dossier) + '\'"><td><div class="nom">' + K.tuile(x.marque) + '<div><b>' + K.esc(x.nom) + '</b><span class="sub">' + K.esc(x.dossier) + '</span></div></div></td>' +
+          '<td class="num">' + K.esc(x.nb || '?') + '</td><td>' + P.pill(x, en) + '</td><td>' + (ech ? K.esc(K.dateHeure(ech)) : '·') + '</td>' +
+          '<td class="fin"><span class="btn btn-s btn-sm">' + (en ? 'Open' : 'Ouvrir') + ' ' + K.i.fleche.replace('<svg', '<svg width="14" height="14"') + '</span></td></tr>';
+      }).join('') + '</tbody></table></div></div>';
+  };
+  // la page d'un projet, dans le portail : barre (projet, autres pages) + la page en cadre
+  P.vue = (sec, id, opt) => {
+    const S = P.sections[sec], en = opt.en, secs = opt.sections || Object.keys(P.sections);
+    const x = id === 'banque' ? null : P.trouver(id);
+    const src = id === 'banque' ? '/fiche/' : x ? S.src(x) : sec === 'dossier' ? '/' + id + '/' : sec === 'visuels' ? '/' + id + '/creas/' : sec === 'telechargement' ? '/' + id + '/creas/telecharger.html' : sec === 'brief' ? '/retours/?projet=' + encodeURIComponent(id) : '/fiche/?projet=' + encodeURIComponent(id);
+    const choix = (P.liste || []).filter(S.ok);
+    if (x && !choix.includes(x)) choix.unshift(x);
+    const autres = x ? secs.filter(k => k !== sec && P.sections[k].ok(x)) : [];
+    return '<div class="vp"><div class="vp-barre"><a class="btn btn-g btn-sm" href="#/' + sec + '">' + K.i.gauche + K.esc(en ? S.en : S.fr) + '</a>' +
+      '<div class="vp-choix"><select class="in" id="vp-projet">' + (id === 'banque' ? '<option value="banque" selected>' + (en ? 'Inspiration bank' : 'Banque d\'inspirations') + '</option>' : '') +
+      (!x && id !== 'banque' ? '<option value="' + K.esc(id) + '" selected>' + K.esc(id) + '</option>' : '') +
+      choix.map(y => '<option value="' + K.esc(y.dossier) + '"' + (x === y ? ' selected' : '') + '>' + K.esc(y.nom) + ' · ' + K.esc(y.nb || '?') + (en ? ' creatives' : ' créas') + '</option>').join('') + '</select></div>' +
+      (x ? P.pill(x, en) : '') +
+      (autres.length ? '<div class="vp-autres">' + autres.map(k => '<a class="btn btn-s btn-sm" href="#/' + k + '/' + K.esc(x.dossier) + '">' + K.i[P.sections[k].icone] + K.esc(en ? P.sections[k].en : P.sections[k].fr) + '</a>').join('') + '</div>' : '') +
+      '</div><iframe class="vp-cadre" id="vp-cadre" src="' + K.esc(avecIntegre(src)) + '" title="' + K.esc(en ? S.en : S.fr) + '"></iframe></div>';
+  };
+  P.brancher = sec => {
+    const s = document.getElementById('vp-projet');
+    if (s) s.onchange = () => K.aller('#/' + sec + '/' + s.value);
+  };
 })();

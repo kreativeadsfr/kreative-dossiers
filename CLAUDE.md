@@ -31,7 +31,7 @@ Ce fichier est lu automatiquement par Claude quand il ouvre ce dépôt. Il conti
 - **Site vitrine** : kreativeads.fr sur **Framer** (Claude n'y a pas accès : Dario fait les manipulations).
 - **Portail** : app.kreativeads.fr = un **Cloudflare Worker** (`outils/cloudflare/worker.js`) qui sert les pages de ce dépôt (lues via l'API GitHub, cache ~20 s) et l'API.
   - Pages : `admin/`, `client/`, `strategiste/`, `designer/`, `commander/` (panier public), `merci/`, `fiche/`, `ui/` (app.js, app.css, review.js, panier.js, logos).
-  - Une modification de page poussée sur `main` est en ligne en ~20 s. **Une modification de `worker.js` ne l'est pas** : copier le fichier pour Dario sous le nom « Worker Kreative vNN (a coller dans Cloudflare).js » ; il le colle dans Cloudflare puis Deploy. Dernière version donnée : **v34**. Toujours lui rappeler que la nouvelle version contient les précédentes.
+  - Une modification de page poussée sur `main` est en ligne en ~20 s. **Une modification de `worker.js` ne l'est pas** : copier le fichier pour Dario sous le nom « Worker Kreative vNN (a coller dans Cloudflare).js » ; il le colle dans Cloudflare puis Deploy. Dernière version donnée : **v35**. Toujours lui rappeler que la nouvelle version contient les précédentes.
   - Base **D1** : clients, commandes, livraisons, fichiers, commentaires, factures, retours, prod_etapes, push_abos, notifications, reglages, activite.
   - Fichiers livrés : **R2** (binding `FICHIERS`).
   - Secrets Cloudflare (jamais dans le code) : `ACCES` (équipe, `prenom=motdepasse:role`, rôles admin / strategiste / designer, séparés par des virgules), `CLE` (clé n8n), `GITHUB_TOKEN`, `STRIPE_SECRET`, `STRIPE_WEBHOOK_SECRET`, `N8N_EMAIL`.

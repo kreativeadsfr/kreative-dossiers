@@ -58,17 +58,23 @@ function rafraichir(...quoi) { quoi.forEach(q => { S[q] = null; }); K.rendre(); 
 // ---------- production : état d'un projet ----------
 function commandeDe(x) { return (S.commandes || []).find(c => c.dossier === x.dossier || (x.d.livraison && c.dossier === x.d.livraison.projet)); }
 function etatProd(x) {
-  const now = Date.now(), c = commandeDe(x);
-  const auClient = c && ['livre', 'revisions', 'valide'].includes(c.statut);
-  if (auClient) return { cle: 'client', texte: STATUTS[c.statut][0], pill: STATUTS[c.statut][1] };
-  if (x.livre) return { cle: 'livrer', texte: 'À livrer au client', pill: 'n' };
-  if (!x.envoye) return x.strat && x.strat < now ? { cle: 'strat', texte: 'Fiche en retard', pill: 'r', retard: true } : { cle: 'strat', texte: 'Chez le stratégiste', pill: 'b' };
-  return x.desi && x.desi < now ? { cle: 'desi', texte: 'Designer en retard', pill: 'r', retard: true } : { cle: 'desi', texte: 'Chez le designer', pill: 'v' };
+  // la même étape que voient le stratégiste et la designer (K.prod.etape : versions du portail, Kanban, commande)
+  const now = Date.now(), c = commandeDe(x), g = x.etape || K.prod.etape(x);
+  if (g.cle === 'client') {
+    if (g.statut === 'envoyee' && g.version > 1) return { cle: 'client', texte: 'Version ' + g.version + ' chez le client', pill: 'g' };
+    if (c && ['livre', 'valide'].includes(c.statut)) return { cle: 'client', texte: STATUTS[c.statut][0], pill: STATUTS[c.statut][1] };
+    return { cle: 'client', texte: g.statut === 'approuvee' ? 'Approuvé par le client' : 'Chez le client', pill: 'g' };
+  }
+  if (g.cle === 'livrer') return { cle: 'livrer', texte: g.statut === 'a_verifier' ? (g.version > 1 ? 'Version ' + g.version + ' à vérifier' : 'À vérifier') : 'À livrer au client', pill: 'n' };
+  if (g.retouche) return { cle: g.cle, texte: g.cle === 'strat' ? 'Retouches · textes' : (g.statut === 'a_corriger' ? 'Renvoyé à la designer' : 'Retouches · visuels'), pill: 'v', retouche: true };
+  if (g.cle === 'strat') return x.strat && x.strat < now && !x.envoye ? { cle: 'strat', texte: 'Fiche en retard', pill: 'r', retard: true } : { cle: 'strat', texte: 'Chez le stratégiste', pill: 'b' };
+  return x.desi && x.desi < now && !x.livre ? { cle: 'desi', texte: 'Designer en retard', pill: 'r', retard: true } : { cle: 'desi', texte: 'Chez le designer', pill: 'v' };
 }
 function etapesProd(x) {
   const c = commandeDe(x);
   return [{ t: 'Dossier prêt', f: true }, { t: 'Fiche envoyée', f: x.envoye }, { t: 'Visuels générés', f: x.envoye }, { t: 'Livré par le designer', f: x.livre },
-    { t: 'Livré au client', f: !!(c && ['livre', 'revisions', 'valide'].includes(c.statut)) }, { t: 'Validé', f: !!(c && c.statut === 'valide') }];
+    { t: 'Livré au client', f: !!((x.etape && x.etape.cle === 'client') || (x.v && (x.v.version > 1 || x.v.statut === 'review_terminee')) || (c && ['livre', 'revisions', 'valide'].includes(c.statut))) },
+    { t: 'Validé', f: !!(c && c.statut === 'valide') || !!(x.v && x.v.statut === 'approuvee') }];
 }
 const nomProjet = x => (x.d.brand_name || x.dossier) + (x.d.livraison && x.d.livraison.sur > 1 ? ' · livraison ' + x.d.livraison.n + '/' + x.d.livraison.sur : '');
 function liensProjet(x, petit) {
@@ -263,7 +269,7 @@ function tableauDeBord(retards) {
   const total = ventes.reduce((t, f) => t + (f.montant || 0), 0), totalAvant = avant.reduce((t, f) => t + (f.montant || 0), 0);
   const C = S.commandes || [], clients = S.clients || [];
   const nouveaux = clients.filter(c => dans(c.cree_le || 0, a, b)).length;
-  let h = '<div class="sec" style="margin-top:4px"><div><h2>Ventes</h2><p>Les paiements Stripe de la période.</p></div><a class="btn btn-g btn-sm" href="#/factures">Factures</a></div>';
+  let h = '<div class="sec" style="margin-top:4px"><div><h2>Ventes</h2><p>Les paiements Stripe de la période.</p></div></div>';
   // LTV : ce qu'un client dépense en moyenne chez Kreative, depuis toujours (jusqu'à la fin de la période)
   const parClient = {}; F.filter(f => f.client_id && quand(f) <= b).forEach(f => { parClient[f.client_id] = (parClient[f.client_id] || 0) + (f.montant || 0); });
   const payeurs = Object.keys(parClient).length, ltv = payeurs ? Object.values(parClient).reduce((t, v) => t + v, 0) / payeurs : 0;
@@ -286,7 +292,7 @@ function tableauDeBord(retards) {
   const livrees = C.filter(c => c.livre_le && dans(c.livre_le, a, b));
   const P = (S.prod || []).filter(x => x.livreLe && dans(x.livreLe, a, b)), aLheure = P.filter(x => !x.desi || x.livreLe <= x.desi).length;
   const L = (S.livraisons || []), envoyees = L.filter(l => l.envoye_le && dans(l.envoye_le, a, b)), retouches = L.filter(l => l.review_le && dans(l.review_le, a, b) && l.statut === 'review_terminee').length;
-  h += '<div class="sec"><div><h2>Production</h2><p>Ce qui a été livré sur la période.</p></div><a class="btn btn-g btn-sm" href="#/projets">Projets</a></div>';
+  h += '<div class="sec"><div><h2>Production</h2><p>Ce qui a été livré sur la période.</p></div></div>';
   h += '<div class="grid g4">' + kpi('Créatives livrées', livrees.reduce((t, c) => t + (c.nb_creas || 0), 0), livrees.length + ' projet' + (livrees.length > 1 ? 's' : '') + ' livré' + (livrees.length > 1 ? 's' : '') + ' au client') +
     kpi('Livrés dans les délais', P.length ? Math.round(aLheure * 100 / P.length) + ' %' : '·', P.length ? aLheure + ' sur ' + P.length + ' par la designer' : 'aucun rendu sur la période') +
     kpi('Retouches demandées', retouches, envoyees.length ? 'sur ' + envoyees.length + ' livraison' + (envoyees.length > 1 ? 's' : '') + ' envoyée' + (envoyees.length > 1 ? 's' : '') : 'aucune livraison envoyée') +
@@ -318,16 +324,10 @@ function ecranProjets() {
   const tri = (a, b) => ((!a.envoye ? a.strat : a.desi) || a.client || 9e15) - ((!b.envoye ? b.strat : b.desi) || b.client || 9e15);
   if (vue === 'kanban') {
     const cols = [['strat', 'Chez le stratégiste', 'var(--blue)'], ['desi', 'Chez le designer', 'var(--violet)'], ['livrer', 'À livrer au client', 'var(--ink)'], ['client', 'Chez le client', 'var(--green)']];
-    return h + '<div class="kanban">' + cols.map(([cle, t, coul]) => {
+    return h + '<div class="kanban" id="kanban">' + cols.map(([cle, t, coul]) => {
       const l = P.filter(x => etatProd(x).cle === cle).sort(tri);
-      return '<div class="col"><div class="col-h"><i style="background:' + coul + '"></i>' + t + '<span class="c">' + l.length + '</span></div>' +
-        (l.map(x => {
-          const e = etatProd(x), et = etapesProd(x), pc = Math.round(et.filter(y => y.f).length * 100 / et.length);
-          const ech = !x.envoye ? x.strat : !x.livre ? x.desi : x.client;
-          return '<a class="kcarte" href="#/' + (x.envoye ? 'visuels' : 'fiche') + '/' + esc(x.dossier) + '"><b>' + esc(nomProjet(x)) + '</b><small>' + esc(x.d.nb_creas || '?') + ' créas · ' + esc(x.d.pack || '') + '</small>' +
-            '<div class="barre"><i style="width:' + pc + '%"></i></div><div class="pied"><span>' + i.horloge.replace('<svg', '<svg width="13" height="13" style="vertical-align:-2px"') + ' ' + (ech ? esc(K.dateHeure(ech)) : '·') + '</span>' +
-            (e.retard ? '<span class="pill r">Retard</span>' : '') + '</div></a>';
-        }).join('') || '<div class="vide" style="padding:18px 8px">Aucun</div>') + '</div>';
+      return '<div class="col" data-col="' + cle + '"><div class="col-h"><i style="background:' + coul + '"></i>' + t + '<span class="c">' + l.length + '</span></div><div class="col-l">' +
+        l.map(carteKanban).join('') + '</div></div>';
     }).join('') + '</div>';
   }
   if (vue === 'tableau') {
@@ -353,6 +353,126 @@ function ecranProjets() {
         '<td style="white-space:nowrap"><span class="pill ' + e.pill + '">' + esc(e.texte) + '</span><span class="sub">' + (ech ? esc(K.dateHeure(ech)) : '') + '</span></td>' +
         '<td class="fin">' + liensProjet(x, true) + '</td></tr>';
     }).join('') + '</tbody></table></div></div>';
+}
+
+// une carte du Kanban : on la glisse d'une colonne à l'autre (le projet change vraiment d'étape, partout)
+function carteKanban(x) {
+  const e = etatProd(x), et = etapesProd(x), pc = Math.round(et.filter(y => y.f).length * 100 / et.length);
+  const ech = e.cle === 'strat' ? x.strat : e.cle === 'desi' ? x.desi : x.client;
+  const lien = e.cle === 'livrer' && x.v ? '#/livraisons/' + x.dossier : '#/' + (x.envoye ? 'visuels' : 'fiche') + '/' + x.dossier;
+  return '<a class="kcarte" data-dossier="' + esc(x.dossier) + '" href="' + esc(lien) + '" draggable="false"><b>' + esc(nomProjet(x)) + '</b><small>' + esc(x.d.nb_creas || '?') + ' créas · ' + esc(x.d.pack || '') + '</small>' +
+    (e.retouche || e.cle === 'livrer' || x.etape.manuel ? '<span class="pill ' + e.pill + ' kpill"><i></i>' + esc(e.texte) + '</span>' : '') +
+    '<div class="barre"><i style="width:' + pc + '%"></i></div><div class="pied"><span>' + i.horloge.replace('<svg', '<svg width="13" height="13" style="vertical-align:-2px"') + ' ' + (ech ? esc(K.dateHeure(ech)) : '·') + '</span>' +
+    (e.retard ? '<span class="pill r">Retard</span>' : '') + '</div></a>';
+}
+// FLIP : chaque carte glisse doucement de son ancienne place à la nouvelle
+function positionsKanban() { const m = new Map(); document.querySelectorAll('#kanban .kcarte[data-dossier]').forEach(c => m.set(c.dataset.dossier, c.getBoundingClientRect())); return m; }
+function animerKanban(avant, saufDossier) {
+  document.querySelectorAll('#kanban .kcarte[data-dossier]').forEach(c => {
+    const a = avant.get(c.dataset.dossier); if (!a || c.dataset.dossier === saufDossier) return;
+    const b = c.getBoundingClientRect(), dx = a.left - b.left, dy = a.top - b.top;
+    if (!dx && !dy) return;
+    c.style.transition = 'none'; c.style.transform = 'translate(' + dx + 'px,' + dy + 'px)';
+    requestAnimationFrame(() => { c.style.transition = 'transform .38s cubic-bezier(.2,.8,.2,1)'; c.style.transform = ''; });
+  });
+}
+const KB = { drag: null };
+// redessiner sans à-coup : la page garde sa position, les cartes glissent vers leur nouvelle place
+async function rendreKanban() {
+  const pos = positionsKanban(), sc = document.querySelector('.scroll'), haut = sc ? sc.scrollTop : 0, kb = document.getElementById('kanban'), gauche = kb ? kb.scrollLeft : 0;
+  await K.rendre();
+  const sc2 = document.querySelector('.scroll'); if (sc2) sc2.scrollTop = haut;
+  const kb2 = document.getElementById('kanban'); if (kb2) kb2.scrollLeft = gauche;
+  animerKanban(pos);
+}
+function brancherKanban() {
+  const kb = document.getElementById('kanban');
+  if (!kb) return;
+  kb.querySelectorAll('.kcarte[data-dossier]').forEach(carte => {
+    carte.onclick = e => { if (carte.dataset.glisse) { e.preventDefault(); delete carte.dataset.glisse; } };
+    carte.onpointerdown = e => {
+      if (e.button !== 0 || KB.drag) return;
+      const r = carte.getBoundingClientRect();
+      KB.drag = { carte, x0: e.clientX, y0: e.clientY, dx: e.clientX - r.left, dy: e.clientY - r.top, w: r.width, h: r.height, parti: false, colDepart: carte.closest('.col').dataset.col, id: e.pointerId };
+      document.addEventListener('pointermove', bougerKanban);
+      document.addEventListener('pointerup', lacherKanban, { once: true });
+      document.addEventListener('pointercancel', lacherKanban, { once: true });
+    };
+  });
+}
+function demarrerKanban(d) {
+  d.parti = true; d.carte.dataset.glisse = '1';
+  const place = document.createElement('div'); place.className = 'kplace'; place.style.height = d.h + 'px';
+  d.place = place; d.carte.parentNode.insertBefore(place, d.carte);
+  document.body.appendChild(d.carte);
+  Object.assign(d.carte.style, { position: 'fixed', left: '0', top: '0', width: d.w + 'px', zIndex: 200, pointerEvents: 'none', margin: '0' });
+  d.carte.classList.add('kdrag');
+  document.body.classList.add('kanban-glisse');
+}
+function bougerKanban(e) {
+  const d = KB.drag; if (!d) return;
+  if (!d.parti) { if (Math.hypot(e.clientX - d.x0, e.clientY - d.y0) < 6) return; demarrerKanban(d); }
+  e.preventDefault();
+  d.carte.style.transform = 'translate(' + (e.clientX - d.dx) + 'px,' + (e.clientY - d.dy) + 'px) rotate(2deg) scale(1.03)';
+  // la colonne sous le doigt, et la place entre deux cartes
+  const col = [...document.querySelectorAll('#kanban .col')].find(c => { const r = c.getBoundingClientRect(); return e.clientX >= r.left && e.clientX <= r.right; });
+  document.querySelectorAll('#kanban .col.cible').forEach(c => c !== col && c.classList.remove('cible'));
+  if (!col) return;
+  col.classList.add('cible');
+  const liste = col.querySelector('.col-l'), autres = [...liste.querySelectorAll('.kcarte[data-dossier]')];
+  const avant = autres.find(c => { const r = c.getBoundingClientRect(); return e.clientY < r.top + r.height / 2; }) || null;
+  if (d.place.parentNode === liste && (avant ? d.place.nextElementSibling === avant : d.place === liste.lastElementChild)) return;
+  const pos = positionsKanban();
+  if (d.place.parentNode !== liste) {
+    // l'ancienne place se referme, la nouvelle s'ouvre
+    const vieille = d.place; vieille.style.height = vieille.offsetHeight + 'px';
+    requestAnimationFrame(() => { vieille.style.height = '0px'; vieille.style.marginBottom = '0px'; });
+    setTimeout(() => vieille.remove(), 320);
+    vieille.classList.add('part');
+    const neuve = document.createElement('div'); neuve.className = 'kplace'; neuve.style.height = '0px';
+    liste.insertBefore(neuve, avant); d.place = neuve;
+    requestAnimationFrame(() => { neuve.style.height = d.h + 'px'; });
+  } else liste.insertBefore(d.place, avant);
+  animerKanban(pos, d.carte.dataset.dossier);
+  majCompteurs();
+}
+function majCompteurs() {
+  document.querySelectorAll('#kanban .col').forEach(c => { const n = c.querySelectorAll('.col-l .kcarte[data-dossier]').length + (c.querySelector('.kplace:not(.part)') && KB.drag && KB.drag.colDepart !== c.dataset.col ? 1 : 0); c.querySelector('.col-h .c').textContent = n; });
+}
+async function lacherKanban() {
+  document.removeEventListener('pointermove', bougerKanban);
+  const d = KB.drag; if (!d) return;
+  if (!d.parti) { KB.drag = null; return; }
+  document.querySelectorAll('#kanban .col.cible').forEach(c => c.classList.remove('cible'));
+  const col = d.place.closest('.col'), vers = col ? col.dataset.col : d.colDepart;
+  // la carte se pose dans sa place
+  const poser = () => new Promise(ok => {
+    const r = d.place.getBoundingClientRect();
+    d.carte.style.transition = 'transform .26s cubic-bezier(.2,.8,.2,1), box-shadow .26s';
+    d.carte.style.transform = 'translate(' + r.left + 'px,' + r.top + 'px)';
+    d.carte.classList.remove('kdrag');
+    setTimeout(() => { d.place.replaceWith(d.carte); d.carte.removeAttribute('style'); document.body.classList.remove('kanban-glisse'); ok(); }, 270);
+  });
+  const x = (S.prod || []).find(y => y.dossier === d.carte.dataset.dossier);
+  const retour = async () => { // la carte revient à sa colonne
+    const depart = document.querySelector('#kanban .col[data-col="' + d.colDepart + '"] .col-l');
+    if (depart && d.place.parentNode !== depart) { const pos = positionsKanban(); const p = d.place; p.remove(); depart.appendChild(p); animerKanban(pos); }
+    await poser(); KB.drag = null; await rendreKanban();
+  };
+  if (!x || vers === d.colDepart) { await poser(); KB.drag = null; await rendreKanban(); return; }
+  // une action qui part chez le client : on demande d'abord
+  if (vers === 'client' && x.v && x.v.statut === 'a_verifier' && !await K.confirmer('Envoyer au client ?', 'La version ' + x.v.version + ' de ' + nomProjet(x) + ' part chez le client, qui reçoit un email pour la voir.', 'Envoyer au client')) return retour();
+  if (vers === 'client' && x.v && x.v.statut === 'brouillon') { K.toast('La designer n\'a pas encore envoyé ses fichiers.'); return retour(); }
+  await poser();
+  try {
+    const r = await K.api('/api/equipe/deplacer', { methode: 'POST', corps: { dossier: x.dossier, vers } });
+    if (r.erreur) { K.toast(r.message); }
+    else K.toast(r.message);
+    await K.prod.chargerEtats(r.etats);
+    if (r.action === 'envoyee' || r.action === 'retouches' || r.action === 'etape') { S.commandes = null; S.livraisons = null; await charger('commandes', true); }
+  } catch (e) { K.toast(e.message); }
+  KB.drag = null;
+  await rendreKanban();
 }
 
 // ---------- CLIENTS ----------
@@ -573,7 +693,7 @@ function tableFactures(F, avecClient) {
     F.map(f => {
       const k = (S.commandes || []).find(c => c.id === f.commande_id) || (FICHE && FICHE.commandes.find(c => c.id === f.commande_id));
       return '<tr><td><b>' + esc(f.numero || 'Sans numéro') + '</b></td>' +
-        (avecClient ? '<td>' + (f.marque ? '<div class="nom">' + K.tuile(f.marque) + '<a href="#/clients/' + esc(f.client_id) + '"><b>' + esc(f.marque) + '</b></a></div>' : '<span class="muted">' + esc(f.email || 'non rattachée') + '</span>') + '</td>' : '') +
+        (avecClient ? '<td>' + (f.marque ? '<a class="nom" href="#/clients/' + esc(f.client_id) + '">' + K.tuile(f.marque) + '<b>' + esc(f.marque) + '</b></a>' : '<span class="muted">' + esc(f.email || 'non rattachée') + '</span>') + '</td>' : '') +
         '<td>' + (k ? esc(K.nomCommande(k)) + '<span class="sub">#' + esc(k.ref) + '</span>' : '<span class="muted">·</span>') + '</td>' +
         '<td class="num">' + K.euros(f.montant) + '</td><td>' + esc(K.date(f.emise_le)) + '</td>' +
         '<td class="fin"><div style="display:flex;gap:6px;justify-content:flex-end">' +
@@ -594,7 +714,7 @@ function ecranFactures() {
   const R = S.factures || {}, F = facturesPayees(R.factures || []), f = S.filtreFact;
   const filtres = { toutes: () => true, orphelines: x => !x.client_id };
   const orph = F.filter(filtres.orphelines).length;
-  let h = '<div class="ph"><div><h1>Factures</h1><p>Chaque paiement Stripe crée sa facture, rattachée au client et à son projet. Téléchargez-les quand vous voulez.</p></div>' +
+  let h = '<div class="ph"><div><h1>Factures</h1><p>Chaque paiement Stripe crée une facture, rattachée au client et à son projet. Téléchargez-les quand vous le souhaitez.</p></div>' +
     '<div class="act"><button class="btn btn-s" onclick="exporterFactures()">' + i.telecharger + 'Exporter</button><button class="btn btn-s" id="b-facture">' + i.plus + 'Ajouter une facture</button></div></div>';
   if (orph) h += '<div class="filtres">' + ['toutes', 'orphelines'].map(k => '<button class="chip' + (f === k ? ' on' : '') + '" onclick="S.filtreFact=\'' + k + '\';K.rendre()">' + (k === 'toutes' ? 'Toutes' : 'Non rattachées') + '<span class="c">' + F.filter(filtres[k]).length + '</span></button>').join('') + '</div>';
   const l = F.filter(filtres[f] || filtres.toutes);
@@ -676,20 +796,20 @@ function ecranEquipe() {
 }
 
 // ---------- LIVRAISONS : vérifier ce que la designer a déposé, puis l'envoyer au client ----------
-const STATUTS_LIV = { brouillon: ['Dépôt en cours', ''], a_verifier: ['À vérifier', 'a'], a_corriger: ['Renvoyée à la designer', 'r'], envoyee: ['Chez le client', 'b'],
+const STATUTS_LIV = { brouillon: ['Dépôt en cours', ''], a_verifier: ['À vérifier', 'a'], a_corriger: ['Renvoyée pour correction', 'r'], envoyee: ['Chez le client', 'b'],
   review_terminee: ['Retouches demandées', 'v'], approuvee: ['Approuvée par le client', 'g'] };
-const pillLiv = st => { const x = STATUTS_LIV[st] || [st, '']; return '<span class="pill ' + x[1] + '"><i></i>' + esc(x[0]) + '</span>'; };
+const pillLiv = (st, ret) => { const x = STATUTS_LIV[st] || [st, '']; const qui = ['a_corriger', 'review_terminee'].includes(st) ? (ret === 'strategiste' ? ' · stratégiste' : ' · designer') : ''; return '<span class="pill ' + x[1] + '"><i></i>' + esc(x[0] + qui) + '</span>'; };
 const estDerniere = l => !(S.livraisons || []).some(x => x.dossier === l.dossier && x.version > l.version);
 const nomLiv = d => { const x = K.prod.trouver(d), l = (S.livraisons || []).find(y => y.dossier === d); return (x && x.nom) || (l && l.marque) || d; };
 function ecranLivraisons() {
   const L = (S.livraisons || []).filter(estDerniere), ordre = { a_verifier: 0, review_terminee: 1, a_corriger: 2, brouillon: 3, envoyee: 4, approuvee: 5 };
   L.sort((a, b) => (ordre[a.statut] - ordre[b.statut]) || ((b.depose_le || b.cree_le) - (a.depose_le || a.cree_le)));
-  let h = '<div class="ph"><div><h1>Livraisons</h1><p>Ce que la designer dépose : vous vérifiez, puis vous l\'envoyez au client ou vous la renvoyez à la designer.</p></div>' +
+  let h = '<div class="ph"><div><h1>Livraisons</h1><p>Vérification des projets avant d\'être envoyés au client.</p></div>' +
     '<div class="act"><button class="btn btn-s" onclick="rafraichir(\'livraisons\')">' + i.rafraichir + 'Actualiser</button></div></div>';
   if (!L.length) return h + '<div class="card"><div class="vide">' + i.envoi + 'Aucune livraison pour l\'instant. Elles arrivent ici dès que la designer dépose ses fichiers.</div></div>';
   return h + '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Projet</th><th>Version</th><th class="num">Fichiers</th><th>Statut</th><th>Retours du client</th><th>Déposée</th><th></th></tr></thead><tbody>' +
     L.map(l => '<tr class="clic" onclick="location.hash=\'#/livraisons/' + esc(l.dossier) + '\'"><td><div class="nom">' + K.tuile(nomLiv(l.dossier)) + '<div><b>' + esc(nomLiv(l.dossier)) + (K.estDemo(l.dossier) ? ' <span class="pill demo">Démo</span>' : '') + '</b><span class="sub">' + esc(l.dossier) + (l.ref ? ' · #' + esc(l.ref) : '') + '</span></div></div></td>' +
-      '<td>Version ' + l.version + '</td><td class="num">' + l.nb + '</td><td>' + pillLiv(l.statut) + '</td>' +
+      '<td>Version ' + l.version + '</td><td class="num">' + l.nb + '</td><td>' + pillLiv(l.statut, l.retouche) + '</td>' +
       '<td>' + (['envoyee', 'review_terminee', 'approuvee'].includes(l.statut) ? l.nb_approuves + ' / ' + l.nb + ' approuvés' + (l.nb_client ? '<span class="sub">' + l.nb_client + ' commentaire' + (l.nb_client > 1 ? 's' : '') + '</span>' : '') : '<span class="muted">·</span>') + '</td>' +
       '<td>' + (l.depose_le ? esc(K.ilya(l.depose_le)) : '<span class="muted">·</span>') + '</td><td class="fin">' + i.fleche.replace('<svg', '<svg width="16" height="16" style="opacity:.35"') + '</td></tr>').join('') + '</tbody></table></div></div>';
 }
@@ -708,9 +828,16 @@ function ecranLivraison(d) {
   if (!l) return h + '<div class="card"><div class="vide">' + i.envoi + 'Rien n\'a encore été déposé pour ce projet.</div></div>';
   h += K.rv.puces(V, l.id, v => 'Version ' + v.version + ' · ' + (STATUTS_LIV[v.statut] || [v.statut])[0]);
   if (l.note_designer) h += '<div class="rv-note">' + i.message + '<div><b>Note de la designer :</b> ' + esc(l.note_designer) + '</div></div>';
-  if (l.statut === 'a_corriger' && l.note_kreative) h += '<div class="rv-note">' + i.crayon + '<div><b>Renvoyée à la designer :</b> ' + esc(l.note_kreative) + '</div></div>';
+  if (l.statut === 'a_corriger' && l.note_kreative) h += '<div class="rv-note">' + i.crayon + '<div><b>Note de correction :</b> ' + esc(l.note_kreative) + '</div></div>';
+  // les retouches : qui s'en occupe (proposé selon les commentaires du client, modifiable)
+  if (['a_corriger', 'review_terminee'].includes(l.statut) && l === V[0]) {
+    const r = l.retouche || 'designer';
+    h += '<div class="routage"><div><b>' + (r === 'strategiste' ? 'Les retouches sont chez le stratégiste' : 'Les retouches sont chez la designer') + '</b><small>' +
+      (r === 'strategiste' ? 'Il corrige les textes, puis la designer fait la version ' + (l.version + 1) + '.' : 'Elle fait la version ' + (l.version + 1) + ' avec les commentaires.') + '</small></div>' +
+      '<div class="onglets"><button class="' + (r === 'strategiste' ? 'on' : '') + '" data-router="strategiste">' + i.doc + 'Stratégiste · textes</button><button class="' + (r === 'designer' ? 'on' : '') + '" data-router="designer">' + i.pinceau + 'Designer · visuels</button></div></div>';
+  }
   return h + K.rv.grille(l, { mode: 'admin', titre: nomLiv(d) + ' · version ' + l.version, sousTitre: l.fichiers.length + ' fichiers · ' + (STATUTS_LIV[l.statut] || [''])[0],
-    actions: l.statut === 'a_verifier' ? '<button class="btn btn-s" data-corriger>' + i.crayon + 'Renvoyer à la designer</button><button class="btn btn-d" data-envoyer-client>' + i.envoi + 'Envoyer au client</button>' : '' });
+    actions: l.statut === 'a_verifier' ? '<button class="btn btn-s" data-corriger>' + i.crayon + 'Renvoyer pour correction</button><button class="btn btn-d" data-envoyer-client>' + i.envoi + 'Envoyer au client</button>' : '' });
 }
 function brancherLivraison() {
   const V = (LIV.donnees && LIV.donnees.versions) || [], l = V.find(v => v.id === LIV.choix);
@@ -725,14 +852,20 @@ function brancherLivraison() {
     if (!await K.confirmer('Envoyer au client ?', 'Le client reçoit un email et voit les ' + l.fichiers.length + ' fichiers dans son espace, pour sa review.', 'Envoyer au client')) return;
     try { const r = await K.api('/api/equipe/livraisons/' + l.id + '/decision', { methode: 'POST', corps: { action: 'envoyer' } }); K.toast(r.message); S.livraisons = null; S.commandes = null; await charger('livraisons'); await chargerLivraison(l.dossier); } catch (e) { K.toast(e.message); }
   };
+  document.querySelectorAll('[data-router]').forEach(b => b.onclick = async () => {
+    if (b.classList.contains('on')) return;
+    try { const r = await K.api('/api/equipe/livraisons/' + l.id + '/retouche', { methode: 'POST', corps: { pour: b.dataset.router } }); K.toast(r.message); S.livraisons = null; await charger('livraisons'); await K.prod.chargerEtats(); await chargerLivraison(l.dossier); } catch (e) { K.toast(e.message); }
+  });
   const cor = document.querySelector('[data-corriger]');
   if (cor) cor.onclick = () => {
-    const v = K.fenetre('<div class="fen-h"><h2>Renvoyer à la designer</h2><p>Dites-lui quoi corriger. Vos commentaires sur les fichiers sont aussi dans son espace.</p></div>' +
-      '<div class="fen-b"><textarea class="in" id="note-corr" rows="4" style="width:100%;height:auto;padding:10px 12px" placeholder="Ce qui doit changer…"></textarea></div>' +
+    const v = K.fenetre('<div class="fen-h"><h2>Renvoyer pour correction</h2><p>Vos commentaires sur les fichiers sont visibles dans son espace.</p></div>' +
+      '<div class="fen-b"><div class="onglets" style="margin-bottom:12px" id="corr-pour"><button class="on" data-pour="designer">' + i.pinceau + 'À la designer · visuels</button><button data-pour="strategiste">' + i.doc + 'Au stratégiste · textes</button></div><textarea class="in" id="note-corr" rows="4" style="width:100%;height:auto;padding:10px 12px" placeholder="Ce qui doit changer…"></textarea></div>' +
       '<div class="fen-f"><button class="btn btn-s" data-n>Annuler</button><button class="btn btn-r" data-o>Renvoyer</button></div>');
     v.querySelector('[data-n]').onclick = K.fermer;
+    let pour = 'designer';
+    v.querySelectorAll('[data-pour]').forEach(b => b.onclick = () => { pour = b.dataset.pour; v.querySelectorAll('[data-pour]').forEach(y => y.classList.toggle('on', y === b)); });
     v.querySelector('[data-o]').onclick = async () => {
-      try { const r = await K.api('/api/equipe/livraisons/' + l.id + '/decision', { methode: 'POST', corps: { action: 'corriger', note: v.querySelector('#note-corr').value } }); K.fermer(); K.toast(r.message); S.livraisons = null; await charger('livraisons'); await chargerLivraison(l.dossier); } catch (e) { K.toast(e.message); }
+      try { const r = await K.api('/api/equipe/livraisons/' + l.id + '/decision', { methode: 'POST', corps: { action: 'corriger', pour, note: v.querySelector('#note-corr').value } }); K.fermer(); K.toast(r.message); S.livraisons = null; await charger('livraisons'); await chargerLivraison(l.dossier); } catch (e) { K.toast(e.message); }
     };
   };
 }
@@ -741,7 +874,7 @@ function brancherLivraison() {
 const ECRANS = {
   '': { id: 'accueil', t: 'Vue d\'ensemble', a: 'accueil', b: [], besoins: ['resume', 'clients', 'commandes', 'prod', 'livraisons', 'factures'], f: ecranAccueil, ap: brancherPeriode },
   factures: { id: 'factures', t: 'Factures', a: 'recu', b: ['Commercial'], besoins: ['factures', 'clients', 'commandes'], f: ecranFactures, ap: brancherFactures },
-  projets: { id: 'projets', t: 'Projets', a: 'dossier', b: ['Production'], besoins: ['commandes', 'prod'], f: ecranProjets, large: true },
+  projets: { id: 'projets', t: 'Projets', a: 'dossier', b: ['Production'], besoins: ['commandes', 'prod'], f: ecranProjets, ap: brancherKanban, large: true },
   clients: { id: 'clients', t: 'Clients', a: 'gens', b: ['Commercial'], besoins: ['clients', 'resume', 'dossiers'], f: p => p[0] === 'nouveau' ? (setTimeout(nouveauClient, 0), ecranClients()) : p[0] ? ecranClient(p[0]) : ecranClients(), ap: p => p[0] && p[0] !== 'nouveau' ? brancherClient() : brancherClients() },
   commandes: { id: 'commandes', t: 'Commandes', a: 'sac', b: ['Commercial'], besoins: ['commandes'], f: ecranCommandes },
   dossiers: { id: 'production', t: 'Tous les dossiers', a: 'calques', b: ['Production'], besoins: ['dossiers'], f: () => ongletsProd('dossiers') + ecranDossiers(), ap: brancherDossiers },
@@ -781,6 +914,7 @@ K.rendre = async () => {
   K.brancherCoquille(c);
   if (e.ap) e.ap(r.params);
   document.title = 'Admin · Kreative';
+  if (S.prod) K.prod.surveiller(() => { S.livraisons = null; S.commandes = null; Promise.all([charger('livraisons'), charger('commandes')]).then(() => K.route().ecran === 'projets' ? rendreKanban() : K.rendre()); });
   // la production et les dossiers se chargent en fond pour la recherche et les compteurs
   ['prod', 'dossiers', 'clients', 'commandes'].forEach(q => { if (S[q] == null) charger(q).then(() => { if (n === rendu && q === 'prod') { const nb = document.querySelector('.nav a[href="#/projets"] .nb'); if (!nb) K.rendre(); } }); });
 };

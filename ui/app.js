@@ -369,7 +369,60 @@
         livre: !!(liv && liv.livre), livreLe: Date.parse(der.le || '') || 0, zip: der.lien || '', livraisons: livs,
         strat: Date.parse(d.deadline_strategiste || '') || 0, desi: Date.parse(d.deadline_designer || '') || 0, client: Date.parse(d.deadline || '') || 0 };
     }))).filter(Boolean);
+    await P.chargerEtats();
     return P.liste;
+  };
+  // l'état de production, calculé de la même façon pour l'admin, le stratégiste et la designer :
+  // la dernière version déposée dans le portail, un déplacement fait dans le Kanban, la commande du client
+  P.chargerEtats = async donnees => {
+    let r = donnees;
+    if (!r) { try { r = await K.api('/api/equipe/etats'); } catch (e) { r = { etats: {}, commandes: {} }; } }
+    P.etats = r;
+    (P.liste || []).forEach(x => {
+      const e = (r.etats || {})[x.dossier] || {};
+      x.v = e.v || null; x.o = e.o || null;
+      const l = x.d.livraison, base = (l && l.projet) || x.dossier;
+      x.k = (r.commandes || {})[x.dossier] || ((!l || !(l.sur > 1) || l.n >= l.sur) ? (r.commandes || {})[base] : null) || null;
+      if (x.livreDepot === undefined) x.livreDepot = x.livre;
+      x.etape = P.etape(x);
+      x.livre = ['livrer', 'client'].includes(x.etape.cle);
+      if (x.v && x.v.statut !== 'brouillon' && x.livre) x.livreLe = Math.max(x.livreLe || 0, x.v.le || 0);
+    });
+  };
+  // tout le monde voit la même chose en même temps : l'état est relu toutes les 20 s (et au retour sur l'onglet),
+  // et la page se redessine seulement s'il a changé, jamais pendant une saisie, une fenêtre ou un glisser
+  P.surveiller = rendre => {
+    if (P.surveille) return; P.surveille = true;
+    let signature = JSON.stringify(P.etats || {});
+    const verifier = async () => {
+      if (document.visibilityState !== 'visible' || !P.liste) return;
+      const a = document.activeElement;
+      if (a && (a.tagName === 'TEXTAREA' || (a.tagName === 'INPUT' && a.type !== 'checkbox')) || document.querySelector('#k-fen, .rv-v, .kdrag, .cal, .vp-cadre, .envoi-l, .envoye-anim')) return;
+      let r; try { r = await K.api('/api/equipe/etats'); } catch (e) { return; }
+      const sig = JSON.stringify({ etats: r.etats, commandes: r.commandes });
+      if (sig === signature) return;
+      signature = sig; await P.chargerEtats(r); rendre();
+    };
+    signature = JSON.stringify({ etats: (P.etats || {}).etats, commandes: (P.etats || {}).commandes });
+    setInterval(verifier, 20000);
+    document.addEventListener('visibilitychange', verifier);
+  };
+  P.etape = x => {
+    const v = x.v;
+    let cle, retouche = null, ts = 0;
+    if (v) {
+      ts = v.le || 0;
+      if (v.statut === 'a_verifier') cle = 'livrer';
+      else if (['envoyee', 'approuvee'].includes(v.statut)) cle = 'client';
+      else if (['a_corriger', 'review_terminee'].includes(v.statut)) { retouche = v.retouche || 'designer'; cle = retouche === 'strategiste' ? 'strat' : 'desi'; }
+      else cle = 'desi';
+    } else {
+      ts = Math.max(x.envoyeLe || 0, x.livreLe || 0);
+      cle = x.k && ['livre', 'revisions', 'valide'].includes(x.k) ? 'client' : x.livreDepot ? 'livrer' : x.envoye ? 'desi' : 'strat';
+    }
+    let manuel = false;
+    if (x.o && x.o.etape && x.o.le > ts) { cle = x.o.etape; manuel = true; retouche = null; }
+    return { cle, retouche, manuel, statut: v ? v.statut : null, version: v ? v.version : 0, valide: x.k === 'valide' };
   };
   P.trouver = id => (P.liste || []).find(x => x.dossier === id) || (P.liste || []).find(x => x.prod === id) || null;
 
@@ -384,6 +437,11 @@
   };
   // où en est un projet de production
   P.etat = (x, en) => {
+    const g = x.etape;
+    if (g && g.retouche && g.cle === 'desi') return { cle: 'desi', texte: en ? (g.statut === 'a_corriger' ? 'Sent back to you' : 'Client feedback to fix') : 'Retouches · visuels', pill: 'v' };
+    if (g && g.retouche && g.cle === 'strat') return { cle: 'strat', texte: en ? 'Copy fixes by the strategist' : 'Retouches · textes', pill: 'v' };
+    if (g && g.cle === 'strat' && x.envoye) return { cle: 'strat', texte: en ? 'With the strategist' : 'Chez le stratégiste', pill: 'b' };
+    if (g && g.cle === 'desi') { const e = P.echeance(x.desi, en); return { cle: 'desi', texte: e.retard ? (en ? 'Late' : 'Designer en retard') : (en ? 'To deliver' : 'Chez le designer'), pill: e.retard ? 'r' : 'v' }; }
     if (!x.envoye) { const e = P.echeance(x.strat, en); return { cle: 'strat', texte: e.retard ? (en ? 'Brief late' : 'Fiche en retard') : (en ? 'With the strategist' : 'Fiche à remplir'), pill: e.retard ? 'r' : 'b' }; }
     if (!x.livre) { const e = P.echeance(x.desi, en); return { cle: 'desi', texte: e.retard ? (en ? 'Late' : 'Designer en retard') : (en ? 'To deliver' : 'Chez le designer'), pill: e.retard ? 'r' : 'v' }; }
     return { cle: 'livre', texte: en ? 'Delivered' : 'Livré par le designer', pill: 'g' };
@@ -391,6 +449,8 @@
   P.pill = (x, en) => { const e = P.etat(x, en); return '<span class="pill ' + e.pill + '"><i></i>' + K.esc(e.texte) + '</span>'; };
   // ce que voit le stratégiste : seulement SA fiche (à remplir, en retard, envoyée à l'heure ou non)
   P.etatStrat = x => {
+    if (x.etape && x.etape.retouche === 'strategiste' && x.etape.cle === 'strat') return { cle: 'retouches', texte: 'Retouches de textes', pill: 'v' };
+    if (x.etape && x.etape.cle === 'strat' && x.envoye) return { cle: 'afaire', texte: 'Fiche à reprendre', pill: 'b' };
     if (!x.envoye) return x.strat && x.strat < Date.now() ? { cle: 'retard', texte: 'Fiche en retard', pill: 'r' } : { cle: 'afaire', texte: 'Fiche à remplir', pill: 'b' };
     if (x.strat && x.envoyeLe > x.strat) { const h = Math.max(1, Math.round((x.envoyeLe - x.strat) / 36e5)); return { cle: 'tard', texte: 'Envoyée avec ' + (h >= 24 ? Math.round(h / 24) + ' j' : h + ' h') + ' de retard', pill: 'a' }; }
     return { cle: 'heure', texte: 'Envoyée à l\'heure', pill: 'g' };
@@ -439,7 +499,7 @@
   P.liste_ = (sec, opt) => {
     const S = P.sections[sec], en = opt.en, strat = opt.role === 'strategiste', l = (P.liste || []).filter(S.ok).sort((a, b) => (b.envoyeLe || b.strat || 0) - (a.envoyeLe || a.strat || 0));
     let h = '<div class="ph"><div><h1>' + K.esc(en ? S.en : S.fr) + '</h1><p>' + K.esc(opt.texte || (en ? 'Choose a project.' : 'Choisissez un projet.')) + '</p></div>' +
-      (sec === 'fiche' && !en ? '<div class="act"><a class="btn btn-s" href="#/fiche/banque">' + K.i.grille + 'Banque d\'inspirations</a></div>' : '') + '</div>';
+      '</div>';
     if (!l.length) return h + '<div class="card"><div class="vide">' + K.i[S.icone] + K.esc(en ? 'Nothing here yet.' : 'Rien ici pour le moment.') + '</div></div>';
     const brief = sec === 'brief';
     return h + '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>' + (en ? 'Project' : 'Projet') + '</th><th>Type</th><th class="num">' + (en ? 'Creatives' : 'Créas à faire') + '</th>' +

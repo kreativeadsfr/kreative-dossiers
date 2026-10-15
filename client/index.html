@@ -437,19 +437,49 @@ function brancherPanier() {
 
 // ---------- LE PAIEMENT : dans le portail (Stripe intégré), sinon la page Stripe dans le même onglet ----------
 let PAIEMENT = null;
+// Le paiement s'ouvre dans un NOUVEL onglet : le portail reste ouvert derrière.
+// L'onglet est ouvert tout de suite (au clic), sinon le navigateur le bloquerait après l'attente du serveur.
+function ongletPaiement() {
+  let w = null;
+  try { w = window.open('', '_blank'); } catch (e) {}
+  if (w) {
+    try { w.document.write('<!doctype html><meta charset="utf-8"><title>Paiement sécurisé · Kreative</title><body style="margin:0;display:grid;place-items:center;height:100vh;font:15px system-ui,sans-serif;color:#6b7280;background:#f8f6f3">Ouverture du paiement sécurisé…</body>'); w.document.close(); } catch (e) {}
+  }
+  return {
+    aller(url) { if (w && !w.closed) { try { w.opener = null; } catch (e) {} w.location.href = url; } else location.href = url; },
+    fermer() { if (w && !w.closed) w.close(); }
+  };
+}
+// quand le client revient sur le portail après avoir payé : sa commande apparaît toute seule
+let suiviPaiement = null;
+function suivreLePaiement() {
+  if (suiviPaiement) return;
+  const avant = D.commandes.length;
+  suiviPaiement = async () => {
+    if (document.visibilityState !== 'visible') return;
+    try {
+      const d = await K.api('/api/client/moi');
+      if (d.commandes.length > avant) { D = d; document.removeEventListener('visibilitychange', suiviPaiement); window.removeEventListener('focus', suiviPaiement); suiviPaiement = null; K.toast('Votre commande est enregistrée'); location.hash = '#/merci'; }
+    } catch (e) {}
+  };
+  document.addEventListener('visibilitychange', suiviPaiement); window.addEventListener('focus', suiviPaiement);
+}
 async function payer(corps, bouton) {
   if (D.apercu) { K.toast('Aperçu : le paiement s\'ouvre seulement pour le client.'); return; }
-  const avant = bouton.innerHTML; bouton.disabled = true; bouton.textContent = 'Ouverture du paiement…';
+  const avant = bouton.innerHTML, onglet = ongletPaiement();
+  const fini = () => { bouton.disabled = false; bouton.innerHTML = avant; };
+  bouton.disabled = true; bouton.textContent = 'Ouverture du paiement…';
   // 1. la page Stripe au montant exact (pack, formule et options), créée par le portail
   if (D.paiement) {
-    try { const r = await K.api('/api/client/paiement', { methode: 'POST', corps: corps }); location.href = r.url; return; }
-    catch (e) { K.toast(e.message); bouton.disabled = false; bouton.innerHTML = avant; return; }
+    try { const r = await K.api('/api/client/paiement', { methode: 'POST', corps: corps }); onglet.aller(r.url); suivreLePaiement(); K.toast('Le paiement s\'est ouvert dans un nouvel onglet'); }
+    catch (e) { onglet.fermer(); K.toast(e.message); }
+    fini(); return;
   }
   // 2. sans la clé Stripe : le lien de paiement du pack (sans option)
   const lien = corps.pack !== 'custom' && !(corps.options || []).length && D.liens && D.liens[corps.pack] && D.liens[corps.pack][corps.formule];
-  if (lien) { location.href = lien + '?client_reference_id=' + encodeURIComponent(D.client.id) + (D.client.email ? '&prefilled_email=' + encodeURIComponent(D.client.email) : '') + '&locale=fr'; return; }
+  if (lien) { onglet.aller(lien + '?client_reference_id=' + encodeURIComponent(D.client.id) + (D.client.email ? '&prefilled_email=' + encodeURIComponent(D.client.email) : '') + '&locale=fr'); suivreLePaiement(); fini(); return; }
   // 3. sinon : WhatsApp
-  location.href = wa('Bonjour Kreative, je souhaite commander : ' + corps.texte);
+  onglet.aller(wa('Bonjour Kreative, je souhaite commander : ' + corps.texte)); fini();
 }
 function ecranPaiement() {
   if (!PAIEMENT) return '<a class="retour" href="#/commander">' + i.gauche + 'Retour aux offres</a><div class="card"><div class="vide">' + i.carte + 'Choisissez d\'abord votre pack.</div></div>';

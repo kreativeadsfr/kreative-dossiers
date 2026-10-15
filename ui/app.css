@@ -81,12 +81,14 @@ p{margin:0}
 
 .main{flex:1;min-width:0;padding:10px 10px 10px 0;display:flex}
 .panel{flex:1;min-width:0;background:var(--panel);border:1px solid var(--line);border-radius:18px;display:flex;flex-direction:column;overflow:hidden;box-shadow:var(--ombre)}
-.top{height:58px;flex:none;display:flex;align-items:center;gap:16px;padding:0 20px 0 26px;border-bottom:1px solid var(--line)}
-.ariane{display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--tx3);white-space:nowrap;min-width:0}
+.top{height:58px;flex:none;display:flex;align-items:center;gap:16px;padding:0 20px 0 26px;border-bottom:1px solid var(--line);position:relative}
+.ariane{display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--tx3);white-space:nowrap;min-width:0;max-width:calc(50% - 260px);overflow:hidden}
 .ariane svg{width:15px;height:15px}
 .ariane b{color:var(--ink);font-weight:500}
 .ariane i{font-style:normal;opacity:.6}
-.search{flex:1;max-width:440px;margin:0 auto;position:relative}
+/* la recherche reste au centre du panneau, quelle que soit la longueur du fil d'Ariane */
+.search{position:absolute;left:50%;top:11px;transform:translateX(-50%);width:min(440px,calc(100% - 560px))}
+@media(max-width:1180px){.search{width:min(320px,calc(100% - 380px))}.ariane{max-width:calc(50% - 175px)}}
 .search input{width:100%;height:36px;border:1px solid var(--line);border-radius:10px;background:var(--soft);padding:0 54px 0 36px;font:inherit;font-size:13.5px;color:var(--ink);outline:0}
 .search input:focus{border-color:var(--blue);background:var(--panel)}
 .search>svg{position:absolute;left:12px;top:10px;width:16px;height:16px;color:var(--tx3)}
@@ -244,6 +246,7 @@ table.tbl{width:100%;border-collapse:collapse;font-size:13.5px}
 .tuile.lg{width:52px;height:52px;border-radius:14px;font-size:20px}
 .nom{display:flex;align-items:center;gap:12px}
 .nom b{font-weight:600}
+a.nom{display:inline-flex;text-decoration:none;cursor:pointer}
 .av{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--blue-soft);color:var(--blue-tx);font:700 12.5px var(--texte);flex:none}
 
 /* ---------- filtres, onglets ---------- */
@@ -279,6 +282,18 @@ table.tbl{width:100%;border-collapse:collapse;font-size:13.5px}
 .kcarte small{display:block;color:var(--tx3);font-size:12px;margin-top:2px}
 .kcarte .pied{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:12px;font-size:12px;color:var(--tx3)}
 .kcarte .barre{margin-top:10px}
+/* Kanban : glisser une carte d'une colonne à l'autre */
+.col{transition:background .2s,border-color .2s,box-shadow .2s}
+.col.cible{background:var(--blue-soft);border-color:color-mix(in srgb,var(--blue) 35%,var(--line));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--blue) 25%,transparent)}
+.col-l{min-height:58px}
+.col-l:not(:has(.kcarte,.kplace))::after{content:'Aucun';display:block;text-align:center;color:var(--tx3);font-size:13px;padding:18px 8px}
+.kcarte{cursor:grab;user-select:none;-webkit-user-drag:none;will-change:transform}
+.kcarte .kpill{margin-top:9px}
+.kplace{border:1.5px dashed color-mix(in srgb,var(--blue) 45%,var(--line));background:color-mix(in srgb,var(--blue) 6%,transparent);border-radius:11px;margin-bottom:8px;transition:height .3s cubic-bezier(.2,.8,.2,1),margin .3s}
+.kplace.part{border-color:transparent;background:none}
+.kcarte.kdrag{cursor:grabbing;box-shadow:0 22px 50px -12px rgba(15,23,42,.35),0 4px 12px rgba(15,23,42,.1);border-color:var(--line2)}
+body.kanban-glisse,body.kanban-glisse *{cursor:grabbing!important;user-select:none}
+@media(pointer:fine){.kcarte{touch-action:none}}
 
 /* ---------- formulaires ---------- */
 .champ{margin-bottom:14px}
@@ -364,6 +379,7 @@ textarea.in{height:auto;min-height:90px;padding:11px 13px;resize:vertical}
   .scroll{overflow:visible}
   .top{padding:0 14px;position:sticky;top:0;background:var(--panel);z-index:30}
   .search{display:none}
+  .ariane{max-width:none}
   .page{padding:22px 16px 60px}
   .ph h1{font-size:28px}
   .g2,.g3{grid-template-columns:1fr}
@@ -709,7 +725,14 @@ a.lien-kpi:hover{border-color:var(--line2)}
 .etat-envoi .pastille{width:46px;height:46px;border-radius:50%;background:var(--green);color:#fff;display:grid;place-items:center;flex:none;box-shadow:0 8px 20px -8px rgba(30,158,87,.7)}
 .etat-envoi .pastille svg{width:22px;height:22px;stroke-width:3}
 .etat-envoi b{display:block;font-size:15px;color:var(--ink)}
+.routage{display:flex;align-items:center;gap:16px;flex-wrap:wrap;justify-content:space-between;margin-bottom:18px;padding:14px 18px;border:1px solid var(--line);border-radius:14px;background:var(--violet-soft)}
+.routage b{display:block;font-size:14.5px}
+.routage small{display:block;color:var(--tx2);font-size:13px;margin-top:2px}
+.routage .onglets{background:var(--panel)}
 .etat-envoi small{display:block;font-size:13px;color:var(--tx2);margin-top:3px;line-height:1.45}
+.etat-envoi:has(.attente){background:var(--violet-soft,#f1ecff)}
+.etat-envoi .pastille.attente{background:var(--violet);box-shadow:0 8px 20px -8px rgba(124,92,255,.6)}
+.etat-envoi .pastille.attente svg{stroke-width:2.2;width:20px;height:20px}
 .envoye-anim{position:absolute;inset:0;z-index:5;border-radius:inherit;background:var(--panel);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;
   animation:ea-entre .25s ease-out both}
 .envoye-anim svg{width:96px;height:96px;overflow:visible;animation:ea-saut .5s cubic-bezier(.2,1.4,.4,1) .75s both}

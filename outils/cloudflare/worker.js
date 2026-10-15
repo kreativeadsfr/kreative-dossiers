@@ -754,7 +754,15 @@ async function routerPortail(req, env, ctx, url, chemin) {
   // ---- API de l'équipe : livraisons (designer et admin) ----
   if (chemin.startsWith('/api/equipe/')) {
     const qui = await session(req, env);
-    if (!qui || !['admin', 'designer'].includes(qui.role)) return json({ erreur: 'Accès refusé' }, 403);
+    if (!qui || !['admin', 'designer', 'strategiste'].includes(qui.role)) return json({ erreur: 'Accès refusé' }, 403);
+    const sousChemin = chemin.slice('/api/equipe'.length);
+    // le stratégiste : l'état des projets, les retours du client, ses retouches de textes
+    if (qui.role === 'strategiste' && !(
+      (sousChemin === '/etats' && methode === 'GET') ||
+      (/^\/livraisons\/[A-Za-z0-9_-]{3,80}$/.test(sousChemin) && methode === 'GET') ||
+      (/^\/livraisons\/l_[A-Za-z0-9_]+\/retouches-faites$/.test(sousChemin) && methode === 'POST') ||
+      (sousChemin === '/commentaires' && methode === 'POST') || (/^\/commentaires\/\d+$/.test(sousChemin) && methode === 'DELETE')))
+      return json({ erreur: 'Accès refusé' }, 403);
     return apiEquipe(req, env, ctx, url, chemin.slice('/api/equipe'.length), methode, qui);
   }
 
@@ -822,6 +830,17 @@ async function avancement(env, cmd) {
     d = donnees;
     envoye = !!(envois && Array.isArray(envois.envois) && envois.envois.length);
     designer = !!(liv && liv.livre);
+    // les versions déposées dans le portail et le Kanban de Kreative disent la même chose au client
+    try {
+      const db = await baseLiv(env);
+      const [v, o] = await Promise.all([
+        db.prepare('SELECT statut FROM livraisons WHERE dossier = ? OR dossier LIKE ? ORDER BY COALESCE(depose_le, cree_le) DESC LIMIT 1').bind(cmd.dossier, cmd.dossier + '_L%').first(),
+        db.prepare('SELECT etape FROM prod_etapes WHERE dossier = ?').bind(cmd.dossier).first()]);
+      if (v) { envoye = true; designer = v.statut === 'a_verifier' || (designer && v.statut !== 'brouillon' && v.statut !== 'a_corriger' && v.statut !== 'review_terminee'); }
+      if (o && ['desi', 'livrer', 'client'].includes(o.etape)) envoye = true;
+      if (o && ['livrer', 'client'].includes(o.etape)) designer = true;
+      if (o && o.etape === 'strat') { envoye = false; designer = false; }
+    } catch (e) {}
   }
   const etat = cmd.statut === 'annule' ? 'annule' : auClient ? cmd.statut : brief ? 'production' : 'confirmee';
   const etapes = [
@@ -1046,9 +1065,10 @@ async function retirerDemo(db, env) {
     db.prepare("DELETE FROM commandes WHERE id LIKE 'k_demo_%' OR client_id LIKE 'c_demo_%'"),
     db.prepare("DELETE FROM clients WHERE id LIKE 'c_demo_%'")]);
   if (env) await db.batch([
-    db.prepare("DELETE FROM commentaires WHERE livraison_id LIKE 'l_demo_%'"),
-    db.prepare("DELETE FROM fichiers WHERE id LIKE 'fi_demo_%'"),
-    db.prepare("DELETE FROM livraisons WHERE id LIKE 'l_demo_%'")]);
+    db.prepare("DELETE FROM commentaires WHERE livraison_id LIKE 'l_demo_%' OR livraison_id IN (SELECT id FROM livraisons WHERE dossier LIKE 'TEST_DEMO_%')"),
+    db.prepare("DELETE FROM fichiers WHERE id LIKE 'fi_demo_%' OR livraison_id IN (SELECT id FROM livraisons WHERE dossier LIKE 'TEST_DEMO_%')"),
+    db.prepare("DELETE FROM livraisons WHERE id LIKE 'l_demo_%' OR dossier LIKE 'TEST_DEMO_%'"),
+    db.prepare("DELETE FROM prod_etapes WHERE dossier LIKE 'TEST_DEMO_%'")]);
   return { ok: true, retires: (r && r.n) || 0 };
 }
 
@@ -1297,9 +1317,12 @@ async function baseLiv(env) {
         type TEXT, taille INTEGER, largeur INTEGER, hauteur INTEGER, approuve_le INTEGER, cree_le INTEGER)`),
       db.prepare(`CREATE TABLE IF NOT EXISTS commentaires (id INTEGER PRIMARY KEY AUTOINCREMENT, fichier_id TEXT NOT NULL, livraison_id TEXT,
         auteur TEXT, role TEXT, texte TEXT, forme TEXT, couleur TEXT, interne INTEGER DEFAULT 0, cree_le INTEGER)`),
+      db.prepare('CREATE TABLE IF NOT EXISTS prod_etapes (dossier TEXT PRIMARY KEY, etape TEXT, le INTEGER, par TEXT)'),
       db.prepare('CREATE INDEX IF NOT EXISTS i_liv_dossier ON livraisons(dossier)'),
       db.prepare('CREATE INDEX IF NOT EXISTS i_fic_liv ON fichiers(livraison_id)'),
       db.prepare('CREATE INDEX IF NOT EXISTS i_com_fic ON commentaires(fichier_id)')]);
+    // les retouches : qui doit agir en premier (le stratégiste pour les textes, la designer pour le visuel)
+    for (const col of ['retouche TEXT', 'retouche_le INTEGER']) { try { await db.prepare('ALTER TABLE livraisons ADD COLUMN ' + col).run(); } catch (e) {} }
     LIV_PRETE = true;
   }
   return db;
@@ -1310,6 +1333,7 @@ async function detailLivraison(db, l, client) {
     db.prepare('SELECT * FROM fichiers WHERE livraison_id = ? ORDER BY format, nom').bind(l.id).all(),
     db.prepare('SELECT * FROM commentaires WHERE livraison_id = ?' + (client ? ' AND interne = 0' : '') + ' ORDER BY cree_le').bind(l.id).all()]);
   const sortie = { id: l.id, dossier: l.dossier, version: l.version, statut: l.statut, depose_le: l.depose_le, envoye_le: l.envoye_le, review_le: l.review_le,
+    retouche: client ? undefined : (['a_corriger', 'review_terminee'].includes(l.statut) ? (l.retouche || 'designer') : null),
     fichiers: F.map(f => ({ id: f.id, format: f.format, nom: f.nom, type: f.type, taille: f.taille, largeur: f.largeur, hauteur: f.hauteur, approuve_le: f.approuve_le,
       url: '/fichiers/' + f.id, mini: '/fichiers/' + f.id + (f.mini ? '?mini=1' : ''),
       commentaires: C.filter(c => c.fichier_id === f.id).map(c => ({ id: c.id, auteur: c.auteur, role: c.role, texte: c.texte, forme: formeJson(c.forme), couleur: c.couleur, interne: !!c.interne, cree_le: c.cree_le })) })) };
@@ -1333,6 +1357,94 @@ async function estDerniereLivraison(env, dossier) {
   const d = await lireJsonDepot(env, dossier + '/donnees.json');
   const l = d && d.livraison;
   return !(l && l.sur > 1 && l.n < l.sur);
+}
+
+// renvoyer une version : à la designer, ou d'abord au stratégiste (textes)
+async function renvoyerVersion(db, l, pour, note) {
+  const now = maintenant();
+  await db.prepare("UPDATE livraisons SET statut = 'a_corriger', note_kreative = ?, verifie_le = ?, retouche = ?, retouche_le = ? WHERE id = ?")
+    .bind(note || null, now, pour, now, l.id).run();
+  await db.prepare('DELETE FROM prod_etapes WHERE dossier = ?').bind(l.dossier).run();
+}
+// envoyer une version au client : la commande passe « livré », le client reçoit l'email
+async function envoyerAuClient(env, ctx, url, db, l) {
+  const now = maintenant();
+  await db.prepare("UPDATE livraisons SET statut = 'envoyee', envoye_le = ?, verifie_le = ?, retouche = NULL WHERE id = ?").bind(now, now, l.id).run();
+  await db.prepare('DELETE FROM prod_etapes WHERE dossier = ?').bind(l.dossier).run();
+  const k = await commandeDuDossier(db, l.dossier);
+  if (!k) return;
+  const finale = await estDerniereLivraison(env, l.dossier);
+  if (finale && !['valide', 'annule'].includes(k.statut)) await db.prepare("UPDATE commandes SET statut = 'livre', livre_le = COALESCE(livre_le, ?) WHERE id = ?").bind(now, k.id).run();
+  await noter(db, k.client_id, k.id, 'livre', l.version > 1 ? 'Nouvelle version de vos créatives (version ' + l.version + ')' : 'Vos créatives sont livrées');
+  if (k.email && k.jeton && !/^TEST_DEMO_/.test(l.dossier)) {
+    const prenom = String(k.contact || '').trim().split(/\s+/)[0], lien = lienAcces(url, k.jeton);
+    const envoi = envoyerEmail(env, { type: 'creatives', a: k.email, marque: k.marque, contact: k.contact || '', lien,
+      sujet: k.marque + (l.version > 1 ? ' · la nouvelle version de vos créatives' : ' · vos créatives sont prêtes'),
+      html: emailHtml(url.origin, { titre: 'Bonjour' + (prenom ? ' ' + prenom : '') + ',',
+        paragraphes: [l.version > 1 ? 'La nouvelle version de vos créatives est prête, avec les retouches demandées.' : 'Vos créatives sont prêtes. Regardez-les format par format, commentez ce qui doit bouger, et approuvez ce qui vous plaît.'],
+        bouton: ['Voir mes créatives', lien] }) });
+    if (ctx && ctx.waitUntil) ctx.waitUntil(envoi); else await envoi;
+  }
+}
+// les retours du client parlent-ils des textes ? Alors le stratégiste corrige d'abord, la designer ensuite.
+// Un commentaire compte pour les textes quand il parle de mots (citation, remplacer, faute, accroche…)
+// plus que de visuel (couleur, taille, logo, image…). Kreative peut toujours changer depuis la livraison.
+const MOTS_TEXTE = /(«|»|"[^"]{2,}"|\b(remplac\w*|reformul\w*|wording|copy|copywriting|accroches?|hooks?|phrases?|fautes?|orthographe|coquilles?|slogans?|promesses?|arguments?|mentions?|claims?|traduction|traduire|tutoiement|vouvoiement|texte|textes|ecrire|ecrit|formulation|tournure|mots?|prix|tarifs?)\b)/gi;
+const MOTS_VISUEL = /\b(couleurs?|blanc|noir|rouge|bleu|vert|jaune|rose|taille|petit|petite|grand|grande|gros|grosse|police|typo|gras|logo|images?|photos?|visuels?|fond|contraste|position|placer|aligner|align\w*|centrer|centre|decal\w*|marges?|espaces?|zone|cadrage|recadr\w*|flou|nette?|lumi\w*|sombre|clair|produit|ombre|bordure|animation|format)\b/gi;
+const sansAccents = t => String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '');
+const parleTexte = t => { const x = sansAccents(t); return (x.match(MOTS_TEXTE) || []).length > (x.match(MOTS_VISUEL) || []).length; };
+const pourQui = textes => textes.some(parleTexte) ? 'strategiste' : 'designer';
+// l'état de production de chaque projet : la dernière version livrée, un déplacement manuel, la commande
+async function etatsProduction(db) {
+  const [{ results: L }, { results: O }, { results: K2 }] = await Promise.all([
+    db.prepare(`SELECT l.dossier, l.id, l.version, l.statut, l.retouche, l.depose_le, l.verifie_le, l.envoye_le, l.review_le, l.retouche_le, l.cree_le FROM livraisons l
+      WHERE l.version = (SELECT MAX(x.version) FROM livraisons x WHERE x.dossier = l.dossier)`).all(),
+    db.prepare('SELECT * FROM prod_etapes').all(),
+    db.prepare("SELECT dossier, statut FROM commandes WHERE dossier IS NOT NULL ORDER BY cree_le").all()]);
+  const etats = {}, de = d => (etats[d] = etats[d] || {});
+  for (const l of L) de(l.dossier).v = { id: l.id, version: l.version, statut: l.statut, retouche: ['a_corriger', 'review_terminee'].includes(l.statut) ? (l.retouche || 'designer') : null,
+    le: Math.max(l.cree_le || 0, l.depose_le || 0, l.verifie_le || 0, l.envoye_le || 0, l.review_le || 0, l.retouche_le || 0) };
+  for (const o of O) de(o.dossier).o = { etape: o.etape, le: o.le, par: o.par };
+  const commandes = {};
+  for (const k of K2) commandes[k.dossier] = k.statut;
+  return { etats, commandes, le: maintenant() };
+}
+// glisser un projet dans une autre colonne du Kanban : une vraie action quand il y en a une, sinon l'étape est notée
+async function deplacerProjet(env, ctx, url, db, dossier, vers, qui) {
+  const v = await db.prepare('SELECT * FROM livraisons WHERE dossier = ? ORDER BY version DESC LIMIT 1').bind(dossier).first();
+  const k = await commandeDuDossier(db, dossier), now = maintenant();
+  const noterEtape = async () => db.prepare('INSERT INTO prod_etapes (dossier, etape, le, par) VALUES (?,?,?,?) ON CONFLICT(dossier) DO UPDATE SET etape = excluded.etape, le = excluded.le, par = excluded.par')
+    .bind(dossier, vers, now, qui.nom).run();
+  const retouches = async pour => {
+    await db.prepare("UPDATE livraisons SET statut = 'review_terminee', review_le = COALESCE(review_le, ?), retouche = ?, retouche_le = ? WHERE id = ?").bind(now, pour, now, v.id).run();
+    await db.prepare('DELETE FROM prod_etapes WHERE dossier = ?').bind(dossier).run();
+    if (k && !['valide', 'annule'].includes(k.statut)) await db.prepare("UPDATE commandes SET statut = 'revisions' WHERE id = ?").bind(k.id).run();
+    if (k) await noter(db, k.client_id, k.id, 'revisions', 'Retouches en cours');
+  };
+  const st = v && v.statut;
+  if (vers === 'client') {
+    if (st === 'a_verifier') { await envoyerAuClient(env, ctx, url, db, v); return { action: 'envoyee', message: 'Version ' + v.version + ' envoyée au client.' }; }
+    if (st === 'brouillon') return { erreur: true, message: 'La designer n\'a pas encore envoyé ses fichiers.' };
+    await noterEtape();
+    if (!v && k && await estDerniereLivraison(env, dossier) && !['valide', 'annule', 'livre'].includes(k.statut))
+      await db.prepare("UPDATE commandes SET statut = 'livre', livre_le = COALESCE(livre_le, ?) WHERE id = ?").bind(now, k.id).run();
+    return { action: 'etape', message: 'Projet passé chez le client.' };
+  }
+  if (vers === 'desi' || vers === 'strat') {
+    const pour = vers === 'strat' ? 'strategiste' : 'designer';
+    if (st === 'a_verifier') { await renvoyerVersion(db, v, pour, 'Renvoyée depuis le Kanban.'); return { action: 'renvoyee', message: pour === 'strategiste' ? 'Renvoyée au stratégiste.' : 'Renvoyée à la designer.' }; }
+    if (st === 'envoyee' || st === 'review_terminee' || st === 'a_corriger' || st === 'approuvee') {
+      if (st === 'a_corriger') { await db.prepare('UPDATE livraisons SET retouche = ?, retouche_le = ? WHERE id = ?').bind(pour, now, v.id).run(); await db.prepare('DELETE FROM prod_etapes WHERE dossier = ?').bind(dossier).run(); }
+      else await retouches(pour);
+      return { action: 'retouches', message: pour === 'strategiste' ? 'Retouches confiées au stratégiste.' : 'Retouches confiées à la designer.' };
+    }
+    if (!v && k && k.statut === 'livre') await db.prepare("UPDATE commandes SET statut = 'revisions' WHERE id = ?").bind(k.id).run();
+    await noterEtape();
+    return { action: 'etape', message: vers === 'strat' ? 'Projet passé chez le stratégiste.' : 'Projet passé chez le designer.' };
+  }
+  // à livrer au client (vérification)
+  await noterEtape();
+  return { action: 'etape', message: 'Projet passé en vérification.' };
 }
 
 // ---------- les emails (le HTML est fait ici ; n8n l'envoie tel quel) ----------
@@ -1384,6 +1496,8 @@ async function apiEquipe(req, env, ctx, url, chemin, methode, qui) {
     if (!/^[A-Za-z0-9_-]{3,80}$/.test(dossier)) return json({ erreur: 'Projet invalide.' }, 400);
     const der = await db.prepare('SELECT * FROM livraisons WHERE dossier = ? ORDER BY version DESC LIMIT 1').bind(dossier).first();
     if (der && der.statut === 'brouillon') return json(await detailLivraison(db, der, false));
+    if (der && ['a_corriger', 'review_terminee'].includes(der.statut) && der.retouche === 'strategiste')
+      return json({ erreur: 'The strategist is updating the copy first. You can upload the new version as soon as it is done.' }, 409);
     if (der && ['a_verifier', 'envoyee', 'approuvee'].includes(der.statut))
       return json({ erreur: der.statut === 'a_verifier' ? 'Kreative is checking your last delivery.' : der.statut === 'envoyee' ? 'The client is reviewing this delivery.' : 'This delivery is approved.' }, 409);
     const id = 'l_' + aleatoire(10), now = maintenant();
@@ -1439,6 +1553,7 @@ async function apiEquipe(req, env, ctx, url, chemin, methode, qui) {
     const n = await db.prepare('SELECT COUNT(*) AS n FROM fichiers WHERE livraison_id = ?').bind(l.id).first();
     if (!n || !n.n) return json({ erreur: 'Add your files first.' }, 400);
     await db.prepare("UPDATE livraisons SET statut = 'a_verifier', depose_le = ?, note_designer = ? WHERE id = ?").bind(maintenant(), propre(b.note, 600) || null, l.id).run();
+    await db.prepare('DELETE FROM prod_etapes WHERE dossier = ?').bind(l.dossier).run();
     // Kreative est prévenu sur Telegram par le workflow « Livraison » (sauf un projet de démo)
     if (!/^TEST_DEMO_/.test(l.dossier)) {
       const appel = fetch(env.N8N_LIVRAISON || N8N_LIVRAISON, { method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -1447,35 +1562,53 @@ async function apiEquipe(req, env, ctx, url, chemin, methode, qui) {
     }
     return json({ ok: true, message: 'Thank you! Kreative has been notified and will check your files.' });
   }
-  // Kreative : envoyer au client, ou renvoyer à la designer
+  // Kreative : envoyer au client, ou renvoyer (à la designer, ou au stratégiste pour les textes)
   if ((m = chemin.match(/^\/livraisons\/(l_[A-Za-z0-9_]+)\/decision$/)) && methode === 'POST') {
     if (!admin) return json({ erreur: 'Accès refusé' }, 403);
     const b = await corpsJson(req);
     const l = await db.prepare('SELECT * FROM livraisons WHERE id = ?').bind(m[1]).first();
     if (!l || l.statut !== 'a_verifier') return json({ erreur: 'Cette version n\'est plus à vérifier.' }, 409);
-    const now = maintenant();
     if (b.action === 'corriger') {
-      await db.prepare("UPDATE livraisons SET statut = 'a_corriger', note_kreative = ?, verifie_le = ? WHERE id = ?").bind(propre(b.note, 1000) || null, now, l.id).run();
-      return json({ ok: true, message: 'Renvoyée à la designer.' });
+      const pour = b.pour === 'strategiste' ? 'strategiste' : 'designer';
+      await renvoyerVersion(db, l, pour, propre(b.note, 1000));
+      return json({ ok: true, message: pour === 'strategiste' ? 'Renvoyée au stratégiste (textes).' : 'Renvoyée à la designer.' });
     }
     if (b.action !== 'envoyer') return json({ erreur: 'Action inconnue' }, 400);
-    await db.prepare("UPDATE livraisons SET statut = 'envoyee', envoye_le = ?, verifie_le = ? WHERE id = ?").bind(now, now, l.id).run();
-    const k = await commandeDuDossier(db, l.dossier);
-    if (k) {
-      const finale = await estDerniereLivraison(env, l.dossier);
-      if (finale && !['valide', 'annule'].includes(k.statut)) await db.prepare("UPDATE commandes SET statut = 'livre', livre_le = COALESCE(livre_le, ?) WHERE id = ?").bind(now, k.id).run();
-      await noter(db, k.client_id, k.id, 'livre', l.version > 1 ? 'Nouvelle version de vos créatives (version ' + l.version + ')' : 'Vos créatives sont livrées');
-      if (k.email && k.jeton) {
-        const prenom = String(k.contact || '').trim().split(/\s+/)[0], lien = lienAcces(url, k.jeton);
-        const envoi = envoyerEmail(env, { type: 'creatives', a: k.email, marque: k.marque, contact: k.contact || '', lien,
-          sujet: k.marque + (l.version > 1 ? ' · la nouvelle version de vos créatives' : ' · vos créatives sont prêtes'),
-          html: emailHtml(url.origin, { titre: 'Bonjour' + (prenom ? ' ' + prenom : '') + ',',
-            paragraphes: [l.version > 1 ? 'La nouvelle version de vos créatives est prête, avec les retouches demandées.' : 'Vos créatives sont prêtes. Regardez-les format par format, commentez ce qui doit bouger, et approuvez ce qui vous plaît.'],
-            bouton: ['Voir mes créatives', lien] }) });
-        if (ctx && ctx.waitUntil) ctx.waitUntil(envoi); else await envoi;
-      }
-    }
+    await envoyerAuClient(env, ctx, url, db, l);
     return json({ ok: true, message: 'Envoyée au client.' });
+  }
+  // les retours du client : qui s'en occupe (Kreative peut changer)
+  if ((m = chemin.match(/^\/livraisons\/(l_[A-Za-z0-9_]+)\/retouche$/)) && methode === 'POST') {
+    if (!admin) return json({ erreur: 'Accès refusé' }, 403);
+    const b = await corpsJson(req);
+    const l = await db.prepare('SELECT * FROM livraisons WHERE id = ?').bind(m[1]).first();
+    if (!l || !['a_corriger', 'review_terminee'].includes(l.statut)) return json({ erreur: 'Pas de retouches en cours sur cette version.' }, 409);
+    const pour = b.pour === 'strategiste' ? 'strategiste' : 'designer';
+    await db.prepare('UPDATE livraisons SET retouche = ?, retouche_le = ? WHERE id = ?').bind(pour, maintenant(), l.id).run();
+    await db.prepare('DELETE FROM prod_etapes WHERE dossier = ?').bind(l.dossier).run();
+    return json({ ok: true, message: pour === 'strategiste' ? 'Retouches confiées au stratégiste.' : 'Retouches confiées à la designer.' });
+  }
+  // le stratégiste a corrigé les textes : la designer prend la suite
+  if ((m = chemin.match(/^\/livraisons\/(l_[A-Za-z0-9_]+)\/retouches-faites$/)) && methode === 'POST') {
+    if (!['admin', 'strategiste'].includes(qui.role)) return json({ erreur: 'Accès refusé' }, 403);
+    const l = await db.prepare('SELECT * FROM livraisons WHERE id = ?').bind(m[1]).first();
+    if (!l || !['a_corriger', 'review_terminee'].includes(l.statut) || l.retouche !== 'strategiste') return json({ erreur: 'Rien à corriger de votre côté sur ce projet.' }, 409);
+    const b = await corpsJson(req), note = propre(b.note, 600);
+    await db.prepare("UPDATE livraisons SET retouche = 'designer', retouche_le = ?, note_kreative = COALESCE(?, note_kreative) WHERE id = ?")
+      .bind(maintenant(), note ? 'Textes corrigés par le stratégiste : ' + note : null, l.id).run();
+    await db.prepare('DELETE FROM prod_etapes WHERE dossier = ?').bind(l.dossier).run();
+    return json({ ok: true, message: 'Merci, la designer peut faire la nouvelle version.' });
+  }
+  // l'état de chaque projet, le même pour tout le monde (admin, stratégiste, designer)
+  if (chemin === '/etats' && methode === 'GET') return json(await etatsProduction(db));
+  // le Kanban : un projet glissé d'une colonne à l'autre
+  if (chemin === '/deplacer' && methode === 'POST') {
+    if (!admin) return json({ erreur: 'Accès refusé' }, 403);
+    const b = await corpsJson(req);
+    const dossier = propre(b.dossier, 80), vers = String(b.vers || '');
+    if (!/^[A-Za-z0-9_-]{3,80}$/.test(dossier) || !['strat', 'desi', 'livrer', 'client'].includes(vers)) return json({ erreur: 'Déplacement invalide.' }, 400);
+    const r = await deplacerProjet(env, ctx, url, db, dossier, vers, qui);
+    return json({ ok: true, ...r, etats: await etatsProduction(db) });
   }
   // un commentaire de l'équipe (interne : le client ne le voit pas)
   if (chemin === '/commentaires' && methode === 'POST') {
@@ -1571,13 +1704,16 @@ async function apiClientLivraisons(req, env, ctx, url, chemin, methode, cl, aper
       } else if (k) await noter(db, cl.id, k.id, 'valide', 'Livraison approuvée');
       return json({ ok: true, approuvee: true, valide, commande: k && k.id });
     }
-    await db.prepare("UPDATE livraisons SET statut = 'review_terminee', review_le = ? WHERE id = ?").bind(now, l.id).run();
+    const { results: CO } = await db.prepare('SELECT texte FROM commentaires WHERE livraison_id = ? AND interne = 0').bind(l.id).all();
+    const pour = pourQui(CO.map(c => c.texte));
+    await db.prepare("UPDATE livraisons SET statut = 'review_terminee', review_le = ?, retouche = ?, retouche_le = ? WHERE id = ?").bind(now, pour, now, l.id).run();
+    await db.prepare('DELETE FROM prod_etapes WHERE dossier = ?').bind(l.dossier).run();
     if (k && !['valide', 'annule'].includes(k.statut)) await db.prepare("UPDATE commandes SET statut = 'revisions' WHERE id = ?").bind(k.id).run();
     if (k) await noter(db, cl.id, k.id, 'revisions', 'Vos retours sont transmis · retouches en cours');
     // Kreative est prévenu par email
     const envoi = envoyerEmail(env, { type: 'review', a: env.EMAIL_KREATIVE || 'contact@kreativeads.fr', marque: cl.marque, contact: 'Kreative', lien: url.origin + '/admin/#/livraisons/' + l.dossier,
       sujet: cl.marque + ' · retours du client sur la version ' + l.version,
-      html: emailHtml(url.origin, { titre: cl.marque + ' a terminé sa review', paragraphes: [(t.n - t.reste) + ' fichier' + (t.n - t.reste > 1 ? 's' : '') + ' approuvé' + (t.n - t.reste > 1 ? 's' : '') + ' sur ' + t.n + ', ' + t.coms + ' commentaire' + (t.coms > 1 ? 's' : '') + '. La designer voit les retours dans son espace.'],
+      html: emailHtml(url.origin, { titre: cl.marque + ' a terminé sa review', paragraphes: [(t.n - t.reste) + ' fichier' + (t.n - t.reste > 1 ? 's' : '') + ' approuvé' + (t.n - t.reste > 1 ? 's' : '') + ' sur ' + t.n + ', ' + t.coms + ' commentaire' + (t.coms > 1 ? 's' : '') + '. ' + (pour === 'strategiste' ? 'Les retours parlent des textes : le stratégiste corrige d\'abord, puis la designer fait la nouvelle version.' : 'La designer voit les retours dans son espace et prépare la nouvelle version.') + ' Vous pouvez changer qui s\'en occupe depuis la livraison.'],
         bouton: ['Voir les retours', url.origin + '/admin/#/livraisons/' + l.dossier] }) });
     if (ctx && ctx.waitUntil) ctx.waitUntil(envoi); else await envoi;
     return json({ ok: true, approuvee: false });

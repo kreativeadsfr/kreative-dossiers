@@ -24,7 +24,8 @@ const { i, esc } = K;
 const E = { moi: null, filtre: 'todo' };
 const SECS = ['visuels', 'telechargement'];
 K.prod.autorisees = SECS;
-const mesProjets = () => (K.prod.liste || []).filter(x => x.envoye);          // seulement ce qui est arrivé chez la designer
+const aFaire = x => !!(x.etape ? x.etape.cle === 'desi' : !x.livre);
+const mesProjets = () => (K.prod.liste || []).filter(x => x.envoye || (x.etape && x.etape.cle !== 'strat'));          // seulement ce qui est arrivé chez la designer
 const quand = ms => {
   const p = {};
   new Intl.DateTimeFormat('en-GB', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: 'Europe/Paris' })
@@ -39,7 +40,7 @@ function conf() {
   if (admin) sections.push({ titre: 'Admin', liens: [{ id: 'admin', texte: 'Back to the dashboard', icone: 'gauche', href: '/admin/' }] });
   sections.push({ titre: 'Workspace', liens: [
     { id: 'accueil', texte: 'Overview', icone: 'accueil', href: '#/' },
-    { id: 'projets', texte: 'Projects', icone: 'dossier', href: '#/projets', nb: L.filter(x => !x.livre).length || '' }] });
+    { id: 'projets', texte: 'Projects', icone: 'dossier', href: '#/projets', nb: L.filter(aFaire).length || '' }] });
   sections.push({ titre: 'Production', liens: [
     { id: 'visuels', texte: 'Previews', icone: 'image', href: '#/visuels' },
     { id: 'telechargement', texte: 'Downloads', icone: 'telecharger', href: '#/telechargement' },
@@ -64,7 +65,7 @@ function boutons(x) {
 // ---------- OVERVIEW ----------
 function ecranAccueil() {
   const L = mesProjets(), now = Date.now();
-  const afaire = L.filter(x => !x.livre).sort((a, b) => (a.desi || 9e15) - (b.desi || 9e15));
+  const afaire = L.filter(aFaire).sort((a, b) => (a.desi || 9e15) - (b.desi || 9e15));
   const faits = L.filter(x => x.livre).sort((a, b) => b.livreLe - a.livreLe);
   const retard = afaire.filter(x => x.desi && x.desi < now), prochain = afaire.find(x => x.desi && x.desi >= now);
   const kpi = (l, v, d, st) => '<div class="card kpi"><div class="lab">' + l + '</div><div class="v' + (String(v).length > 4 ? ' s' : '') + '"' + (st ? ' style="' + st + '"' : '') + '>' + esc(v) + '</div><div class="d">' + esc(d) + '</div></div>';
@@ -88,7 +89,7 @@ function ecranAccueil() {
 // ---------- PROJECTS ----------
 function ecranProjets() {
   const L = mesProjets(), f = E.filtre, now = Date.now();
-  const F = { todo: x => !x.livre, late: x => !x.livre && x.desi && x.desi < now, done: x => x.livre, all: () => true };
+  const F = { todo: aFaire, late: x => aFaire(x) && x.desi && x.desi < now, done: x => x.livre, all: () => true };
   const chip = (k, t, c) => '<button class="chip' + (f === k ? ' on' : '') + '" onclick="E.filtre=\'' + k + '\';K.rendre(true)">' + (c ? '<i style="color:' + c + '"></i>' : '') + t + '<span class="c">' + L.filter(F[k]).length + '</span></button>';
   const l = L.filter(F[f]).sort((a, b) => (a.livre - b.livre) || ((a.desi || 9e15) - (b.desi || 9e15)));
   return '<div class="ph"><div><h1>Projects</h1><p>All your projects, and each of their pages in one click.</p></div></div>' +
@@ -106,13 +107,8 @@ const ST_EN = { brouillon: ['Uploading', ''], a_verifier: ['With Kreative for ch
 const pillEn = st => { const x = ST_EN[st] || [st, '']; return '<span class="pill ' + x[1] + '"><i></i>' + esc(x[0]) + '</span>'; };
 // la dernière version de chaque projet change le statut vu par la designer
 function marquer() {
-  (K.prod.liste || []).forEach(x => {
-    const v = (E.livs || []).filter(l => l.dossier === x.dossier).sort((a, b) => b.version - a.version)[0];
-    if (!v) return;
-    x.aCorriger = ['a_corriger', 'review_terminee'].includes(v.statut);
-    x.livre = ['a_verifier', 'envoyee', 'approuvee'].includes(v.statut);
-    if (x.livre) x.livreLe = v.depose_le || x.livreLe;
-  });
+  // l'étape vient du portail (K.prod.etape) : la même que voit Kreative
+  (K.prod.liste || []).forEach(x => { x.aCorriger = !!(x.etape && x.etape.cle === 'desi' && x.etape.retouche); });
 }
 async function chargerDl(d) {
   DL.dossier = d;
@@ -121,7 +117,7 @@ async function chargerDl(d) {
   K.rendre(true);
 }
 function ecranLivrer(id) {
-  const L = mesProjets(), aLivrer = L.filter(x => !x.livre).sort((a, b) => (a.desi || 9e15) - (b.desi || 9e15));
+  const L = mesProjets(), aLivrer = L.filter(aFaire).sort((a, b) => (a.desi || 9e15) - (b.desi || 9e15));
   if (!id) {
     return '<div class="ph"><div><h1>Deliver</h1><p>Pick the project you finished, then upload your files right here.</p></div></div>' +
       (aLivrer.length ? '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Project</th><th class="num">Creatives</th><th>Status</th><th></th></tr></thead><tbody>' +
@@ -132,17 +128,19 @@ function ecranLivrer(id) {
   const x = K.prod.trouver(id);
   if (!x) return '<a class="retour" href="#/livrer">' + i.gauche + 'Deliver</a><div class="card"><div class="vide">Project not found.</div></div>';
   if (DL.dossier !== id) { DL.dossier = id; DL.donnees = null; setTimeout(() => chargerDl(id), 0); }
-  const V = (DL.donnees && DL.donnees.versions) || [], der = V[0], choix = L.filter(y => !y.livre || y === x);
+  const V = (DL.donnees && DL.donnees.versions) || [], der = V[0], choix = L.filter(y => aFaire(y) || y === x);
   let h = '<a class="retour" href="#/livrer">' + i.gauche + 'Deliver</a>' +
     '<div class="ph"><div><h1>' + esc(nomEn(x)) + '</h1><p>' + esc(x.nb || '?') + ' creatives in 1:1, 4:5 and 9:16' + (x.desi ? ' · due ' + esc(quand(x.desi)) + ' (Paris time)' : '') + '</p></div>' +
     '<div class="act" style="align-items:center">' + (der ? pillEn(der.statut) : K.prod.echeance(x.desi, true).pill) +
     '<div style="width:300px"><select class="in" id="lv-projet">' + choix.map(y => '<option value="' + esc(y.dossier) + '"' + (y === x ? ' selected' : '') + '>' + esc(nomEn(y)) + '</option>').join('') + '</select></div></div></div>';
   if (!DL.donnees) return h + '<div class="card"><div class="vide">Loading…</div></div>';
-  const peutDeposer = !der || ['brouillon', 'a_corriger', 'review_terminee'].includes(der.statut);
+  const attenteStrat = der && ['a_corriger', 'review_terminee'].includes(der.statut) && der.retouche === 'strategiste';
+  const peutDeposer = !attenteStrat && (!der || ['brouillon', 'a_corriger', 'review_terminee'].includes(der.statut));
   const travail = der && der.statut === 'brouillon' ? der : null, F = travail ? travail.fichiers : [];
   let gauche = '<div class="card pad"><h3 style="font-size:16px">Upload your files</h3>';
-  if (der && der.statut === 'a_corriger') gauche += '<div class="rv-note" style="margin-top:14px">' + i.crayon + '<div><b>Kreative sent version ' + der.version + ' back.</b> ' + esc(der.note_kreative || 'See the comments on the files below.') + ' Upload the corrected files: a file with the same name replaces the old one.</div></div>';
-  if (der && der.statut === 'review_terminee') { const n = der.fichiers.reduce((s, f) => s + f.commentaires.filter(c => !c.interne).length, 0); gauche += '<div class="rv-note" style="margin-top:14px">' + i.message + '<div><b>The client sent ' + n + ' comment' + (n > 1 ? 's' : '') + ' on version ' + der.version + '.</b> Open the files below to read them, then upload the corrected files (same file name replaces the old one).</div></div>'; }
+  if (attenteStrat) gauche += '<div class="etat-envoi" style="margin-top:14px"><span class="pastille attente">' + i.crayon + '</span><div><b>The strategist is updating the copy first</b><small>The client asked for text changes on version ' + der.version + '. As soon as the new copy is ready, you can upload version ' + (der.version + 1) + ' here. Read the comments below in the meantime.</small></div></div>';
+  else if (der && der.statut === 'a_corriger') gauche += '<div class="rv-note" style="margin-top:14px">' + i.crayon + '<div><b>Kreative sent version ' + der.version + ' back.</b> ' + esc(der.note_kreative || 'See the comments on the files below.') + ' Upload the corrected files: a file with the same name replaces the old one.</div></div>';
+  if (der && der.statut === 'review_terminee' && !attenteStrat) { const n = der.fichiers.reduce((s, f) => s + f.commentaires.filter(c => !c.interne).length, 0); gauche += '<div class="rv-note" style="margin-top:14px">' + i.message + '<div><b>The client sent ' + n + ' comment' + (n > 1 ? 's' : '') + ' on version ' + der.version + '.</b> Open the files below to read them, then upload the corrected files (same file name replaces the old one).</div></div>'; }
   if (peutDeposer) {
     gauche += '<div class="depot" id="lv-depot" style="margin-top:14px">' + i.telecharger + '<b>Drop your PNG files here, or click to choose</b><small>PNG only. The format (1:1, 4:5, 9:16) is detected from the size.</small><input type="file" id="lv-fichiers" multiple accept="image/png,.png" hidden></div>' +
       '<div class="envois" id="lv-envois">' + DL.envois.map(e => '<div class="envoi-l"><span>' + esc(e.nom) + '</span><div class="barre' + (e.ok ? ' g' : '') + '"><i style="width:' + e.pc + '%"></i></div><small class="muted">' + esc(e.etat) + '</small></div>').join('') + '</div>';
@@ -151,7 +149,7 @@ function ecranLivrer(id) {
       (F.some(y => y.format === 'autre') ? '<span class="pill r">Other sizes · ' + F.filter(y => y.format === 'autre').length + '</span>' : '') + '</div>' +
       '<div class="champ" style="margin-top:16px"><label for="lv-note">Note for Kreative (optional)</label><textarea class="in" id="lv-note" rows="3" placeholder="Anything we should know"></textarea></div>' +
       '<button class="btn btn-p btn-bloc btn-lg" id="lv-envoyer"' + (F.length ? '' : ' disabled') + '>' + i.envoi + 'Send to Kreative' + (F.length ? ' (' + F.length + ' files)' : '') + '</button><p class="muted" id="lv-etat" style="font-size:13px;margin-top:10px;min-height:18px"></p>';
-  } else gauche += '<div class="etat-envoi"><span class="pastille">' + i.coche + '</span><div><b>' + (der.statut === 'a_verifier' ? 'Version ' + der.version + ' sent to Kreative' : der.statut === 'envoyee' ? 'Version ' + der.version + ' is with the client' : 'Approved by the client') + '</b>' +
+  } else if (!attenteStrat) gauche += '<div class="etat-envoi"><span class="pastille">' + i.coche + '</span><div><b>' + (der.statut === 'a_verifier' ? 'Version ' + der.version + ' sent to Kreative' : der.statut === 'envoyee' ? 'Version ' + der.version + ' is with the client' : 'Approved by the client') + '</b>' +
     '<small>' + (der.statut === 'a_verifier' ? 'Kreative checks your files, then sends them to the client or back to you.' : der.statut === 'envoyee' ? 'The client is reviewing it. Their comments will show up here.' : 'Nothing more to do on this project.') + (der.depose_le ? ' · ' + esc(quand(der.depose_le)) : '') + '</small></div></div>';
   gauche += '</div>';
   h += '<div class="grid g2" style="align-items:start">' + gauche +
@@ -297,6 +295,7 @@ K.rendre = async force => {
   const ariane = nomP ? K.ariane('pinceau', 'Designer', TITRES[sec], nomP) : K.ariane('pinceau', 'Designer', TITRES[sec] || TITRES['']);
   document.getElementById('racine').innerHTML = K.coquille(c, sec || 'accueil', ariane, contenu, plein ? 'plein' : false);
   K.brancherCoquille(c);
+  K.prod.surveiller(() => { marquer(); if (DL.dossier && K.route().ecran === 'livrer') chargerDl(DL.dossier); else K.rendre(true); });
   if (plein) K.prod.brancher(sec);
   if (sec === 'livrer') brancherLivrer(id);
   document.title = 'Designer space · Kreative';

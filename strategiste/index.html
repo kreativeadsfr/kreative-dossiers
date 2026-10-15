@@ -8,6 +8,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
 <link rel="stylesheet" href="/ui/app.css">
 <script src="/ui/app.js"></script>
+<script src="/ui/review.js"></script>
 </head>
 <body>
 <div id="racine"><div class="chargement">Chargement de tes projets…</div></div>
@@ -25,6 +26,9 @@
 const { i, esc } = K;
 const E = { moi: null, filtre: 'afaire' };
 const SECS = ['fiche', 'dossier', 'brief'];
+// à faire pour le stratégiste : une fiche à remplir, ou des textes à corriger après les retours du client
+const aFaire = x => x.etape ? x.etape.cle === 'strat' : !x.envoye;
+const enRetouche = x => !!(x.etape && x.etape.cle === 'strat' && x.etape.retouche === 'strategiste');
 K.prod.autorisees = SECS;
 
 function conf() {
@@ -34,7 +38,7 @@ function conf() {
   if (admin) sections.push({ titre: 'Admin', liens: [{ id: 'admin', texte: 'Retour au tableau de bord', icone: 'gauche', href: '/admin/' }] });
   sections.push({ titre: 'Espace', liens: [
     { id: 'accueil', texte: 'Vue d\'ensemble', icone: 'accueil', href: '#/' },
-    { id: 'projets', texte: 'Projets', icone: 'dossier', href: '#/projets', nb: L.filter(x => !x.envoye).length || '' }] });
+    { id: 'projets', texte: 'Projets', icone: 'dossier', href: '#/projets', nb: L.filter(aFaire).length || '' }] });
   sections.push({ titre: 'Production', liens: [
     { id: 'fiche', texte: 'Fiches créas', icone: 'doc', href: '#/fiche' },
     { id: 'dossier', texte: 'Dossiers de production', icone: 'calques', href: '#/dossier' },
@@ -51,7 +55,8 @@ function rechercher(q) {
 // les boutons d'un projet : chaque page s'ouvre dans le portail
 function boutons(x, principal) {
   const b = [];
-  b.push('<a class="btn ' + (principal === 'fiche' ? 'btn-p' : 'btn-s') + ' btn-sm" href="#/fiche/' + esc(x.dossier) + '">' + i.doc + 'Fiche</a>');
+  if (enRetouche(x)) b.push('<a class="btn btn-p btn-sm" href="#/retouches/' + esc(x.dossier) + '">' + i.message + 'Retours</a>');
+  b.push('<a class="btn ' + (principal === 'fiche' && !enRetouche(x) ? 'btn-p' : 'btn-s') + ' btn-sm" href="#/fiche/' + esc(x.dossier) + '">' + i.doc + 'Fiche</a>');
   b.push('<a class="btn btn-s btn-sm" href="#/dossier/' + esc(x.dossier) + '">' + i.calques + 'Dossier</a>');
   if (x.retour) b.push('<a class="btn btn-s btn-sm" href="#/brief/' + esc(x.dossier) + '">' + i.message + 'Brief</a>');
   return '<div style="display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap">' + b.join('') + '</div>';
@@ -64,17 +69,22 @@ const ligne = x => '<tr><td>' + ligneNom(x) + '</td><td>' + K.prod.celluleType(x
   '<td>' + (x.strat ? esc(K.dateHeure(x.strat)) + (!x.envoye ? '<span class="sub">' + esc(K.prod.echeance(x.strat).texte) + '</span>' : '') : '<span class="muted">·</span>') + '</td><td class="fin">' + boutons(x, 'fiche') + '</td></tr>';
 function ecranAccueil() {
   const L = K.prod.liste || [], now = Date.now();
-  const afaire = L.filter(x => !x.envoye).sort((a, b) => (a.strat || 9e15) - (b.strat || 9e15));
-  const faits = L.filter(x => x.envoye).sort((a, b) => b.envoyeLe - a.envoyeLe);
+  const retouches = L.filter(enRetouche);
+  const afaire = L.filter(x => aFaire(x) && !enRetouche(x)).sort((a, b) => (a.strat || 9e15) - (b.strat || 9e15));
+  const faits = L.filter(x => x.envoye && !aFaire(x)).sort((a, b) => b.envoyeLe - a.envoyeLe);
   const retard = afaire.filter(x => x.strat && x.strat < now), prochain = afaire.find(x => x.strat && x.strat >= now);
   const mois = faits.filter(x => x.envoyeLe > now - 30 * 864e5), aLheure = mois.filter(x => K.prod.etatStrat(x).cle === 'heure');
   const kpi = (l, v, d, st) => '<div class="card kpi"><div class="lab">' + l + '</div><div class="v' + (String(v).length > 5 ? ' s' : '') + '"' + (st ? ' style="' + st + '"' : '') + '>' + esc(v) + '</div><div class="d">' + esc(d) + '</div></div>';
   let h = '<div class="ph"><div><h1>Vue d\'ensemble</h1><p>Tes fiches à remplir avec leur échéance, et celles que tu as envoyées.</p></div>' +
     '<div class="act"><a class="btn btn-p" href="#/fiche">' + i.doc + 'Fiches créas</a></div></div>';
-  h += '<div class="grid g4">' + kpi('À faire', afaire.length, 'fiche' + (afaire.length > 1 ? 's' : '') + ' à remplir') +
+  h += '<div class="grid g4">' + kpi('À faire', afaire.length + retouches.length, retouches.length ? retouches.length + ' retouche' + (retouches.length > 1 ? 's' : '') + ' de textes' + (afaire.length ? ', ' + afaire.length + ' fiche' + (afaire.length > 1 ? 's' : '') : '') : 'fiche' + (afaire.length > 1 ? 's' : '') + ' à remplir') +
     kpi('En retard', retard.length, retard.length ? 'à rendre en priorité' : 'tout est dans les temps', retard.length ? 'color:var(--red)' : '') +
     kpi('Prochaine échéance', prochain ? K.date(prochain.strat, { year: undefined }) : '·', prochain ? prochain.marque + ', ' + K.prod.echeance(prochain.strat).texte : 'aucune fiche en attente') +
     kpi('Envoyées à l\'heure', mois.length ? aLheure.length + ' / ' + mois.length : '·', 'sur les 30 derniers jours') + '</div>';
+  if (retouches.length) h += '<div class="sec"><div><h2>Retouches de textes</h2><p>Le client a demandé des changements de textes. Corrige la fiche, puis passe la main à la designer.</p></div></div>' +
+    '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Projet</th><th>Type</th><th>Version</th><th>Statut</th><th></th></tr></thead><tbody>' +
+    retouches.map(x => '<tr class="clic" onclick="location.hash=\'#/retouches/' + esc(x.dossier) + '\'"><td>' + ligneNom(x) + '</td><td>' + K.prod.celluleType(x) + '</td><td>Version ' + esc(x.etape.version || 1) + '</td><td>' + K.prod.pillStrat(x) + '</td>' +
+      '<td class="fin"><a class="btn btn-p btn-sm" href="#/retouches/' + esc(x.dossier) + '">' + i.message + 'Voir les retours</a></td></tr>').join('') + '</tbody></table></div></div>';
   h += '<div class="sec"><div><h2>Fiches à remplir</h2><p>Classées par échéance, la plus proche en premier.</p></div></div>';
   h += afaire.length ? '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead>' + tete() + '</thead><tbody>' + afaire.map(ligne).join('') + '</tbody></table></div></div>'
     : '<div class="card"><div class="vide">' + i.coche + 'Aucune fiche à remplir. Les nouveaux projets arrivent ici dès que leur dossier est prêt.</div></div>';
@@ -88,17 +98,56 @@ function ecranAccueil() {
 // ---------- PROJETS ----------
 function ecranProjets() {
   const L = K.prod.liste || [], f = E.filtre;
-  const F = { afaire: x => !x.envoye, retard: x => K.prod.etatStrat(x).cle === 'retard', envoyees: x => x.envoye, tous: () => true };
+  const F = { afaire: aFaire, retard: x => K.prod.etatStrat(x).cle === 'retard', envoyees: x => x.envoye && !aFaire(x), tous: () => true };
   const chip = (k, t, c) => '<button class="chip' + (f === k ? ' on' : '') + '" onclick="E.filtre=\'' + k + '\';K.rendre(true)">' + (c ? '<i style="color:' + c + '"></i>' : '') + t + '<span class="c">' + L.filter(F[k]).length + '</span></button>';
-  const l = L.filter(F[f]).sort((a, b) => (a.envoye - b.envoye) || (a.envoye ? b.envoyeLe - a.envoyeLe : (a.strat || 9e15) - (b.strat || 9e15)));
+  const l = L.filter(F[f]).sort((a, b) => (aFaire(b) - aFaire(a)) || (a.envoye - b.envoye) || (a.envoye ? b.envoyeLe - a.envoyeLe : (a.strat || 9e15) - (b.strat || 9e15)));
   let h = '<div class="ph"><div><h1>Projets</h1><p>Tes fiches : à remplir, en retard, envoyées.</p></div></div>' +
     '<div class="filtres">' + chip('afaire', 'À faire', 'var(--blue)') + chip('retard', 'En retard', 'var(--red)') + chip('envoyees', 'Envoyées', 'var(--green)') + chip('tous', 'Tous') + '</div>';
   return h + (l.length ? '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead>' + tete() + '</thead><tbody>' + l.map(ligne).join('') +
     '</tbody></table></div></div>' : '<div class="card"><div class="vide">Aucun projet ici.</div></div>');
 }
 
+// ---------- RETOUCHES : les retours du client sur les textes ----------
+const RT = { dossier: null, donnees: null };
+async function chargerRetouches(d) {
+  RT.dossier = d;
+  try { RT.donnees = await K.api('/api/equipe/livraisons/' + d); } catch (e) { RT.donnees = { versions: [], erreur: e.message }; }
+  K.rendre(true);
+}
+function ecranRetouches(id) {
+  const x = K.prod.trouver(id);
+  if (!x) return '<a class="retour" href="#/">' + i.gauche + 'Vue d\'ensemble</a><div class="card"><div class="vide">Projet introuvable.</div></div>';
+  if (RT.dossier !== id) { RT.dossier = id; RT.donnees = null; setTimeout(() => chargerRetouches(id), 0); }
+  let h = '<a class="retour" href="#/">' + i.gauche + 'Vue d\'ensemble</a><div class="ph"><div><h1>' + esc(x.nom) + '</h1><p>Les retours du client sur la dernière version.</p></div>' +
+    '<div class="act"><a class="btn btn-s" href="#/fiche/' + esc(x.dossier) + '">' + i.doc + 'Ouvrir la fiche</a></div></div>';
+  if (!RT.donnees) return h + '<div class="card"><div class="vide">Chargement…</div></div>';
+  const v = (RT.donnees.versions || [])[0];
+  if (!v) return h + '<div class="card"><div class="vide">Aucune version livrée pour ce projet.</div></div>';
+  const coms = v.fichiers.reduce((n, f) => n + f.commentaires.filter(c => c.role === 'client').length, 0);
+  if (enRetouche(x)) h += '<div class="etat-envoi" style="margin:0 0 22px"><span class="pastille attente">' + i.crayon + '</span><div style="flex:1"><b>' + coms + ' commentaire' + (coms > 1 ? 's' : '') + ' du client sur la version ' + v.version + '</b>' +
+    '<small>Corrige les textes dans la fiche, puis passe la main : la designer fait la version ' + (v.version + 1) + ' avec tes nouveaux textes.</small></div>' +
+    '<button class="btn btn-p" id="rt-fait">' + i.coche + 'Textes corrigés</button></div>';
+  else h += '<div class="etat-envoi" style="margin:0 0 22px"><span class="pastille">' + i.coche + '</span><div><b>Rien à corriger de ton côté</b><small>Les retouches de ce projet sont chez la designer.</small></div></div>';
+  return h + K.rv.grille(v, { mode: 'strategiste', titre: 'Version ' + v.version, sousTitre: v.fichiers.length + ' fichiers' });
+}
+function brancherRetouches(id) {
+  const x = K.prod.trouver(id), v = RT.donnees && (RT.donnees.versions || [])[0];
+  if (!x || !v) return;
+  K.rv.brancher(v, { mode: 'strategiste', nomZip: (x.marque + '-v' + v.version).replace(/[^A-Za-z0-9]+/g, '-'), rendre: () => K.rendre(true), auteur: (E.moi && E.moi.nom) || 'Stratégiste',
+    peutCommenter: () => true, peutApprouver: () => false,
+    api: { commenter: (f, texte, forme, couleur) => K.api('/api/equipe/commentaires', { methode: 'POST', corps: { fichier_id: f.id, texte, forme, couleur } }),
+      supprimer: id2 => K.api('/api/equipe/commentaires/' + id2, { methode: 'DELETE' }) } });
+  const b = document.getElementById('rt-fait');
+  if (b) b.onclick = async () => {
+    if (!await K.confirmer('Textes corrigés ?', 'La designer est prévenue dans son espace et fait la version ' + (v.version + 1) + ' avec tes nouveaux textes.', 'Passer à la designer')) return;
+    b.disabled = true;
+    try { const r = await K.api('/api/equipe/livraisons/' + v.id + '/retouches-faites', { methode: 'POST', corps: {} }); K.toast(r.message); await K.prod.charger(true); RT.donnees = null; RT.dossier = null; location.hash = '#/'; }
+    catch (e) { K.toast(e.message); b.disabled = false; }
+  };
+}
+
 // ---------- RENDU ----------
-const TITRES = { '': 'Vue d\'ensemble', projets: 'Projets', fiche: 'Fiches créas', dossier: 'Dossiers de production', brief: 'Briefs suivants' };
+const TITRES = { '': 'Vue d\'ensemble', projets: 'Projets', retouches: 'Retouches', fiche: 'Fiches créas', dossier: 'Dossiers de production', brief: 'Briefs suivants' };
 const TEXTES = { fiche: 'Choisis le projet dont tu remplis la fiche.', dossier: 'Le dossier de production de chaque projet : site, brief, pubs, assets.', brief: 'Pour un projet livré en plusieurs fois ou un abonnement : ce que le client veut pour la suite. Lis-le avant de remplir la fiche.' };
 let derniere = '';
 K.rendre = async force => {
@@ -112,12 +161,15 @@ K.rendre = async force => {
   if (K.prod.sections[sec] && SECS.includes(sec)) {
     if (id) { contenu = K.prod.vue(sec, id, { sections: SECS, role: 'strategiste' }); plein = true; const x = K.prod.trouver(id); nomProjet = x ? x.nom : id === 'banque' ? 'Banque d\'inspirations' : id; }
     else contenu = K.prod.liste_(sec, { texte: TEXTES[sec], role: 'strategiste' });
-  } else contenu = sec === 'projets' ? ecranProjets() : ecranAccueil();
+  } else if (sec === 'retouches' && id) { contenu = ecranRetouches(id); const x = K.prod.trouver(id); nomProjet = x ? x.nom : id; }
+  else contenu = sec === 'projets' ? ecranProjets() : ecranAccueil();
   const c = conf(), actif = SECS.includes(sec) || sec === 'projets' ? sec : 'accueil';
   const ariane = nomProjet ? K.ariane('ampoule', 'Stratégiste', TITRES[sec], nomProjet) : K.ariane('ampoule', 'Stratégiste', TITRES[sec] || TITRES['']);
   document.getElementById('racine').innerHTML = K.coquille(c, actif, ariane, contenu, plein ? 'plein' : false);
   K.brancherCoquille(c);
+  K.prod.surveiller(() => { if (RT.dossier && K.route().ecran === 'retouches') chargerRetouches(RT.dossier); else K.rendre(true); });
   if (plein) K.prod.brancher(sec);
+  if (sec === 'retouches' && id) brancherRetouches(id);
   document.title = 'Espace stratégiste · Kreative';
 };
 K.rendre();

@@ -87,7 +87,7 @@ async function traiter(req, env, ctx) {
     const d = devis(pay[1], q.get('formule') === 'mensuel' ? 'mensuel' : 'unique', Number(q.get('creas') || q.get('nb')) || null, opts);
     const retour = /^https:\/\/([a-z0-9-]+\.)*kreativeads\.fr(\/|$)/.test(req.headers.get('Referer') || '') ? req.headers.get('Referer') : 'https://kreativeads.fr/';
     try {
-      const sess = await appelStripe(env, 'checkout/sessions', sessionStripe(d, { succes: 'https://kreativeads.fr/commander-' + d.pack, annule: retour }));
+      const sess = await appelStripe(env, 'checkout/sessions', sessionStripe(d, { succes: 'https://kreativeads.fr/merci-' + d.pack, annule: retour }));
       return new Response(null, { status: 303, headers: { Location: sess.url, 'Cache-Control': 'no-store' } });
     } catch (e) { return texte('Le paiement n\'a pas pu s\'ouvrir. Réessayez dans un instant, ou écrivez-nous sur WhatsApp : 07 56 92 10 42.', 502); }
   }

@@ -158,8 +158,6 @@ function ecranAccueil() {
     '<div class="card"><div class="card-h"><h3>Derniers clients</h3><a class="btn btn-g btn-sm" href="#/clients">Tous</a></div><div class="card-b liste">' +
     ((S.clients || []).length ? S.clients.slice(0, 6).map(c => '<a class="li" style="text-decoration:none" href="#/clients/' + esc(c.id) + '">' + tuileClient(c) + '<span class="t"><b style="font-weight:600">' + esc(c.marque) + '</b><span class="muted" style="display:block;font-size:12.5px">' + esc(c.contact || c.email || '') + '</span></span><small>' + (c.nb_commandes ? c.nb_commandes + ' commande' + (c.nb_commandes > 1 ? 's' : '') : 'aucune commande') + '</small></a>').join('')
       : '<div class="vide">' + i.gens + 'Aucun client. <a href="#/clients/nouveau">Créer le premier</a></div>') + '</div></div></div>';
-  if (!R.demo && R.clients != null) h += '<div class="bandeau-demo" style="margin:18px 0 0">' + i.etoile + '<span>Voir le portail rempli à chaque étape : des clients fictifs (emails @example.com), reliés aux projets TEST_DEMO du dépôt.</span>' +
-    '<button class="btn btn-s btn-sm" onclick="demo(true)">Ajouter les données de démo</button></div>';
   return h;
 }
 // ---------- LE TABLEAU DE BORD : Stripe (ventes) et production, sur une période ----------

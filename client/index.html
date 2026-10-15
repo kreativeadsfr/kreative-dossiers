@@ -55,7 +55,7 @@ function conf() {
     sections: [{ titre: 'Espace client', liens: [
       { id: 'accueil', texte: 'Accueil', icone: 'accueil', href: '#/' },
       { id: 'projets', texte: 'Mes projets', icone: 'dossier', href: '#/projets', nb: D.commandes.length || '' },
-      { id: 'brief', texte: 'Mon brief', icone: 'doc', href: '#/brief' },
+      { id: 'brief', texte: 'Mon brief', icone: 'doc', href: '#/brief', nb: briefsAFaire().length || '' },
       { id: 'factures', texte: 'Factures', icone: 'recu', href: '#/factures', nb: payees(D.factures).length || '' }
     ] }, { titre: 'Kreative', liens: [
       { id: 'contact', texte: 'Nous contacter', icone: 'message', href: '#/contact' },
@@ -112,6 +112,7 @@ function ecranAccueil() {
 // ce qui se passe maintenant sur un projet, en une phrase
 function prochaineEtape(c) {
   const e = etat(c);
+  if (c.brief_suivant) return { titre: 'Brief de la livraison ' + c.brief_suivant.n, texte: 'À remplir pour lancer la suite' };
   if (e === 'confirmee') return { titre: 'Votre brief', texte: 'À remplir pour lancer la production' };
   if (e === 'production') { const x = c.etapes.find(y => y.cle === 'production'); return { titre: 'Production', texte: (x && x.detail) || 'On s\'occupe de tout' }; }
   if (e === 'livre') return { titre: 'Votre validation', texte: 'Vos créatives sont prêtes' };
@@ -272,33 +273,53 @@ function fenetreAvis(c) {
 }
 
 // ---------- BRIEF ----------
+// Trois briefs possibles :
+//  - le premier brief d'une commande (le formulaire de son pack) ;
+//  - le brief du mois d'un abonnement (formulaire de retour, à partir du mois d'avant) ;
+//  - le brief de la livraison suivante d'un pack Custom livré en plusieurs fois (formulaire de retour).
+const MOIS_B = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+function briefAFaire(c) {
+  const p = (base, extra) => base + '?' + new URLSearchParams(Object.assign({ commande: c.ref, client: D.client.id }, D.client.email ? { email: D.client.email } : {}, { marque: D.client.marque }, extra || {})).toString();
+  if (etat(c) === 'confirmee' && c.brief_mois) { const m = MOIS_B[new Date(c.cree_le || Date.now()).getMonth()];
+    return { cle: c.id, titre: 'Brief ' + (/^[ao]/.test(m) ? 'd\'' : 'de ') + m, texte: 'Dites-nous ce qui a marché le mois dernier et ce que vous voulez ce mois-ci.', lien: p(LIENS.fillout.suivant, { dossier: c.brief_mois.dossier }) }; }
+  if (etat(c) === 'confirmee') return { cle: c.id, titre: 'Votre brief', texte: 'Votre brief lance la production de votre ' + nom(c) + '. Comptez une quinzaine de minutes.', lien: p(LIENS.fillout[c.pack] || LIENS.fillout.custom) };
+  if (c.brief_suivant) return { cle: c.id, titre: 'Brief de la livraison ' + c.brief_suivant.n + '/' + c.brief_suivant.sur, texte: 'Dites-nous ce qui a marché sur la livraison ' + (c.brief_suivant.n - 1) + ' et ce que vous voulez pour la suite.', lien: p(LIENS.fillout.suivant, { dossier: c.brief_suivant.dossier }) };
+  return null;
+}
+const briefsAFaire = () => D.commandes.map(c => ({ c, b: briefAFaire(c) })).filter(x => x.b);
+const qr = rep => '<div class="brief-qr">' + rep.map(x => '<div class="qr"><div class="q">' + esc(x.q) + '</div><div class="r">' +
+  (x.fichiers ? '<div class="fics">' + x.fichiers.map(f => '<a href="' + esc(f.url) + '" target="_blank" rel="noopener">' + '<span class="vign">' + (/\.(png|jpe?g|webp|gif)(\?|$)/i.test(f.url + f.nom) ? '<img src="' + esc(f.url) + '" alt="" loading="lazy" onerror="this.remove()">' : '') + '</span><span>' + esc(f.nom) + '</span></a>').join('') + '</div>' : esc(x.texte)) +
+  '</div></div>').join('') + '</div>';
 function ecranBrief(id) {
-  const attente = D.commandes.filter(c => etat(c) === 'confirmee');
-  const c = (id && D.commandes.find(x => x.id === id)) || attente[0] || D.commandes[0];
   let h = apercu();
-  if (!c) return h + '<div class="ph"><div><h1>Mon brief</h1><p>Votre brief s\'ouvre dès votre première commande.</p></div></div><div class="card"><div class="vide">' + i.doc + 'Aucune commande pour l\'instant.</div></div>';
-  if (etat(c) !== 'confirmee') {
-    const recus = D.commandes.filter(x => etat(x) !== 'confirmee');
-    let rep = []; try { rep = c.brief_json ? JSON.parse(c.brief_json) : []; } catch (e) { rep = []; }
-    h += '<div class="ph"><div><h1>Mon brief</h1><p>' + esc(nom(c)) + ' · commande #' + esc(c.ref) + '</p></div></div>';
-    if (recus.length > 1) h += '<div class="filtres">' + recus.map(x => '<a class="chip' + (x.id === c.id ? ' on' : '') + '" href="#/brief/' + esc(x.id) + '">' + esc(nom(x)) + '</a>').join('') + '</div>';
-    h += '<div class="card pad brief-recu"><div class="brief-tete"><span class="tuile" style="background:var(--green)">' + i.coche.replace('<svg', '<svg width="18" height="18"') + '</span>' +
-      '<div class="t"><h3 style="font-size:17px">Brief bien reçu</h3>' + (c.brief_le ? '<p class="muted" style="margin-top:5px;font-size:13.5px">Le ' + esc(K.dateHeure(c.brief_le)) + '.</p>' : '') + '</div>' +
-      '<div class="acts"><a class="btn btn-s btn-sm" href="' + wa('Bonjour Kreative, je voudrais modifier mon brief (' + nom(c) + ', #' + c.ref + ') : ') + '" target="_blank" rel="noopener">Demander une modification</a>' +
-      '<a class="btn btn-g btn-sm" href="#/projets/' + esc(c.id) + '">Voir le projet</a></div></div>' +
-      (rep.length ? '<div class="brief-qr">' + rep.map(x => '<div class="qr"><div class="q">' + esc(x.q) + '</div><div class="r">' +
-        (x.fichiers ? '<div class="fics">' + x.fichiers.map(f => '<a href="' + esc(f.url) + '" target="_blank" rel="noopener">' + '<span class="vign">' + (/\.(png|jpe?g|webp|gif)(\?|$)/i.test(f.url + f.nom) ? '<img src="' + esc(f.url) + '" alt="" loading="lazy" onerror="this.remove()">' : '') + '</span>' + '<span>' + esc(f.nom) + '</span></a>').join('') + '</div>' : esc(x.texte)) +
-        '</div></div>').join('') + '</div>'
-        : '<p class="muted" style="margin-top:18px;font-size:13.5px">Vos réponses apparaîtront ici pour vos prochains briefs.</p>') + '</div>';
+  if (!D.commandes.length) return h + '<div class="ph"><div><h1>Mon brief</h1><p>Votre brief s\'ouvre dès votre première commande.</p></div></div><div class="card"><div class="vide">' + i.doc + 'Aucune commande pour l\'instant.</div></div>';
+  const todo = briefsAFaire();
+  const choisi = (id && D.commandes.find(x => x.id === id)) || null;
+  const aFaire = choisi ? todo.find(x => x.c === choisi) : todo[0];
+  if (aFaire) {
+    const { c, b } = aFaire;
+    h += '<div class="ph"><div><h1>' + (b.titre === 'Votre brief' ? 'Il reste une étape' : esc(b.titre)) + '</h1><p>' + esc(b.texte) + '</p></div><span class="pill a"><i></i>Brief à remplir</span></div>';
+    if (todo.length > 1) h += '<div class="filtres">' + todo.map(x => '<a class="chip' + (x.c === c ? ' on' : '') + '" href="#/brief/' + esc(x.c.id) + '">' + esc(nom(x.c)) + (x.b.titre !== 'Votre brief' ? ' · ' + esc(x.b.titre.replace(/^Brief /, '')) : '') + '</a>').join('') + '</div>';
+    h += '<div class="card" style="overflow:hidden"><iframe src="' + esc(b.lien) + '" title="' + esc(b.titre) + '" style="display:block;width:100%;height:calc(100vh - 260px);min-height:620px;border:0" allow="clipboard-write"></iframe></div>' +
+      '<p class="muted" style="font-size:12.5px;margin-top:12px;text-align:center">Une fois votre brief envoyé, la production démarre. Vous suivez son avancement dans « Mes projets ».</p>';
     return h;
   }
-  const lien = (LIENS.fillout[c.pack] || LIENS.fillout.custom) + '?commande=' + encodeURIComponent(c.ref) + '&client=' + encodeURIComponent(D.client.id) +
-    (D.client.email ? '&email=' + encodeURIComponent(D.client.email) : '') + '&marque=' + encodeURIComponent(D.client.marque);
-  h += '<div class="ph"><div><h1>Il reste une étape</h1><p>Votre brief lance la production de votre ' + esc(nom(c)) + '. Comptez une quinzaine de minutes.</p></div>' +
-    '<span class="pill a"><i></i>Brief à remplir</span></div>';
-  if (attente.length > 1) h += '<div class="filtres">' + attente.map(x => '<a class="chip' + (x.id === c.id ? ' on' : '') + '" href="#/brief/' + esc(x.id) + '">' + esc(nom(x)) + '</a>').join('') + '</div>';
-  h += '<div class="card" style="overflow:hidden"><iframe src="' + esc(lien) + '" title="Votre brief Kreative" style="display:block;width:100%;height:calc(100vh - 260px);min-height:620px;border:0" allow="clipboard-write"></iframe></div>' +
-    '<p class="muted" style="font-size:12.5px;margin-top:12px;text-align:center">Une fois votre brief envoyé, votre projet passe en production. Vous suivez son avancement dans « Mes projets ».</p>';
+  // les briefs déjà envoyés, à relire
+  const c = choisi || D.commandes.find(x => x.brief_json) || D.commandes[0];
+  let rep = []; try { rep = c.brief_json ? JSON.parse(c.brief_json) : []; } catch (e) { rep = []; }
+  h += '<div class="ph"><div><h1>Mon brief</h1><p>' + esc(nom(c)) + ' · commande #' + esc(c.ref) + '</p></div></div>';
+  if (D.commandes.length > 1) h += '<div class="filtres">' + D.commandes.map(x => '<a class="chip' + (x.id === c.id ? ' on' : '') + '" href="#/brief/' + esc(x.id) + '">' + esc(nom(x)) + '</a>').join('') + '</div>';
+  h += '<div class="card pad brief-recu"><div class="brief-tete"><span class="tuile" style="background:var(--green)">' + i.coche.replace('<svg', '<svg width="18" height="18"') + '</span>' +
+    '<div class="t"><h3 style="font-size:17px">Brief bien reçu</h3>' + (c.brief_le ? '<p class="muted" style="margin-top:5px;font-size:13.5px">Le ' + esc(K.dateHeure(c.brief_le)) + '.</p>' : '') + '</div>' +
+    '<div class="acts"><a class="btn btn-s btn-sm" href="' + wa('Bonjour Kreative, je voudrais modifier mon brief (' + nom(c) + ', #' + c.ref + ') : ') + '" target="_blank" rel="noopener">Demander une modification</a>' +
+    '<a class="btn btn-g btn-sm" href="#/projets/' + esc(c.id) + '">Voir le projet</a></div></div>' +
+    (rep.length ? qr(rep) : '<p class="muted" style="margin-top:18px;font-size:13.5px">Vos réponses apparaîtront ici pour vos prochains briefs.</p>') + '</div>';
+  // les briefs des livraisons suivantes (pack Custom en plusieurs fois)
+  (c.retours || []).filter(r => r.reponses && r.reponses.length && !(c.brief_json && r.commande_id === c.id && c.formule === 'mensuel')).forEach(r => {
+    const n = (String(r.suivante || '').match(/_L(\d+)$/) || [])[1];
+    h += '<div class="card pad brief-recu" style="margin-top:16px"><div class="brief-tete"><span class="tuile" style="background:var(--green)">' + i.coche.replace('<svg', '<svg width="18" height="18"') + '</span>' +
+      '<div class="t"><h3 style="font-size:17px">' + (n ? 'Brief de la livraison ' + n : 'Brief suivant') + '</h3><p class="muted" style="margin-top:5px;font-size:13.5px">Reçu le ' + esc(K.dateHeure(r.recu_le)) + '.</p></div></div>' + qr(r.reponses) + '</div>';
+  });
   return h;
 }
 
@@ -306,14 +327,16 @@ function ecranBrief(id) {
 let veilleBrief = 0;
 function attendreBrief(id) {
   clearInterval(veilleBrief); veilleBrief = 0;
-  if (D.apercu || !D.commandes.some(c => etat(c) === 'confirmee')) return;
-  const avant = D.commandes.filter(c => etat(c) === 'confirmee').length;
+  if (D.apercu) return;
+  const avant = briefsAFaire().length;
+  if (!avant) return;
   veilleBrief = setInterval(async () => {
     if (!/^#\/brief/.test(location.hash)) { clearInterval(veilleBrief); veilleBrief = 0; return; }
     if (document.visibilityState !== 'visible') return;
     try {
-      const d = await K.api('/api/client/moi');
-      if (d.commandes.filter(c => etat(c) === 'confirmee').length < avant) { clearInterval(veilleBrief); veilleBrief = 0; D = d; K.toast('Brief bien reçu, merci !'); K.rendre(); }
+      const d = await K.api('/api/client/moi'), ancien = D; D = d;
+      if (briefsAFaire().length < avant) { clearInterval(veilleBrief); veilleBrief = 0; K.toast('Brief bien reçu, merci !'); location.hash = '#/brief'; K.rendre(); }
+      else D = ancien;
     } catch (e) {}
   }, 5000);
 }

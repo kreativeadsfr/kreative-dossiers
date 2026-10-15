@@ -929,7 +929,8 @@ async function apiClient(req, env, ctx, url, chemin, methode, cl, apercu) {
       if (dossiers.length) {
         const { results: L } = await (await baseLiv(env)).prepare("SELECT dossier, statut FROM livraisons WHERE statut IN ('envoyee','review_terminee','approuvee') AND (" +
           dossiers.map(() => 'dossier = ? OR dossier LIKE ?').join(' OR ') + ')').bind(...dossiers.flatMap(d => [d, d + '_L%'])).all();
-        for (const c of commandes) { const x = L.filter(l => c.dossier && baseDossier(l.dossier) === c.dossier); c.creatives = x.length; c.a_reviewer = x.some(l => l.statut === 'envoyee'); }
+        for (const c of commandes) { const x = L.filter(l => c.dossier && baseDossier(l.dossier) === baseDossier(c.dossier)); c.creatives = x.length; c.a_reviewer = x.some(l => l.statut === 'envoyee'); }
+        await briefsSuivants(env, cl, commandes, L);
       }
     } catch (e) {}
     const [{ results: activite }, { results: factures }] = await Promise.all([
@@ -1342,6 +1343,7 @@ async function baseLiv(env) {
       db.prepare(`CREATE TABLE IF NOT EXISTS commentaires (id INTEGER PRIMARY KEY AUTOINCREMENT, fichier_id TEXT NOT NULL, livraison_id TEXT,
         auteur TEXT, role TEXT, texte TEXT, forme TEXT, couleur TEXT, interne INTEGER DEFAULT 0, cree_le INTEGER)`),
       db.prepare('CREATE TABLE IF NOT EXISTS prod_etapes (dossier TEXT PRIMARY KEY, etape TEXT, le INTEGER, par TEXT)'),
+      db.prepare('CREATE TABLE IF NOT EXISTS retours (id INTEGER PRIMARY KEY AUTOINCREMENT, apres TEXT, suivante TEXT, commande_id TEXT, client_id TEXT, reponses TEXT, recu_le INTEGER)'),
       db.prepare('CREATE INDEX IF NOT EXISTS i_liv_dossier ON livraisons(dossier)'),
       db.prepare('CREATE INDEX IF NOT EXISTS i_fic_liv ON fichiers(livraison_id)'),
       db.prepare('CREATE INDEX IF NOT EXISTS i_com_fic ON commentaires(fichier_id)')]);
@@ -1841,6 +1843,36 @@ function briefPropre(questions) {
   }
   return sortie;
 }
+// Le « brief suivant » (formulaire de retour) : après la livraison 1 d'un projet en plusieurs fois
+// (pour préparer la 2), et pour un abonnement, sur la commande du mois suivant.
+async function briefsSuivants(env, cl, commandes, L) {
+  const db = await baseLiv(env);
+  const { results: R } = await db.prepare('SELECT * FROM retours WHERE client_id = ? ORDER BY recu_le').bind(cl.id).all();
+  const faits = new Set(R.map(r => r.apres));
+  const envoyes = new Set(L.map(l => l.dossier));
+  for (const c of commandes) {
+    c.retours = R.filter(r => r.commande_id === c.id || (c.dossier && baseDossier(r.apres) === baseDossier(c.dossier)))
+      .map(r => { let rep = []; try { rep = JSON.parse(r.reponses || '[]'); } catch (e) {} return { apres: r.apres, suivante: r.suivante, recu_le: r.recu_le, commande_id: r.commande_id, reponses: rep }; });
+    if (!c.dossier || ['annule', 'valide'].includes(c.statut)) continue;
+    // un projet en plusieurs livraisons : la partie n est chez le client, le brief de la partie n+1 n'est pas encore là
+    const base = baseDossier(c.dossier);
+    let d = await lireJsonDepot(env, c.dossier + '/donnees.json'); let l = d && d.livraison;
+    if (!(l && l.sur > 1)) { d = await lireJsonDepot(env, base + '_L1/donnees.json'); l = d && d.livraison; }
+    if (l && l.sur > 1) {
+      for (let n = 1; n < l.sur; n++) {
+        const partie = [base + '_L' + n, n === 1 ? base : null].find(x => x && envoyes.has(x));
+        if (!partie) break;
+        if (!faits.has(partie)) { c.brief_suivant = { dossier: partie, n: n + 1, sur: l.sur }; break; }
+      }
+    }
+  }
+  // un abonnement : la commande du nouveau mois attend son brief, préparé à partir du mois d'avant
+  for (const c of commandes) {
+    if (c.formule !== 'mensuel' || c.statut !== 'brief') continue;
+    const avant = commandes.filter(x => x !== c && x.formule === 'mensuel' && x.dossier && (x.cree_le || 0) < (c.cree_le || 0)).sort((a, b) => b.cree_le - a.cree_le)[0];
+    if (avant) c.brief_mois = { dossier: avant.dossier };
+  }
+}
 async function apiN8n(req, env, ctx, url, chemin, methode) {
   if (!env.CLE || !egal(req.headers.get('X-Kreative-Cle') || '', env.CLE)) return json({ erreur: 'Accès refusé' }, 403);
   const db = await base(env);
@@ -1864,6 +1896,30 @@ async function apiN8n(req, env, ctx, url, chemin, methode) {
     if (rep.length) await db.prepare('UPDATE commandes SET brief_json = ? WHERE id = ?').bind(JSON.stringify(rep), k.id).run();
     await noter(db, k.client_id, k.id, 'brief', 'Brief reçu, production lancée');
     return json({ ok: true, commande: k.ref });
+  }
+  // le formulaire de retour (brief suivant) : gardé pour le client, et pour un abonnement, il relie la commande du mois
+  if (chemin === '/retour' && methode === 'POST') {
+    const b = await corpsJson(req);
+    const apres = propre(b.dossier, 80).replace(/[^A-Za-z0-9_-]/g, '');
+    if (!/^[A-Za-z0-9_-]{3,80}$/.test(apres)) return json({ erreur: 'dossier invalide' }, 400);
+    const m = apres.match(/^(.*)_L(\d+)$/), suivante = m ? m[1] + '_L' + (Number(m[2]) + 1) : apres + '_L2';
+    const ldb = await baseLiv(env);
+    let k = await commandeDuDossier(ldb, apres);
+    const idClient = propre(b.client, 40), ref = propre(b.commande, 40).replace(/^#/, '');
+    // la commande du nouveau mois (abonnement), si le lien la donne : même client obligatoire
+    let mois = ref ? await db.prepare('SELECT * FROM commandes WHERE ref = ?').bind(ref).first() : null;
+    if (mois && (!idClient || mois.client_id !== idClient || (k && k.client_id !== mois.client_id))) mois = null;
+    const clientId = (k && k.client_id) || (mois && mois.client_id) || null;
+    if (!clientId) return json({ ok: false, message: 'Projet inconnu : le retour est gardé dans n8n seulement.' });
+    const rep = briefPropre(b.questions);
+    await ldb.prepare('INSERT INTO retours (apres, suivante, commande_id, client_id, reponses, recu_le) VALUES (?,?,?,?,?,?)')
+      .bind(apres, suivante, mois ? mois.id : (k ? k.id : null), clientId, JSON.stringify(rep), maintenant()).run();
+    if (mois && mois.statut === 'brief') {
+      await db.prepare("UPDATE commandes SET dossier = COALESCE(dossier, ?), brief_le = COALESCE(brief_le, ?), statut = 'production', brief_json = COALESCE(brief_json, ?) WHERE id = ?")
+        .bind(suivante, maintenant(), JSON.stringify(rep), mois.id).run();
+      await noter(db, clientId, mois.id, 'brief', 'Brief du mois reçu, production lancée');
+    } else if (k) await noter(db, clientId, k.id, 'brief', 'Brief de la livraison suivante reçu');
+    return json({ ok: true, suivante });
   }
   return json({ erreur: 'Introuvable' }, 404);
 }

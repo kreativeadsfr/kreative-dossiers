@@ -535,6 +535,18 @@ const PACKS = {
   scale: { nom: 'Scale', creas: 24, unique: 890, mensuel: 760, revisions: null, delai: 72 },
   custom: { nom: 'Custom', creas: 30, unique: null, mensuel: null, revisions: null, delai: 72 }
 };
+// Les liens de paiement Stripe des packs fixes (créés dans Stripe par Kreative).
+// L'identifiant du lien sert à reconnaître le pack au paiement, même avec un code promo.
+const LIENS_PAIEMENT = {
+  starter: { unique: ['https://buy.stripe.com/8x24gy2NO8QHdLO4Ol6c00v', 'plink_1UQg2VBaFgfyJZxjblXIJWgv'],
+             mensuel: ['https://buy.stripe.com/cNi00i7446Iz37a0y56c00y', 'plink_1UQgBQBaFgfyJZxj0hoJSIQ9'] },
+  growth: { unique: ['https://buy.stripe.com/fZufZg4VWeb1azCfsZ6c00w', 'plink_1UQg4OBaFgfyJZxjDEhlRHQm'],
+            mensuel: ['https://buy.stripe.com/14A6oG3RSc2TdLO2Gd6c00z', 'plink_1UQgDlBaFgfyJZxjTCHsmfxo'] },
+  scale: { unique: ['https://buy.stripe.com/eVq4gy1JK8QH6jm0y56c00x', 'plink_1UQg7tBaFgfyJZxj4JXOkExz'],
+           mensuel: ['https://buy.stripe.com/eVqeVc3RSgj9bDG3Kh6c00A', 'plink_1UQgEbBaFgfyJZxjC5PPNH46'] }
+};
+const packDuLien = id => { for (const [pack, f] of Object.entries(LIENS_PAIEMENT)) for (const [formule, [, pid]] of Object.entries(f)) if (pid === id) return { pack, formule }; return null; };
+
 // Le pack Custom se configure dans l'espace client : nombre de créas et options.
 // Le prix est TOUJOURS recalculé ici, jamais pris dans ce qu'envoie le navigateur.
 const CUSTOM = {
@@ -790,7 +802,8 @@ async function apiClient(req, env, ctx, url, chemin, methode, cl, apercu) {
       db.prepare("SELECT * FROM factures WHERE client_id = ? AND statut != 'brouillon' ORDER BY emise_le DESC").bind(cl.id).all()]);
     if (!apercu) ctx.waitUntil(db.prepare('UPDATE clients SET vu_le = ? WHERE id = ?').bind(maintenant(), cl.id).run());
     return json({ apercu, client: { id: cl.id, marque: cl.marque, contact: cl.contact, email: cl.email, telephone: cl.telephone, site: cl.site, cree_le: cl.cree_le, photo_le: cl.photo ? cl.photo_le || 1 : null },
-      commandes, activite, factures: factures.map(FACTURE_PUBLIQUE), packs: PACKS, custom: CUSTOM, paiement: !!env.STRIPE_SECRET });
+      commandes, activite, factures: factures.map(FACTURE_PUBLIQUE), packs: PACKS, custom: CUSTOM, paiement: !!env.STRIPE_SECRET,
+      liens: Object.fromEntries(Object.entries(LIENS_PAIEMENT).map(([k, f]) => [k, { unique: f.unique[0], mensuel: f.mensuel[0] }])) });
   }
   if (chemin === '/photo' && methode === 'GET') return imagePhoto(cl.photo);
   // en aperçu, l'admin voit tout mais ne change rien à la place du client
@@ -1102,7 +1115,8 @@ async function paiementRecu(env, ctx, url, s) {
   if (await db.prepare('SELECT id FROM commandes WHERE stripe_session = ?').bind(s.id).first()) return;     // déjà traité
   const meta = s.metadata || {};
   const email = String((s.customer_details && s.customer_details.email) || s.customer_email || '').toLowerCase();
-  let cl = meta.kreative_client ? await db.prepare('SELECT * FROM clients WHERE id = ?').bind(String(meta.kreative_client)).first() : null;
+  const idClient = meta.kreative_client || (/^c_[A-Za-z0-9]+$/.test(String(s.client_reference_id || '')) ? s.client_reference_id : null);
+  let cl = idClient ? await db.prepare('SELECT * FROM clients WHERE id = ?').bind(String(idClient)).first() : null;
   if (!cl && s.customer) cl = await db.prepare('SELECT * FROM clients WHERE stripe_client = ?').bind(String(s.customer)).first();
   if (!cl && email) cl = await db.prepare('SELECT * FROM clients WHERE lower(email) = ?').bind(email).first();
   let nouveau = false;
@@ -1120,7 +1134,9 @@ async function paiementRecu(env, ctx, url, s) {
   if (s.customer && !cl.stripe_client) await db.prepare('UPDATE clients SET stripe_client = ? WHERE id = ?').bind(String(s.customer), cl.id).run();
   // le pack : dans les métadonnées (portail), sinon déduit du montant (liens du site)
   const total = (s.amount_total || 0) / 100, mensuel = s.mode === 'subscription';
+  // le pack : dans les métadonnées (Custom), sinon le lien de paiement utilisé, sinon le montant
   let pack = PACKS[meta.pack] ? meta.pack : null;
+  if (!pack && s.payment_link) { const l = packDuLien(String(s.payment_link)); if (l) pack = l.pack; }
   if (!pack) pack = Object.keys(PACKS).find(k => PACKS[k][mensuel ? 'mensuel' : 'unique'] === total) || 'custom';
   const nb = Number(meta.nb_creas) || PACKS[pack].creas;
   const r = await creerCommande(db, { client_id: cl.id, pack, formule: mensuel ? 'mensuel' : 'unique', nb, prix: total,

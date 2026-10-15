@@ -2118,7 +2118,12 @@ function sessionStripe(d, o) {
     line_items: [{ quantity: 1, price_data: { currency: 'eur', unit_amount: String(Math.round(d.total * 100)),
       product_data: { name: d.nom, description: d.description }, recurring: m ? { interval: 'month' } : undefined } }]
   };
-  if (cl) { p.client_reference_id = cl.id; if (cl.stripe_client) p.customer = cl.stripe_client; else if (cl.email) p.customer_email = cl.email; }
+  if (cl) {
+    p.client_reference_id = cl.id;
+    // client Stripe déjà connu : Stripe exige l'autorisation de mettre à jour son nom (n° de TVA) et son adresse
+    if (cl.stripe_client) { p.customer = cl.stripe_client; p.customer_update = { name: 'auto', address: 'auto' }; }
+    else if (cl.email) p.customer_email = cl.email;
+  }
   else {
     // depuis le site : les champs natifs de Stripe « Nom de l'entreprise » (le nom de son espace) et « Nom » (le contact)
     p.name_collection = { business: { enabled: 'true', optional: 'false' }, individual: { enabled: 'true', optional: 'false' } };

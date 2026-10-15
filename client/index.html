@@ -408,7 +408,7 @@ function tableFactures(F) {
   return '<table class="tbl"><thead><tr><th>Facture</th><th>Projet</th><th class="num">Montant</th><th>Date</th><th></th></tr></thead><tbody>' +
     F.map(f => {
       const c = D.commandes.find(x => x.id === f.commande_id);
-      return '<tr><td><b>' + esc(f.numero || 'Facture') + '</b></td><td>' + (c ? '<a href="#/projets/' + esc(c.id) + '">' + esc(nom(c)) + '</a>' : '<span class="muted">·</span>') + '</td>' +
+      return '<tr><td><b>' + esc(f.numero || 'Facture') + '</b></td><td>' + (c ? '<a href="#/projets/' + esc(c.id) + '">' + esc(nom(c)) + '</a>' : '') + '</td>' +
         '<td class="num">' + K.euros(f.montant) + '</td><td>' + esc(K.date(f.emise_le)) + '</td>' +
         '<td class="fin"><button class="btn btn-s btn-sm" data-fdl="' + esc(f.id) + '">' + i.telecharger + 'Télécharger</button></td></tr>';
     }).join('') + '</tbody></table>';

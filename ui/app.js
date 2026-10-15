@@ -126,9 +126,9 @@
   // ---------- petits outils ----------
   K.esc = t => String(t == null ? '' : t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   K.$ = s => document.querySelector(s);
-  K.date = (ms, opt) => ms ? new Intl.DateTimeFormat('fr-FR', Object.assign({ day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Europe/Paris' }, opt || {})).format(new Date(ms)) : '·';
-  K.dateHeure = ms => ms ? new Intl.DateTimeFormat('fr-FR', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Paris' }).format(new Date(ms)) : '·';
-  K.jour = ms => ms ? new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Europe/Paris' }).format(new Date(ms)) : '·';
+  K.date = (ms, opt) => ms ? new Intl.DateTimeFormat('fr-FR', Object.assign({ day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Europe/Paris' }, opt || {})).format(new Date(ms)) : '';
+  K.dateHeure = ms => ms ? new Intl.DateTimeFormat('fr-FR', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Paris' }).format(new Date(ms)) : '';
+  K.jour = ms => ms ? new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Europe/Paris' }).format(new Date(ms)) : '';
   K.dans = ms => {
     if (!ms) return '';
     const h = (ms - Date.now()) / 3600000;
@@ -136,7 +136,7 @@
     if (h < 24) return 'dans moins de 24 h';
     const j = Math.round(h / 24); return 'dans ' + j + ' jour' + (j > 1 ? 's' : '');
   };
-  K.euros = n => n == null || n === '' ? '·' : new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n);
+  K.euros = n => n == null || n === '' ? '0 €' : new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n);
   K.ilya = ms => {
     if (!ms) return 'jamais';
     const s = (Date.now() - ms) / 1000;
@@ -513,8 +513,8 @@
         const ech = strat || !x.envoye ? x.strat : !x.livre ? x.desi : x.client;
         return '<tr class="clic" onclick="location.hash=\'#/' + sec + '/' + K.esc(x.dossier) + '\'"><td><div class="nom">' + K.tuile(x.marque) + '<div><b>' + K.esc(x.marque) + (x.demo ? ' <span class="pill demo">' + (en ? 'Demo' : 'Démo') + '</span>' : '') + '</b><span class="sub">' + K.esc(x.dossier) + '</span></div></div></td>' +
           '<td>' + P.celluleType(x, en) + '</td><td class="num">' + P.celluleCreas(x, en) + '</td>' +
-          (brief ? '<td>' + (x.retourLe ? K.esc(K.dateHeure(x.retourLe)) : '·') + '</td>' : '') +
-          '<td>' + (strat ? P.pillStrat(x) : P.pill(x, en)) + '</td><td>' + (ech ? K.esc(K.dateHeure(ech)) : '·') + '</td>' +
+          (brief ? '<td>' + (x.retourLe ? K.esc(K.dateHeure(x.retourLe)) : '<span class="muted">Pas encore</span>') + '</td>' : '') +
+          '<td>' + (strat ? P.pillStrat(x) : P.pill(x, en)) + '</td><td>' + (ech ? K.esc(K.dateHeure(ech)) : '<span class="muted">Pas de date</span>') + '</td>' +
           '<td class="fin"><span class="btn btn-s btn-sm">' + (en ? 'Open' : 'Ouvrir') + ' ' + K.i.fleche.replace('<svg', '<svg width="14" height="14"') + '</span></td></tr>';
       }).join('') + '</tbody></table></div></div>';
   };

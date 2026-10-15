@@ -1213,7 +1213,9 @@ async function apiAdmin(req, env, ctx, url, chemin, methode) {
         db.prepare('SELECT type, texte, le FROM activite WHERE client_id = ? ORDER BY le DESC LIMIT 30').bind(cl.id).all(),
         db.prepare('SELECT * FROM factures WHERE client_id = ? ORDER BY emise_le DESC').bind(cl.id).all()]);
       const { photo, ...sansPhoto } = cl;
-      return json({ client: { ...sansPhoto, lien: lienAcces(url, cl.jeton) }, commandes, activite, factures });
+      await baseLiv(env);
+      const ab = await db.prepare('SELECT COUNT(*) AS n FROM push_abos WHERE client_id = ?').bind(cl.id).first();
+      return json({ client: { ...sansPhoto, notifs: (ab && ab.n) || 0, lien: lienAcces(url, cl.jeton) }, commandes, activite, factures });
     }
     if (methode === 'PATCH') {
       const champs = ['marque', 'contact', 'email', 'telephone', 'site', 'statut', 'notes'].filter(k => k in b);

@@ -72,16 +72,16 @@ function ecranAccueil() {
   let h = '<div class="ph"><div><h1>Overview</h1><p>Everything you have to deliver, with your deadlines.</p></div><div class="act"><a class="btn btn-p" href="#/livrer">' + i.envoi + 'Deliver a project</a></div></div>';
   h += '<div class="grid g4">' + kpi('To deliver', afaire.length, 'project' + (afaire.length > 1 ? 's' : '')) +
     kpi('Late', retard.length, retard.length ? 'deliver these first' : 'everything is on time', retard.length ? 'color:var(--red)' : '') +
-    kpi('Next deadline', prochain ? new Date(prochain.desi).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '·', prochain ? nomEn(prochain) + ', ' + K.prod.echeance(prochain.desi, true).texte : 'nothing waiting') +
+    kpi('Next deadline', prochain ? new Date(prochain.desi).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : 'None', prochain ? nomEn(prochain) + ', ' + K.prod.echeance(prochain.desi, true).texte : 'nothing waiting') +
     kpi('Delivered', faits.filter(x => x.livreLe > now - 30 * 864e5).length, 'in the last 30 days') + '</div>';
   h += '<div class="sec"><div><h2>To deliver</h2><p>Sorted by deadline, the closest first.</p></div></div>';
   h += afaire.length ? '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Project</th><th class="num">Creatives</th><th>Deadline</th><th>Due (Paris time)</th><th></th></tr></thead><tbody>' +
-    afaire.map(x => '<tr><td>' + ligneNom(x) + '</td><td class="num">' + esc(x.nb || '?') + '</td><td>' + (K.prod.echeance(x.desi, true).pill || '<span class="muted">·</span>') + '</td>' +
-      '<td>' + (x.desi ? esc(quand(x.desi)) : '<span class="muted">·</span>') + '</td><td class="fin">' + boutons(x) + '</td></tr>').join('') + '</tbody></table></div></div>'
+    afaire.map(x => '<tr><td>' + ligneNom(x) + '</td><td class="num">' + esc(x.nb || '?') + '</td><td>' + (K.prod.echeance(x.desi, true).pill || '<span class="muted">No date</span>') + '</td>' +
+      '<td>' + (x.desi ? esc(quand(x.desi)) : '<span class="muted">No date</span>') + '</td><td class="fin">' + boutons(x) + '</td></tr>').join('') + '</tbody></table></div></div>'
     : '<div class="card"><div class="vide">' + i.coche + 'Nothing to deliver right now. New projects appear here as soon as they are ready.</div></div>';
   h += '<div class="sec"><div><h2>Delivered</h2><p>What you already sent to Kreative.</p></div><a class="btn btn-g btn-sm" href="#/projets">All projects</a></div>';
   h += faits.length ? '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Project</th><th class="num">Creatives</th><th>Delivered on</th><th>Status</th><th></th></tr></thead><tbody>' +
-    faits.slice(0, 8).map(x => '<tr><td>' + ligneNom(x) + '</td><td class="num">' + esc(x.nb || '?') + '</td><td>' + (x.livreLe ? esc(jour(x.livreLe)) : '·') + '</td><td><span class="pill g"><i></i>Delivered</span></td><td class="fin">' + boutons(x) + '</td></tr>').join('') +
+    faits.slice(0, 8).map(x => '<tr><td>' + ligneNom(x) + '</td><td class="num">' + esc(x.nb || '?') + '</td><td>' + (x.livreLe ? esc(jour(x.livreLe)) : '') + '</td><td><span class="pill g"><i></i>Delivered</span></td><td class="fin">' + boutons(x) + '</td></tr>').join('') +
     '</tbody></table></div></div>' : '<div class="card"><div class="vide">No delivered project yet.</div></div>';
   return h;
 }
@@ -95,7 +95,7 @@ function ecranProjets() {
   return '<div class="ph"><div><h1>Projects</h1><p>All your projects, and each of their pages in one click.</p></div></div>' +
     '<div class="filtres">' + chip('todo', 'To deliver', 'var(--blue)') + chip('late', 'Late', 'var(--red)') + chip('done', 'Delivered', 'var(--green)') + chip('all', 'All') + '</div>' +
     (l.length ? '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Project</th><th class="num">Creatives</th><th>Status</th><th>Due</th><th></th></tr></thead><tbody>' +
-      l.map(x => '<tr><td>' + ligneNom(x) + '</td><td class="num">' + esc(x.nb || '?') + '</td><td>' + K.prod.pill(x, true) + '</td><td>' + (x.desi ? esc(quand(x.desi)) : '·') + '</td><td class="fin">' + boutons(x) + '</td></tr>').join('') +
+      l.map(x => '<tr><td>' + ligneNom(x) + '</td><td class="num">' + esc(x.nb || '?') + '</td><td>' + K.prod.pill(x, true) + '</td><td>' + (x.desi ? esc(quand(x.desi)) : '<span class="muted">No date</span>') + '</td><td class="fin">' + boutons(x) + '</td></tr>').join('') +
       '</tbody></table></div></div>' : '<div class="card"><div class="vide">No project here.</div></div>');
 }
 
@@ -121,7 +121,7 @@ function ecranLivrer(id) {
   if (!id) {
     return '<div class="ph"><div><h1>Deliver</h1><p>Pick the project you finished, then upload your files right here.</p></div></div>' +
       (aLivrer.length ? '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Project</th><th class="num">Creatives</th><th>Status</th><th></th></tr></thead><tbody>' +
-        aLivrer.map(x => '<tr class="clic" onclick="location.hash=\'#/livrer/' + esc(x.dossier) + '\'"><td>' + ligneNom(x) + '</td><td class="num">' + esc(x.nb || '?') + '</td><td>' + (x.aCorriger ? '<span class="pill r"><i></i>To fix</span>' : K.prod.echeance(x.desi, true).pill || '·') + '</td>' +
+        aLivrer.map(x => '<tr class="clic" onclick="location.hash=\'#/livrer/' + esc(x.dossier) + '\'"><td>' + ligneNom(x) + '</td><td class="num">' + esc(x.nb || '?') + '</td><td>' + (x.aCorriger ? '<span class="pill r"><i></i>To fix</span>' : K.prod.echeance(x.desi, true).pill || '<span class="muted">No date</span>') + '</td>' +
           '<td class="fin"><span class="btn btn-p btn-sm">' + i.envoi + 'Deliver</span></td></tr>').join('') + '</tbody></table></div></div>'
         : '<div class="card"><div class="vide">' + i.coche + 'Nothing to deliver right now.</div></div>');
   }

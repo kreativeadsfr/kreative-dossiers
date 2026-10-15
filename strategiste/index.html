@@ -66,7 +66,7 @@ const ligneNom = x => '<div class="nom">' + K.tuile(x.marque) + '<div><b>' + esc
 // ---------- VUE D'ENSEMBLE ----------
 const tete = () => '<tr><th>Projet</th><th>Type</th><th class="num">Créas à faire</th><th>Statut</th><th>À rendre avant</th><th></th></tr>';
 const ligne = x => '<tr><td>' + ligneNom(x) + '</td><td>' + K.prod.celluleType(x) + '</td><td class="num">' + K.prod.celluleCreas(x) + '</td><td>' + K.prod.pillStrat(x) + '</td>' +
-  '<td>' + (x.strat ? esc(K.dateHeure(x.strat)) + (!x.envoye ? '<span class="sub">' + esc(K.prod.echeance(x.strat).texte) + '</span>' : '') : '<span class="muted">·</span>') + '</td><td class="fin">' + boutons(x, 'fiche') + '</td></tr>';
+  '<td>' + (x.strat ? esc(K.dateHeure(x.strat)) + (!x.envoye ? '<span class="sub">' + esc(K.prod.echeance(x.strat).texte) + '</span>' : '') : '<span class="muted">Pas de date</span>') + '</td><td class="fin">' + boutons(x, 'fiche') + '</td></tr>';
 function ecranAccueil() {
   const L = K.prod.liste || [], now = Date.now();
   const retouches = L.filter(enRetouche);
@@ -79,8 +79,8 @@ function ecranAccueil() {
     '<div class="act"><a class="btn btn-p" href="#/fiche">' + i.doc + 'Fiches créas</a></div></div>';
   h += '<div class="grid g4">' + kpi('À faire', afaire.length + retouches.length, retouches.length ? retouches.length + ' retouche' + (retouches.length > 1 ? 's' : '') + ' de textes' + (afaire.length ? ', ' + afaire.length + ' fiche' + (afaire.length > 1 ? 's' : '') : '') : 'fiche' + (afaire.length > 1 ? 's' : '') + ' à remplir') +
     kpi('En retard', retard.length, retard.length ? 'à rendre en priorité' : 'tout est dans les temps', retard.length ? 'color:var(--red)' : '') +
-    kpi('Prochaine échéance', prochain ? K.date(prochain.strat, { year: undefined }) : '·', prochain ? prochain.marque + ', ' + K.prod.echeance(prochain.strat).texte : 'aucune fiche en attente') +
-    kpi('Envoyées à l\'heure', mois.length ? aLheure.length + ' / ' + mois.length : '·', 'sur les 30 derniers jours') + '</div>';
+    kpi('Prochaine échéance', prochain ? K.date(prochain.strat, { year: undefined }) : 'Aucune', prochain ? prochain.marque + ', ' + K.prod.echeance(prochain.strat).texte : 'aucune fiche en attente') +
+    kpi('Envoyées à l\'heure', mois.length ? aLheure.length + ' / ' + mois.length : '0', 'sur les 30 derniers jours') + '</div>';
   if (retouches.length) h += '<div class="sec"><div><h2>Retouches de textes</h2><p>Le client a demandé des changements de textes. Corrige la fiche, puis passe la main à la designer.</p></div></div>' +
     '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Projet</th><th>Type</th><th>Version</th><th>Statut</th><th></th></tr></thead><tbody>' +
     retouches.map(x => '<tr class="clic" onclick="location.hash=\'#/retouches/' + esc(x.dossier) + '\'"><td>' + ligneNom(x) + '</td><td>' + K.prod.celluleType(x) + '</td><td>Version ' + esc(x.etape.version || 1) + '</td><td>' + K.prod.pillStrat(x) + '</td>' +

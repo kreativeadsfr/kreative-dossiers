@@ -293,8 +293,8 @@ function tableauDeBord(retards) {
   const payeurs = Object.keys(parClient).length, ltv = payeurs ? Object.values(parClient).reduce((t, v) => t + v, 0) / payeurs : 0;
   const rachat = Object.keys(parClient).filter(id => F.filter(f => f.client_id === id && quand(f) <= b).length > 1).length;
   h += '<div class="grid g4">' + kpi('CA', K.euros(total), variation(total, totalAvant)) + kpi('Paiements', ventes.length, variation(ventes.length, avant.length)) +
-    kpi('Panier moyen', ventes.length ? K.euros(Math.round(total / ventes.length)) : '·', ventes.length ? 'par paiement' : 'aucun paiement') +
-    kpi('LTV', payeurs ? K.euros(Math.round(ltv)) : '·', payeurs ? 'par client · ' + rachat + ' sur ' + payeurs + ' ont racheté' : 'aucun client payant') + '</div>';
+    kpi('Panier moyen', ventes.length ? K.euros(Math.round(total / ventes.length)) : '0 €', ventes.length ? 'par paiement' : 'aucun paiement') +
+    kpi('LTV', payeurs ? K.euros(Math.round(ltv)) : '0 €', payeurs ? 'par client · ' + rachat + ' sur ' + payeurs + ' ont racheté' : 'aucun client payant') + '</div>';
   // le graphique : encaissé par jour (par semaine au-delà de 3 mois)
   const pas = duree > 92 * J ? 7 * J : J, cases = [];
   for (let t = a; t <= b; t += pas) cases.push({ t, v: 0 });
@@ -312,7 +312,7 @@ function tableauDeBord(retards) {
   const L = (S.livraisons || []), envoyees = L.filter(l => l.envoye_le && dans(l.envoye_le, a, b)), retouches = L.filter(l => l.review_le && dans(l.review_le, a, b) && l.statut === 'review_terminee').length;
   h += '<div class="sec"><div><h2>Production</h2><p>Ce qui a été livré sur la période.</p></div></div>';
   h += '<div class="grid g4">' + kpi('Créatives livrées', livrees.reduce((t, c) => t + (c.nb_creas || 0), 0), livrees.length + ' projet' + (livrees.length > 1 ? 's' : '') + ' livré' + (livrees.length > 1 ? 's' : '') + ' au client') +
-    kpi('Livrés dans les délais', P.length ? Math.round(aLheure * 100 / P.length) + ' %' : '·', P.length ? aLheure + ' sur ' + P.length + ' par la designer' : 'aucun rendu sur la période') +
+    kpi('Livrés dans les délais', P.length ? Math.round(aLheure * 100 / P.length) + ' %' : '0 %', P.length ? aLheure + ' sur ' + P.length + ' par la designer' : 'aucun rendu sur la période') +
     kpi('Retouches demandées', retouches, envoyees.length ? 'sur ' + envoyees.length + ' livraison' + (envoyees.length > 1 ? 's' : '') + ' envoyée' + (envoyees.length > 1 ? 's' : '') : 'aucune livraison envoyée') +
     kpi('En retard maintenant', retards.length, retards.length ? 'à surveiller' : 'tout est dans les temps', retards.length ? 'color:var(--red)' : '') + '</div>';
   return h;
@@ -356,7 +356,7 @@ function ecranProjets() {
         '<span class="pill ' + e.pill + '"><i></i>' + esc(e.texte) + '</span><div style="margin-left:auto">' + liensProjet(x) + '</div></div>' +
         '<div class="grid g3" style="margin-top:14px;gap:10px">' + [['Fiche du stratégiste', x.strat, x.envoye, x.envoyeLe], ['Rendu du designer', x.desi, x.livre, x.livreLe], ['Livraison client', x.client, false, 0]].map(([t, ms, f, le]) =>
           '<div style="border:1px solid var(--line);border-radius:11px;padding:10px 12px;background:var(--soft)"><div class="lab">' + t + '</div><div style="font-size:13.5px;margin-top:3px;' + (f ? 'color:var(--green)' : ms && ms < Date.now() ? 'color:var(--red);font-weight:600' : '') + '">' +
-          (f ? '✓ ' + (le ? esc(K.dateHeure(le)) : 'fait') : ms ? esc(K.dateHeure(ms)) : '·') + '</div></div>').join('') + '</div></div>';
+          (f ? '✓ ' + (le ? esc(K.dateHeure(le)) : 'fait') : ms ? esc(K.dateHeure(ms)) : 'à venir') + '</div></div>').join('') + '</div></div>';
     }).join('') + '</div>';
   }
   // suivi
@@ -380,7 +380,7 @@ function carteKanban(x) {
   const lien = e.cle === 'livrer' && x.v ? '#/livraisons/' + x.dossier : '#/' + (x.envoye ? 'visuels' : 'fiche') + '/' + x.dossier;
   return '<a class="kcarte" data-dossier="' + esc(x.dossier) + '" href="' + esc(lien) + '" draggable="false"><b>' + esc(nomProjet(x)) + '</b><small>' + esc(x.d.nb_creas || '?') + ' créas · ' + esc(x.d.pack || '') + '</small>' +
     (e.retouche || e.cle === 'livrer' || x.etape.manuel ? '<span class="pill ' + e.pill + ' kpill"><i></i>' + esc(e.texte) + '</span>' : '') +
-    '<div class="barre"><i style="width:' + pc + '%"></i></div><div class="pied"><span>' + i.horloge.replace('<svg', '<svg width="13" height="13" style="vertical-align:-2px"') + ' ' + (ech ? esc(K.dateHeure(ech)) : '·') + '</span>' +
+    '<div class="barre"><i style="width:' + pc + '%"></i></div><div class="pied"><span>' + i.horloge.replace('<svg', '<svg width="13" height="13" style="vertical-align:-2px"') + ' ' + (ech ? esc(K.dateHeure(ech)) : 'pas de date') + '</span>' +
     (e.retard ? '<span class="pill r">Retard</span>' : '') + '</div></a>';
 }
 // FLIP : chaque carte glisse doucement de son ancienne place à la nouvelle
@@ -516,17 +516,21 @@ function raisonRelance(c) {
   return '';
 }
 // une notification (une promo, une nouvelle) aux clients qui ont activé les notifications de l'app
-function notifierClients() {
-  const C = S.clients || [], avec = C.filter(c => c.notifs > 0).length, app = C.filter(c => c.app_le).length;
-  const v = K.fenetre('<div class="fen-h"><h2>Envoyer une notification</h2><p>' + avec + ' client' + (avec > 1 ? 's' : '') + ' avec les notifications activées · ' + app + ' avec l\'app installée.</p></div>' +
+// seul : un client précis (depuis sa fiche)
+function notifierClients(seul) {
+  const C = S.clients || [], avec = seul ? (seul.notifs > 0 ? 1 : 0) : C.filter(c => c.notifs > 0).length, app = C.filter(c => c.app_le).length;
+  const intro = seul
+    ? (seul.notifs > 0 ? 'Elle arrive sur ' + (seul.notifs > 1 ? 'ses ' + seul.notifs + ' appareils' : 'son téléphone') + ', comme un message.' : seul.app_le ? seul.marque + ' a installé l\'app, mais n\'a pas encore activé les notifications.' : seul.marque + ' n\'a pas encore installé l\'app, ni activé les notifications.')
+    : avec + ' client' + (avec > 1 ? 's' : '') + ' avec les notifications activées · ' + app + ' avec l\'app installée.';
+  const v = K.fenetre('<div class="fen-h"><h2>' + (seul ? 'Notification à ' + esc(seul.marque) : 'Envoyer une notification') + '</h2><p>' + intro + '</p></div>' +
     '<div class="fen-b"><div class="champ"><label>Titre</label><input class="in" id="nt-titre" maxlength="80" placeholder="−20 % pendant 48 h"></div>' +
     '<div class="champ"><label>Message</label><textarea class="in" id="nt-texte" rows="3" maxlength="240" style="height:auto;padding:10px 12px" placeholder="Code KREATIVE20 sur votre prochain pack, jusqu\'à dimanche minuit."></textarea></div>' +
     '<div class="champ"><label>Au clic, ouvrir</label><select class="in" id="nt-url"><option value="/client/#/commander">Commander des créas</option><option value="/client/">L\'accueil de l\'espace</option><option value="/client/#/projets">Mes projets</option></select></div></div>' +
-    '<div class="fen-f"><button class="btn btn-s" data-n>Annuler</button><button class="btn btn-p" data-o' + (avec ? '' : ' disabled') + '>Envoyer à ' + avec + ' client' + (avec > 1 ? 's' : '') + '</button></div>');
+    '<div class="fen-f"><button class="btn btn-s" data-n>Annuler</button><button class="btn btn-p" data-o' + (avec ? '' : ' disabled') + '>' + (seul ? 'Envoyer' : 'Envoyer à ' + avec + ' client' + (avec > 1 ? 's' : '')) + '</button></div>');
   v.querySelector('[data-n]').onclick = K.fermer;
   v.querySelector('[data-o]').onclick = async e => {
     e.target.disabled = true;
-    try { const r = await K.api('/api/admin/notifier', { methode: 'POST', corps: { titre: K.$('#nt-titre').value, texte: K.$('#nt-texte').value, url: K.$('#nt-url').value } }); K.fermer(); K.toast(r.message); }
+    try { const r = await K.api('/api/admin/notifier', { methode: 'POST', corps: { titre: K.$('#nt-titre').value, texte: K.$('#nt-texte').value, url: K.$('#nt-url').value, client: seul ? seul.id : undefined } }); K.fermer(); K.toast(seul ? 'Notification envoyée à ' + seul.marque + '.' : r.message); }
     catch (x) { K.toast(x.message); e.target.disabled = false; }
   };
 }
@@ -543,8 +547,8 @@ function ecranClients() {
   if (!C.length) return h + '<div class="card"><div class="vide">' + i.gens + 'Aucun client pour l\'instant.<br><a class="btn btn-p btn-sm" style="margin-top:14px" href="#/clients/nouveau">Ajouter le premier client</a></div></div>';
   h += '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Client</th><th>Contact</th><th class="num">Commandes</th><th class="num">Total</th><th>Dernière commande</th><th>Dernière connexion</th><th>Statut</th><th></th></tr></thead><tbody>' +
     (liste.map(c => '<tr class="clic" onclick="location.hash=\'#/clients/' + esc(c.id) + '\'"><td><div class="nom">' + tuileClient(c) + '<div><b>' + esc(c.marque) + (c.app_le ? ' <span class="pill g" title="' + (c.notifs ? 'App installée, notifications activées' : 'App installée') + '">App' + (c.notifs ? ' · notifs' : '') + '</span>' : '') + '</b><span class="sub">' + esc(c.email || 'pas d\'email') + '</span></div></div></td>' +
-      '<td>' + esc(c.contact || '·') + '<span class="sub">' + esc(c.telephone || '') + '</span></td><td class="num">' + c.nb_commandes + '</td><td class="num">' + K.euros(c.total) + '</td>' +
-      '<td>' + (c.derniere_commande ? esc(K.date(c.derniere_commande)) : '<span class="muted">·</span>') + '</td><td>' + (c.vu_le ? esc(K.ilya(c.vu_le)) : '<span class="muted">jamais</span>') + '</td>' +
+      '<td>' + esc(c.contact || '') + '<span class="sub">' + esc(c.telephone || '') + '</span></td><td class="num">' + c.nb_commandes + '</td><td class="num">' + K.euros(c.total) + '</td>' +
+      '<td>' + (c.derniere_commande ? esc(K.date(c.derniere_commande)) : '<span class="muted">Aucune</span>') + '</td><td>' + (c.vu_le ? esc(K.ilya(c.vu_le)) : '<span class="muted">jamais</span>') + '</td>' +
       '<td>' + (c.statut === 'bloque' ? '<span class="pill r">Bloqué</span>' : relancer(c) ? '<span class="pill a"><i></i>' + esc(raisonRelance(c)) + '</span>' : c.en_cours ? '<span class="pill b"><i></i>Projet en cours</span>' : c.nb_commandes ? '<span class="pill g"><i></i>Client</span>' : '<span class="pill">Nouveau</span>') + '</td>' +
       '<td class="fin">' + i.fleche.replace('<svg', '<svg width="16" height="16" style="opacity:.35"') + '</td></tr>').join('') || '<tr><td colspan="8"><div class="vide">Aucun client ne correspond.</div></td></tr>') +
     '</tbody></table></div></div>';
@@ -593,7 +597,7 @@ async function ecranClient(id) {
   h += '<div class="ph"><div style="display:flex;align-items:center;gap:16px">' + tuileClient(c, true) + '<div><h1>' + esc(c.marque) + '</h1><p>' +
     [c.contact, c.email, c.telephone].filter(Boolean).map(esc).join(' · ') + (c.site ? ' · <a href="' + esc(c.site) + '" target="_blank" rel="noopener">' + esc(c.site.replace(/^https?:\/\//, '')) + '</a>' : '') + '</p></div></div>' +
     '<div class="act"><a class="btn btn-s" href="/client/?client=' + esc(c.id) + '" target="_blank" rel="noopener">' + i.oeil + 'Voir son espace</a>' +
-    '<button class="btn btn-s" id="b-modif">' + i.crayon + 'Modifier</button><button class="btn btn-p" id="b-cmd">' + i.plus + 'Nouvelle commande</button></div></div>';
+    '<button class="btn btn-s" id="b-notif">' + i.cloche + 'Notification</button><button class="btn btn-s" id="b-modif">' + i.crayon + 'Modifier</button><button class="btn btn-p" id="b-cmd">' + i.plus + 'Nouvelle commande</button></div></div>';
   h += '<div class="grid g3">' + kpi('Commandes', cmds.length, cmds.filter(x => !['valide', 'annule'].includes(x.statut)).length + ' en cours') +
     kpi('Total commandé', K.euros(cmds.reduce((s, x) => s + (x.prix || 0), 0)), cmds.some(x => x.formule === 'mensuel') ? 'dont abonnement mensuel' : 'commandes uniques') +
     kpi('Dernière connexion', c.vu_le ? K.ilya(c.vu_le) : 'jamais', 'client depuis le ' + K.date(c.cree_le)) + '</div>';
@@ -621,7 +625,7 @@ async function ecranClient(id) {
 }
 function choixDossier(k) {
   const opts = (S.dossiers || []).filter(d => !/^TEST|^REDO/.test(d));
-  return '<select class="in" style="height:34px;font-size:13px;min-width:190px" data-dossier="' + esc(k.id) + '"><option value="">· pas encore de dossier ·</option>' +
+  return '<select class="in" style="height:34px;font-size:13px;min-width:190px" data-dossier="' + esc(k.id) + '"><option value="">Pas encore de dossier</option>' +
     opts.map(d => '<option' + (d === k.dossier ? ' selected' : '') + '>' + esc(d) + '</option>').join('') + (k.dossier && !opts.includes(k.dossier) ? '<option selected>' + esc(k.dossier) + '</option>' : '') + '</select>';
 }
 function choixStatut(k) {
@@ -643,6 +647,7 @@ function brancherClient() {
     if (!await K.confirmer('Créer un nouveau lien ?', 'L\'ancien lien ne marchera plus. Pensez à envoyer le nouveau au client.', 'Créer un nouveau lien')) return;
     await K.api('/api/admin/clients/' + c.id + '/nouveau-lien', { methode: 'POST' }); K.toast('Nouveau lien créé'); recharger();
   };
+  if (b('b-notif')) b('b-notif').onclick = () => notifierClients(c);
   if (b('b-modif')) b('b-modif').onclick = () => {
     const v = K.fenetre('<div class="fen-h"><h2>Modifier ' + esc(c.marque) + '</h2></div><div class="fen-b">' + formClient(c) + '</div><div class="fen-f"><button class="btn btn-s" data-n>Annuler</button><button class="btn btn-p" data-o>Enregistrer</button></div>');
     v.querySelector('[data-n]').onclick = K.fermer;
@@ -715,7 +720,7 @@ function ecranCommandes() {
   return h + '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Commande</th><th>Client</th><th>Pack</th><th class="num">Prix</th><th>Dossier</th><th>Statut</th><th>Date</th></tr></thead><tbody>' +
     (l.map(c => '<tr class="clic" onclick="location.hash=\'#/clients/' + esc(c.client_id) + '\'"><td><b>' + esc(K.nomCommande(c)) + '</b><span class="sub">#' + esc(c.ref) + '</span></td><td><div class="nom">' + K.tuile(c.marque) + '<b>' + esc(c.marque) + '</b></div></td>' +
       '<td>' + c.nb_creas + ' créas<span class="sub">' + esc(FORMULES[c.formule] || '') + '</span></td><td class="num">' + K.euros(c.prix) + '</td>' +
-      '<td>' + (c.dossier ? '<code style="font-size:12px">' + esc(c.dossier) + '</code>' : '<span class="muted">·</span>') + '</td><td><span class="pill ' + STATUTS[c.statut][1] + '"><i></i>' + STATUTS[c.statut][0] + '</span></td><td>' + esc(K.date(c.cree_le)) + '</td></tr>').join('')
+      '<td>' + (c.dossier ? '<code style="font-size:12px">' + esc(c.dossier) + '</code>' : '<span class="muted">Pas encore</span>') + '</td><td><span class="pill ' + STATUTS[c.statut][1] + '"><i></i>' + STATUTS[c.statut][0] + '</span></td><td>' + esc(K.date(c.cree_le)) + '</td></tr>').join('')
       || '<tr><td colspan="7"><div class="vide">Aucune commande ici.</div></td></tr>') + '</tbody></table></div></div>';
 }
 
@@ -736,7 +741,7 @@ function tableFactures(F, avecClient) {
       const k = (S.commandes || []).find(c => c.id === f.commande_id) || (FICHE && FICHE.commandes.find(c => c.id === f.commande_id));
       return '<tr><td><b>' + esc(f.numero || 'Sans numéro') + '</b></td>' +
         (avecClient ? '<td>' + (f.marque ? '<a class="nom" href="#/clients/' + esc(f.client_id) + '">' + K.tuile(f.marque) + '<b>' + esc(f.marque) + '</b></a>' : '<span class="muted">' + esc(f.email || 'non rattachée') + '</span>') + '</td>' : '') +
-        '<td>' + (k ? esc(K.nomCommande(k)) + '<span class="sub">#' + esc(k.ref) + '</span>' : '<span class="muted">·</span>') + '</td>' +
+        '<td>' + (k ? esc(K.nomCommande(k)) + '<span class="sub">#' + esc(k.ref) + '</span>' : '<span class="muted">Aucun</span>') + '</td>' +
         '<td class="num">' + K.euros(f.montant) + '</td><td>' + esc(K.date(f.emise_le)) + '</td>' +
         '<td class="fin"><div style="display:flex;gap:6px;justify-content:flex-end">' +
         '<button class="btn btn-s btn-sm" data-fdl="' + esc(f.id) + '">' + i.telecharger + 'Télécharger</button>' +
@@ -776,7 +781,7 @@ function brancherFactures() {
     const C = S.clients || [];
     const v = K.fenetre('<div class="fen-h"><h2>Ajouter une facture</h2><p>Pour une facture faite hors Stripe. Celles de Stripe arrivent seules.</p></div><div class="fen-b">' +
       '<div class="champ"><label>Client</label><select class="in" id="fa-client"><option value="">Choisir un client</option>' + C.map(c => '<option value="' + esc(c.id) + '">' + esc(c.marque) + '</option>').join('') + '</select></div>' +
-      '<div class="champ"><label>Projet</label><select class="in" id="fa-cmd"><option value="">· aucun ·</option></select></div>' +
+      '<div class="champ"><label>Projet</label><select class="in" id="fa-cmd"><option value="">Aucun</option></select></div>' +
       '<div class="grid g2" style="gap:12px"><div class="champ"><label>Numéro</label><input class="in" id="fa-num" placeholder="KRV-0012"></div><div class="champ"><label>Montant (€)</label><input class="in" id="fa-mt" type="number" min="0" step="0.01"></div></div>' +
       '<div class="grid g2" style="gap:12px">' +
       '<div class="champ"><label>Date</label><input class="in" id="fa-date" type="date" value="' + new Date().toISOString().slice(0, 10) + '"></div></div>' +
@@ -784,7 +789,7 @@ function brancherFactures() {
       '<div class="fen-f"><button class="btn btn-s" data-n>Annuler</button><button class="btn btn-p" data-o>Ajouter</button></div>');
     const cl = K.$('#fa-client'), cm = K.$('#fa-cmd');
     cl.onchange = () => {
-      cm.innerHTML = '<option value="">· aucun ·</option>' + (S.commandes || []).filter(c => c.client_id === cl.value).map(c => '<option value="' + esc(c.id) + '">' + esc(K.nomCommande(c)) + ' · #' + esc(c.ref) + '</option>').join('');
+      cm.innerHTML = '<option value="">Aucun</option>' + (S.commandes || []).filter(c => c.client_id === cl.value).map(c => '<option value="' + esc(c.id) + '">' + esc(K.nomCommande(c)) + ' · #' + esc(c.ref) + '</option>').join('');
       if (cm._kMaj) cm._kMaj();
     };
     v.querySelector('[data-n]').onclick = K.fermer;
@@ -852,8 +857,8 @@ function ecranLivraisons() {
   return h + '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Projet</th><th>Version</th><th class="num">Fichiers</th><th>Statut</th><th>Retours du client</th><th>Déposée</th><th></th></tr></thead><tbody>' +
     L.map(l => '<tr class="clic" onclick="location.hash=\'#/livraisons/' + esc(l.dossier) + '\'"><td><div class="nom">' + K.tuile(nomLiv(l.dossier)) + '<div><b>' + esc(nomLiv(l.dossier)) + (K.estDemo(l.dossier) ? ' <span class="pill demo">Démo</span>' : '') + '</b><span class="sub">' + esc(l.dossier) + (l.ref ? ' · #' + esc(l.ref) : '') + '</span></div></div></td>' +
       '<td>Version ' + l.version + '</td><td class="num">' + l.nb + '</td><td>' + pillLiv(l.statut, l.retouche) + '</td>' +
-      '<td>' + (['envoyee', 'review_terminee', 'approuvee'].includes(l.statut) ? l.nb_approuves + ' / ' + l.nb + ' approuvés' + (l.nb_client ? '<span class="sub">' + l.nb_client + ' commentaire' + (l.nb_client > 1 ? 's' : '') + '</span>' : '') : '<span class="muted">·</span>') + '</td>' +
-      '<td>' + (l.depose_le ? esc(K.ilya(l.depose_le)) : '<span class="muted">·</span>') + '</td><td class="fin">' + i.fleche.replace('<svg', '<svg width="16" height="16" style="opacity:.35"') + '</td></tr>').join('') + '</tbody></table></div></div>';
+      '<td>' + (['envoyee', 'review_terminee', 'approuvee'].includes(l.statut) ? l.nb_approuves + ' / ' + l.nb + ' approuvés' + (l.nb_client ? '<span class="sub">' + l.nb_client + ' commentaire' + (l.nb_client > 1 ? 's' : '') + '</span>' : '') : '<span class="muted">Pas encore</span>') + '</td>' +
+      '<td>' + (l.depose_le ? esc(K.ilya(l.depose_le)) : '<span class="muted">Pas encore</span>') + '</td><td class="fin">' + i.fleche.replace('<svg', '<svg width="16" height="16" style="opacity:.35"') + '</td></tr>').join('') + '</tbody></table></div></div>';
 }
 const LIV = { dossier: null, donnees: null, choix: null };
 async function chargerLivraison(d) {

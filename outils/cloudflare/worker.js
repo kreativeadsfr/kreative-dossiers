@@ -2067,9 +2067,9 @@ async function paiementRecu(env, ctx, url, s) {
     const info = s.collected_information || {};
     const marque = propre((repMarque || info.business_name || det.business_name || det.name || info.individual_name || email.split('@')[0]), 80);
     await db.prepare('INSERT INTO clients (id, marque, contact, email, telephone, site, jeton, cree_le) VALUES (?,?,?,?,?,?,?,?)')
-      .bind(id, marque, propre(det.name || info.individual_name, 80), email, propre(det.phone, 40), propre(repSite, 200) || null, jeton, maintenant()).run();
+      .bind(id, marque, propre(info.individual_name || det.individual_name || det.name, 80), email, propre(det.phone, 40), propre(repSite, 200) || null, jeton, maintenant()).run();
     await noter(db, id, null, 'client', 'Espace client créé');
-    cl = { id, marque, contact: det.name || info.individual_name || '', email, jeton };
+    cl = { id, marque, contact: info.individual_name || det.individual_name || det.name || '', email, jeton };
     nouveau = true;
   } else if (det.phone || repSite) {
     // un client déjà connu : on complète seulement ce qui manque
@@ -2117,8 +2117,8 @@ function sessionStripe(d, o) {
   };
   if (cl) { p.client_reference_id = cl.id; if (cl.stripe_client) p.customer = cl.stripe_client; else if (cl.email) p.customer_email = cl.email; }
   else {
-    // depuis le site : un nouveau client, une seule question en plus pour nommer son espace
-    p.custom_fields = [{ key: 'marque', type: 'text', label: { type: 'custom', custom: 'Nom de l\'entreprise' }, text: { maximum_length: '80' } }];
+    // depuis le site : les champs natifs de Stripe « Nom de l'entreprise » (le nom de son espace) et « Nom » (le contact)
+    p.name_collection = { business: { enabled: 'true', optional: 'false' }, individual: { enabled: 'true', optional: 'false' } };
   }
   if (m) p.subscription_data = { metadata: meta };
   else {

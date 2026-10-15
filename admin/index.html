@@ -8,6 +8,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
 <link rel="stylesheet" href="/ui/app.css">
 <script src="/ui/app.js"></script>
+<script src="/ui/review.js"></script>
 </head>
 <body>
 <div id="racine"><div class="chargement">Chargement…</div></div>
@@ -20,8 +21,8 @@
    la production dans le dépôt (projets.json, donnees.json...).
    ============================================================ */
 const { i, esc } = K;
-const S = { clients: null, commandes: null, resume: null, prod: null, dossiers: null, equipe: null, moi: null,
-  factures: null, vueProjets: 'suivi', filtreClients: 'tous', chClients: '', chDossiers: '', filtreCmd: 'en_cours', filtreFact: 'toutes' };
+const S = { livraisons: null, clients: null, commandes: null, resume: null, prod: null, dossiers: null, equipe: null, moi: null,
+  factures: null, vueProjets: 'kanban', filtreClients: 'tous', chClients: '', chDossiers: '', filtreCmd: 'en_cours', filtreFact: 'toutes' };
 const PACKS_NOMS = { starter: 'Starter', growth: 'Growth', scale: 'Scale', custom: 'Custom' };
 // le statut d'une commande, le même que celui que voit le client
 const STATUTS = { brief: ['Confirmée · brief attendu', 'a'], production: ['En production', 'b'], livre: ['Livré · à valider', 'g'], revisions: ['Retouches en cours', 'v'], valide: ['Validé', 'g'], annule: ['Annulée', ''] };
@@ -39,6 +40,7 @@ async function charger(quoi, force) {
     resume: () => K.api('/api/admin/resume'),
     equipe: () => K.api('/api/admin/equipe'),
     factures: () => K.api('/api/admin/factures'),
+    livraisons: () => K.api('/api/equipe/livraisons'),
     moi: () => K.lireJson('/_moi'),
     dossiers: async () => { const l = await K.lireJson('/_admin/dossiers.json'); return Array.isArray(l) ? l.sort((a, b) => (/^TEST|^REDO/.test(a) - /^TEST|^REDO/.test(b)) || a.localeCompare(b)) : []; },
     prod: chargerProduction
@@ -100,7 +102,8 @@ function conf() {
         { id: 'factures', texte: 'Factures', icone: 'recu', href: '#/factures' }] },
       { titre: 'Production', liens: [
         { id: 'projets', texte: 'Projets', icone: 'colonnes', href: '#/projets', nb: enCours || '' },
-        { id: 'production', texte: 'Fiches et dossiers', icone: 'calques', href: '#/fiche' }] },
+        { id: 'production', texte: 'Fiches et dossiers', icone: 'calques', href: '#/fiche' },
+        { id: 'livraisons', texte: 'Livraisons', icone: 'envoi', href: '#/livraisons', nb: (S.livraisons || []).filter(l => l.statut === 'a_verifier' && estDerniere(l)).length || '' }] },
       { titre: '', liens: [{ id: 'equipe', texte: 'Équipe', icone: 'bouclier', href: '#/equipe' }] }
     ],
     qui: { nom: S.moi && S.moi.nom ? S.moi.nom.charAt(0).toUpperCase() + S.moi.nom.slice(1) : 'Admin', role: 'Fondateur · admin' },
@@ -143,9 +146,12 @@ function ecranAccueil() {
   h += '<div class="grid g4" style="margin-top:14px">' +
     kpi('Chez le stratégiste', nb('strat'), 'fiches à remplir') + kpi('Chez le designer', nb('desi'), 'visuels à livrer') +
     kpi('À livrer au client', aLivrer.length, 'livrés par le designer') + kpi('En retard', retards.length, retards.length ? 'à surveiller' : 'tout est dans les temps', retards.length ? 'color:var(--red)' : '') + '</div>';
+  const aVerifier = (S.livraisons || []).filter(l => l.statut === 'a_verifier' && estDerniere(l)), retours = (S.livraisons || []).filter(l => l.statut === 'review_terminee' && estDerniere(l));
   const todo = [
+    ...aVerifier.map(l => ({ t: nomLiv(l.dossier), s: 'La designer a déposé la version ' + l.version + ' : à vérifier', ic: 'envoi', p: 'a', href: '#/livraisons/' + l.dossier })),
+    ...retours.map(l => ({ t: nomLiv(l.dossier), s: 'Le client a envoyé ses retours sur la version ' + l.version, ic: 'message', p: 'v', href: '#/livraisons/' + l.dossier })),
     ...retards.map(y => ({ t: nomProjet(y.x), s: y.e.texte, ic: 'horloge', p: 'r', href: '#/fiche/' + y.x.dossier })),
-    ...aLivrer.map(y => ({ t: nomProjet(y.x), s: 'Livré par le designer, à envoyer au client', ic: 'envoi', p: 'n', href: y.x.zip || '#/visuels/' + y.x.dossier, ext: !!y.x.zip })),
+    ...aLivrer.filter(y => !(S.livraisons || []).some(l => l.dossier === y.x.dossier)).map(y => ({ t: nomProjet(y.x), s: 'Livré par le designer, à envoyer au client', ic: 'envoi', p: 'n', href: y.x.zip && !/\/admin\//.test(y.x.zip) ? y.x.zip : '#/livraisons/' + y.x.dossier, ext: !!y.x.zip && !/\/admin\//.test(y.x.zip) })),
     ...briefs.map(c => ({ t: c.marque + ' · ' + K.nomCommande(c), s: 'Commande confirmée, brief attendu depuis ' + K.ilya(c.cree_le).replace('il y a ', ''), ic: 'doc', p: 'a', href: '#/clients/' + c.client_id })),
     ...(S.commandes || []).filter(c => c.statut === 'livre').map(c => ({ t: c.marque + ' · ' + K.nomCommande(c), s: 'Livré, en attente de validation du client', ic: 'coche', p: 'g', href: '#/clients/' + c.client_id }))
   ];
@@ -221,22 +227,34 @@ function ecranProjets() {
 }
 
 // ---------- CLIENTS ----------
+// pourquoi relancer un client (rien = pas besoin) : brief qui n'arrive pas, pas d'avis, pas recommandé depuis longtemps
+function raisonRelance(c) {
+  const J = 864e5, now = Date.now(), jours = t => Math.floor((now - t) / J);
+  if (c.statut === 'bloque') return '';
+  if (c.brief_attendu_depuis && now - c.brief_attendu_depuis > 3 * J) return 'Brief attendu depuis ' + jours(c.brief_attendu_depuis) + ' j';
+  if (c.en_cours > 0) return '';
+  if (c.sans_avis > 0) return 'Pas d\'avis Trustpilot';
+  const ref = Math.max(c.derniere_validation || 0, c.derniere_commande || 0);
+  if (c.nb_commandes > 0 && ref && now - ref > 30 * J) return 'Pas recommandé depuis ' + jours(ref) + ' j';
+  if (!c.nb_commandes && c.cree_le && now - c.cree_le > 7 * J) return 'Jamais commandé';
+  return '';
+}
 function ecranClients() {
   const C = S.clients || [], q = S.chClients.toLowerCase(), f = S.filtreClients;
-  const relancer = c => c.nb_commandes > 0 && c.derniere_commande && Date.now() - c.derniere_commande > 21 * 864e5;
-  const filtres = { tous: () => true, actifs: c => c.nb_commandes > 0, sans: c => !c.nb_commandes, relancer, bloques: c => c.statut === 'bloque' };
+  const relancer = c => !!raisonRelance(c);
+  const filtres = { tous: () => true, actifs: c => c.en_cours > 0, relancer, bloques: c => c.statut === 'bloque' };
   const liste = C.filter(filtres[f]).filter(c => !q || (c.marque + ' ' + (c.contact || '') + ' ' + (c.email || '')).toLowerCase().includes(q));
   const chip = (k, t, coul) => '<button class="chip' + (f === k ? ' on' : '') + '" onclick="S.filtreClients=\'' + k + '\';K.rendre()">' + (coul ? '<i style="color:' + coul + '"></i>' : '') + t + '<span class="c">' + C.filter(filtres[k]).length + '</span></button>';
   let h = '<div class="ph"><div><h1>Clients</h1><p>' + C.length + ' compte' + (C.length > 1 ? 's' : '') + ' · ' + C.reduce((s, c) => s + c.nb_commandes, 0) + ' commandes au total</p></div>' +
     '<div class="act"><button class="btn btn-s" onclick="exporterClients()">' + i.telecharger + 'Exporter</button><a class="btn btn-p" href="#/clients/nouveau">' + i.plus + 'Ajouter un client</a></div></div>';
-  h += '<div class="filtres">' + chip('tous', 'Tous') + chip('actifs', 'Avec commande', 'var(--green)') + chip('sans', 'Sans commande', 'var(--amber)') + chip('relancer', 'À relancer', 'var(--red)') +
+  h += '<div class="filtres">' + chip('tous', 'Tous') + chip('actifs', 'Projet en cours', 'var(--blue)') + chip('relancer', 'À relancer', 'var(--red)') +
     '<div class="champ-r" style="margin-left:auto">' + i.chercher + '<input id="ch-clients" placeholder="Rechercher un client…" value="' + esc(S.chClients) + '"></div></div>';
   if (!C.length) return h + '<div class="card"><div class="vide">' + i.gens + 'Aucun client pour l\'instant.<br><a class="btn btn-p btn-sm" style="margin-top:14px" href="#/clients/nouveau">Ajouter le premier client</a></div></div>';
   h += '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Client</th><th>Contact</th><th class="num">Commandes</th><th class="num">Total</th><th>Dernière commande</th><th>Dernière connexion</th><th>Statut</th><th></th></tr></thead><tbody>' +
     (liste.map(c => '<tr class="clic" onclick="location.hash=\'#/clients/' + esc(c.id) + '\'"><td><div class="nom">' + tuileClient(c) + '<div><b>' + esc(c.marque) + '</b><span class="sub">' + esc(c.email || 'pas d\'email') + '</span></div></div></td>' +
       '<td>' + esc(c.contact || '·') + '<span class="sub">' + esc(c.telephone || '') + '</span></td><td class="num">' + c.nb_commandes + '</td><td class="num">' + K.euros(c.total) + '</td>' +
       '<td>' + (c.derniere_commande ? esc(K.date(c.derniere_commande)) : '<span class="muted">·</span>') + '</td><td>' + (c.vu_le ? esc(K.ilya(c.vu_le)) : '<span class="muted">jamais</span>') + '</td>' +
-      '<td>' + (c.statut === 'bloque' ? '<span class="pill r">Bloqué</span>' : relancer(c) ? '<span class="pill a"><i></i>À relancer</span>' : c.nb_commandes ? '<span class="pill g"><i></i>Client</span>' : '<span class="pill">Nouveau</span>') + '</td>' +
+      '<td>' + (c.statut === 'bloque' ? '<span class="pill r">Bloqué</span>' : relancer(c) ? '<span class="pill a"><i></i>' + esc(raisonRelance(c)) + '</span>' : c.en_cours ? '<span class="pill b"><i></i>Projet en cours</span>' : c.nb_commandes ? '<span class="pill g"><i></i>Client</span>' : '<span class="pill">Nouveau</span>') + '</td>' +
       '<td class="fin">' + i.fleche.replace('<svg', '<svg width="16" height="16" style="opacity:.35"') + '</td></tr>').join('') || '<tr><td colspan="8"><div class="vide">Aucun client ne correspond.</div></td></tr>') +
     '</tbody></table></div></div>';
   return h;
@@ -523,25 +541,88 @@ function ecranEquipe() {
     'Une entrée par personne : <code>prénom=motdepasse:rôle</code> (admin, strategiste ou designer). Retirer une entrée coupe son accès tout de suite.</div>';
 }
 
+// ---------- LIVRAISONS : vérifier ce que la designer a déposé, puis l'envoyer au client ----------
+const STATUTS_LIV = { brouillon: ['Dépôt en cours', ''], a_verifier: ['À vérifier', 'a'], a_corriger: ['Renvoyée à la designer', 'r'], envoyee: ['Chez le client', 'b'],
+  review_terminee: ['Retouches demandées', 'v'], approuvee: ['Approuvée par le client', 'g'] };
+const pillLiv = st => { const x = STATUTS_LIV[st] || [st, '']; return '<span class="pill ' + x[1] + '"><i></i>' + esc(x[0]) + '</span>'; };
+const estDerniere = l => !(S.livraisons || []).some(x => x.dossier === l.dossier && x.version > l.version);
+const nomLiv = d => { const x = K.prod.trouver(d), l = (S.livraisons || []).find(y => y.dossier === d); return (x && x.nom) || (l && l.marque) || d; };
+function ecranLivraisons() {
+  const L = (S.livraisons || []).filter(estDerniere), ordre = { a_verifier: 0, review_terminee: 1, a_corriger: 2, brouillon: 3, envoyee: 4, approuvee: 5 };
+  L.sort((a, b) => (ordre[a.statut] - ordre[b.statut]) || ((b.depose_le || b.cree_le) - (a.depose_le || a.cree_le)));
+  let h = '<div class="ph"><div><h1>Livraisons</h1><p>Ce que la designer dépose : vous vérifiez, puis vous l\'envoyez au client ou vous la renvoyez à la designer.</p></div>' +
+    '<div class="act"><button class="btn btn-s" onclick="rafraichir(\'livraisons\')">' + i.rafraichir + 'Actualiser</button></div></div>';
+  if (!L.length) return h + '<div class="card"><div class="vide">' + i.envoi + 'Aucune livraison pour l\'instant. Elles arrivent ici dès que la designer dépose ses fichiers.</div></div>';
+  return h + '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Projet</th><th>Version</th><th class="num">Fichiers</th><th>Statut</th><th>Retours du client</th><th>Déposée</th><th></th></tr></thead><tbody>' +
+    L.map(l => '<tr class="clic" onclick="location.hash=\'#/livraisons/' + esc(l.dossier) + '\'"><td><div class="nom">' + K.tuile(nomLiv(l.dossier)) + '<div><b>' + esc(nomLiv(l.dossier)) + (K.estDemo(l.dossier) ? ' <span class="pill demo">Démo</span>' : '') + '</b><span class="sub">' + esc(l.dossier) + (l.ref ? ' · #' + esc(l.ref) : '') + '</span></div></div></td>' +
+      '<td>Version ' + l.version + '</td><td class="num">' + l.nb + '</td><td>' + pillLiv(l.statut) + '</td>' +
+      '<td>' + (['envoyee', 'review_terminee', 'approuvee'].includes(l.statut) ? l.nb_approuves + ' / ' + l.nb + ' approuvés' + (l.nb_client ? '<span class="sub">' + l.nb_client + ' commentaire' + (l.nb_client > 1 ? 's' : '') + '</span>' : '') : '<span class="muted">·</span>') + '</td>' +
+      '<td>' + (l.depose_le ? esc(K.ilya(l.depose_le)) : '<span class="muted">·</span>') + '</td><td class="fin">' + i.fleche.replace('<svg', '<svg width="16" height="16" style="opacity:.35"') + '</td></tr>').join('') + '</tbody></table></div></div>';
+}
+const LIV = { dossier: null, donnees: null, choix: null };
+async function chargerLivraison(d) {
+  LIV.dossier = d;
+  try { LIV.donnees = await K.api('/api/equipe/livraisons/' + d); } catch (e) { LIV.donnees = { versions: [] }; K.toast(e.message); }
+  if (!LIV.donnees.versions.find(v => v.id === LIV.choix)) LIV.choix = (LIV.donnees.versions[0] || {}).id;
+  K.rendre();
+}
+function ecranLivraison(d) {
+  let h = '<a class="retour" href="#/livraisons">' + i.gauche + 'Livraisons</a>';
+  if (LIV.dossier !== d) { LIV.dossier = d; LIV.donnees = null; setTimeout(() => chargerLivraison(d), 0); }
+  if (!LIV.donnees) return h + '<div class="card"><div class="vide">Chargement…</div></div>';
+  const V = LIV.donnees.versions, l = V.find(v => v.id === LIV.choix);
+  if (!l) return h + '<div class="card"><div class="vide">' + i.envoi + 'Rien n\'a encore été déposé pour ce projet.</div></div>';
+  h += K.rv.puces(V, l.id, v => 'Version ' + v.version + ' · ' + (STATUTS_LIV[v.statut] || [v.statut])[0]);
+  if (l.note_designer) h += '<div class="rv-note">' + i.message + '<div><b>Note de la designer :</b> ' + esc(l.note_designer) + '</div></div>';
+  if (l.statut === 'a_corriger' && l.note_kreative) h += '<div class="rv-note">' + i.crayon + '<div><b>Renvoyée à la designer :</b> ' + esc(l.note_kreative) + '</div></div>';
+  return h + K.rv.grille(l, { mode: 'admin', titre: nomLiv(d) + ' · version ' + l.version, sousTitre: l.fichiers.length + ' fichiers · ' + (STATUTS_LIV[l.statut] || [''])[0],
+    actions: l.statut === 'a_verifier' ? '<button class="btn btn-s" data-corriger>' + i.crayon + 'Renvoyer à la designer</button><button class="btn btn-d" data-envoyer-client>' + i.envoi + 'Envoyer au client</button>' : '' });
+}
+function brancherLivraison() {
+  const V = (LIV.donnees && LIV.donnees.versions) || [], l = V.find(v => v.id === LIV.choix);
+  if (!l) return;
+  document.querySelectorAll('[data-rv-version]').forEach(b => b.onclick = () => { LIV.choix = b.dataset.rvVersion; K.rendre(); });
+  K.rv.brancher(l, { mode: 'admin', nomZip: (nomLiv(l.dossier) + '-v' + l.version).replace(/[^A-Za-z0-9]+/g, '-'), rendre: () => K.rendre(), auteur: (S.moi && S.moi.nom) || 'Kreative',
+    peutCommenter: () => true, peutApprouver: () => false,
+    api: { commenter: (f, texte, forme, couleur) => K.api('/api/equipe/commentaires', { methode: 'POST', corps: { fichier_id: f.id, texte, forme, couleur } }),
+      supprimer: id => K.api('/api/equipe/commentaires/' + id, { methode: 'DELETE' }) } });
+  const env = document.querySelector('[data-envoyer-client]');
+  if (env) env.onclick = async () => {
+    if (!await K.confirmer('Envoyer au client ?', 'Le client reçoit un email et voit les ' + l.fichiers.length + ' fichiers dans son espace, pour sa review.', 'Envoyer au client')) return;
+    try { const r = await K.api('/api/equipe/livraisons/' + l.id + '/decision', { methode: 'POST', corps: { action: 'envoyer' } }); K.toast(r.message); S.livraisons = null; S.commandes = null; await charger('livraisons'); await chargerLivraison(l.dossier); } catch (e) { K.toast(e.message); }
+  };
+  const cor = document.querySelector('[data-corriger]');
+  if (cor) cor.onclick = () => {
+    const v = K.fenetre('<div class="fen-h"><h2>Renvoyer à la designer</h2><p>Dites-lui quoi corriger. Vos commentaires sur les fichiers sont aussi dans son espace.</p></div>' +
+      '<div class="fen-b"><textarea class="in" id="note-corr" rows="4" style="width:100%;height:auto;padding:10px 12px" placeholder="Ce qui doit changer…"></textarea></div>' +
+      '<div class="fen-f"><button class="btn btn-s" data-n>Annuler</button><button class="btn btn-r" data-o>Renvoyer</button></div>');
+    v.querySelector('[data-n]').onclick = K.fermer;
+    v.querySelector('[data-o]').onclick = async () => {
+      try { const r = await K.api('/api/equipe/livraisons/' + l.id + '/decision', { methode: 'POST', corps: { action: 'corriger', note: v.querySelector('#note-corr').value } }); K.fermer(); K.toast(r.message); S.livraisons = null; await charger('livraisons'); await chargerLivraison(l.dossier); } catch (e) { K.toast(e.message); }
+    };
+  };
+}
+
 // ---------- RENDU ----------
 const ECRANS = {
-  '': { id: 'accueil', t: 'Vue d\'ensemble', a: 'accueil', b: [], besoins: ['resume', 'clients', 'commandes', 'prod'], f: ecranAccueil },
+  '': { id: 'accueil', t: 'Vue d\'ensemble', a: 'accueil', b: [], besoins: ['resume', 'clients', 'commandes', 'prod', 'livraisons'], f: ecranAccueil },
   factures: { id: 'factures', t: 'Factures', a: 'recu', b: ['Commercial'], besoins: ['factures', 'clients', 'commandes'], f: ecranFactures, ap: brancherFactures },
   projets: { id: 'projets', t: 'Projets', a: 'dossier', b: ['Production'], besoins: ['commandes', 'prod'], f: ecranProjets, large: true },
   clients: { id: 'clients', t: 'Clients', a: 'gens', b: ['Commercial'], besoins: ['clients', 'resume', 'dossiers'], f: p => p[0] === 'nouveau' ? (setTimeout(nouveauClient, 0), ecranClients()) : p[0] ? ecranClient(p[0]) : ecranClients(), ap: p => p[0] && p[0] !== 'nouveau' ? brancherClient() : brancherClients() },
   commandes: { id: 'commandes', t: 'Commandes', a: 'sac', b: ['Commercial'], besoins: ['commandes'], f: ecranCommandes },
   dossiers: { id: 'production', t: 'Tous les dossiers', a: 'calques', b: ['Production'], besoins: ['dossiers'], f: () => ongletsProd('dossiers') + ecranDossiers(), ap: brancherDossiers },
-  equipe: { id: 'equipe', t: 'Équipe', a: 'bouclier', b: [], besoins: ['equipe'], f: ecranEquipe }
+  equipe: { id: 'equipe', t: 'Équipe', a: 'bouclier', b: [], besoins: ['equipe'], f: ecranEquipe },
+  livraisons: { id: 'livraisons', t: 'Livraisons', a: 'envoi', b: ['Production'], besoins: ['livraisons', 'prod'], f: p => p[0] ? ecranLivraison(p[0]) : (LIV.dossier = null, ecranLivraisons()), ap: p => { if (p[0]) brancherLivraison(); } }
 };
 // les pages de production s'ouvrent dans l'admin (K.prod : liste des projets, ou la page en cadre)
-const TEXTES_PROD = { fiche: 'La fiche créas de chaque projet.', dossier: 'Le dossier de production de chaque projet.', brief: 'Les briefs des livraisons suivantes et des abonnements.', visuels: 'Les visuels générés, avant et après la livraison.', telechargement: 'Le dossier à télécharger de chaque projet.' };
+const TEXTES_PROD = { fiche: 'La fiche créas de chaque projet.', dossier: 'Le dossier de production de chaque projet.', brief: 'Pour un projet livré en plusieurs fois ou un abonnement : ce que le client veut pour la suite.', visuels: 'Les visuels générés, avant et après la livraison.', telechargement: 'Le dossier à télécharger de chaque projet.' };
 Object.keys(K.prod.sections).forEach(k => {
   ECRANS[k] = { id: 'production', t: K.prod.sections[k].fr, a: K.prod.sections[k].icone, b: ['Production'], besoins: ['prod'], prod: true,
     f: p => p[0] ? K.prod.vue(k, p[0], {}) : ongletsProd(k) + K.prod.liste_(k, { texte: TEXTES_PROD[k] }), ap: p => { if (p[0]) K.prod.brancher(k); } };
 });
 // les pages de production sont regroupées sous une seule entrée, avec des onglets
 function ongletsProd(actif) {
-  const O = [['fiche', 'Fiches créas'], ['dossier', 'Dossiers'], ['brief', 'Briefs clients'], ['visuels', 'Visuels'], ['dossiers', 'Tous les dossiers']];
+  const O = [['fiche', 'Fiches créas'], ['dossier', 'Dossiers'], ['brief', 'Briefs suivants'], ['visuels', 'Visuels'], ['dossiers', 'Tous les dossiers']];
   return '<div class="onglets onglets-prod">' + O.map(([k, t]) => '<a href="#/' + k + '" class="' + (k === actif || (actif === 'telechargement' && k === 'visuels') ? 'on' : '') + '">' + esc(t) + '</a>').join('') + '</div>';
 }
 let rendu = 0;
@@ -565,7 +646,7 @@ K.rendre = async () => {
   document.getElementById('racine').innerHTML = K.coquille(c, e.id, K.ariane(e.a, ...fil, titre), contenu, e.prod && r.params[0] ? 'plein' : e.large);
   K.brancherCoquille(c);
   if (e.ap) e.ap(r.params);
-  document.title = titre + ' · Admin Kreative';
+  document.title = 'Admin · Kreative';
   // la production et les dossiers se chargent en fond pour la recherche et les compteurs
   ['prod', 'dossiers', 'clients', 'commandes'].forEach(q => { if (S[q] == null) charger(q).then(() => { if (n === rendu && q === 'prod') { const nb = document.querySelector('.nav a[href="#/projets"] .nb'); if (!nb) K.rendre(); } }); });
 };

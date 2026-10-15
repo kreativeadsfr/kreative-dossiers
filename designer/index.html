@@ -8,6 +8,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
 <link rel="stylesheet" href="/ui/app.css">
 <script src="/ui/app.js"></script>
+<script src="/ui/review.js"></script>
 </head>
 <body>
 <div id="racine"><div class="chargement">Loading your projects…</div></div>
@@ -19,7 +20,6 @@
    le choix du projet en haut. La livraison a sa propre section,
    toujours visible (rien n'apparaît au clic).
    ============================================================ */
-const WEBHOOK = 'https://n8n.srv1536015.hstgr.cloud/webhook/livraison-designer';
 const { i, esc } = K;
 const E = { moi: null, filtre: 'todo' };
 const SECS = ['visuels', 'telechargement'];
@@ -99,53 +99,160 @@ function ecranProjets() {
 }
 
 // ---------- DELIVER ----------
+// ---------- DELIVER : the designer uploads every file, in every format ----------
+const DL = { dossier: null, donnees: null, choix: null, envois: [] };
+const NOMS_F = { '1x1': '1:1', '4x5': '4:5', '9x16': '9:16', autre: 'Other' };
+const ST_EN = { brouillon: ['Uploading', ''], a_verifier: ['With Kreative for checking', 'a'], a_corriger: ['Sent back to you', 'r'], envoyee: ['With the client', 'b'], review_terminee: ['Client feedback to fix', 'v'], approuvee: ['Approved by the client', 'g'] };
+const pillEn = st => { const x = ST_EN[st] || [st, '']; return '<span class="pill ' + x[1] + '"><i></i>' + esc(x[0]) + '</span>'; };
+// la dernière version de chaque projet change le statut vu par la designer
+function marquer() {
+  (K.prod.liste || []).forEach(x => {
+    const v = (E.livs || []).filter(l => l.dossier === x.dossier).sort((a, b) => b.version - a.version)[0];
+    if (!v) return;
+    x.aCorriger = ['a_corriger', 'review_terminee'].includes(v.statut);
+    x.livre = ['a_verifier', 'envoyee', 'approuvee'].includes(v.statut);
+    if (x.livre) x.livreLe = v.depose_le || x.livreLe;
+  });
+}
+async function chargerDl(d) {
+  DL.dossier = d;
+  try { DL.donnees = await K.api('/api/equipe/livraisons/' + d); } catch (e) { DL.donnees = { versions: [], erreur: e.message }; }
+  if (!DL.donnees.versions.find(v => v.id === DL.choix)) DL.choix = (DL.donnees.versions[0] || {}).id;
+  K.rendre(true);
+}
 function ecranLivrer(id) {
   const L = mesProjets(), aLivrer = L.filter(x => !x.livre).sort((a, b) => (a.desi || 9e15) - (b.desi || 9e15));
   if (!id) {
-    return '<div class="ph"><div><h1>Deliver</h1><p>Pick the project you finished: the delivery form opens right here.</p></div></div>' +
-      (aLivrer.length ? '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Project</th><th class="num">Creatives</th><th>Deadline</th><th></th></tr></thead><tbody>' +
-        aLivrer.map(x => '<tr class="clic" onclick="location.hash=\'#/livrer/' + esc(x.dossier) + '\'"><td>' + ligneNom(x) + '</td><td class="num">' + esc(x.nb || '?') + '</td><td>' + (K.prod.echeance(x.desi, true).pill || '·') + '</td>' +
+    return '<div class="ph"><div><h1>Deliver</h1><p>Pick the project you finished, then upload your files right here.</p></div></div>' +
+      (aLivrer.length ? '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Project</th><th class="num">Creatives</th><th>Status</th><th></th></tr></thead><tbody>' +
+        aLivrer.map(x => '<tr class="clic" onclick="location.hash=\'#/livrer/' + esc(x.dossier) + '\'"><td>' + ligneNom(x) + '</td><td class="num">' + esc(x.nb || '?') + '</td><td>' + (x.aCorriger ? '<span class="pill r"><i></i>To fix</span>' : K.prod.echeance(x.desi, true).pill || '·') + '</td>' +
           '<td class="fin"><span class="btn btn-p btn-sm">' + i.envoi + 'Deliver</span></td></tr>').join('') + '</tbody></table></div></div>'
         : '<div class="card"><div class="vide">' + i.coche + 'Nothing to deliver right now.</div></div>');
   }
   const x = K.prod.trouver(id);
   if (!x) return '<a class="retour" href="#/livrer">' + i.gauche + 'Deliver</a><div class="card"><div class="vide">Project not found.</div></div>';
-  const choix = L.filter(y => !y.livre || y === x);
+  if (DL.dossier !== id) { DL.dossier = id; DL.donnees = null; setTimeout(() => chargerDl(id), 0); }
+  const V = (DL.donnees && DL.donnees.versions) || [], der = V[0], choix = L.filter(y => !y.livre || y === x);
   let h = '<a class="retour" href="#/livrer">' + i.gauche + 'Deliver</a>' +
-    '<div class="ph"><div><h1>' + esc(nomEn(x)) + '</h1><p>' + esc(x.nb || '?') + ' creatives' + (x.desi ? ' · due ' + esc(quand(x.desi)) + ' (Paris time)' : '') + '</p></div>' +
-    '<div class="act" style="align-items:center">' + (x.livre ? '<span class="pill g"><i></i>Delivered</span>' : K.prod.echeance(x.desi, true).pill) +
+    '<div class="ph"><div><h1>' + esc(nomEn(x)) + '</h1><p>' + esc(x.nb || '?') + ' creatives in 1:1, 4:5 and 9:16' + (x.desi ? ' · due ' + esc(quand(x.desi)) + ' (Paris time)' : '') + '</p></div>' +
+    '<div class="act" style="align-items:center">' + (der ? pillEn(der.statut) : K.prod.echeance(x.desi, true).pill) +
     '<div style="width:300px"><select class="in" id="lv-projet">' + choix.map(y => '<option value="' + esc(y.dossier) + '"' + (y === x ? ' selected' : '') + '>' + esc(nomEn(y)) + '</option>').join('') + '</select></div></div></div>';
-  h += '<div class="grid g2" style="align-items:start">' +
-    '<div class="card pad"><h3 style="font-size:16px">Send the final files</h3>' +
-    '<ol style="margin:14px 0 18px;padding-left:18px;color:var(--tx2);font-size:13.5px;line-height:1.8">' +
-    '<li>Export each creative in <b>1:1</b>, <b>4:5</b> and <b>9:16</b> (one folder per format).</li>' +
-    '<li>Put the 3 folders in one zip.</li><li>Send it with SwissTransfer or WeTransfer and paste the link below.</li></ol>' +
-    '<div class="champ"><label for="lv-lien">Download link</label><input class="in" id="lv-lien" type="url" placeholder="https://www.swisstransfer.com/d/..." autocomplete="off"></div>' +
-    '<div class="champ"><label for="lv-note">Note for Kreative (optional)</label><textarea class="in" id="lv-note" rows="3" placeholder="Anything we should know"></textarea></div>' +
-    '<button class="btn btn-p btn-bloc btn-lg" id="lv-envoyer">' + i.envoi + (x.livre ? 'Send a new version' : 'Mark as delivered') + '</button><p class="muted" id="lv-etat" style="font-size:13px;margin-top:10px;min-height:18px"></p></div>' +
-    '<div class="grid" style="gap:14px"><div class="card pad"><h3 style="font-size:15px">Project files</h3><p class="muted" style="font-size:13px;margin-top:4px">Check the brand kit and the copy before exporting.</p>' +
-    '<div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap"><a class="btn btn-s" href="#/visuels/' + esc(x.dossier) + '">' + i.image + 'Preview</a><a class="btn btn-s" href="#/telechargement/' + esc(x.dossier) + '">' + i.telecharger + 'Download</a></div></div>' +
-    '<div class="card"><div class="card-h"><h3>Delivery history</h3></div><div class="card-b liste">' +
-    ((x.livraisons || []).length ? x.livraisons.slice().reverse().map(l => '<div class="li"><span class="ic">' + i.envoi + '</span><span class="t">' + (l.lien ? '<a href="' + esc(l.lien) + '" target="_blank" rel="noopener">' + esc(l.lien.replace(/^https?:\/\//, '').slice(0, 48)) + '</a>' : 'Delivered') + '</span><small>' + (l.le ? esc(jour(Date.parse(l.le))) : '') + '</small></div>').join('')
-      : '<div class="vide">No delivery yet.</div>') + '</div></div></div></div>';
+  if (!DL.donnees) return h + '<div class="card"><div class="vide">Loading…</div></div>';
+  const peutDeposer = !der || ['brouillon', 'a_corriger', 'review_terminee'].includes(der.statut);
+  const travail = der && der.statut === 'brouillon' ? der : null, F = travail ? travail.fichiers : [];
+  let gauche = '<div class="card pad"><h3 style="font-size:16px">Upload your files</h3>';
+  if (der && der.statut === 'a_corriger') gauche += '<div class="rv-note" style="margin-top:14px">' + i.crayon + '<div><b>Kreative sent version ' + der.version + ' back.</b> ' + esc(der.note_kreative || 'See the comments on the files below.') + ' Upload the corrected files: a file with the same name replaces the old one.</div></div>';
+  if (der && der.statut === 'review_terminee') { const n = der.fichiers.reduce((s, f) => s + f.commentaires.filter(c => !c.interne).length, 0); gauche += '<div class="rv-note" style="margin-top:14px">' + i.message + '<div><b>The client sent ' + n + ' comment' + (n > 1 ? 's' : '') + ' on version ' + der.version + '.</b> Open the files below to read them, then upload the corrected files (same file name replaces the old one).</div></div>'; }
+  if (peutDeposer) {
+    gauche += '<div class="depot" id="lv-depot" style="margin-top:14px">' + i.telecharger + '<b>Drop your files here, or click to choose</b><small>PNG, JPG or MP4. The format (1:1, 4:5, 9:16) is detected from the size.</small><input type="file" id="lv-fichiers" multiple accept="image/png,image/jpeg,image/webp,video/mp4,video/quicktime" hidden></div>' +
+      '<div class="envois" id="lv-envois">' + DL.envois.map(e => '<div class="envoi-l"><span>' + esc(e.nom) + '</span><div class="barre' + (e.ok ? ' g' : '') + '"><i style="width:' + e.pc + '%"></i></div><small class="muted">' + esc(e.etat) + '</small></div>').join('') + '</div>';
+    const attendu = Number(x.nb) || 0;
+    gauche += '<div class="compte-formats">' + ['1x1', '4x5', '9x16'].map(f => { const n = F.filter(y => y.format === f).length; return '<span class="pill ' + (attendu && n >= attendu ? 'g' : n ? 'a' : '') + '">' + NOMS_F[f] + ' · ' + n + (attendu ? ' / ' + attendu : '') + '</span>'; }).join('') +
+      (F.some(y => y.format === 'autre') ? '<span class="pill r">Other sizes · ' + F.filter(y => y.format === 'autre').length + '</span>' : '') + '</div>' +
+      '<div class="champ" style="margin-top:16px"><label for="lv-note">Note for Kreative (optional)</label><textarea class="in" id="lv-note" rows="3" placeholder="Anything we should know"></textarea></div>' +
+      '<button class="btn btn-p btn-bloc btn-lg" id="lv-envoyer"' + (F.length ? '' : ' disabled') + '>' + i.envoi + 'Send to Kreative' + (F.length ? ' (' + F.length + ' files)' : '') + '</button><p class="muted" id="lv-etat" style="font-size:13px;margin-top:10px;min-height:18px"></p>';
+  } else gauche += '<div class="rv-note" style="margin-top:14px">' + i.coche + '<div><b>Version ' + der.version + ': ' + esc(ST_EN[der.statut][0].toLowerCase()) + '.</b> ' + (der.statut === 'a_verifier' ? 'Kreative checks your files, then sends them to the client or back to you.' : der.statut === 'envoyee' ? 'The client is reviewing it. Their comments will show up here.' : 'Nothing more to do on this project.') + '</div></div>';
+  gauche += '</div>';
+  h += '<div class="grid g2" style="align-items:start">' + gauche +
+    '<div class="card pad"><h3 style="font-size:15px">Project files</h3><p class="muted" style="font-size:13px;margin-top:4px">Check the brand kit and the copy before exporting.</p>' +
+    '<div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap"><a class="btn btn-s" href="#/visuels/' + esc(x.dossier) + '">' + i.image + 'Preview</a><a class="btn btn-s" href="#/telechargement/' + esc(x.dossier) + '">' + i.telecharger + 'Download</a></div></div></div>';
+  const vue = V.find(v => v.id === DL.choix);
+  if (vue) {
+    h += '<div style="margin-top:26px">' + K.rv.puces(V, vue.id, v => 'Version ' + v.version + ' · ' + ST_EN[v.statut][0]) +
+      K.rv.grille(vue, { mode: 'designer', titre: 'Version ' + vue.version, sousTitre: vue.fichiers.length + ' files · ' + ST_EN[vue.statut][0], supprimer: vue.statut === 'brouillon' }) + '</div>';
+  }
   return h;
+}
+// la taille d'une image ou d'une vidéo, puis le format
+function dimensions(f) {
+  return new Promise(ok => {
+    if (/^video\//.test(f.type)) { const v = document.createElement('video'); v.preload = 'metadata'; v.onloadedmetadata = () => { ok({ l: v.videoWidth, h: v.videoHeight }); URL.revokeObjectURL(v.src); }; v.onerror = () => ok({ l: 0, h: 0 }); v.src = URL.createObjectURL(f); return; }
+    const im = new Image(); im.onload = () => { ok({ l: im.naturalWidth, h: im.naturalHeight }); URL.revokeObjectURL(im.src); }; im.onerror = () => ok({ l: 0, h: 0 }); im.src = URL.createObjectURL(f);
+  });
+}
+const formatDe = d => { if (!d.l || !d.h) return 'autre'; const r = d.l / d.h; return Math.abs(r - 1) < .03 ? '1x1' : Math.abs(r - .8) < .03 ? '4x5' : Math.abs(r - .5625) < .03 ? '9x16' : 'autre'; };
+function miniature(f) {
+  return new Promise(ok => {
+    const fin = src => { const c = document.createElement('canvas'), t = 480, k = Math.min(1, t / Math.max(src.w, src.h)); c.width = Math.round(src.w * k); c.height = Math.round(src.h * k); c.getContext('2d').drawImage(src.el, 0, 0, c.width, c.height); c.toBlob(b => ok(b), 'image/jpeg', .8); };
+    if (/^video\//.test(f.type)) { const v = document.createElement('video'); v.muted = true; v.preload = 'auto'; v.onloadeddata = () => { v.currentTime = Math.min(.5, v.duration / 2 || 0); }; v.onseeked = () => fin({ el: v, w: v.videoWidth, h: v.videoHeight }); v.onerror = () => ok(null); v.src = URL.createObjectURL(f); return; }
+    const im = new Image(); im.onload = () => fin({ el: im, w: im.naturalWidth, h: im.naturalHeight }); im.onerror = () => ok(null); im.src = URL.createObjectURL(f);
+  });
+}
+function envoyerFichier(livraison, f, format, d, suivi) {
+  return new Promise((ok, ko) => {
+    const x = new XMLHttpRequest();
+    x.open('PUT', '/api/equipe/fichiers?livraison=' + encodeURIComponent(livraison) + '&format=' + format + '&nom=' + encodeURIComponent(f.name) + '&l=' + d.l + '&h=' + d.h);
+    x.setRequestHeader('Content-Type', f.type || 'application/octet-stream');
+    x.upload.onprogress = e => { if (e.lengthComputable) suivi(Math.round(e.loaded * 100 / e.total)); };
+    x.onload = () => { let r = {}; try { r = JSON.parse(x.responseText); } catch (e) {} if (x.status < 300) ok(r); else ko(new Error(r.erreur || 'Upload failed (' + x.status + ')')); };
+    x.onerror = () => ko(new Error('Network error'));
+    x.send(f);
+  });
+}
+async function deposer(fichiers, x) {
+  if (!fichiers.length) return;
+  let travail = ((DL.donnees && DL.donnees.versions) || [])[0];
+  try { if (!travail || travail.statut !== 'brouillon') travail = await K.api('/api/equipe/livraisons', { methode: 'POST', corps: { dossier: x.dossier } }); }
+  catch (e) { K.toast(e.message); return; }
+  const file = Array.from(fichiers).map(f => ({ f, nom: f.name, pc: 0, etat: 'waiting', ok: false }));
+  DL.envois = file;
+  const maj = () => { const z = document.getElementById('lv-envois'); if (z) z.innerHTML = DL.envois.map(e => '<div class="envoi-l"><span>' + esc(e.nom) + '</span><div class="barre' + (e.ok ? ' g' : '') + '"><i style="width:' + e.pc + '%"></i></div><small class="muted">' + esc(e.etat) + '</small></div>').join(''); };
+  maj();
+  let n = 0;
+  const travailleur = async () => {
+    while (n < file.length) {
+      const e = file[n++];
+      try {
+        const d = await dimensions(e.f), fmt = formatDe(d);
+        e.etat = NOMS_F[fmt]; maj();
+        const r = await envoyerFichier(travail.id, e.f, fmt, d, pc => { e.pc = pc; maj(); });
+        const mini = await miniature(e.f);
+        if (mini && r.id) await fetch('/api/equipe/fichiers/' + r.id + '/mini', { method: 'PUT', headers: { 'Content-Type': 'image/jpeg' }, body: mini, credentials: 'same-origin' });
+        e.pc = 100; e.ok = true; e.etat = NOMS_F[fmt] + ' ✓';
+      } catch (err) { e.etat = err.message; }
+      maj();
+    }
+  };
+  await Promise.all([travailleur(), travailleur(), travailleur()]);
+  DL.envois = file.filter(e => !e.ok);
+  DL.choix = travail.id;
+  await chargerDl(x.dossier);
 }
 function brancherLivrer(id) {
   const s = document.getElementById('lv-projet'); if (s) s.onchange = () => K.aller('#/livrer/' + s.value);
-  const b = document.getElementById('lv-envoyer'); if (!b) return;
-  b.onclick = async () => {
-    const etat = document.getElementById('lv-etat'), lien = document.getElementById('lv-lien').value.trim(), note = document.getElementById('lv-note').value.trim();
-    if (E.moi && E.moi.role === 'admin') { etat.textContent = 'Admin preview: deliveries are sent by the designer.'; return; }
-    if (lien.indexOf('https://') !== 0) { etat.textContent = 'Please paste the full download link (it starts with https://).'; return; }
-    if (/figma\.com/i.test(lien)) { etat.textContent = 'Please send the exported files (SwissTransfer or WeTransfer link to the zip), not the Figma link.'; return; }
+  const x = id && K.prod.trouver(id);
+  if (!x) return;
+  const V = (DL.donnees && DL.donnees.versions) || [], vue = V.find(v => v.id === DL.choix);
+  document.querySelectorAll('[data-rv-version]').forEach(b => b.onclick = () => { DL.choix = b.dataset.rvVersion; K.rendre(true); });
+  if (vue) {
+    K.rv.brancher(vue, { mode: 'designer', nomZip: (x.marque + '-v' + vue.version).replace(/[^A-Za-z0-9]+/g, '-'), rendre: () => K.rendre(true), auteur: (E.moi && E.moi.nom) || 'Designer',
+      peutCommenter: () => true, peutApprouver: () => false,
+      api: { commenter: (f, texte, forme, couleur) => K.api('/api/equipe/commentaires', { methode: 'POST', corps: { fichier_id: f.id, texte, forme, couleur } }),
+        supprimer: id2 => K.api('/api/equipe/commentaires/' + id2, { methode: 'DELETE' }) } });
+    document.querySelectorAll('[data-rv-suppr]').forEach(b => b.onclick = async e => {
+      e.stopPropagation();
+      try { await K.api('/api/equipe/fichiers/' + b.dataset.rvSuppr, { methode: 'DELETE' }); await chargerDl(x.dossier); } catch (err) { K.toast(err.message); }
+    });
+  }
+  const zone = document.getElementById('lv-depot'), champ = document.getElementById('lv-fichiers');
+  if (zone && champ) {
+    zone.onclick = () => champ.click();
+    champ.onchange = () => deposer(champ.files, x);
+    zone.ondragover = e => { e.preventDefault(); zone.classList.add('survol'); };
+    zone.ondragleave = () => zone.classList.remove('survol');
+    zone.ondrop = e => { e.preventDefault(); zone.classList.remove('survol'); deposer(e.dataTransfer.files, x); };
+  }
+  const b = document.getElementById('lv-envoyer');
+  if (b) b.onclick = async () => {
+    const etat = document.getElementById('lv-etat'), travail = V[0];
+    if (!travail || travail.statut !== 'brouillon') return;
+    const attendu = Number(x.nb) || 0, manque = attendu ? ['1x1', '4x5', '9x16'].filter(f => travail.fichiers.filter(y => y.format === f).length < attendu) : [];
+    if (manque.length && !await K.confirmer('Some formats are incomplete', 'Missing files in ' + manque.map(f => NOMS_F[f]).join(', ') + '. Send anyway?', 'Send anyway')) return;
     b.disabled = true; etat.textContent = 'Sending…';
     try {
-      const r = await fetch(WEBHOOK, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ dossier: id, lien, note }) });
-      let rep = {}; try { rep = await r.json(); } catch (e) {}
-      if (r.ok) { K.toast(rep.message || 'Thank you! Kreative has been notified.'); await K.prod.charger(true); K.rendre(true); return; }
-      etat.textContent = rep.message || 'Sending failed. Please message Kreative on Telegram.';
-    } catch (e) { etat.textContent = 'Sending failed. Please message Kreative on Telegram.'; }
-    b.disabled = false;
+      const r = await K.api('/api/equipe/livraisons/' + travail.id + '/envoyer', { methode: 'POST', corps: { note: document.getElementById('lv-note').value.trim() } });
+      K.toast(r.message); E.livs = await K.api('/api/equipe/livraisons').catch(() => E.livs); await K.prod.charger(true); marquer(); await chargerDl(x.dossier);
+    } catch (e) { etat.textContent = e.message; b.disabled = false; }
   };
 }
 
@@ -159,6 +266,8 @@ K.rendre = async force => {
   derniere = cle;
   if (!E.moi) E.moi = await K.lireJson('/_moi');
   await K.prod.charger();
+  if (!E.livs) { try { E.livs = await K.api('/api/equipe/livraisons'); } catch (e) { E.livs = []; } }
+  marquer();
   const sec = r.ecran, id = r.params[0];
   let contenu, plein = false, nomP = '';
   if (sec === 'visuels' || sec === 'telechargement') {
@@ -172,7 +281,7 @@ K.rendre = async force => {
   K.brancherCoquille(c);
   if (plein) K.prod.brancher(sec);
   if (sec === 'livrer') brancherLivrer(id);
-  document.title = (nomP || TITRES[sec] || 'Designer') + ' · Kreative';
+  document.title = 'Designer space · Kreative';
 };
 K.rendre();
 </script>

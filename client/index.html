@@ -8,6 +8,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
 <link rel="stylesheet" href="/ui/app.css">
 <script src="/ui/app.js"></script>
+<script src="/ui/review.js"></script>
 </head>
 <body>
 <div id="racine"><div class="chargement">Chargement de votre espace…</div></div>
@@ -56,7 +57,7 @@ function conf() {
       { id: 'brief', texte: 'Mon brief', icone: 'doc', href: '#/brief' },
       { id: 'factures', texte: 'Factures', icone: 'recu', href: '#/factures', nb: (D.factures || []).length || '' }
     ] }, { titre: 'Kreative', liens: [
-      { id: 'contact', texte: 'Nous contacter', icone: 'whatsapp', href: '#/contact' },
+      { id: 'contact', texte: 'Nous contacter', icone: 'message', href: '#/contact' },
       { id: 'avis', texte: 'Laisser un avis', icone: 'etoile', href: '#/avis' }
     ] }],
     qui: { nom: D.client.marque, role: D.client.contact || D.client.email || 'Client', tuile: true, photo: urlPhoto() },
@@ -79,11 +80,11 @@ function ecranAccueil() {
   const cours = enCours();
   const principal = cours[0] || D.commandes[0];
   const attente = D.commandes.find(c => etat(c) === 'confirmee');
-  const aValider = D.commandes.find(c => etat(c) === 'livre');
+  const aReviewer = D.commandes.find(c => c.a_reviewer), aValider = aReviewer || D.commandes.find(c => etat(c) === 'livre');
   let h = apercu();
   if (aValider) h += '<div class="bandeau"><span class="ic">' + i.image + '</span><div><b>Vos créatives sont prêtes</b>' +
-    '<small>' + esc(nom(aValider)) + ' : regardez-les, puis validez la livraison ou demandez une retouche.</small></div>' +
-    '<a class="btn" href="#/projets/' + esc(aValider.id) + '">Voir et valider</a></div>';
+    '<small>' + esc(nom(aValider)) + ' : regardez chaque créative, commentez ce qui doit bouger, approuvez le reste.</small></div>' +
+    '<a class="btn" href="#/projets/' + esc(aValider.id) + (aValider.creatives ? '/creatives' : '') + '">Voir mes créatives</a></div>';
   else if (attente) h += '<div class="bandeau"><span class="ic">' + i.doc + '</span><div><b>Il reste une étape : votre brief</b>' +
     '<small>Comptez une quinzaine de minutes. Il lance la production de votre ' + esc(nom(attente)) + '.</small></div>' +
     '<a class="btn" href="#/brief/' + esc(attente.id) + '">Remplir mon brief</a></div>';
@@ -144,29 +145,32 @@ function ecranProjets() {
 function ecranProjet(id) {
   const c = D.commandes.find(x => x.id === id);
   if (!c) return '<a class="retour" href="#/projets">' + i.gauche + 'Mes projets</a><div class="card"><div class="vide">Projet introuvable.</div></div>';
+  CREAS.commande = null;   // en revenant sur les créatives, elles se rechargent
   const e = etat(c), ce = coeur(c), fait = k => (c.etapes.find(x => x.cle === k) || {}).fait;
   let h = apercu() + '<a class="retour" href="#/projets">' + i.gauche + 'Retour à mes projets</a>' +
     '<div class="ph"><div><h1 class="avec-pill">' + esc(nom(c)) + ' ' + K.pillCommande(c) + '</h1>' +
     '<p>Commande #' + esc(c.ref) + ' du ' + esc(K.date(c.cree_le)) + ' · ' + c.nb_creas + ' créatives' + (c.deadline && !fait('livraison') ? ' · livraison prévue le ' + esc(K.jour(c.deadline)) : '') + '</p></div></div>';
-  // un seul suivi : fait, en cours, à venir
-  const iCours = ce.findIndex(x => !x.fait);
-  h += '<div class="card pad"><div class="suivi-h"><h3>Avancement</h3><span class="muted">' + ce.filter(x => x.fait).length + ' étapes sur ' + ce.length + ' · <b>' + c.progression + ' %</b></span></div>' +
-    '<div class="suivi">' + ce.map((x, n) => {
-      const st = x.fait ? 'fait' : n === iCours ? 'cours' : 'attente';
-      return '<div class="pas ' + st + '"><span class="o">' + (x.fait ? i.coche : n + 1) + '</span><b>' + esc(x.titre) + '</b>' +
-        '<small>' + (x.fait ? 'Terminé' : st === 'cours' ? esc(x.detail || 'En cours') : 'À venir') + '</small></div>';
-    }).join('') + '</div></div>';
+  // l'avancement, comme avant : la barre et les étapes, avec l'étape en cours bien visible
+  const iCours = ce.findIndex(x => !x.fait), cours = ce[iCours];
+  h += '<div class="card pad"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px"><div><h3 style="font-size:16px">Avancement</h3>' +
+    '<p class="muted" style="font-size:13px;margin-top:3px">' + ce.filter(x => x.fait).length + ' étapes sur ' + ce.length + (cours ? ' · en cours : ' + esc(cours.titre) + (cours.detail ? ', ' + esc(cours.detail.charAt(0).toLowerCase() + cours.detail.slice(1)) : '') : ' · projet terminé') + '</p></div>' +
+    '<b style="font:600 22px var(--titre)">' + c.progression + ' %</b></div>' +
+    '<div class="barre' + (c.progression === 100 ? ' g' : '') + '" style="margin-top:16px;height:7px"><i style="width:' + c.progression + '%"></i></div>' +
+    '<div class="coches">' + ce.map((x, n) => '<div class="coche' + (x.fait ? ' fait' : n === iCours ? ' cours' : '') + '"><span class="o">' + (x.fait ? i.coche : '') + '</span>' + esc(x.titre) + (n === iCours ? '<span class="pill b" style="margin-left:4px">En cours</span>' : '') + '</div>').join('') + '</div></div>';
 
   h += '<div class="sec"><div><h2>Vos actions</h2><p>Ce qui dépend de vous sur ce projet.</p></div></div><div class="actions">';
   h += action(fait('brief') ? 'ok' : 'on', i.doc, 'Étape 2', 'Votre brief', 'Les informations sur votre marque qui lancent la production.',
     fait('brief') ? '<div class="etat ok">✓ Brief envoyé</div>' : '<a class="btn btn-p btn-sm" href="#/brief/' + esc(c.id) + '">Remplir mon brief</a>');
-  h += action(fait('livraison') ? 'ok' : 'off', i.image, 'Étape 4', 'Vos créatives',
+  h += action(c.creatives || fait('livraison') ? (c.a_reviewer ? 'on' : 'ok') : 'off', i.image, 'Étape 4', 'Vos créatives',
     c.nb_creas + ' créatives en 3 formats (1:1, 4:5, 9:16).',
+    c.creatives ? '<a class="btn ' + (c.a_reviewer ? 'btn-p' : 'btn-s') + ' btn-sm" href="#/projets/' + esc(c.id) + '/creatives">Voir mes créatives</a>' :
     fait('livraison') ? '<a class="btn btn-s btn-sm" href="' + wa('Bonjour Kreative, je voudrais récupérer les créatives de mon projet ' + nom(c) + ' (#' + c.ref + ')') + '" target="_blank" rel="noopener">Recevoir mes créatives</a>'
       : '<div class="etat">' + (c.deadline ? 'Prévues le ' + esc(K.date(c.deadline, { year: undefined })) : 'Après votre brief') + '</div>');
   h += action(e === 'valide' ? 'ok' : ['livre', 'revisions'].includes(e) ? 'on' : 'off', i.coche, 'Étape 5', 'Validation',
     e === 'revisions' ? 'Vos retouches sont en cours. Validez quand tout vous convient.' : 'Vous validez la version finale, ou demandez une retouche avant.',
     e === 'valide' ? '<div class="etat ok">✓ Validé' + (c.valide_le ? ' le ' + esc(K.date(c.valide_le, { year: undefined })) : '') + '</div>'
+      : c.a_reviewer ? '<a class="btn btn-p btn-sm" href="#/projets/' + esc(c.id) + '/creatives">Ouvrir la review</a>'
+      : c.creatives && e === 'revisions' ? '<div class="etat">Retours envoyés · nouvelle version en préparation</div>'
       : ['livre', 'revisions'].includes(e) ? '<button class="btn btn-p btn-sm" data-valider="' + esc(c.id) + '">Valider la livraison</button>' +
         '<a class="btn btn-g btn-sm" style="margin-top:6px" href="' + wa('Bonjour Kreative, je voudrais une retouche sur mon projet ' + nom(c) + ' (#' + c.ref + ') : ') + '" target="_blank" rel="noopener">Demander une retouche</a>'
       : '<div class="etat">Après la livraison</div>');
@@ -175,13 +179,7 @@ function ecranProjet(id) {
   h += '</div>';
   const F = facturesDe(c);
   if (F.length) h += '<div class="sec"><div><h2>Factures</h2><p>Les factures de ce projet.</p></div></div><div class="card"><div class="tbl-wrap">' + tableFactures(F) + '</div></div>';
-  h += barreAide('Une question sur ce projet ?', 'Bonjour Kreative, une question sur mon projet ' + nom(c) + ' (#' + c.ref + ') : ');
   return h;
-}
-// la barre WhatsApp en bas des pages
-function barreAide(titre, message) {
-  return '<div class="card barre-aide"><span class="wa-rond">' + i.whatsapp + '</span><div><b>' + esc(titre) + '</b><small>On répond sur WhatsApp, en général dans l\'heure.</small></div>' +
-    '<a class="btn btn-wa" href="' + wa(message) + '" target="_blank" rel="noopener">' + i.whatsapp + 'Nous écrire</a></div>';
 }
 function action(etatCarte, icone, lab, titre, texte, pied) {
   return '<div class="card action ' + etatCarte + '"><span class="ic">' + icone + '</span><div class="lab">' + esc(lab) + '</div><h3>' + esc(titre) + '</h3><p>' + esc(texte) + '</p>' + pied + '</div>';
@@ -194,6 +192,64 @@ function brancherProjet() {
     catch (e) { K.toast(e.message); }
   });
   document.querySelectorAll('[data-avis]').forEach(b => b.onclick = () => fenetreAvis(D.commandes.find(x => x.id === b.dataset.avis)));
+}
+
+// ---------- LES CRÉATIVES : la review du client ----------
+const CREAS = { commande: null, donnees: null, choix: null };
+async function chargerCreatives(id) {
+  CREAS.commande = id;
+  try { CREAS.donnees = await K.api('/api/client/commandes/' + id + '/creatives'); } catch (e) { CREAS.donnees = { livraisons: [], erreur: e.message }; }
+  const L = CREAS.donnees.livraisons;
+  if (!L.find(l => l.id === CREAS.choix)) CREAS.choix = (L.find(l => l.statut === 'envoyee') || L[0] || {}).id || null;
+  K.rendre();
+}
+const nomVersion = l => (l.partie ? 'Livraison ' + l.partie.n + '/' + l.partie.sur + ' · ' : '') + 'Version ' + l.version;
+function ecranCreatives(id) {
+  const c = D.commandes.find(x => x.id === id);
+  if (!c) return '<a class="retour" href="#/projets">' + i.gauche + 'Mes projets</a><div class="card"><div class="vide">Projet introuvable.</div></div>';
+  let h = apercu() + '<a class="retour" href="#/projets/' + esc(c.id) + '">' + i.gauche + 'Retour au projet</a>';
+  if (CREAS.commande !== id) { CREAS.commande = id; CREAS.donnees = null; setTimeout(() => chargerCreatives(id), 0); }
+  if (!CREAS.donnees) return h + '<div class="card"><div class="vide">Chargement de vos créatives…</div></div>';
+  const L = CREAS.donnees.livraisons, l = L.find(x => x.id === CREAS.choix);
+  if (!l) return h + '<div class="card"><div class="vide">' + i.image + 'Vos créatives arrivent ici dès qu\'elles sont prêtes.</div></div>';
+  h += RV.puces(L, l.id, nomVersion);
+  const enReview = l.statut === 'envoyee' && !D.apercu;
+  if (l.statut === 'review_terminee') h += '<div class="rv-note">' + i.coche + '<div><b>Review envoyée' + (l.review_le ? ' le ' + esc(K.date(l.review_le, { year: undefined })) : '') + '.</b> Vos retours sont chez Kreative : la nouvelle version arrive ici.</div></div>';
+  if (l.statut === 'approuvee') h += '<div class="rv-note">' + i.coche + '<div><b>Livraison approuvée.</b> Vos créatives sont définitives, téléchargez-les quand vous voulez.</div></div>';
+  return h + RV.grille(l, { mode: 'client', titre: nom(c) + (L.length > 1 ? ' · ' + nomVersion(l) : ''),
+    actions: enReview ? '<button class="btn btn-s" data-tout-ok>' + i.coche + 'Tout approuver</button><button class="btn btn-d" data-terminer>' + i.envoi + 'Review terminée</button>' : '' });
+}
+const RV = K.rv;
+function brancherCreatives(params) {
+  const L = (CREAS.donnees && CREAS.donnees.livraisons) || [], l = L.find(x => x.id === CREAS.choix), c = D.commandes.find(x => x.id === params[0]);
+  if (!l || !c) return;
+  document.querySelectorAll('[data-rv-version]').forEach(b => b.onclick = () => { CREAS.choix = b.dataset.rvVersion; K.rendre(); });
+  RV.brancher(l, { mode: 'client', nomZip: (D.client.marque + '-' + nomVersion(l)).replace(/[^A-Za-z0-9]+/g, '-'), rendre: () => K.rendre(),
+    auteur: D.client.contact || D.client.marque,
+    peutCommenter: x => x.statut === 'envoyee' && !D.apercu, peutApprouver: x => x.statut === 'envoyee' && !D.apercu,
+    api: {
+      commenter: (f, texte, forme, couleur) => K.api('/api/client/commentaires', { methode: 'POST', corps: { fichier_id: f.id, texte, forme, couleur } }),
+      supprimer: id => K.api('/api/client/commentaires/' + id, { methode: 'DELETE' }),
+      approuver: (f, oui) => K.api('/api/client/fichiers/' + f.id + '/approuver', { methode: 'POST', corps: { oui } })
+    } });
+  const t = document.querySelector('[data-tout-ok]');
+  if (t) t.onclick = async () => {
+    if (!await K.confirmer('Tout approuver ?', 'Les ' + l.fichiers.length + ' fichiers de cette version sont marqués comme approuvés. Vous terminez ensuite votre review.', 'Tout approuver')) return;
+    try { await K.api('/api/client/livraisons/' + l.id + '/tout-approuver', { methode: 'POST' }); l.fichiers.forEach(f => { f.approuve_le = f.approuve_le || Date.now(); }); K.rendre(); K.toast('Tout est approuvé'); } catch (e) { K.toast(e.message); }
+  };
+  const fin = document.querySelector('[data-terminer]');
+  if (fin) fin.onclick = async () => {
+    const reste = l.fichiers.filter(f => !f.approuve_le).length, coms = l.fichiers.reduce((s, f) => s + f.commentaires.length, 0);
+    const ok = reste ? await K.confirmer('Envoyer vos retours ?', coms + ' commentaire' + (coms > 1 ? 's' : '') + ', ' + (l.fichiers.length - reste) + ' fichier' + (l.fichiers.length - reste > 1 ? 's' : '') + ' approuvé' + (l.fichiers.length - reste > 1 ? 's' : '') + ' sur ' + l.fichiers.length + '. Kreative prépare une nouvelle version avec vos retours.', 'Envoyer mes retours')
+      : await K.confirmer('Tout est approuvé', 'Vous validez cette livraison : vos créatives deviennent définitives.', 'Valider la livraison');
+    if (!ok) return;
+    try {
+      const r = await K.api('/api/client/livraisons/' + l.id + '/terminer', { methode: 'POST' });
+      await recharger(); await chargerCreatives(c.id);
+      if (r.valide) fenetreAvis(D.commandes.find(x => x.id === c.id));
+      else K.toast(r.approuvee ? 'Livraison approuvée, merci' : 'Vos retours sont envoyés à Kreative');
+    } catch (e) { K.toast(e.message); }
+  };
 }
 
 // ---------- L'AVIS TRUSTPILOT (après la validation) ----------
@@ -287,49 +343,48 @@ function ecranCommander() {
   return h;
 }
 
-// ---------- LE PANIER : un pack, sa formule, ses options ----------
+// ---------- LE PANIER : le pack choisi, sa formule, ses options ----------
 // même calcul que le serveur (devis) ; le serveur recalcule de toute façon le prix
-const CFG = { pack: 'growth', nb: 30, formule: null, options: [] };
+const CFG = { pack: 'growth', nb: 30, formule: 'mensuel', options: [] };
 function devis(o) {
   o = o || CFG;
   const m = o.formule === 'mensuel', r = D.custom.remise_mensuel, opts = D.options.filter(x => o.options.includes(x.id)), lignes = [];
-  let base, nb;
+  let base, nb, u;
   if (o.pack !== 'custom') {
-    const P = D.packs[o.pack]; nb = P.creas; base = m ? P.mensuel : P.unique;
+    const P = D.packs[o.pack]; nb = P.creas; base = m ? P.mensuel : P.unique; u = Math.round(base / nb);
     lignes.push(['Pack ' + P.nom + ' · ' + nb + ' créatives', base]);
-    opts.filter(x => x.type === 'par_crea').forEach(x => { const v = nb * x.valeur * (m ? 1 - r : 1); lignes.push([x.nom + ' · ' + nb + ' créas', v]); base += v; });
+    opts.filter(x => x.type === 'par_crea').forEach(x => { const v = nb * x.valeur; lignes.push([x.nom + ' · ' + nb + ' × ' + x.valeur + ' €', v]); base += v; });
   } else {
-    nb = o.nb; const u = D.custom.paliers.filter(x => nb >= x[0]).pop()[1];
+    nb = o.nb; u = D.custom.paliers.filter(x => nb >= x[0]).pop()[1];
     base = nb * u; lignes.push([nb + ' créatives × ' + u + ' €', base]);
     opts.filter(x => x.type === 'par_crea').forEach(x => { const v = nb * x.valeur; lignes.push([x.nom + ' · ' + nb + ' × ' + x.valeur + ' €', v]); base += v; });
     if (m) { lignes.push(['Remise mensuelle −' + Math.round(r * 100) + ' %', -base * r]); base *= 1 - r; }
   }
   opts.filter(x => x.type === 'pct').forEach(x => { const v = base * x.valeur / 100; lignes.push([x.nom + ' (+' + x.valeur + ' %)', v]); base += v; });
-  return { lignes, total: Math.round(base), nb };
+  return { lignes, total: Math.round(base), nb, unitaire: u };
 }
-const delaiDe = k => (D.packs[k] || {}).delai || 72;
-function detailOption(o) {
-  if (o.id === 'express') return 'Livrée en ' + Math.round(delaiDe(CFG.pack) / 2) + ' h au lieu de ' + delaiDe(CFG.pack) + ' h';
-  return o.detail;
+// le délai de livraison après le brief : celui du pack, ou selon le volume pour le Custom ; l'express le divise par deux
+function delai(o) {
+  o = o || CFG;
+  let h = o.pack === 'custom' ? (D.custom.delais.find(x => o.nb <= x[0]) || D.custom.delais[D.custom.delais.length - 1])[1] : D.packs[o.pack].delai;
+  if (o.options.includes('express')) h = Math.round(h / 2);
+  return h <= 72 ? h + ' h' : Math.round(h / 24) + ' jours';
 }
 function ecranPanier(pack) {
-  CFG.pack = D.packs[pack] ? pack : 'growth';
-  if (!CFG.formule) CFG.formule = formule;   // reprend l'onglet choisi sur la page des offres
-  const custom = CFG.pack === 'custom', P = D.packs[CFG.pack], C = D.custom, m = CFG.formule === 'mensuel';
+  if (!D.packs[pack] || pack === 'paiement') pack = 'growth';
+  if (CFG.pack !== pack) { CFG.pack = pack; CFG.options = []; }
+  CFG.formule = formule;   // la formule choisie sur la page des offres
+  const custom = pack === 'custom', P = D.packs[pack], C = D.custom, m = CFG.formule === 'mensuel', d = devis();
   let h = apercu() + '<a class="retour" href="#/commander">' + i.gauche + 'Retour aux offres</a>' +
-    '<div class="ph"><div><h1>' + (custom ? 'Votre pack sur mesure' : 'Pack ' + esc(P.nom)) + '</h1><p>' +
-    (custom ? 'Choisissez le volume et les options : le prix se met à jour tout de suite.' : 'Choisissez la formule et ajoutez des options si vous en avez besoin.') + '</p></div></div>';
+    '<div class="ph"><div><h1>' + (custom ? 'Votre pack Custom' : 'Pack ' + esc(P.nom)) + '</h1><p>' +
+    (custom ? 'Choisissez le volume et les options que vous souhaitez.' : 'Choisissez la formule et les options que vous souhaitez.') + '</p></div></div>';
   h += '<div class="config"><div class="grid" style="gap:16px">';
-  // le pack (on peut en changer ici)
-  h += '<div class="card bloc"><h3>Votre pack</h3><div class="choix-pack">' + ['starter', 'growth', 'scale', 'custom'].map(k =>
-    '<a class="' + (k === CFG.pack ? 'on' : '') + '" href="#/commander/' + k + '"><b>' + esc(D.packs[k].nom) + '</b><small>' +
-    (k === 'custom' ? 'dès ' + C.min + ' créas' : D.packs[k].creas + ' créas · ' + (m ? D.packs[k].mensuel : D.packs[k].unique) + ' €') + '</small></a>').join('') + '</div>';
-  if (custom) h += '<div class="nb-creas"><b id="cf-nb">' + CFG.nb + '</b><span>créatives' + (m ? ' par mois' : '') + '</span></div>' +
+  if (custom) h += '<div class="card bloc"><h3>Nombre de créatives</h3><p class="aide">Chaque créative est livrée en 1:1, 4:5 et 9:16.</p>' +
+    '<div class="nb-creas"><b id="cf-nb">' + CFG.nb + '</b><span>créatives' + (m ? ' par mois' : '') + '</span></div>' +
     '<input class="curseur" type="range" id="cf-range" min="' + C.min + '" max="' + C.max + '" step="' + C.pas + '" value="' + CFG.nb + '">' +
     '<div class="reperes"><span>' + C.min + '</span><span>' + C.max + '</span></div>' +
-    '<p class="aide" style="margin-top:14px">' + C.paliers.map((p, n) => (n === 0 ? p[1] + ' € la créative' : 'dès ' + p[0] + ' : ' + p[1] + ' €')).join(' · ') + '</p>';
-  else h += '<ul class="inclus">' + AVANTAGES[CFG.pack].filter(a => a[1]).map(a => '<li>' + i.coche + '<span>' + esc(a[0]) + '</span></li>').join('') + '</ul>';
-  h += '</div>';
+    '<div class="unitaire" id="cf-unit">' + d.unitaire + ' € <span>la créative</span></div></div>';
+  else h += '<div class="card bloc"><h3>Inclus dans le pack ' + esc(P.nom) + '</h3><ul class="inclus">' + AVANTAGES[pack].filter(a => a[1]).map(a => '<li>' + i.coche + '<span>' + esc(a[0]) + '</span></li>').join('') + '</ul></div>';
   h += '<div class="card bloc"><h3>Formule</h3><div class="onglets" style="margin-top:14px"><button class="' + (m ? 'on' : '') + '" data-cf-formule="mensuel">Mensuel · ' + Math.round(C.remise_mensuel * 100) + ' % de moins</button>' +
     '<button class="' + (!m ? 'on' : '') + '" data-cf-formule="unique">Commande unique</button></div>' +
     '<p class="aide" style="margin-top:12px">' + (m ? 'Prélevé chaque mois, engagement 3 mois puis sans engagement.' : 'Payé en une fois, sans engagement.') + '</p></div>';
@@ -337,29 +392,32 @@ function ecranPanier(pack) {
   h += '</div><div class="card recap" id="cf-recap">' + recap() + '</div></div>';
   return h;
 }
+// le prix d'une option : par créa (ça se lit mieux), ou en % pour l'express
 function listeOptions() {
-  const sans = devis({ ...CFG, options: CFG.options.filter(x => false) }).total;
-  return D.options.map(o => {
-    const plus = devis({ ...CFG, options: [o.id] }).total - sans;
-    return '<div class="opt' + (CFG.options.includes(o.id) ? ' on' : '') + '" data-cf-opt="' + esc(o.id) + '" role="checkbox" aria-checked="' + CFG.options.includes(o.id) + '" tabindex="0"><span class="case">' + i.coche + '</span>' +
-      '<div><b>' + esc(o.nom) + '</b><small>' + esc(detailOption(o)) + '</small></div><span class="px">+' + K.euros(plus) + (CFG.formule === 'mensuel' ? '<small>/ mois</small>' : '') + '</span></div>';
-  }).join('');
+  return D.options.map(o => '<div class="opt' + (CFG.options.includes(o.id) ? ' on' : '') + '" data-cf-opt="' + esc(o.id) + '" role="checkbox" aria-checked="' + CFG.options.includes(o.id) + '" tabindex="0"><span class="case">' + i.coche + '</span>' +
+    '<div><b>' + esc(o.nom) + '</b><small>' + esc(o.detail) + '</small></div><span class="px">' + (o.type === 'pct' ? '+' + o.valeur + ' %' : '+' + o.valeur + ' €<small>par créa</small>') + '</span></div>').join('');
 }
 function recap() {
   const d = devis(), m = CFG.formule === 'mensuel', P = D.packs[CFG.pack];
   return '<div class="lab">Récapitulatif</div><h3 style="margin-top:8px">Pack ' + esc(P.nom) + ' · ' + d.nb + ' créatives</h3>' +
-    '<p class="muted" style="font-size:13px;margin-top:3px">' + (m ? 'Abonnement mensuel' : 'Paiement en une fois') + '</p>' +
+    '<p class="muted" style="font-size:13px;margin-top:3px">' + (m ? 'Abonnement mensuel' : 'Commande unique') + '</p>' +
     '<div style="margin-top:14px">' + d.lignes.map(l => '<div class="ligne"><span>' + esc(l[0]) + '</span><b>' + (l[1] < 0 ? '−' : '') + K.euros(Math.abs(Math.round(l[1]))) + '</b></div>').join('') + '</div>' +
     '<div class="total"><span class="muted">Total' + (m ? ' par mois' : '') + '</span><b>' + K.euros(d.total) + '</b></div>' +
     '<p class="muted" style="font-size:12.5px;margin-top:6px">Soit ' + K.euros(Math.round(d.total / d.nb)) + ' la créative' + (m ? ' · engagement 3 mois' : '') + '</p>' +
+    '<div class="delai">' + i.horloge + 'Livrée en ' + esc(delai()) + ' après votre brief</div>' +
     '<button class="btn btn-d btn-bloc btn-lg" id="cf-payer">Commander</button>' +
     '<p class="muted" style="font-size:12px;margin-top:10px;text-align:center">' + i.bouclier.replace('<svg', '<svg width="13" height="13" style="vertical-align:-2px"') + ' Paiement sécurisé par Stripe · facture automatique</p>';
 }
 function brancherPanier() {
-  const maj = () => { document.getElementById('cf-recap').innerHTML = recap(); document.getElementById('cf-opts').innerHTML = listeOptions(); const n = document.getElementById('cf-nb'); if (n) n.textContent = CFG.nb; brancherOpts(); brancherPayer(); };
+  const maj = () => {
+    document.getElementById('cf-recap').innerHTML = recap(); document.getElementById('cf-opts').innerHTML = listeOptions();
+    const n = document.getElementById('cf-nb'); if (n) n.textContent = CFG.nb;
+    const u = document.getElementById('cf-unit'); if (u) u.innerHTML = devis().unitaire + ' € <span>la créative</span>';
+    brancherOpts(); brancherPayer();
+  };
   const r = document.getElementById('cf-range');
   if (r) r.oninput = () => { CFG.nb = Number(r.value); maj(); };
-  document.querySelectorAll('[data-cf-formule]').forEach(b => b.onclick = () => { CFG.formule = b.dataset.cfFormule; formule = CFG.formule; K.rendre(); });
+  document.querySelectorAll('[data-cf-formule]').forEach(b => b.onclick = () => { formule = b.dataset.cfFormule; K.rendre(); });
   const brancherOpts = () => document.querySelectorAll('[data-cf-opt]').forEach(o => {
     const basculer = () => { const id = o.dataset.cfOpt; CFG.options = CFG.options.includes(id) ? CFG.options.filter(x => x !== id) : CFG.options.concat(id); maj(); };
     o.onclick = basculer; o.onkeydown = e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); basculer(); } };
@@ -499,24 +557,25 @@ function ecranAvis() {
 const nomProjetDe = id => { const c = D.commandes.find(x => x.id === id); return c ? nom(c) : 'Projet'; };
 const ECRANS = {
   '': ['accueil', 'accueil', () => ['Accueil'], () => ecranAccueil()],
-  projets: ['projets', 'dossier', p => p[0] ? ['Mes projets', nomProjetDe(p[0])] : ['Mes projets'], p => p[0] ? ecranProjet(p[0]) : ecranProjets(), brancherProjet],
+  projets: ['projets', 'dossier', p => p[1] === 'creatives' ? ['Mes projets', nomProjetDe(p[0]), 'Créatives'] : p[0] ? ['Mes projets', nomProjetDe(p[0])] : ['Mes projets'],
+    p => p[1] === 'creatives' ? ecranCreatives(p[0]) : p[0] ? ecranProjet(p[0]) : ecranProjets(), p => p[1] === 'creatives' ? brancherCreatives(p) : brancherProjet()],
   brief: ['brief', 'doc', () => ['Mon brief'], p => ecranBrief(p[0])],
   factures: ['factures', 'recu', () => ['Factures'], () => ecranFactures()],
   commander: ['commander', 'panier', p => p[0] === 'paiement' ? ['Commander des créas', 'Paiement'] : p[0] && D.packs[p[0]] ? ['Commander des créas', 'Pack ' + D.packs[p[0]].nom] : ['Commander des créas'],
     p => p[0] === 'paiement' ? ecranPaiement() : p[0] ? ecranPanier(p[0]) : ecranCommander(), p => p[0] === 'paiement' ? brancherPaiement() : p[0] ? brancherPanier() : null],
   merci: ['projets', 'panier', () => ['Commander des créas', 'Paiement reçu'], () => ecranMerci(), brancherMerci],
   profil: ['profil', 'utilisateur', () => ['Mon profil'], () => ecranProfil(), brancherProfil],
-  contact: ['contact', 'whatsapp', () => ['Nous contacter'], () => ecranContact()],
+  contact: ['contact', 'message', () => ['Nous contacter'], () => ecranContact()],
   avis: ['avis', 'etoile', () => ['Laisser un avis'], () => ecranAvis()]
 };
 K.rendre = () => {
   if (!D) return;
   const r = K.route(), e = ECRANS[r.ecran] || ECRANS[''];
   const c = conf(), fil = e[2](r.params);
-  document.getElementById('racine').innerHTML = K.coquille(c, e[0], K.ariane(e[1], ...fil), e[3](r.params), r.ecran === 'brief');
+  document.getElementById('racine').innerHTML = K.coquille(c, e[0], K.ariane(e[1], ...fil), e[3](r.params), r.ecran === 'brief' ? true : r.ecran === 'commander' ? 'centre' : false);
   K.brancherCoquille(c);
   if (e[4]) e[4](r.params);
-  document.title = fil[fil.length - 1] + ' · Kreative';
+  document.title = 'Espace client · Kreative';
 };
 // retour de Stripe (paiement intégré) : on arrive sur « Paiement reçu »
 if (params.get('paiement') === 'ok') history.replaceState(null, '', location.pathname + (K.suffixe || '') + '#/merci');

@@ -27,7 +27,7 @@ const ANCIENS = [
 ];
 const COOKIE = 'k_espace';
 const DUREE_JOURS = 60;
-const PUBLICS = /^\/(ui\/kreative\.css|ui\/app\.(css|js)|ui\/logo-[a-z0-9-]+\.png|ui\/[a-z0-9-]+\.svg|favicon-\d+\.png)$/;
+const PUBLICS = /^\/(ui\/kreative\.css|ui\/(app|review)\.(css|js)|ui\/logo-[a-z0-9-]+\.png|ui\/[a-z0-9-]+\.svg|favicon-\d+\.png)$/;
 const INTERDITS = /(^|\/)(\.git|\.github|outils)(\/|$)|\.\./;
 const LIMITE_REECRITURE = 3 * 1024 * 1024;   // au-delà, le texte passe tel quel
 const LIMITE_SCRIPT = 64 * 1024;              // scripts inline réécrits jusqu'à 64 ko
@@ -329,13 +329,13 @@ function coquille(qui, chemin, req) {
   nav += lab('Production') + '<div class="kc-nav">' + (en
     ? lien(h + '#/visuels', 'image', 'Previews', actif === 'visuels') + lien(h + '#/telechargement', 'telecharger', 'Downloads', actif === 'telechargement') + lien(h + '#/livrer', 'fleche', 'Deliver')
     : lien(h + '#/fiche', 'doc', 'Fiches créas', actif === 'fiche') + lien(h + '#/dossier', 'calques', 'Dossiers de production', actif === 'dossier') +
-      lien(h + '#/brief', 'message', 'Briefs clients', actif === 'brief') + lien(h + '#/visuels', 'image', 'Visuels', actif === 'visuels' || actif === 'telechargement')) + '</div>';
+      lien(h + '#/brief', 'message', 'Briefs suivants', actif === 'brief') + (role === 'admin' ? lien(h + '#/visuels', 'image', 'Visuels', actif === 'visuels' || actif === 'telechargement') : '')) + '</div>';
 
   // le fil d'Ariane
   const racine = role === 'admin' ? 'Production' : en ? 'Designer' : 'Stratégiste';
   const noms = en
     ? { designer: 'My projects', apercu: 'Preview', telech: 'Download', autre: 'Page' }
-    : { strategiste: role === 'admin' ? 'Espace stratégiste' : 'Mes projets', designer: 'Designer space', fiche: 'Fiche créas', retours: 'Brief du client',
+    : { strategiste: role === 'admin' ? 'Espace stratégiste' : 'Mes projets', designer: 'Designer space', fiche: 'Fiche créas', retours: 'Brief suivant',
         dossier: 'Dossier de production', apercu: 'Visuels', telech: 'Téléchargement', autre: 'Page' };
   const ariane = IC.dossier + '<span>' + e(racine) + '</span><i>/</i>' +
     (pg.projet ? '<span id="kc-nom">' + e(pg.projet) + '</span><i>/</i>' : '') +
@@ -577,13 +577,15 @@ const packDuLien = id => { for (const [pack, f] of Object.entries(LIENS_PAIEMENT
 // Les options (upsells), pour tous les packs. Le prix est TOUJOURS recalculé ici,
 // jamais pris dans ce qu'envoie le navigateur.
 const OPTIONS = [
-  { id: 'express', nom: 'Livraison express', detail: 'Délai divisé par deux', type: 'pct', valeur: 20 },
+  { id: 'express', nom: 'Livraison express', detail: 'Livrée 2 fois plus vite', type: 'pct', valeur: 20 },
   { id: 'ab_visuel', nom: 'A/B test visuel', detail: 'Même texte sur 2 visuels différents', type: 'par_crea', valeur: 20 },
   { id: 'ab_texte', nom: 'A/B test texte', detail: 'Même visuel avec 2 textes différents', type: 'par_crea', valeur: 15 }
 ];
 // Le pack Custom se configure dans l'espace client : nombre de créas et options.
 const CUSTOM = {
   min: 30, max: 100, pas: 5,
+  // délai de livraison selon le volume : [jusqu'à N créas, heures]
+  delais: [[30, 72], [50, 96], [70, 120], [100, 168]],
   paliers: [[30, 35], [50, 32], [75, 29]],          // à partir de N créas : prix par créa
   remise_mensuel: 0.15,
   options: OPTIONS
@@ -598,7 +600,7 @@ function devis(pack, formule, nbDemande, optionsDemandees) {
     pack = PACKS[pack] ? pack : 'growth';
     const P = PACKS[pack];
     nb = P.creas; base = m ? P.mensuel : P.unique; unitaire = Math.round(base / nb);
-    for (const o of options) if (o.type === 'par_crea') base += nb * o.valeur * (m ? 1 - CUSTOM.remise_mensuel : 1);
+    for (const o of options) if (o.type === 'par_crea') base += nb * o.valeur;
   } else {
     nb = Math.round(Number(nbDemande) || CUSTOM.min);
     nb = Math.min(CUSTOM.max, Math.max(CUSTOM.min, Math.round(nb / CUSTOM.pas) * CUSTOM.pas));
@@ -613,6 +615,13 @@ function devis(pack, formule, nbDemande, optionsDemandees) {
   return { pack, formule: m ? 'mensuel' : 'unique', nb, options: options.map(o => o.id), unitaire, total,
     libelle: 'Pack ' + P.nom + (m ? ' · abonnement mensuel' : ' · paiement en une fois') + ' · ' + nb + ' créatives' + (m ? ' par mois' : '') +
       (options.length ? ' · ' + options.map(o => o.nom).join(', ') : '') };
+}
+
+// le délai de livraison (en heures, après le brief) : celui du pack, ou selon le volume
+// pour le Custom ; l'express le divise par deux
+function delaiHeures(pack, nb, options) {
+  const h = pack === 'custom' ? (CUSTOM.delais.find(x => (nb || 0) <= x[0]) || CUSTOM.delais[CUSTOM.delais.length - 1])[1] : (PACKS[pack] || PACKS.growth).delai;
+  return String(options || '').includes('express') ? Math.round(h / 2) : h;
 }
 
 // brief = commande confirmée, le brief n'est pas encore arrivé
@@ -723,7 +732,7 @@ async function routerPortail(req, env, ctx, url, chemin) {
       const db = await base(env);
       const cl = await db.prepare('SELECT * FROM clients WHERE lower(email) = ? AND statut != ?').bind(email, 'bloque').first();
       if (cl) {
-        ctx.waitUntil(envoyerEmail(env, { type: 'acces', a: cl.email, marque: cl.marque, contact: cl.contact || '', lien: lienAcces(url, cl.jeton) }));
+        ctx.waitUntil(envoyerEmail(env, emailAcces(url, cl, lienAcces(url, cl.jeton))));
         ctx.waitUntil(noter(db, cl.id, null, 'lien', 'Lien d\'accès redemandé par email'));
       }
     }
@@ -733,6 +742,17 @@ async function routerPortail(req, env, ctx, url, chemin) {
 
   // ---- Stripe (public, signé) ----
   if (chemin === '/api/stripe/webhook' && methode === 'POST') return stripeWebhook(req, env, ctx, url);
+  // ---- n8n (clé dans l'en-tête X-Kreative-Cle) ----
+  if (chemin.startsWith('/api/n8n/')) return apiN8n(req, env, ctx, url, chemin.slice('/api/n8n'.length), methode);
+  // ---- les fichiers livrés ----
+  const fic = chemin.match(/^\/fichiers\/(fi_[A-Za-z0-9_]+)$/);
+  if (fic && (methode === 'GET' || methode === 'HEAD')) return servirFichier(req, env, ctx, url, fic[1]);
+  // ---- API de l'équipe : livraisons (designer et admin) ----
+  if (chemin.startsWith('/api/equipe/')) {
+    const qui = await session(req, env);
+    if (!qui || !['admin', 'designer'].includes(qui.role)) return json({ erreur: 'Accès refusé' }, 403);
+    return apiEquipe(req, env, ctx, url, chemin.slice('/api/equipe'.length), methode, qui);
+  }
 
   // ---- la page de connexion du client (publique) ----
   if (chemin === '/client/connexion') return servir('client/connexion.html', env, ctx, { brut: false, origine: url.origin, req });
@@ -758,7 +778,10 @@ async function routerPortail(req, env, ctx, url, chemin) {
   }
   if (chemin.startsWith('/api/client/')) {
     if (!cl) return json({ erreur: 'Connexion requise' }, 401);
-    return apiClient(req, env, ctx, url, chemin.slice('/api/client'.length), methode, cl, !!admin && !(await sessionClient(req, env)));
+    const apercu = !!admin && !(await sessionClient(req, env));
+    const liv = await apiClientLivraisons(req, env, ctx, url, chemin.slice('/api/client'.length), methode, cl, apercu);
+    if (liv) return liv;
+    return apiClient(req, env, ctx, url, chemin.slice('/api/client'.length), methode, cl, apercu);
   }
   if (!cl && !admin) return redirection('/client/connexion');
   if (methode !== 'GET' && methode !== 'HEAD') return texte('Méthode non autorisée', 405);
@@ -811,7 +834,7 @@ async function avancement(env, cmd) {
   const enCours = coeur.find(x => !x.fait) || (cmd.avis_le ? null : etapes[5]);
   const P = PACKS[cmd.pack] || PACKS.growth;
   const duDossier = d && Date.parse(d.deadline);
-  const deadline = cmd.deadline || (duDossier && duDossier > (cmd.cree_le || 0) ? duDossier : null) || (cmd.brief_le ? cmd.brief_le + P.delai * 36e5 : null);
+  const deadline = cmd.deadline || (duDossier && duDossier > (cmd.cree_le || 0) ? duDossier : null) || (cmd.brief_le ? cmd.brief_le + delaiHeures(cmd.pack, cmd.nb_creas, cmd.options) * 36e5 : null);
   return { etat, etapes, progression: Math.round(faites * 100 / coeur.length), en_cours: enCours ? enCours.cle : null,
     deadline: deadline || null, marque_dossier: d && d.brand_name };
 }
@@ -837,6 +860,15 @@ async function apiClient(req, env, ctx, url, chemin, methode, cl, apercu) {
   let m;
   if (chemin === '/moi' && methode === 'GET') {
     const commandes = await commandesDuClient(db, env, cl.id, true);
+    // les créatives livrées dans le portail, par commande (et s'il y a une review en attente)
+    try {
+      const dossiers = commandes.map(c => c.dossier).filter(Boolean);
+      if (dossiers.length) {
+        const { results: L } = await (await baseLiv(env)).prepare("SELECT dossier, statut FROM livraisons WHERE statut IN ('envoyee','review_terminee','approuvee') AND (" +
+          dossiers.map(() => 'dossier = ? OR dossier LIKE ?').join(' OR ') + ')').bind(...dossiers.flatMap(d => [d, d + '_L%'])).all();
+        for (const c of commandes) { const x = L.filter(l => c.dossier && baseDossier(l.dossier) === c.dossier); c.creatives = x.length; c.a_reviewer = x.some(l => l.statut === 'envoyee'); }
+      }
+    } catch (e) {}
     const [{ results: activite }, { results: factures }] = await Promise.all([
       db.prepare('SELECT type, texte, le FROM activite WHERE client_id = ? ORDER BY le DESC LIMIT 12').bind(cl.id).all(),
       db.prepare("SELECT * FROM factures WHERE client_id = ? AND statut != 'brouillon' ORDER BY emise_le DESC").bind(cl.id).all()]);
@@ -935,8 +967,8 @@ async function apiClient(req, env, ctx, url, chemin, methode, cl, apercu) {
 //  identifiant (c_demo_, k_demo_, f_demo_) et partent d'un clic.
 //  Rien n'est envoyé : ni email, ni Stripe, ni Telegram.
 // ============================================================
-async function creerDemo(db) {
-  await retirerDemo(db);
+async function creerDemo(db, env) {
+  await retirerDemo(db, env);
   const J = 864e5, now = maintenant();
   const C = [
     ['lina', 'Lina Mode', 'Lina Moreau', [['starter', 'unique', 6, 280, null, 'brief', 1, null]], 'Commande payée, brief pas encore envoyé'],
@@ -946,7 +978,7 @@ async function creerDemo(db) {
     ['velvo', 'Velvo', 'Sami Benali', [['scale', 'unique', 24, 890, 'TEST_DEMO_VELVO', 'production', 5, null]], 'Chez la designer, en retard'],
     ['oria', 'Oria Skin', 'Inès Garcia', [['growth', 'mensuel', 12, 420, 'TEST_DEMO_ORIA', 'production', 3, null]], 'Livré par la designer, à envoyer au client'],
     ['pulse', 'Pulse Studio', 'Noah Martin', [['growth', 'unique', 12, 490, 'TEST_DEMO_PULSE', 'livre', 8, null]], 'Livré, le client doit valider'],
-    ['brume', 'Brume Paris', 'Léa Roux', [['scale', 'unique', 24, 890, null, 'revisions', 10, null]], 'Retouches en cours'],
+    ['brume', 'Brume Paris', 'Léa Roux', [['scale', 'unique', 24, 890, 'TEST_DEMO_BRUME', 'revisions', 10, null]], 'Retouches en cours'],
     ['kora', 'Kora Food', 'Yanis Haddad', [['growth', 'mensuel', 12, 420, null, 'valide', 34, 'avis'], ['growth', 'mensuel', 12, 420, 'TEST_DEMO_KORA', 'production', 3, null]], 'Abonnement : mois précédent validé, brief du mois reçu']
   ];
   let n = 0, nb = 0;
@@ -973,15 +1005,46 @@ async function creerDemo(db) {
         .bind('f_demo_' + n, id, k, 'DEMO-2026-' + String(nb).padStart(3, '0'), prix, prix, slug === 'velvo' ? 'ouverte' : 'payee', cree, slug === 'velvo' ? null : cree, 'demo', now).run();
     }
   }
+  await livraisonsDemo(db, now);
   return { ok: true, clients: C.length, commandes: n };
 }
-async function retirerDemo(db) {
+// des livraisons de démonstration (les images viennent du dépôt) : à vérifier, chez le client, retouches
+async function livraisonsDemo(db, now) {
+  const J = 864e5, H = 36e5, F = [['1x1', 'STANDARD'], ['4x5', 'FEED'], ['9x16', 'REELS']];
+  const L = [['oria', 'TEST_DEMO_ORIA', 1, 'a_verifier', 5 * H, null], ['pulse', 'TEST_DEMO_PULSE', 1, 'envoyee', 2 * J, now - 2 * J],
+    ['brume', 'TEST_DEMO_BRUME', 1, 'review_terminee', 7 * J, now - 6 * J], ['brume', 'TEST_DEMO_BRUME', 2, 'a_verifier', 3 * H, null]];
+  const req = [];
+  for (const [slug, dossier, v, statut, ilya, envoye] of L) {
+    const id = 'l_demo_' + slug + '_' + v;
+    req.push(db.prepare('INSERT INTO livraisons (id, dossier, version, statut, note_designer, depose_le, envoye_le, review_le, cree_le) VALUES (?,?,?,?,?,?,?,?,?)')
+      .bind(id, dossier, v, statut, v > 1 ? 'Retouches faites sur les visuels 02 et 04.' : null, now - ilya, envoye, statut === 'review_terminee' ? now - 5 * J : null, now - ilya));
+    for (let n = 1; n <= 5; n++) for (const [format, mot] of F) {
+      const fid = 'fi_demo_' + slug + v + '_' + format + n, nom = slug.toUpperCase() + '_' + mot + '_0' + n + '.jpg';
+      req.push(db.prepare('INSERT INTO fichiers (id, livraison_id, format, nom, cle, type, taille, largeur, hauteur, approuve_le, cree_le) VALUES (?,?,?,?,?,?,?,?,?,?,?)')
+        .bind(fid, id, format, nom, 'depot:TURNLY_10_bc5e/creas/AD0' + n + '/visuel.jpg', 'image/jpeg', 1200000 + n * 90000, 1080, format === '1x1' ? 1080 : format === '4x5' ? 1350 : 1920,
+          slug === 'pulse' && n === 1 ? now - J : statut === 'review_terminee' && n !== 2 && n !== 4 ? now - 5 * J : null, now - ilya));
+    }
+  }
+  const com = (fid, liv, auteur, role, texte, forme, couleur, interne, le) => req.push(db.prepare('INSERT INTO commentaires (fichier_id, livraison_id, auteur, role, texte, forme, couleur, interne, cree_le) VALUES (?,?,?,?,?,?,?,?,?)')
+    .bind(fid, liv, auteur, role, texte, forme ? JSON.stringify(forme) : null, couleur, interne, le));
+  com('fi_demo_brume1_1x12', 'l_demo_brume_1', 'Léa Roux', 'client', 'Le logo est trop petit, on peut le passer en haut à gauche ?', { t: 'rect', x1: .62, y1: .05, x2: .95, y2: .2 }, '#e5484d', 0, now - 5 * J);
+  com('fi_demo_brume1_4x54', 'l_demo_brume_1', 'Léa Roux', 'client', 'Remplacer « dès 29 € » par « à partir de 29 € ».', { t: 'fleche', x1: .2, y1: .8, x2: .45, y2: .62 }, '#f5a524', 0, now - 5 * J);
+  com('fi_demo_pulse1_1x13', 'l_demo_pulse_1', 'Noah Martin', 'client', 'Top, juste un peu plus de contraste sur le titre.', { t: 'cercle', x1: .25, y1: .1, x2: .75, y2: .32 }, '#4d94ff', 0, now - J);
+  com('fi_demo_oria1_9x162', 'l_demo_oria_1', 'Dario', 'admin', 'Texte trop près du bas : zone de sécurité Reels.', { t: 'rect', x1: .08, y1: .82, x2: .92, y2: .97 }, '#e5484d', 1, now - 3 * H);
+  await db.batch(req);
+}
+async function retirerDemo(db, env) {
+  if (env) await baseLiv(env);
   const r = await db.prepare("SELECT COUNT(*) AS n FROM clients WHERE id LIKE 'c_demo_%'").first();
   await db.batch([
     db.prepare("DELETE FROM activite WHERE client_id LIKE 'c_demo_%'"),
     db.prepare("DELETE FROM factures WHERE id LIKE 'f_demo_%' OR client_id LIKE 'c_demo_%'"),
     db.prepare("DELETE FROM commandes WHERE id LIKE 'k_demo_%' OR client_id LIKE 'c_demo_%'"),
     db.prepare("DELETE FROM clients WHERE id LIKE 'c_demo_%'")]);
+  if (env) await db.batch([
+    db.prepare("DELETE FROM commentaires WHERE livraison_id LIKE 'l_demo_%'"),
+    db.prepare("DELETE FROM fichiers WHERE id LIKE 'fi_demo_%'"),
+    db.prepare("DELETE FROM livraisons WHERE id LIKE 'l_demo_%'")]);
   return { ok: true, retires: (r && r.n) || 0 };
 }
 
@@ -1033,7 +1096,9 @@ async function apiAdmin(req, env, ctx, url, chemin, methode) {
   if (chemin === '/clients' && methode === 'GET') {
     await synchroStatuts(db);
     const { results } = await db.prepare(`SELECT c.*, COUNT(k.id) AS nb_commandes, COALESCE(SUM(k.prix),0) AS total,
-      MAX(k.cree_le) AS derniere_commande, SUM(CASE WHEN k.statut IN ('brief','production','livre','revisions') THEN 1 ELSE 0 END) AS en_cours
+      MAX(k.cree_le) AS derniere_commande, SUM(CASE WHEN k.statut IN ('brief','production','livre','revisions') THEN 1 ELSE 0 END) AS en_cours,
+      SUM(CASE WHEN k.statut = 'valide' AND k.avis_le IS NULL THEN 1 ELSE 0 END) AS sans_avis,
+      MIN(CASE WHEN k.statut = 'brief' THEN k.cree_le END) AS brief_attendu_depuis, MAX(k.valide_le) AS derniere_validation
       FROM clients c LEFT JOIN commandes k ON k.client_id = c.id AND k.statut != 'annule'
       GROUP BY c.id ORDER BY c.cree_le DESC`).all();
     return json(results.map(({ photo, ...c }) => ({ ...c, lien: lienAcces(url, c.jeton) })));
@@ -1091,7 +1156,7 @@ async function apiAdmin(req, env, ctx, url, chemin, methode) {
       return json({ lien: lienAcces(url, jeton) });
     }
     if (!cl.email) return json({ erreur: 'Ce client n\'a pas d\'email.' }, 400);
-    const r = await envoyerEmail(env, { type: 'acces', a: cl.email, marque: cl.marque, contact: cl.contact || '', lien: lienAcces(url, cl.jeton) });
+    const r = await envoyerEmail(env, emailAcces(url, cl, lienAcces(url, cl.jeton)));
     if (r.ok) await noter(db, cl.id, null, 'lien', 'Lien d\'accès envoyé par email');
     return json(r, r.ok ? 200 : 502);
   }
@@ -1182,8 +1247,8 @@ async function apiAdmin(req, env, ctx, url, chemin, methode) {
   }
 
   // ---- données de démonstration : un client à chaque étape, pour tout voir ----
-  if (chemin === '/demo' && methode === 'POST') return json(await creerDemo(db));
-  if (chemin === '/demo' && methode === 'DELETE') return json(await retirerDemo(db));
+  if (chemin === '/demo' && methode === 'POST') return json(await creerDemo(db, env));
+  if (chemin === '/demo' && methode === 'DELETE') return json(await retirerDemo(db, env));
 
   if (chemin === '/equipe' && methode === 'GET') {
     return json(personnes(env).map(x => ({ nom: x.nom, role: x.role, espace: ACCUEILS[x.role] })));
@@ -1198,6 +1263,368 @@ async function apiAdmin(req, env, ctx, url, chemin, methode) {
       (SELECT COUNT(*) FROM factures WHERE statut IN ('ouverte','impayee')) AS impayees,
       (SELECT COUNT(*) FROM clients WHERE id LIKE 'c_demo_%') AS demo`).bind(maintenant() - 30 * 864e5, maintenant() - 30 * 864e5).first();
     return json({ ...r, packs: PACKS, custom: CUSTOM, stripe: !!env.STRIPE_WEBHOOK_SECRET, paiement: !!env.STRIPE_SECRET });
+  }
+  return json({ erreur: 'Introuvable' }, 404);
+}
+
+// ============================================================
+//  LIVRAISONS : la designer dépose ses fichiers dans le portail,
+//  Kreative vérifie (envoie au client ou renvoie à la designer),
+//  le client fait sa review : chaque créative, chaque format,
+//  des commentaires et des annotations, approuver, tout télécharger.
+//  Les fichiers vont dans le stockage R2 lié au Worker sous le nom
+//  FICHIERS. Statuts d'une version :
+//    brouillon → a_verifier → envoyee → approuvee
+//                          ↘ a_corriger        ↘ review_terminee (retouches)
+// ============================================================
+const N8N_LIVRAISON = 'https://n8n.srv1536015.hstgr.cloud/webhook/livraison-designer';
+const FORMATS_OK = ['1x1', '4x5', '9x16', 'autre'];
+const VISIBLES_CLIENT = ['envoyee', 'review_terminee', 'approuvee'];
+const baseDossier = d => String(d || '').replace(/_L\d+$/, '');
+let LIV_PRETE = false;
+async function baseLiv(env) {
+  const db = await base(env);
+  if (!LIV_PRETE) {
+    await db.batch([
+      db.prepare(`CREATE TABLE IF NOT EXISTS livraisons (id TEXT PRIMARY KEY, dossier TEXT NOT NULL, version INTEGER, statut TEXT,
+        note_designer TEXT, note_kreative TEXT, depose_le INTEGER, verifie_le INTEGER, envoye_le INTEGER, review_le INTEGER, cree_le INTEGER)`),
+      db.prepare(`CREATE TABLE IF NOT EXISTS fichiers (id TEXT PRIMARY KEY, livraison_id TEXT NOT NULL, format TEXT, nom TEXT, cle TEXT, mini TEXT,
+        type TEXT, taille INTEGER, largeur INTEGER, hauteur INTEGER, approuve_le INTEGER, cree_le INTEGER)`),
+      db.prepare(`CREATE TABLE IF NOT EXISTS commentaires (id INTEGER PRIMARY KEY AUTOINCREMENT, fichier_id TEXT NOT NULL, livraison_id TEXT,
+        auteur TEXT, role TEXT, texte TEXT, forme TEXT, couleur TEXT, interne INTEGER DEFAULT 0, cree_le INTEGER)`),
+      db.prepare('CREATE INDEX IF NOT EXISTS i_liv_dossier ON livraisons(dossier)'),
+      db.prepare('CREATE INDEX IF NOT EXISTS i_fic_liv ON fichiers(livraison_id)'),
+      db.prepare('CREATE INDEX IF NOT EXISTS i_com_fic ON commentaires(fichier_id)')]);
+    LIV_PRETE = true;
+  }
+  return db;
+}
+const formeJson = f => { try { return f ? JSON.parse(f) : null; } catch (e) { return null; } };
+async function detailLivraison(db, l, client) {
+  const [{ results: F }, { results: C }] = await Promise.all([
+    db.prepare('SELECT * FROM fichiers WHERE livraison_id = ? ORDER BY format, nom').bind(l.id).all(),
+    db.prepare('SELECT * FROM commentaires WHERE livraison_id = ?' + (client ? ' AND interne = 0' : '') + ' ORDER BY cree_le').bind(l.id).all()]);
+  const sortie = { id: l.id, dossier: l.dossier, version: l.version, statut: l.statut, depose_le: l.depose_le, envoye_le: l.envoye_le, review_le: l.review_le,
+    fichiers: F.map(f => ({ id: f.id, format: f.format, nom: f.nom, type: f.type, taille: f.taille, largeur: f.largeur, hauteur: f.hauteur, approuve_le: f.approuve_le,
+      url: '/fichiers/' + f.id, mini: '/fichiers/' + f.id + (f.mini ? '?mini=1' : ''),
+      commentaires: C.filter(c => c.fichier_id === f.id).map(c => ({ id: c.id, auteur: c.auteur, role: c.role, texte: c.texte, forme: formeJson(c.forme), couleur: c.couleur, interne: !!c.interne, cree_le: c.cree_le })) })) };
+  if (!client) { sortie.note_designer = l.note_designer; sortie.note_kreative = l.note_kreative; sortie.verifie_le = l.verifie_le; }
+  return sortie;
+}
+// la commande (et son client) d'un dossier de livraison : « PODMAX_10_cc34 » ou « NORDIK_10_ab12_L2 »
+async function commandeDuDossier(db, dossier) {
+  return db.prepare(`SELECT k.*, c.marque, c.contact, c.email, c.jeton FROM commandes k JOIN clients c ON c.id = k.client_id
+    WHERE k.dossier = ? OR k.dossier = ? ORDER BY k.cree_le DESC LIMIT 1`).bind(dossier, baseDossier(dossier)).first();
+}
+// une version visible par ce client ? (son dossier, et déjà envoyée par Kreative)
+async function livraisonDuClient(db, cl, id) {
+  const l = await db.prepare('SELECT * FROM livraisons WHERE id = ?').bind(id).first();
+  if (!l || !VISIBLES_CLIENT.includes(l.statut)) return null;
+  const k = await db.prepare('SELECT id FROM commandes WHERE client_id = ? AND (dossier = ? OR dossier = ?)').bind(cl.id, l.dossier, baseDossier(l.dossier)).first();
+  return k ? l : null;
+}
+// la dernière livraison d'un projet en plusieurs fois ? (lu dans le dépôt)
+async function estDerniereLivraison(env, dossier) {
+  const d = await lireJsonDepot(env, dossier + '/donnees.json');
+  const l = d && d.livraison;
+  return !(l && l.sur > 1 && l.n < l.sur);
+}
+
+// ---------- les emails (le HTML est fait ici ; n8n l'envoie tel quel) ----------
+function emailHtml(origine, o) {
+  const e = t => String(t == null ? '' : t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  return '<div style="background:#f3f1ec;padding:32px 12px;font-family:Inter,Arial,sans-serif">' +
+    '<div style="max-width:560px;margin:0 auto;background:#fff;border:1px solid #ebe5df;border-radius:18px;padding:36px 40px">' +
+    '<img src="' + e(origine) + '/ui/logo-kreative-noir.png" alt="Kreative" height="26" style="display:block;height:26px">' +
+    '<h1 style="font-size:24px;line-height:1.25;margin:28px 0 14px;color:#000">' + e(o.titre) + '</h1>' +
+    o.paragraphes.map(p => '<p style="font-size:16px;line-height:1.6;color:#333;margin:0 0 14px">' + p + '</p>').join('') +
+    (o.bouton ? '<a href="' + e(o.bouton[1]) + '" style="display:inline-block;margin-top:10px;background:#4d94ff;color:#fff;text-decoration:none;font-weight:600;font-size:16px;padding:14px 26px;border-radius:12px">' + e(o.bouton[0]) + '</a>' : '') +
+    (o.note ? '<p style="font-size:13.5px;line-height:1.6;color:#777;margin:26px 0 0">' + o.note + '</p>' : '') +
+    '<p style="font-size:13.5px;line-height:1.6;color:#777;margin:14px 0 0">Une question ? Répondez simplement à cet email ou écrivez-nous sur <a href="https://api.whatsapp.com/send?phone=33756921042" style="color:#4d94ff">WhatsApp</a>.</p>' +
+    '</div></div>';
+}
+const echapper = t => String(t == null ? '' : t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+function emailAcces(url, cl, lien) {
+  const prenom = String(cl.contact || '').trim().split(/\s+/)[0];
+  return { type: 'acces', a: cl.email, marque: cl.marque, contact: cl.contact || '', lien,
+    sujet: cl.marque + ' · votre espace client Kreative',
+    html: emailHtml(url.origin, { titre: 'Bonjour' + (prenom ? ' ' + prenom : '') + ',',
+      paragraphes: ['Voici votre lien personnel vers l\'espace client de <b>' + echapper(cl.marque) + '</b>. Vous y suivez l\'avancement de vos projets, votre brief et vos prochaines commandes.'],
+      bouton: ['Ouvrir mon espace', lien], note: 'Ce lien est personnel et reste valable : gardez cet email pour revenir quand vous voulez. Ne le transférez pas.' }) };
+}
+
+// ---------- API de l'équipe (designer et admin) ----------
+async function apiEquipe(req, env, ctx, url, chemin, methode, qui) {
+  const db = await baseLiv(env);
+  const admin = qui.role === 'admin';
+  let m;
+  // toutes les livraisons (la liste de l'admin, l'historique de la designer)
+  if (chemin === '/livraisons' && methode === 'GET') {
+    const { results } = await db.prepare(`SELECT l.*, (SELECT COUNT(*) FROM fichiers f WHERE f.livraison_id = l.id) AS nb,
+      (SELECT COUNT(*) FROM commentaires c WHERE c.livraison_id = l.id AND c.interne = 0) AS nb_client,
+      (SELECT COUNT(*) FROM fichiers f WHERE f.livraison_id = l.id AND f.approuve_le IS NOT NULL) AS nb_approuves
+      FROM livraisons l ORDER BY COALESCE(l.depose_le, l.cree_le) DESC LIMIT 300`).all();
+    const { results: K2 } = await db.prepare("SELECT k.dossier, k.ref, k.id AS commande_id, c.marque FROM commandes k JOIN clients c ON c.id = k.client_id WHERE k.dossier IS NOT NULL").all();
+    return json(results.map(l => { const k = K2.find(x => x.dossier === l.dossier || x.dossier === baseDossier(l.dossier)) || {}; return { ...l, marque: k.marque || null, ref: k.ref || null }; }));
+  }
+  // un projet : toutes ses versions, avec fichiers et commentaires
+  if ((m = chemin.match(/^\/livraisons\/([A-Za-z0-9_-]{3,80})$/)) && methode === 'GET') {
+    const { results } = await db.prepare('SELECT * FROM livraisons WHERE dossier = ? ORDER BY version DESC').bind(m[1]).all();
+    return json({ dossier: m[1], versions: await Promise.all(results.map(l => detailLivraison(db, l, false))), stockage: !!env.FICHIERS });
+  }
+  // la version en cours de dépôt (créée au besoin, à partir de la précédente)
+  if (chemin === '/livraisons' && methode === 'POST') {
+    const b = await corpsJson(req);
+    const dossier = propre(b.dossier, 80);
+    if (!/^[A-Za-z0-9_-]{3,80}$/.test(dossier)) return json({ erreur: 'Projet invalide.' }, 400);
+    const der = await db.prepare('SELECT * FROM livraisons WHERE dossier = ? ORDER BY version DESC LIMIT 1').bind(dossier).first();
+    if (der && der.statut === 'brouillon') return json(await detailLivraison(db, der, false));
+    if (der && ['a_verifier', 'envoyee', 'approuvee'].includes(der.statut))
+      return json({ erreur: der.statut === 'a_verifier' ? 'Kreative is checking your last delivery.' : der.statut === 'envoyee' ? 'The client is reviewing this delivery.' : 'This delivery is approved.' }, 409);
+    const id = 'l_' + aleatoire(10), now = maintenant();
+    await db.prepare('INSERT INTO livraisons (id, dossier, version, statut, cree_le) VALUES (?,?,?,?,?)').bind(id, dossier, der ? der.version + 1 : 1, 'brouillon', now).run();
+    if (der) {
+      // la nouvelle version reprend les fichiers de la précédente : on ne remplace que ce qui change
+      const { results: F } = await db.prepare('SELECT * FROM fichiers WHERE livraison_id = ?').bind(der.id).all();
+      if (F.length) await db.batch(F.map(f => db.prepare('INSERT INTO fichiers (id, livraison_id, format, nom, cle, mini, type, taille, largeur, hauteur, approuve_le, cree_le) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)')
+        .bind('fi_' + aleatoire(12), id, f.format, f.nom, f.cle, f.mini, f.type, f.taille, f.largeur, f.hauteur, f.approuve_le, now)));
+    }
+    return json(await detailLivraison(db, await db.prepare('SELECT * FROM livraisons WHERE id = ?').bind(id).first(), false));
+  }
+  // déposer un fichier (le corps de la requête est le fichier)
+  if (chemin === '/fichiers' && methode === 'PUT') {
+    if (!env.FICHIERS) return json({ erreur: 'File storage is not connected yet (R2 binding FICHIERS).' }, 503);
+    const l = await db.prepare('SELECT * FROM livraisons WHERE id = ?').bind(url.searchParams.get('livraison') || '').first();
+    if (!l || l.statut !== 'brouillon') return json({ erreur: 'This delivery can no longer be changed.' }, 409);
+    const format = FORMATS_OK.includes(url.searchParams.get('format')) ? url.searchParams.get('format') : 'autre';
+    const nom = propre(url.searchParams.get('nom'), 120).replace(/[^A-Za-z0-9._ -]/g, '_') || 'fichier';
+    const type = (req.headers.get('Content-Type') || '').split(';')[0];
+    if (!/^(image\/(png|jpeg|webp|gif)|video\/(mp4|quicktime|webm))$/.test(type)) return json({ erreur: 'Images (PNG, JPG, WebP) or videos (MP4, MOV) only.' }, 415);
+    const taille = Number(req.headers.get('Content-Length') || 0);
+    if (taille > 95e6) return json({ erreur: 'File too large (95 MB max).' }, 413);
+    const id = 'fi_' + aleatoire(12), cle = 'livraisons/' + l.dossier + '/' + l.id + '/' + id + '-' + nom.replace(/\s+/g, '_');
+    await env.FICHIERS.put(cle, req.body, { httpMetadata: { contentType: type } });
+    // même nom dans le même format : le nouveau remplace l'ancien
+    await db.prepare('DELETE FROM fichiers WHERE livraison_id = ? AND format = ? AND nom = ?').bind(l.id, format, nom).run();
+    await db.prepare('INSERT INTO fichiers (id, livraison_id, format, nom, cle, type, taille, largeur, hauteur, cree_le) VALUES (?,?,?,?,?,?,?,?,?,?)')
+      .bind(id, l.id, format, nom, cle, type, taille, Number(url.searchParams.get('l')) || null, Number(url.searchParams.get('h')) || null, maintenant()).run();
+    return json({ ok: true, id });
+  }
+  if ((m = chemin.match(/^\/fichiers\/(fi_[A-Za-z0-9_]+)\/mini$/)) && methode === 'PUT') {
+    if (!env.FICHIERS) return json({ erreur: 'Stockage absent' }, 503);
+    const f = await db.prepare('SELECT f.*, l.statut, l.dossier FROM fichiers f JOIN livraisons l ON l.id = f.livraison_id WHERE f.id = ?').bind(m[1]).first();
+    if (!f || f.statut !== 'brouillon') return json({ erreur: 'Introuvable' }, 404);
+    if (Number(req.headers.get('Content-Length') || 0) > 3e6) return json({ erreur: 'Miniature trop lourde' }, 413);
+    const cle = f.cle + '.mini.jpg';
+    await env.FICHIERS.put(cle, req.body, { httpMetadata: { contentType: 'image/jpeg' } });
+    await db.prepare('UPDATE fichiers SET mini = ? WHERE id = ?').bind(cle, f.id).run();
+    return json({ ok: true });
+  }
+  if ((m = chemin.match(/^\/fichiers\/(fi_[A-Za-z0-9_]+)$/)) && methode === 'DELETE') {
+    const f = await db.prepare('SELECT f.id, l.statut FROM fichiers f JOIN livraisons l ON l.id = f.livraison_id WHERE f.id = ?').bind(m[1]).first();
+    if (!f || f.statut !== 'brouillon') return json({ erreur: 'This file can no longer be removed.' }, 409);
+    await db.prepare('DELETE FROM fichiers WHERE id = ?').bind(f.id).run();
+    return json({ ok: true });
+  }
+  // la designer envoie sa version à Kreative
+  if ((m = chemin.match(/^\/livraisons\/(l_[A-Za-z0-9_]+)\/envoyer$/)) && methode === 'POST') {
+    const b = await corpsJson(req);
+    const l = await db.prepare('SELECT * FROM livraisons WHERE id = ?').bind(m[1]).first();
+    if (!l || l.statut !== 'brouillon') return json({ erreur: 'This delivery was already sent.' }, 409);
+    const n = await db.prepare('SELECT COUNT(*) AS n FROM fichiers WHERE livraison_id = ?').bind(l.id).first();
+    if (!n || !n.n) return json({ erreur: 'Add your files first.' }, 400);
+    await db.prepare("UPDATE livraisons SET statut = 'a_verifier', depose_le = ?, note_designer = ? WHERE id = ?").bind(maintenant(), propre(b.note, 600) || null, l.id).run();
+    // Kreative est prévenu sur Telegram par le workflow « Livraison » (sauf un projet de démo)
+    if (!/^TEST_DEMO_/.test(l.dossier)) {
+      const appel = fetch(env.N8N_LIVRAISON || N8N_LIVRAISON, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ dossier: l.dossier, lien: url.origin + '/admin/#/livraisons/' + l.dossier, note: (l.version > 1 ? 'Version ' + l.version + '. ' : '') + (propre(b.note, 500) || '') }) }).catch(() => null);
+      if (ctx && ctx.waitUntil) ctx.waitUntil(appel); else await appel;
+    }
+    return json({ ok: true, message: 'Thank you! Kreative has been notified and will check your files.' });
+  }
+  // Kreative : envoyer au client, ou renvoyer à la designer
+  if ((m = chemin.match(/^\/livraisons\/(l_[A-Za-z0-9_]+)\/decision$/)) && methode === 'POST') {
+    if (!admin) return json({ erreur: 'Accès refusé' }, 403);
+    const b = await corpsJson(req);
+    const l = await db.prepare('SELECT * FROM livraisons WHERE id = ?').bind(m[1]).first();
+    if (!l || l.statut !== 'a_verifier') return json({ erreur: 'Cette version n\'est plus à vérifier.' }, 409);
+    const now = maintenant();
+    if (b.action === 'corriger') {
+      await db.prepare("UPDATE livraisons SET statut = 'a_corriger', note_kreative = ?, verifie_le = ? WHERE id = ?").bind(propre(b.note, 1000) || null, now, l.id).run();
+      return json({ ok: true, message: 'Renvoyée à la designer.' });
+    }
+    if (b.action !== 'envoyer') return json({ erreur: 'Action inconnue' }, 400);
+    await db.prepare("UPDATE livraisons SET statut = 'envoyee', envoye_le = ?, verifie_le = ? WHERE id = ?").bind(now, now, l.id).run();
+    const k = await commandeDuDossier(db, l.dossier);
+    if (k) {
+      const finale = await estDerniereLivraison(env, l.dossier);
+      if (finale && !['valide', 'annule'].includes(k.statut)) await db.prepare("UPDATE commandes SET statut = 'livre', livre_le = COALESCE(livre_le, ?) WHERE id = ?").bind(now, k.id).run();
+      await noter(db, k.client_id, k.id, 'livre', l.version > 1 ? 'Nouvelle version de vos créatives (version ' + l.version + ')' : 'Vos créatives sont livrées');
+      if (k.email && k.jeton) {
+        const prenom = String(k.contact || '').trim().split(/\s+/)[0], lien = lienAcces(url, k.jeton);
+        const envoi = envoyerEmail(env, { type: 'creatives', a: k.email, marque: k.marque, contact: k.contact || '', lien,
+          sujet: k.marque + (l.version > 1 ? ' · la nouvelle version de vos créatives' : ' · vos créatives sont prêtes'),
+          html: emailHtml(url.origin, { titre: 'Bonjour' + (prenom ? ' ' + prenom : '') + ',',
+            paragraphes: [l.version > 1 ? 'La nouvelle version de vos créatives est prête, avec les retouches demandées.' : 'Vos créatives sont prêtes. Regardez-les format par format, commentez ce qui doit bouger, et approuvez ce qui vous plaît.'],
+            bouton: ['Voir mes créatives', lien] }) });
+        if (ctx && ctx.waitUntil) ctx.waitUntil(envoi); else await envoi;
+      }
+    }
+    return json({ ok: true, message: 'Envoyée au client.' });
+  }
+  // un commentaire de l'équipe (interne : le client ne le voit pas)
+  if (chemin === '/commentaires' && methode === 'POST') {
+    const b = await corpsJson(req);
+    const f = await db.prepare('SELECT id, livraison_id FROM fichiers WHERE id = ?').bind(propre(b.fichier_id, 40)).first();
+    if (!f) return json({ erreur: 'Fichier introuvable' }, 404);
+    const texte = propre(b.texte, 2000);
+    if (!texte) return json({ erreur: 'Écrivez un commentaire.' }, 400);
+    const r = await db.prepare('INSERT INTO commentaires (fichier_id, livraison_id, auteur, role, texte, forme, couleur, interne, cree_le) VALUES (?,?,?,?,?,?,?,1,?)')
+      .bind(f.id, f.livraison_id, qui.nom.charAt(0).toUpperCase() + qui.nom.slice(1), qui.role, texte, formeValide(b.forme), couleurValide(b.couleur), maintenant()).run();
+    return json({ ok: true, id: r.meta && r.meta.last_row_id });
+  }
+  if ((m = chemin.match(/^\/commentaires\/(\d+)$/)) && methode === 'DELETE') {
+    const c = await db.prepare('SELECT * FROM commentaires WHERE id = ?').bind(Number(m[1])).first();
+    if (!c || (!admin && c.role !== qui.role)) return json({ erreur: 'Introuvable' }, 404);
+    await db.prepare('DELETE FROM commentaires WHERE id = ?').bind(c.id).run();
+    return json({ ok: true });
+  }
+  return json({ erreur: 'Introuvable' }, 404);
+}
+// une annotation : rectangle, cercle ou flèche, en coordonnées relatives (0 à 1)
+function formeValide(f) {
+  if (!f || typeof f !== 'object' || !['rect', 'cercle', 'fleche'].includes(f.t)) return null;
+  const n = v => Math.min(1, Math.max(0, Number(v) || 0));
+  return JSON.stringify({ t: f.t, x1: n(f.x1), y1: n(f.y1), x2: n(f.x2), y2: n(f.y2) });
+}
+const couleurValide = c => /^#[0-9a-f]{6}$/i.test(String(c || '')) ? String(c) : '#e5484d';
+
+// ---------- API du client : sa review ----------
+async function apiClientLivraisons(req, env, ctx, url, chemin, methode, cl, apercu) {
+  const db = await baseLiv(env);
+  let m;
+  if ((m = chemin.match(/^\/commandes\/(k_[A-Za-z0-9_]+)\/creatives$/)) && methode === 'GET') {
+    const k = await db.prepare('SELECT * FROM commandes WHERE id = ? AND client_id = ?').bind(m[1], cl.id).first();
+    if (!k) return json({ erreur: 'Commande introuvable' }, 404);
+    if (!k.dossier) return json({ livraisons: [] });
+    const { results } = await db.prepare(`SELECT * FROM livraisons WHERE (dossier = ? OR dossier LIKE ?) AND statut IN ('envoyee','review_terminee','approuvee')
+      ORDER BY dossier, version DESC`).bind(k.dossier, k.dossier + '_L%').all();
+    const filtre = results.filter(l => l.dossier === k.dossier || new RegExp('^' + k.dossier + '_L\\d+$').test(l.dossier));
+    const livs = await Promise.all(filtre.map(l => detailLivraison(db, l, true)));
+    // pour chaque dossier de livraison (1/2, 2/2…), le numéro et le total
+    for (const l of livs) { const d = await lireJsonDepot(env, l.dossier + '/donnees.json'); const x = d && d.livraison; l.partie = x && x.sur > 1 ? { n: x.n, sur: x.sur } : null; }
+    return json({ livraisons: livs });
+  }
+  if (methode !== 'GET' && apercu) return json({ erreur: 'Aperçu : rien n\'est enregistré à la place du client.' }, 403);
+  if ((m = chemin.match(/^\/fichiers\/(fi_[A-Za-z0-9_]+)\/approuver$/)) && methode === 'POST') {
+    const f = await db.prepare('SELECT * FROM fichiers WHERE id = ?').bind(m[1]).first();
+    const l = f && await livraisonDuClient(db, cl, f.livraison_id);
+    if (!l || l.statut !== 'envoyee') return json({ erreur: 'Cette version n\'est plus en review.' }, 409);
+    const b = await corpsJson(req);
+    await db.prepare('UPDATE fichiers SET approuve_le = ? WHERE id = ?').bind(b.oui === false ? null : maintenant(), f.id).run();
+    return json({ ok: true });
+  }
+  if ((m = chemin.match(/^\/livraisons\/(l_[A-Za-z0-9_]+)\/tout-approuver$/)) && methode === 'POST') {
+    const l = await livraisonDuClient(db, cl, m[1]);
+    if (!l || l.statut !== 'envoyee') return json({ erreur: 'Cette version n\'est plus en review.' }, 409);
+    await db.prepare('UPDATE fichiers SET approuve_le = COALESCE(approuve_le, ?) WHERE livraison_id = ?').bind(maintenant(), l.id).run();
+    return json({ ok: true });
+  }
+  if (chemin === '/commentaires' && methode === 'POST') {
+    const b = await corpsJson(req);
+    const f = await db.prepare('SELECT * FROM fichiers WHERE id = ?').bind(propre(b.fichier_id, 40)).first();
+    const l = f && await livraisonDuClient(db, cl, f.livraison_id);
+    if (!l || l.statut !== 'envoyee') return json({ erreur: 'Cette version n\'est plus en review.' }, 409);
+    const texte = propre(b.texte, 2000);
+    if (!texte) return json({ erreur: 'Écrivez votre commentaire.' }, 400);
+    const r = await db.prepare('INSERT INTO commentaires (fichier_id, livraison_id, auteur, role, texte, forme, couleur, interne, cree_le) VALUES (?,?,?,?,?,?,?,0,?)')
+      .bind(f.id, l.id, propre(cl.contact, 80) || cl.marque, 'client', texte, formeValide(b.forme), couleurValide(b.couleur), maintenant()).run();
+    await db.prepare('UPDATE fichiers SET approuve_le = NULL WHERE id = ?').bind(f.id).run();
+    return json({ ok: true, id: r.meta && r.meta.last_row_id });
+  }
+  if ((m = chemin.match(/^\/commentaires\/(\d+)$/)) && methode === 'DELETE') {
+    const c = await db.prepare('SELECT * FROM commentaires WHERE id = ? AND role = ?').bind(Number(m[1]), 'client').first();
+    const l = c && await livraisonDuClient(db, cl, c.livraison_id);
+    if (!l || l.statut !== 'envoyee') return json({ erreur: 'Introuvable' }, 404);
+    await db.prepare('DELETE FROM commentaires WHERE id = ?').bind(c.id).run();
+    return json({ ok: true });
+  }
+  // fin de la review : tout est approuvé (projet validé) ou des retouches sont demandées
+  if ((m = chemin.match(/^\/livraisons\/(l_[A-Za-z0-9_]+)\/terminer$/)) && methode === 'POST') {
+    const l = await livraisonDuClient(db, cl, m[1]);
+    if (!l || l.statut !== 'envoyee') return json({ erreur: 'Cette review est déjà terminée.' }, 409);
+    const t = await db.prepare(`SELECT COUNT(*) AS n, SUM(CASE WHEN approuve_le IS NULL THEN 1 ELSE 0 END) AS reste,
+      (SELECT COUNT(*) FROM commentaires WHERE livraison_id = ? AND interne = 0) AS coms FROM fichiers WHERE livraison_id = ?`).bind(l.id, l.id).first();
+    const now = maintenant(), k = await commandeDuDossier(db, l.dossier);
+    if (!t.reste) {
+      await db.prepare("UPDATE livraisons SET statut = 'approuvee', review_le = ? WHERE id = ?").bind(now, l.id).run();
+      let valide = false;
+      if (k && await estDerniereLivraison(env, l.dossier) && !['valide', 'annule'].includes(k.statut)) {
+        await db.prepare("UPDATE commandes SET statut = 'valide', valide_le = ? WHERE id = ?").bind(now, k.id).run();
+        await noter(db, cl.id, k.id, 'valide', 'Créatives validées · projet terminé');
+        valide = true;
+      } else if (k) await noter(db, cl.id, k.id, 'valide', 'Livraison approuvée');
+      return json({ ok: true, approuvee: true, valide, commande: k && k.id });
+    }
+    await db.prepare("UPDATE livraisons SET statut = 'review_terminee', review_le = ? WHERE id = ?").bind(now, l.id).run();
+    if (k && !['valide', 'annule'].includes(k.statut)) await db.prepare("UPDATE commandes SET statut = 'revisions' WHERE id = ?").bind(k.id).run();
+    if (k) await noter(db, cl.id, k.id, 'revisions', 'Vos retours sont transmis · retouches en cours');
+    // Kreative est prévenu par email
+    const envoi = envoyerEmail(env, { type: 'review', a: env.EMAIL_KREATIVE || 'contact@kreativeads.fr', marque: cl.marque, contact: 'Kreative', lien: url.origin + '/admin/#/livraisons/' + l.dossier,
+      sujet: cl.marque + ' · retours du client sur la version ' + l.version,
+      html: emailHtml(url.origin, { titre: cl.marque + ' a terminé sa review', paragraphes: [(t.n - t.reste) + ' fichier' + (t.n - t.reste > 1 ? 's' : '') + ' approuvé' + (t.n - t.reste > 1 ? 's' : '') + ' sur ' + t.n + ', ' + t.coms + ' commentaire' + (t.coms > 1 ? 's' : '') + '. La designer voit les retours dans son espace.'],
+        bouton: ['Voir les retours', url.origin + '/admin/#/livraisons/' + l.dossier] }) });
+    if (ctx && ctx.waitUntil) ctx.waitUntil(envoi); else await envoi;
+    return json({ ok: true, approuvee: false });
+  }
+  return null;
+}
+
+// ---------- servir un fichier livré (équipe, ou le client de ce projet) ----------
+async function servirFichier(req, env, ctx, url, id) {
+  const db = await baseLiv(env);
+  const f = await db.prepare('SELECT * FROM fichiers WHERE id = ?').bind(id).first();
+  if (!f) return texte('Introuvable', 404);
+  const equipe = await session(req, env);
+  if (!equipe) {
+    const cl = await sessionClient(req, env);
+    if (!cl || !(await livraisonDuClient(db, cl, f.livraison_id))) return texte('Accès refusé', 403);
+  } else if (!['admin', 'designer', 'strategiste'].includes(equipe.role)) return texte('Accès refusé', 403);
+  const mini = url.searchParams.has('mini') && f.mini, cle = mini ? f.mini : f.cle;
+  const entetes = { 'Cache-Control': 'private, max-age=86400' };
+  if (url.searchParams.has('dl')) entetes['Content-Disposition'] = 'attachment; filename="' + f.nom.replace(/"/g, '') + '"';
+  // fichiers de démonstration : des images du dépôt
+  if (String(cle).startsWith('depot:')) {
+    const r = await lireGithub(cle.slice(6), env, 'GET');
+    if (!r.ok) return texte('Introuvable', 404);
+    return new Response(r.body, { headers: { ...entetes, 'Content-Type': f.type || 'image/jpeg' } });
+  }
+  if (!env.FICHIERS) return texte('Stockage absent', 503);
+  const o = await env.FICHIERS.get(cle);
+  if (!o) return texte('Introuvable', 404);
+  return new Response(o.body, { headers: { ...entetes, 'Content-Type': (o.httpMetadata && o.httpMetadata.contentType) || f.type || 'application/octet-stream', 'ETag': o.httpEtag } });
+}
+
+// ---------- n8n : relier le brief Fillout à sa commande ----------
+// Appelé par les workflows des briefs (en-tête X-Kreative-Cle = CLE) avec le
+// dossier créé et ce que le portail a mis dans le lien du formulaire.
+async function apiN8n(req, env, ctx, url, chemin, methode) {
+  if (!env.CLE || !egal(req.headers.get('X-Kreative-Cle') || '', env.CLE)) return json({ erreur: 'Accès refusé' }, 403);
+  const db = await base(env);
+  if (chemin === '/brief' && methode === 'POST') {
+    const b = await corpsJson(req);
+    const dossier = propre(b.dossier, 80);
+    if (!/^[A-Za-z0-9_-]{3,80}$/.test(dossier)) return json({ erreur: 'dossier invalide' }, 400);
+    const ref = propre(b.commande, 20).replace(/^#/, ''), idClient = propre(b.client, 40), email = propre(b.email, 160).toLowerCase();
+    let k = ref ? await db.prepare('SELECT * FROM commandes WHERE ref = ?').bind(ref).first() : null;
+    if (!k && idClient) k = await db.prepare("SELECT * FROM commandes WHERE client_id = ? AND statut = 'brief' ORDER BY cree_le LIMIT 1").bind(idClient).first();
+    if (!k && emailValide(email)) k = await db.prepare(`SELECT k.* FROM commandes k JOIN clients c ON c.id = k.client_id
+      WHERE lower(c.email) = ? AND k.statut = 'brief' ORDER BY k.cree_le LIMIT 1`).bind(email).first();
+    if (!k) return json({ ok: false, message: 'Aucune commande en attente de brief pour ce client : à relier à la main dans l\'admin.' });
+    if (k.dossier && k.dossier !== dossier) return json({ ok: false, message: 'La commande #' + k.ref + ' est déjà reliée au dossier ' + k.dossier + '.' });
+    await db.prepare("UPDATE commandes SET dossier = ?, brief_le = COALESCE(brief_le, ?), statut = CASE WHEN statut = 'brief' THEN 'production' ELSE statut END WHERE id = ?").bind(dossier, maintenant(), k.id).run();
+    await noter(db, k.client_id, k.id, 'brief', 'Brief reçu, production lancée');
+    return json({ ok: true, commande: k.ref });
   }
   return json({ erreur: 'Introuvable' }, 404);
 }
@@ -1255,7 +1682,7 @@ async function paiementRecu(env, ctx, url, s) {
     texte: 'Paiement reçu, commande confirmée' });
   if (typeof s.invoice === 'string') await db.prepare('UPDATE factures SET commande_id = COALESCE(commande_id, ?), client_id = COALESCE(client_id, ?) WHERE stripe_id = ?').bind(r.id, cl.id, s.invoice).run();
   if (nouveau && cl.jeton) {
-    const envoi = envoyerEmail(env, { type: 'acces', a: email, marque: cl.marque, contact: cl.contact || '', lien: lienAcces(url, cl.jeton) });
+    const envoi = envoyerEmail(env, emailAcces(url, { ...cl, email }, lienAcces(url, cl.jeton)));
     if (ctx && ctx.waitUntil) ctx.waitUntil(envoi); else await envoi;
   }
 }

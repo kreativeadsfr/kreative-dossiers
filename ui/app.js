@@ -269,7 +269,7 @@
       '<div class="ariane">' + ariane + '</div>' +
       (conf.recherche ? '<div class="search">' + K.i.chercher + '<input id="k-cherche" placeholder="' + K.esc(conf.cherche || 'Rechercher un client, un projet, un dossier…') + '" autocomplete="off"><kbd>⌘K</kbd><div class="res" id="k-res" hidden></div></div>' : '') +
       (conf.clair ? '' : '<div class="top-r"><button class="icon-btn" id="k-theme" title="' + (sombre ? 'Thème clair' : 'Thème sombre') + '">' + (sombre ? K.i.soleil : K.i.lune) + '</button></div>') +
-      '</header><div class="scroll"><div class="page' + (large === 'plein' ? ' plein' : large ? ' large' : '') + '">' + contenu + '</div></div></div></div></div>';
+      '</header><div class="scroll"><div class="page' + (large === 'plein' ? ' plein' : large === 'centre' ? ' centre' : large ? ' large' : '') + '">' + contenu + '</div></div></div></div></div>';
   };
   K.brancherCoquille = conf => {
     const b = id => document.getElementById(id);
@@ -325,6 +325,7 @@
     if (!Array.isArray(projets)) projets = [];
     P.liste = (await Promise.all(projets.filter(x => x && x.dossier && !/^TEST_(?!DEMO_)/i.test(x.dossier)).map(async x => {
       const [d, envois, liv, retour] = await Promise.all(['donnees', 'envois', 'livraison', 'retour'].map(f => K.lireJson('/' + x.dossier + '/' + f + '.json')));
+      const aRetour = !!(retour && retour.dossier === x.dossier);
       if (!d) return null;
       const ev = (envois && Array.isArray(envois.envois)) ? envois.envois : [];
       const dernier = ev[ev.length - 1];
@@ -332,7 +333,7 @@
       const l = d.livraison;
       return { dossier: x.dossier, demo: K.estDemo(x.dossier), d, prod: (l && l.projet) || x.dossier, marque: d.brand_name || x.dossier,
         nom: (d.brand_name || x.dossier) + (l && l.sur > 1 ? ' · livraison ' + l.n + '/' + l.sur : ''),
-        nb: d.nb_creas || x.nb_creas || 0, pack: d.pack || x.pack || '', retour: !!(retour && retour.dossier === x.dossier),
+        nb: d.nb_creas || x.nb_creas || 0, pack: d.pack || x.pack || '', retour: aRetour, retourLe: aRetour ? Date.parse(retour.recu_le || '') || 0 : 0,
         envoye: ev.length > 0, envoyeLe: Date.parse(typeof dernier === 'string' ? dernier : (dernier || {}).le || '') || 0,
         livre: !!(liv && liv.livre), livreLe: Date.parse(der.le || '') || 0, zip: der.lien || '', livraisons: livs,
         strat: Date.parse(d.deadline_strategiste || '') || 0, desi: Date.parse(d.deadline_designer || '') || 0, client: Date.parse(d.deadline || '') || 0 };
@@ -357,12 +358,29 @@
     return { cle: 'livre', texte: en ? 'Delivered' : 'Livré par le designer', pill: 'g' };
   };
   P.pill = (x, en) => { const e = P.etat(x, en); return '<span class="pill ' + e.pill + '"><i></i>' + K.esc(e.texte) + '</span>'; };
+  // ce que voit le stratégiste : seulement SA fiche (à remplir, en retard, envoyée à l'heure ou non)
+  P.etatStrat = x => {
+    if (!x.envoye) return x.strat && x.strat < Date.now() ? { cle: 'retard', texte: 'Fiche en retard', pill: 'r' } : { cle: 'afaire', texte: 'Fiche à remplir', pill: 'b' };
+    if (x.strat && x.envoyeLe > x.strat) { const h = Math.max(1, Math.round((x.envoyeLe - x.strat) / 36e5)); return { cle: 'tard', texte: 'Envoyée avec ' + (h >= 24 ? Math.round(h / 24) + ' j' : h + ' h') + ' de retard', pill: 'a' }; }
+    return { cle: 'heure', texte: 'Envoyée à l\'heure', pill: 'g' };
+  };
+  P.pillStrat = x => { const e = P.etatStrat(x); return '<span class="pill ' + e.pill + '"><i></i>' + K.esc(e.texte) + '</span>'; };
+  // le type de projet, dit clairement : commande unique, sur-mesure en plusieurs livraisons, abonnement
+  const MOIS_P = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+  P.type = (x, en) => {
+    const d = x.d || {}, l = d.livraison;
+    if (d.abonnement || (l && l.type === 'abonnement')) { const m = new Date(x.client || Date.now()).getMonth(); return { t: en ? 'Subscription' : 'Abonnement', s: en ? 'month of ' + ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][m] : 'mois de ' + MOIS_P[m] }; }
+    if (l && l.sur > 1) return { t: en ? 'Custom, split' : 'Sur-mesure', s: (en ? 'delivery ' : 'livraison ') + l.n + (en ? ' of ' : ' sur ') + l.sur };
+    return { t: en ? 'One-off order' : 'Commande unique', s: 'Pack ' + ((x.pack || '').charAt(0).toUpperCase() + (x.pack || '').slice(1)) };
+  };
+  P.celluleType = (x, en) => { const t = P.type(x, en); return '<b style="font-weight:500">' + K.esc(t.t) + '</b><span class="sub">' + K.esc(t.s) + '</span>'; };
+  P.celluleCreas = (x, en) => { const l = (x.d || {}).livraison; return '<b style="font-weight:500">' + K.esc(x.nb || '?') + '</b>' + (l && l.sur > 1 && l.total_creas ? '<span class="sub">' + (en ? 'of ' : 'sur ') + l.total_creas + (en ? ' in total' : ' au total') + '</span>' : ''); };
 
   // les sections et la page qu'elles ouvrent
   P.sections = {
     fiche: { fr: 'Fiches créas', en: 'Strategy briefs', icone: 'doc', ok: () => true, src: x => '/fiche/?projet=' + encodeURIComponent(x.dossier) },
     dossier: { fr: 'Dossiers de production', en: 'Production files', icone: 'calques', ok: x => x.prod === x.dossier || !(P.liste || []).some(y => y.dossier === x.prod), src: x => '/' + x.prod + '/' },
-    brief: { fr: 'Briefs clients', en: 'Client briefs', icone: 'message', ok: x => x.retour, src: x => '/retours/?projet=' + encodeURIComponent(x.dossier) },
+    brief: { fr: 'Briefs suivants', en: 'Next briefs', icone: 'message', ok: x => x.retour, src: x => '/retours/?projet=' + encodeURIComponent(x.dossier) },
     visuels: { fr: 'Visuels', en: 'Previews', icone: 'image', ok: x => x.envoye, src: x => '/' + x.dossier + '/creas/' },
     telechargement: { fr: 'Téléchargements', en: 'Downloads', icone: 'telecharger', ok: x => x.envoye, src: x => '/' + x.dossier + '/creas/telecharger.html' }
   };
@@ -388,15 +406,19 @@
 
   // la liste des projets d'une section (quand aucun n'est choisi)
   P.liste_ = (sec, opt) => {
-    const S = P.sections[sec], en = opt.en, l = (P.liste || []).filter(S.ok).sort((a, b) => (b.envoyeLe || b.strat || 0) - (a.envoyeLe || a.strat || 0));
+    const S = P.sections[sec], en = opt.en, strat = opt.role === 'strategiste', l = (P.liste || []).filter(S.ok).sort((a, b) => (b.envoyeLe || b.strat || 0) - (a.envoyeLe || a.strat || 0));
     let h = '<div class="ph"><div><h1>' + K.esc(en ? S.en : S.fr) + '</h1><p>' + K.esc(opt.texte || (en ? 'Choose a project.' : 'Choisissez un projet.')) + '</p></div>' +
       (sec === 'fiche' && !en ? '<div class="act"><a class="btn btn-s" href="#/fiche/banque">' + K.i.grille + 'Banque d\'inspirations</a></div>' : '') + '</div>';
     if (!l.length) return h + '<div class="card"><div class="vide">' + K.i[S.icone] + K.esc(en ? 'Nothing here yet.' : 'Rien ici pour le moment.') + '</div></div>';
-    return h + '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>' + (en ? 'Project' : 'Projet') + '</th><th class="num">' + (en ? 'Creatives' : 'Créas') + '</th><th>' + (en ? 'Status' : 'Statut') + '</th><th>' + (en ? 'Deadline' : 'Échéance') + '</th><th></th></tr></thead><tbody>' +
+    const brief = sec === 'brief';
+    return h + '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>' + (en ? 'Project' : 'Projet') + '</th><th>Type</th><th class="num">' + (en ? 'Creatives' : 'Créas à faire') + '</th>' +
+      (brief ? '<th>' + (en ? 'Received' : 'Reçu le') + '</th>' : '') + '<th>' + (en ? 'Status' : 'Statut') + '</th><th>' + (en ? 'Due' : 'À rendre avant') + '</th><th></th></tr></thead><tbody>' +
       l.map(x => {
-        const ech = !x.envoye ? x.strat : !x.livre ? x.desi : x.client;
-        return '<tr class="clic" onclick="location.hash=\'#/' + sec + '/' + K.esc(x.dossier) + '\'"><td><div class="nom">' + K.tuile(x.marque) + '<div><b>' + K.esc(x.nom) + (x.demo ? ' <span class="pill demo">' + (en ? 'Demo' : 'Démo') + '</span>' : '') + '</b><span class="sub">' + K.esc(x.dossier) + '</span></div></div></td>' +
-          '<td class="num">' + K.esc(x.nb || '?') + '</td><td>' + P.pill(x, en) + '</td><td>' + (ech ? K.esc(K.dateHeure(ech)) : '·') + '</td>' +
+        const ech = strat || !x.envoye ? x.strat : !x.livre ? x.desi : x.client;
+        return '<tr class="clic" onclick="location.hash=\'#/' + sec + '/' + K.esc(x.dossier) + '\'"><td><div class="nom">' + K.tuile(x.marque) + '<div><b>' + K.esc(x.marque) + (x.demo ? ' <span class="pill demo">' + (en ? 'Demo' : 'Démo') + '</span>' : '') + '</b><span class="sub">' + K.esc(x.dossier) + '</span></div></div></td>' +
+          '<td>' + P.celluleType(x, en) + '</td><td class="num">' + P.celluleCreas(x, en) + '</td>' +
+          (brief ? '<td>' + (x.retourLe ? K.esc(K.dateHeure(x.retourLe)) : '·') + '</td>' : '') +
+          '<td>' + (strat ? P.pillStrat(x) : P.pill(x, en)) + '</td><td>' + (ech ? K.esc(K.dateHeure(ech)) : '·') + '</td>' +
           '<td class="fin"><span class="btn btn-s btn-sm">' + (en ? 'Open' : 'Ouvrir') + ' ' + K.i.fleche.replace('<svg', '<svg width="14" height="14"') + '</span></td></tr>';
       }).join('') + '</tbody></table></div></div>';
   };
@@ -412,7 +434,7 @@
       '<div class="vp-choix"><select class="in" id="vp-projet">' + (id === 'banque' ? '<option value="banque" selected>' + (en ? 'Inspiration bank' : 'Banque d\'inspirations') + '</option>' : '') +
       (!x && id !== 'banque' ? '<option value="' + K.esc(id) + '" selected>' + K.esc(id) + '</option>' : '') +
       choix.map(y => '<option value="' + K.esc(y.dossier) + '"' + (x === y ? ' selected' : '') + '>' + K.esc(y.nom) + ' · ' + K.esc(y.nb || '?') + (en ? ' creatives' : ' créas') + '</option>').join('') + '</select></div>' +
-      (x ? P.pill(x, en) : '') +
+      (x ? (opt.role === 'strategiste' ? P.pillStrat(x) : P.pill(x, en)) : '') +
       (autres.length ? '<div class="vp-autres">' + autres.map(k => '<a class="btn btn-s btn-sm" href="#/' + k + '/' + K.esc(x.dossier) + '">' + K.i[P.sections[k].icone] + K.esc(en ? P.sections[k].en : P.sections[k].fr) + '</a>').join('') + '</div>' : '') +
       '</div><iframe class="vp-cadre" id="vp-cadre" src="' + K.esc(avecIntegre(src)) + '" title="' + K.esc(en ? S.en : S.fr) + '"></iframe></div>';
   };

@@ -27,7 +27,7 @@ const ANCIENS = [
 ];
 const COOKIE = 'k_espace';
 const DUREE_JOURS = 60;
-const PUBLICS = /^\/(ui\/kreative\.css|ui\/logo-[a-z0-9-]+\.png|favicon-\d+\.png)$/;
+const PUBLICS = /^\/(ui\/kreative\.css|ui\/app\.(css|js)|ui\/logo-[a-z0-9-]+\.png|favicon-\d+\.png)$/;
 const INTERDITS = /(^|\/)(\.git|\.github|outils)(\/|$)|\.\./;
 const LIMITE_REECRITURE = 3 * 1024 * 1024;   // au-delà, le texte passe tel quel
 const LIMITE_SCRIPT = 64 * 1024;              // scripts inline réécrits jusqu'à 64 ko
@@ -77,6 +77,10 @@ async function traiter(req, env, ctx) {
       'Location': lieu, 'Cache-Control': 'no-store', 'Set-Cookie': COOKIE + '=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax' } });
   }
 
+  // ---------- portail client et API (voir « PORTAIL » plus bas) ----------
+  const portail = await routerPortail(req, env, ctx, url, chemin);
+  if (portail) return portail;
+
   if (req.method !== 'GET' && req.method !== 'HEAD') return texte('Méthode non autorisée', 405);
 
   // ---------- fichiers publics (la page de connexion en a besoin) ----------
@@ -119,7 +123,7 @@ const ACCUEILS = { admin: '/admin/', strategiste: '/strategiste/', designer: '/d
 const DESIGNER_OK = /^\/(designer\/.*|[A-Za-z0-9_-]+\/creas\/.*|projets\.json|[A-Za-z0-9_-]+\/(donnees|envois|livraison)\.json|signaler\.js|ui\/.*|favicon-\d+\.png|logo-kreative\.png)$/;
 function autorise(role, chemin) {
   if (role === 'admin') return true;
-  if (/^\/(admin|_admin)(\/|$)/.test(chemin)) return false;
+  if (/^\/(admin|_admin|client)(\/|$)/.test(chemin)) return false;
   if (role === 'designer') return DESIGNER_OK.test(chemin) || chemin === '/designer';
   if (role === 'strategiste') return !/^\/designer(\/|$)/.test(chemin);
   return false;
@@ -399,4 +403,323 @@ ${erreur ? '<p class="err">' + T.err + '</p>' : ''}
 
 function texte(t, statut) {
   return new Response(t, { status: statut, headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' } });
+}
+
+// ============================================================
+//  PORTAIL CLIENT (15/10)
+//
+//  Base de données Cloudflare D1, liée au Worker sous le nom DB.
+//  Les tables se créent seules au premier passage.
+//
+//  - Chaque client a un lien personnel : /acces/<jeton>. Il le reçoit
+//    par email ; ce lien le reconnecte sur n'importe quel appareil.
+//    Il ouvre une session de 180 jours (cookie k_client).
+//  - /client/...        le portail du client (ou l'aperçu admin)
+//  - /api/client/...    ses données
+//  - /api/admin/...     clients et commandes, pour l'admin
+//  - Les emails partent par n8n (secret N8N_EMAIL = adresse du webhook).
+// ============================================================
+const COOKIE_CLIENT = 'k_client';
+const DUREE_CLIENT_JOURS = 180;
+const PACKS = {
+  starter: { nom: 'Starter', creas: 6, unique: 280, mensuel: 240, revisions: 2, delai: 48 },
+  growth: { nom: 'Growth', creas: 12, unique: 490, mensuel: 420, revisions: null, delai: 48 },
+  scale: { nom: 'Scale', creas: 24, unique: 890, mensuel: 760, revisions: null, delai: 72 },
+  custom: { nom: 'Custom', creas: 30, unique: null, mensuel: null, revisions: null, delai: 72 }
+};
+const STATUTS = ['brief', 'production', 'livre', 'revisions', 'valide', 'annule'];
+
+let BASE_PRETE = false;
+async function base(env) {
+  if (!env.DB) throw new Error('Base de données absente : liez une base D1 au Worker sous le nom DB.');
+  if (!BASE_PRETE) {
+    await env.DB.batch([
+      env.DB.prepare(`CREATE TABLE IF NOT EXISTS clients (id TEXT PRIMARY KEY, marque TEXT NOT NULL, contact TEXT, email TEXT UNIQUE,
+        telephone TEXT, site TEXT, statut TEXT DEFAULT 'actif', jeton TEXT UNIQUE, notes TEXT, cree_le INTEGER, vu_le INTEGER)`),
+      env.DB.prepare(`CREATE TABLE IF NOT EXISTS commandes (id TEXT PRIMARY KEY, ref TEXT UNIQUE, client_id TEXT NOT NULL, pack TEXT,
+        formule TEXT, nb_creas INTEGER, prix INTEGER, dossier TEXT, statut TEXT DEFAULT 'brief', cree_le INTEGER, brief_le INTEGER,
+        livre_le INTEGER, deadline INTEGER, notes TEXT)`),
+      env.DB.prepare(`CREATE TABLE IF NOT EXISTS activite (id INTEGER PRIMARY KEY AUTOINCREMENT, client_id TEXT, commande_id TEXT,
+        type TEXT, texte TEXT, le INTEGER)`),
+      env.DB.prepare(`CREATE INDEX IF NOT EXISTS i_cmd_client ON commandes(client_id)`),
+      env.DB.prepare(`CREATE INDEX IF NOT EXISTS i_act_client ON activite(client_id, le)`)
+    ]);
+    BASE_PRETE = true;
+  }
+  return env.DB;
+}
+
+function aleatoire(n) {
+  const a = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789', o = new Uint8Array(n);
+  crypto.getRandomValues(o);
+  return Array.from(o, x => a[x % a.length]).join('');
+}
+const maintenant = () => Date.now();
+const propre = (v, max) => String(v == null ? '' : v).trim().slice(0, max || 200);
+const emailValide = e => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e);
+
+async function noter(db, client_id, commande_id, type, texte) {
+  await db.prepare('INSERT INTO activite (client_id, commande_id, type, texte, le) VALUES (?,?,?,?,?)')
+    .bind(client_id, commande_id || null, type, texte, maintenant()).run();
+}
+
+async function sessionClient(req, env) {
+  if (!env.CLE) return null;
+  const c = (req.headers.get('Cookie') || '').split(/;\s*/).find(x => x.startsWith(COOKIE_CLIENT + '='));
+  if (!c) return null;
+  const [id, fin, sig] = c.slice(COOKIE_CLIENT.length + 1).split('.');
+  if (!id || !fin || !sig || Number(fin) < maintenant()) return null;
+  if (!egal(sig, await signer(env, 'client.' + id + '.' + fin))) return null;
+  const db = await base(env);
+  const cl = await db.prepare('SELECT * FROM clients WHERE id = ?').bind(id).first();
+  if (!cl || cl.statut === 'bloque') return null;
+  return cl;
+}
+
+async function corpsJson(req) {
+  try { return await req.json(); } catch (e) { return {}; }
+}
+
+// le lien d'accès du client, absolu
+const lienAcces = (url, jeton) => url.origin + '/acces/' + jeton;
+
+async function envoyerEmail(env, donnees) {
+  if (!env.N8N_EMAIL) return { ok: false, message: 'Envoi d\'email pas encore branché (secret N8N_EMAIL manquant).' };
+  try {
+    const r = await fetch(env.N8N_EMAIL, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Kreative-Cle': env.CLE || '' },
+      body: JSON.stringify(donnees) });
+    return r.ok ? { ok: true } : { ok: false, message: 'n8n a répondu ' + r.status };
+  } catch (e) { return { ok: false, message: 'n8n injoignable' }; }
+}
+
+async function routerPortail(req, env, ctx, url, chemin) {
+  const methode = req.method;
+
+  // ---- le lien personnel du client ----
+  const acces = chemin.match(/^\/acces\/([A-Za-z0-9]{16,64})\/?$/);
+  if (acces) {
+    const db = await base(env);
+    const cl = await db.prepare('SELECT id, statut FROM clients WHERE jeton = ?').bind(acces[1]).first();
+    if (!cl || cl.statut === 'bloque') return redirection('/client/connexion?lien=invalide');
+    const fin = maintenant() + DUREE_CLIENT_JOURS * 864e5;
+    const valeur = cl.id + '.' + fin + '.' + (await signer(env, 'client.' + cl.id + '.' + fin));
+    await db.prepare('UPDATE clients SET vu_le = ? WHERE id = ?').bind(maintenant(), cl.id).run();
+    return new Response(null, { status: 302, headers: { 'Location': '/client/', 'Cache-Control': 'no-store',
+      'Set-Cookie': COOKIE_CLIENT + '=' + valeur + '; Path=/; Max-Age=' + DUREE_CLIENT_JOURS * 86400 + '; HttpOnly; Secure; SameSite=Lax' } });
+  }
+  if (chemin === '/client/sortie') return new Response(null, { status: 303, headers: { 'Location': '/client/connexion',
+    'Set-Cookie': COOKIE_CLIENT + '=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax' } });
+
+  // ---- demander son lien par email (public, réponse toujours identique) ----
+  if (chemin === '/api/client/lien' && methode === 'POST') {
+    const b = await corpsJson(req);
+    const email = propre(b.email, 160).toLowerCase();
+    if (emailValide(email)) {
+      const db = await base(env);
+      const cl = await db.prepare('SELECT * FROM clients WHERE lower(email) = ? AND statut != ?').bind(email, 'bloque').first();
+      if (cl) {
+        ctx.waitUntil(envoyerEmail(env, { type: 'acces', a: cl.email, marque: cl.marque, contact: cl.contact || '', lien: lienAcces(url, cl.jeton) }));
+        ctx.waitUntil(noter(db, cl.id, null, 'lien', 'Lien d\'accès redemandé par email'));
+      }
+    }
+    await new Promise(r => setTimeout(r, 400));
+    return json({ ok: true, message: 'Si cette adresse correspond à un compte Kreative, vous allez recevoir votre lien d\'accès dans quelques minutes.' });
+  }
+
+  // ---- la page de connexion du client (publique) ----
+  if (chemin === '/client/connexion') return servir('client/connexion.html', env, ctx, { brut: false, origine: url.origin, req });
+
+  const estClient = chemin === '/client' || chemin.startsWith('/client/') || chemin.startsWith('/api/client/');
+  const estAdminApi = chemin.startsWith('/api/admin/');
+  if (!estClient && !estAdminApi) return null;
+
+  const equipe = await session(req, env);
+  const admin = equipe && equipe.role === 'admin';
+
+  // ---- API admin ----
+  if (estAdminApi) {
+    if (!admin) return json({ erreur: 'Accès refusé' }, 403);
+    return apiAdmin(req, env, ctx, url, chemin.slice('/api/admin'.length), methode);
+  }
+
+  // ---- portail client : le client connecté, ou l'admin en aperçu (?client=ID) ----
+  let cl = await sessionClient(req, env);
+  if (!cl && admin) {
+    const id = url.searchParams.get('client') || (req.headers.get('Referer') && new URL(req.headers.get('Referer')).searchParams.get('client'));
+    if (id) cl = await (await base(env)).prepare('SELECT * FROM clients WHERE id = ?').bind(id).first();
+  }
+  if (chemin.startsWith('/api/client/')) {
+    if (!cl) return json({ erreur: 'Connexion requise' }, 401);
+    return apiClient(req, env, ctx, url, chemin.slice('/api/client'.length), methode, cl, !!admin && !(await sessionClient(req, env)));
+  }
+  if (!cl && !admin) return redirection('/client/connexion');
+  if (methode !== 'GET' && methode !== 'HEAD') return texte('Méthode non autorisée', 405);
+  // une seule page pour tout le portail (les écrans changent sans recharger)
+  if (chemin === '/client' ) return redirection('/client/' + url.search);
+  if (/^\/client\/[^.]*$/.test(chemin)) return servir('client/index.html', env, ctx, { brut: false, origine: url.origin, req });
+  return null;
+}
+
+// ---------- l'avancement d'une commande, lu dans le dossier de production ----------
+async function lireJsonDepot(env, chemin) {
+  try { const r = await lireGithub(chemin, env, 'GET'); return r.ok ? await r.json() : null; } catch (e) { return null; }
+}
+async function avancement(env, cmd) {
+  const e = { brief: !!cmd.dossier || !!cmd.brief_le, strategie: false, creation: false, livre: ['livre', 'revisions', 'valide'].includes(cmd.statut),
+    valide: cmd.statut === 'valide', revisions: cmd.statut === 'revisions' };
+  let d = null;
+  if (cmd.dossier) {
+    const [donnees, envois, liv] = await Promise.all(['donnees', 'envois', 'livraison'].map(f => lireJsonDepot(env, cmd.dossier + '/' + f + '.json')));
+    d = donnees;
+    e.strategie = !!(envois && Array.isArray(envois.envois) && envois.envois.length) || e.livre;
+    e.creation = !!(liv && liv.livre) || e.livre;
+  }
+  const etapes = [
+    { cle: 'commande', titre: 'Commande confirmée', fait: true },
+    { cle: 'brief', titre: 'Brief envoyé', fait: e.brief },
+    { cle: 'strategie', titre: 'Angles et copywriting', fait: e.strategie },
+    { cle: 'creation', titre: 'Création des visuels', fait: e.creation },
+    { cle: 'livraison', titre: 'Livraison de vos créatives', fait: e.livre },
+    { cle: 'validation', titre: 'Validation', fait: e.valide }
+  ];
+  const faites = etapes.filter(x => x.fait).length;
+  const enCours = etapes.find(x => !x.fait);
+  return { etapes, progression: Math.round(faites * 100 / etapes.length), en_cours: enCours ? enCours.cle : null,
+    deadline: cmd.deadline || (d && Date.parse(d.deadline)) || null, marque_dossier: d && d.brand_name };
+}
+
+async function commandesDuClient(db, env, id, detail) {
+  const { results } = await db.prepare('SELECT * FROM commandes WHERE client_id = ? AND statut != ? ORDER BY cree_le DESC').bind(id, 'annule').all();
+  if (!detail) return results;
+  return Promise.all(results.map(async c => ({ ...c, ...(await avancement(env, c)) })));
+}
+
+// ---------- API du client ----------
+async function apiClient(req, env, ctx, url, chemin, methode, cl, apercu) {
+  const db = await base(env);
+  if (chemin === '/moi' && methode === 'GET') {
+    const commandes = await commandesDuClient(db, env, cl.id, true);
+    const { results: activite } = await db.prepare('SELECT type, texte, le FROM activite WHERE client_id = ? ORDER BY le DESC LIMIT 12').bind(cl.id).all();
+    if (!apercu) ctx.waitUntil(db.prepare('UPDATE clients SET vu_le = ? WHERE id = ?').bind(maintenant(), cl.id).run());
+    return json({ apercu, client: { id: cl.id, marque: cl.marque, contact: cl.contact, email: cl.email, site: cl.site, cree_le: cl.cree_le },
+      commandes, activite, packs: PACKS });
+  }
+  return json({ erreur: 'Introuvable' }, 404);
+}
+
+// ---------- API admin ----------
+async function apiAdmin(req, env, ctx, url, chemin, methode) {
+  const db = await base(env);
+  const b = methode === 'GET' ? {} : await corpsJson(req);
+  let m;
+
+  if (chemin === '/clients' && methode === 'GET') {
+    const { results } = await db.prepare(`SELECT c.*, COUNT(k.id) AS nb_commandes, COALESCE(SUM(k.prix),0) AS total,
+      MAX(k.cree_le) AS derniere_commande FROM clients c LEFT JOIN commandes k ON k.client_id = c.id AND k.statut != 'annule'
+      GROUP BY c.id ORDER BY c.cree_le DESC`).all();
+    return json(results.map(c => ({ ...c, lien: lienAcces(url, c.jeton) })));
+  }
+  if (chemin === '/clients' && methode === 'POST') {
+    const marque = propre(b.marque, 80), email = propre(b.email, 160).toLowerCase();
+    if (!marque) return json({ erreur: 'Le nom de la marque est obligatoire.' }, 400);
+    if (email && !emailValide(email)) return json({ erreur: 'Adresse email invalide.' }, 400);
+    if (email && await db.prepare('SELECT id FROM clients WHERE lower(email) = ?').bind(email).first()) return json({ erreur: 'Un client existe déjà avec cet email.' }, 409);
+    const id = 'c_' + aleatoire(10), jeton = aleatoire(32);
+    await db.prepare('INSERT INTO clients (id, marque, contact, email, telephone, site, jeton, notes, cree_le) VALUES (?,?,?,?,?,?,?,?,?)')
+      .bind(id, marque, propre(b.contact, 80), email || null, propre(b.telephone, 40), propre(b.site, 160), jeton, propre(b.notes, 2000), maintenant()).run();
+    await noter(db, id, null, 'client', 'Espace client créé');
+    return json({ id, lien: lienAcces(url, jeton) });
+  }
+  if ((m = chemin.match(/^\/clients\/(c_[A-Za-z0-9]+)$/))) {
+    const cl = await db.prepare('SELECT * FROM clients WHERE id = ?').bind(m[1]).first();
+    if (!cl) return json({ erreur: 'Client introuvable' }, 404);
+    if (methode === 'GET') {
+      const commandes = await commandesDuClient(db, env, cl.id, true);
+      const { results: activite } = await db.prepare('SELECT type, texte, le FROM activite WHERE client_id = ? ORDER BY le DESC LIMIT 30').bind(cl.id).all();
+      return json({ client: { ...cl, lien: lienAcces(url, cl.jeton) }, commandes, activite });
+    }
+    if (methode === 'PATCH') {
+      const champs = ['marque', 'contact', 'email', 'telephone', 'site', 'statut', 'notes'].filter(k => k in b);
+      if (!champs.length) return json({ ok: true });
+      if ('email' in b && b.email && !emailValide(propre(b.email))) return json({ erreur: 'Adresse email invalide.' }, 400);
+      await db.prepare('UPDATE clients SET ' + champs.map(k => k + ' = ?').join(', ') + ' WHERE id = ?')
+        .bind(...champs.map(k => k === 'email' ? (propre(b[k], 160).toLowerCase() || null) : propre(b[k], k === 'notes' ? 2000 : 160)), cl.id).run();
+      return json({ ok: true });
+    }
+    if (methode === 'DELETE') {
+      await db.batch([db.prepare('DELETE FROM commandes WHERE client_id = ?').bind(cl.id), db.prepare('DELETE FROM activite WHERE client_id = ?').bind(cl.id),
+        db.prepare('DELETE FROM clients WHERE id = ?').bind(cl.id)]);
+      return json({ ok: true });
+    }
+  }
+  if ((m = chemin.match(/^\/clients\/(c_[A-Za-z0-9]+)\/(nouveau-lien|envoyer-lien)$/)) && methode === 'POST') {
+    const cl = await db.prepare('SELECT * FROM clients WHERE id = ?').bind(m[1]).first();
+    if (!cl) return json({ erreur: 'Client introuvable' }, 404);
+    if (m[2] === 'nouveau-lien') {
+      const jeton = aleatoire(32);
+      await db.prepare('UPDATE clients SET jeton = ? WHERE id = ?').bind(jeton, cl.id).run();
+      await noter(db, cl.id, null, 'lien', 'Nouveau lien d\'accès (l\'ancien ne marche plus)');
+      return json({ lien: lienAcces(url, jeton) });
+    }
+    if (!cl.email) return json({ erreur: 'Ce client n\'a pas d\'email.' }, 400);
+    const r = await envoyerEmail(env, { type: 'acces', a: cl.email, marque: cl.marque, contact: cl.contact || '', lien: lienAcces(url, cl.jeton) });
+    if (r.ok) await noter(db, cl.id, null, 'lien', 'Lien d\'accès envoyé par email');
+    return json(r, r.ok ? 200 : 502);
+  }
+
+  if (chemin === '/commandes' && methode === 'GET') {
+    const { results } = await db.prepare(`SELECT k.*, c.marque, c.contact FROM commandes k JOIN clients c ON c.id = k.client_id
+      ORDER BY k.cree_le DESC`).all();
+    return json(results);
+  }
+  if (chemin === '/commandes' && methode === 'POST') {
+    const cl = await db.prepare('SELECT id FROM clients WHERE id = ?').bind(propre(b.client_id, 40)).first();
+    if (!cl) return json({ erreur: 'Client introuvable' }, 404);
+    const pack = PACKS[b.pack] ? b.pack : 'growth', formule = ['unique', 'mensuel', 'custom'].includes(b.formule) ? b.formule : 'unique';
+    const P = PACKS[pack];
+    const max = await db.prepare('SELECT MAX(CAST(substr(ref, 3) AS INTEGER)) AS n FROM commandes').first();
+    const ref = 'K-' + String(Math.max(100, (max && max.n) || 100) + 1);
+    const id = 'k_' + aleatoire(10);
+    const nb = Number(b.nb_creas) || P.creas, prix = b.prix != null && b.prix !== '' ? Number(b.prix) : (formule === 'mensuel' ? P.mensuel : P.unique);
+    await db.prepare('INSERT INTO commandes (id, ref, client_id, pack, formule, nb_creas, prix, dossier, statut, cree_le) VALUES (?,?,?,?,?,?,?,?,?,?)')
+      .bind(id, ref, cl.id, pack, formule, nb, Number.isFinite(prix) ? prix : null, propre(b.dossier, 60) || null, b.dossier ? 'production' : 'brief', maintenant()).run();
+    await noter(db, cl.id, id, 'commande', 'Commande #' + ref + ' · Pack ' + P.nom + ' · ' + nb + ' créatives');
+    return json({ id, ref });
+  }
+  if ((m = chemin.match(/^\/commandes\/(k_[A-Za-z0-9]+)$/))) {
+    const k = await db.prepare('SELECT * FROM commandes WHERE id = ?').bind(m[1]).first();
+    if (!k) return json({ erreur: 'Commande introuvable' }, 404);
+    if (methode === 'PATCH') {
+      const champs = ['pack', 'formule', 'nb_creas', 'prix', 'dossier', 'statut', 'deadline', 'notes'].filter(x => x in b);
+      if ('statut' in b && !STATUTS.includes(b.statut)) return json({ erreur: 'Statut inconnu' }, 400);
+      if (!champs.length) return json({ ok: true });
+      const val = x => ['nb_creas', 'prix', 'deadline'].includes(x) ? (b[x] === '' || b[x] == null ? null : Number(b[x])) : (propre(b[x], 2000) || null);
+      await db.prepare('UPDATE commandes SET ' + champs.map(x => x + ' = ?').join(', ') + ' WHERE id = ?').bind(...champs.map(val), k.id).run();
+      if ('dossier' in b && b.dossier && !k.dossier) {
+        await db.prepare("UPDATE commandes SET brief_le = COALESCE(brief_le, ?), statut = CASE WHEN statut = 'brief' THEN 'production' ELSE statut END WHERE id = ?").bind(maintenant(), k.id).run();
+        await noter(db, k.client_id, k.id, 'brief', 'Brief reçu, production lancée');
+      }
+      if ('statut' in b && b.statut !== k.statut) {
+        const textes = { livre: 'Vos créatives sont livrées', revisions: 'Révisions en cours', valide: 'Projet validé', production: 'Production en cours' };
+        if (textes[b.statut]) await noter(db, k.client_id, k.id, b.statut, textes[b.statut] + ' · #' + k.ref);
+        if (b.statut === 'livre') await db.prepare('UPDATE commandes SET livre_le = ? WHERE id = ?').bind(maintenant(), k.id).run();
+      }
+      return json({ ok: true });
+    }
+    if (methode === 'DELETE') {
+      await db.prepare('DELETE FROM commandes WHERE id = ?').bind(k.id).run();
+      return json({ ok: true });
+    }
+  }
+  if (chemin === '/equipe' && methode === 'GET') {
+    return json(personnes(env).map(x => ({ nom: x.nom, role: x.role, espace: ACCUEILS[x.role] })));
+  }
+  if (chemin === '/resume' && methode === 'GET') {
+    const r = await db.prepare(`SELECT (SELECT COUNT(*) FROM clients) AS clients,
+      (SELECT COUNT(*) FROM commandes WHERE statut IN ('brief','production','livre','revisions')) AS en_cours,
+      (SELECT COUNT(*) FROM commandes WHERE formule = 'mensuel' AND statut != 'annule') AS mensuels,
+      (SELECT COALESCE(SUM(prix),0) FROM commandes WHERE statut != 'annule' AND cree_le > ?) AS ca_30j`).bind(maintenant() - 30 * 864e5).first();
+    return json({ ...r, packs: PACKS });
+  }
+  return json({ erreur: 'Introuvable' }, 404);
 }

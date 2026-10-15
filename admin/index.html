@@ -4,239 +4,441 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex">
-<title>Tableau de bord · Kreative</title>
-<link rel="icon" type="image/png" sizes="32x32" href="../favicon-32.png">
-<link rel="stylesheet" href="../ui/kreative.css">
-<style>
-/* ============================================================
-   TABLEAU DE BORD (admin)
-   Tous les projets en cours avec leur étape, leurs échéances et
-   tous leurs liens ; les projets livrés ; et tous les dossiers du
-   dépôt, avec une recherche par nom ou par code.
-   Réservé au rôle admin (l'espace Cloudflare refuse les autres).
-   ============================================================ */
-.w{max-width:1160px;margin:0 auto;padding:0 24px 110px}
-.k-top{max-width:1160px}
-.nav{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}
-.nav a{padding:9px 15px;border-radius:999px;color:var(--k-ink);text-decoration:none;font-size:14px;font-weight:500}
-.nav a:hover{background:var(--k-soft)}
-.nav a.sortie{color:var(--k-tx3)}
-.hero{margin:50px 0 8px;display:flex;align-items:flex-end;gap:24px;flex-wrap:wrap}
-.hero h1{font:600 48px/1.02 var(--k-titre);letter-spacing:-.045em;margin:0}
-.hero h1 em{font-style:normal;color:var(--k-blue)}
-.chiffres{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:28px 0 6px}
-.chiffre{background:var(--k-pan);border:1px solid var(--k-line);border-radius:var(--k-r-s);padding:16px 18px}
-.chiffre b{display:block;font:600 30px/1 var(--k-titre);letter-spacing:-.03em}
-.chiffre span{color:var(--k-tx2);font-size:13.5px}
-.chiffre.alerte b{color:#b3261e}
-.titre{display:flex;align-items:center;gap:12px;margin:42px 0 16px}
-.titre h2{font:600 26px/1.1 var(--k-titre);letter-spacing:-.025em;margin:0}
-.titre .nb{min-width:28px;height:28px;padding:0 9px;border-radius:999px;background:var(--k-blue);color:#fff;font:600 13px/28px var(--k-texte);text-align:center}
-.titre .nb.gris{background:var(--k-soft);color:var(--k-tx2)}
-.liste{display:flex;flex-direction:column;gap:14px}
-.p{background:var(--k-pan);border:1px solid var(--k-line);border-radius:var(--k-r);box-shadow:var(--k-ombre);padding:22px 24px}
-.l1{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
-.nom{font:600 23px/1.15 var(--k-titre);letter-spacing:-.025em;margin:0}
-.code{color:var(--k-tx3);font-size:13px;margin-top:3px}
-.pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;letter-spacing:.02em;padding:5px 11px;border-radius:999px;background:var(--k-blue-soft);color:var(--k-blue)}
-.pill.noir{background:#1f1f1f;color:#fff}
-.pill.retard{background:#fde8e6;color:#b3261e}
-.pill.ok{background:#e7f6ec;color:#1e7a3c}
-.pill.gris{background:var(--k-soft);color:var(--k-tx2)}
-.etapes{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:18px 0 16px}
-.etape{border:1px solid var(--k-line);border-radius:var(--k-r-s);padding:12px 14px;background:var(--k-bg)}
-.etape small{display:block;color:var(--k-tx3);font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-bottom:4px}
-.etape div{font-size:14.5px}
-.etape.fait div{color:#1e7a3c}
-.etape.retard div{color:#b3261e;font-weight:600}
-.etape.encours{border-color:var(--k-blue);background:#fff}
-.liens{display:flex;gap:8px;flex-wrap:wrap}
-.liens .k-btn2,.liens .k-btn{font-size:13.5px;padding:10px 16px}
-.vide{padding:30px;text-align:center;color:var(--k-tx3);background:var(--k-pan);border:1px dashed var(--k-line2);border-radius:var(--k-r)}
-.charge{color:var(--k-tx3);padding:20px 0}
-.p.fait{padding:16px 22px}
-.p.fait .nom{font-size:18px}
-.recherche{display:block;width:100%;max-width:420px;font:inherit;font-size:15px;padding:13px 20px;border:1px solid var(--k-line2);border-radius:999px;background:#fff;outline:0;margin:0 0 14px}
-.recherche:focus{border-color:var(--k-blue)}
-.tous{background:var(--k-pan);border:1px solid var(--k-line);border-radius:var(--k-r);overflow:hidden}
-.ligne{display:flex;align-items:center;gap:12px;padding:11px 18px;border-top:1px solid var(--k-line);flex-wrap:wrap}
-.ligne:first-child{border-top:0}
-.ligne b{font-weight:600;font-size:14.5px;min-width:230px}
-.ligne .test{color:var(--k-tx3);font-size:12px}
-.ligne .lk{margin-left:auto;display:flex;gap:14px}
-.ligne .lk a{color:var(--k-blue);text-decoration:none;font-size:14px}
-.ligne .lk a:hover{text-decoration:underline}
-.plus{display:block;margin:12px auto 0;background:none;border:0;color:var(--k-tx2);font:inherit;font-size:14px;cursor:pointer;text-decoration:underline}
-@media(max-width:820px){
-  .w{padding:0 16px 90px}
-  .hero h1{font-size:36px}
-  .chiffres{grid-template-columns:repeat(2,1fr)}
-  .etapes{grid-template-columns:1fr}
-  .k-top{flex-wrap:wrap;border-radius:24px;row-gap:4px}
-  .k-top-t{width:100%}
-  .nav{margin-left:-10px}
-  .nav a{padding:8px 10px}
-  .ligne b{min-width:0}
-  .ligne .lk{margin-left:0}
-}
-</style>
+<title>Admin · Kreative</title>
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+<link rel="stylesheet" href="/ui/app.css">
+<script src="/ui/app.js"></script>
 </head>
-<body class="k">
-<header class="k-top">
-  <span class="k-top-t">Tableau de bord</span>
-  <nav class="nav">
-    <a href="../strategiste/">Espace stratégiste</a>
-    <a href="../designer/">Designer space</a>
-    <a href="../fiche/">Fiche créas</a>
-    <a class="sortie" href="/_deconnexion">Se déconnecter</a>
-  </nav>
-</header>
-<div class="w">
-  <div class="hero"><h1>Tous les <em>projets</em></h1></div>
-  <div class="chiffres">
-    <div class="chiffre"><b id="cStrat">·</b><span>chez le stratégiste</span></div>
-    <div class="chiffre"><b id="cDesi">·</b><span>chez le designer</span></div>
-    <div class="chiffre"><b id="cLivre">·</b><span>livrés (en ligne)</span></div>
-    <div class="chiffre" id="boxRetard"><b id="cRetard">·</b><span>en retard</span></div>
-  </div>
-
-  <div class="titre"><h2>En cours</h2><span class="nb" id="nbE">0</span></div>
-  <div class="liste" id="encours"><div class="charge">Chargement des projets…</div></div>
-
-  <div class="titre"><h2>Livrés</h2><span class="nb gris" id="nbL">0</span></div>
-  <div class="liste" id="livres"></div>
-
-  <div class="titre"><h2>Tous les dossiers</h2><span class="nb gris" id="nbT">0</span></div>
-  <input class="recherche" id="q" type="search" placeholder="Chercher une marque ou un code…" autocomplete="off">
-  <div class="tous" id="tous"><div class="charge" style="padding:16px 18px">Chargement…</div></div>
-  <button class="plus" id="plus" type="button" hidden>Voir tous les dossiers</button>
-</div>
+<body>
+<div id="racine"><div class="chargement">Chargement…</div></div>
 <script>
-const $ = id => document.getElementById(id);
-const esc = t => String(t == null ? '' : t).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const lire = async u => { try { const r = await fetch(u + (u.includes('?') ? '&' : '?') + 't=' + Date.now(), {cache: 'no-store'}); return r.ok ? await r.json() : null; } catch (e) { return null; } };
+/* ============================================================
+   ADMIN KREATIVE
+   Vue d'ensemble · Clients (fiche, lien d'accès, commandes) ·
+   Commandes · Projets en production (suivi, kanban) · Dossiers ·
+   Équipe. Les clients et commandes vivent dans la base Cloudflare,
+   la production dans le dépôt (projets.json, donnees.json...).
+   ============================================================ */
+const { i, esc } = K;
+const S = { clients: null, commandes: null, resume: null, prod: null, dossiers: null, equipe: null, moi: null,
+  vueProjets: 'suivi', filtreClients: 'tous', chClients: '', chDossiers: '', filtreCmd: 'en_cours' };
+const PACKS_NOMS = { starter: 'Starter', growth: 'Growth', scale: 'Scale', custom: 'Custom' };
+const STATUTS = { brief: ['Brief attendu', 'a'], production: ['Production', 'b'], livre: ['Livré', 'g'], revisions: ['Révisions', 'v'], valide: ['Terminé', 'g'], annule: ['Annulé', ''] };
 const H = 36e5;
-const quand = ms => new Intl.DateTimeFormat('fr-FR', {weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Paris'}).format(new Date(ms));
-const jour = ms => new Intl.DateTimeFormat('fr-FR', {day: 'numeric', month: 'short', timeZone: 'Europe/Paris'}).format(new Date(ms));
-// 15/10 : chaque lien de projet s'ouvre dans un nouvel onglet
-const lien = (h, t, cls) => '<a class="' + (cls || 'k-btn2') + '" href="' + esc(h) + '" target="_blank" rel="noopener">' + t + '</a>';
-const MOIS = {'01':'janv.','02':'févr.','03':'mars','04':'avr.','05':'mai','06':'juin','07':'juil.','08':'août','09':'sept.','10':'oct.','11':'nov.','12':'déc.'};
 
-function etat(x) {
-  const now = Date.now();
-  if (x.livre) return {cle: 'livre', pill: '<span class="pill ok">Livré ✓</span>'};
-  if (!x.envoye) {
-    const late = x.strat && x.strat < now;
-    return {cle: 'strat', retard: late, pill: late ? '<span class="pill retard">Fiche en retard</span>' : '<span class="pill">Chez le stratégiste</span>'};
+// ---------- chargements ----------
+async function charger(quoi, force) {
+  const t = {
+    clients: () => K.api('/api/admin/clients'),
+    commandes: () => K.api('/api/admin/commandes'),
+    resume: () => K.api('/api/admin/resume'),
+    equipe: () => K.api('/api/admin/equipe'),
+    moi: () => K.lireJson('/_moi'),
+    dossiers: async () => { const l = await K.lireJson('/_admin/dossiers.json'); return Array.isArray(l) ? l.sort((a, b) => (/^TEST|^REDO/.test(a) - /^TEST|^REDO/.test(b)) || a.localeCompare(b)) : []; },
+    prod: chargerProduction
+  };
+  if (force || S[quoi] == null) {
+    try { S[quoi] = await t[quoi](); }
+    catch (e) { S[quoi] = quoi === 'resume' ? {} : []; if (e.statut !== 401) K.toast(e.message); }
   }
-  const late = x.desi && x.desi < now;
-  return {cle: 'desi', retard: late, pill: late ? '<span class="pill retard">Designer en retard</span>' : '<span class="pill noir">Chez le designer</span>'};
+  return S[quoi];
 }
-
-function etape(titre, ms, fait, faitLe, actif) {
-  const now = Date.now();
-  let cls = 'etape', txt = ms ? quand(ms) : '·';
-  if (fait) { cls += ' fait'; txt = '✓ ' + (faitLe ? 'le ' + quand(faitLe) : 'fait'); }
-  else if (ms && ms < now && actif) { cls += ' retard'; txt = 'en retard · ' + quand(ms); }
-  else if (actif) cls += ' encours';
-  return '<div class="' + cls + '"><small>' + titre + '</small><div>' + txt + '</div></div>';
-}
-
-function liens(x) {
-  const d = x.d, prod = (d.livraison && d.livraison.projet) || x.dossier, b = [];
-  b.push(lien('../' + prod + '/', 'Dossier de prod'));
-  b.push(lien('../fiche/?projet=' + encodeURIComponent(x.dossier), 'Fiche'));
-  if (x.retour) b.push(lien('../retours/?projet=' + encodeURIComponent(x.dossier), esc(nomBrief(x.d))));
-  if (x.envoye) { b.push(lien('../' + x.dossier + '/creas/', 'Aperçu designer')); b.push(lien('../' + x.dossier + '/creas/telecharger.html', 'Téléchargement')); }
-  if (x.zip) b.push(lien(x.zip, 'Créas livrées', 'k-btn'));
-  return '<div class="liens">' + b.join('') + '</div>';
-}
-
-/* 15/10 : le nom du brief selon le type de projet :
-   sur-mesure -> « Brief de la livraison 2/4 », abonnement -> « Brief de novembre » */
-function nomBrief(d){
-  const M=["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
-  const l=d&&d.livraison;
-  if(d&&(d.abonnement||(l&&l.type==="abonnement"))){
-    const m=M[new Date(Date.parse(d.deadline||"")||Date.now()).getMonth()];
-    return "Brief "+(/^[aeiouâ]/.test(m)?"d'":"de ")+m;
-  }
-  if(l&&l.sur>1) return "Brief de la livraison "+l.n+"/"+l.sur;
-  return "Brief du client";
-}
-function carte(x) {
-  const d = x.d, l = d.livraison, e = etat(x);
-  const nom = esc(d.brand_name || x.dossier) + (l && l.sur > 1 ? ' <span style="color:var(--k-tx3);font-weight:500">· livraison ' + l.n + '/' + l.sur + '</span>' : '');
-  return '<article class="p"><div class="l1"><div><h3 class="nom">' + nom + '</h3>' +
-    '<div class="code">' + esc(x.dossier) + ' · ' + esc(d.nb_creas || '?') + ' créas' + (d.pack ? ' · ' + esc(d.pack) : '') + '</div></div>' +
-    '<div style="margin-left:auto">' + e.pill + '</div></div>' +
-    '<div class="etapes">' +
-      etape('Fiche du stratégiste', x.strat, x.envoye, x.envoyeLe, !x.envoye) +
-      etape('Rendu du designer', x.desi, x.livre, x.livreLe, x.envoye && !x.livre) +
-      etape('Livraison client', x.client, false, 0, x.livre) +
-    '</div>' + liens(x) + '</article>';
-}
-
-function carteFaite(x) {
-  const d = x.d, l = d.livraison;
-  return '<article class="p fait"><div class="l1"><div><h3 class="nom">' + esc(d.brand_name || x.dossier) + (l && l.sur > 1 ? ' · livraison ' + l.n + '/' + l.sur : '') + '</h3>' +
-    '<div class="code">' + esc(x.dossier) + ' · ' + esc(d.nb_creas || '?') + ' créas · livré le ' + esc(jour(x.livreLe)) + '</div></div>' +
-    '<div style="margin-left:auto">' + liens(x) + '</div></div></article>';
-}
-
-let TOUS = [], MONTRER = 15;
-function ligneDossier(c) {
-  const m = c.match(/^([A-Z0-9]+?)_(\d{2})_/), test = /^TEST|^REDO/.test(c);
-  return '<div class="ligne"><b>' + esc(c) + '</b>' + (m && MOIS[m[2]] ? '<span class="test">' + MOIS[m[2]] + '</span>' : '') + (test ? '<span class="test">test</span>' : '') +
-    '<span class="lk"><a href="../' + c + '/" target="_blank" rel="noopener">Dossier</a><a href="../fiche/?projet=' + c + '" target="_blank" rel="noopener">Fiche</a><a href="../' + c + '/creas/" target="_blank" rel="noopener">Aperçu</a></span></div>';
-}
-function afficherTous() {
-  const q = $('q').value.trim().toUpperCase().replace(/\s+/g, '');
-  const l = TOUS.filter(c => !q || c.includes(q));
-  const vus = q ? l : l.slice(0, MONTRER);
-  $('tous').innerHTML = vus.length ? vus.map(ligneDossier).join('') : '<div class="charge" style="padding:16px 18px">Aucun dossier.</div>';
-  $('plus').hidden = !!q || l.length <= MONTRER;
-}
-
-async function go() {
-  let projets = await lire('../projets.json');
+async function chargerProduction() {
+  let projets = await K.lireJson('/projets.json');
   if (!Array.isArray(projets)) projets = [];
-  const tous = (await Promise.all(projets.filter(p => p && p.dossier).map(async p => {
-    const [d, envois, liv, retour] = await Promise.all(['donnees', 'envois', 'livraison', 'retour'].map(f => lire('../' + p.dossier + '/' + f + '.json')));
+  return (await Promise.all(projets.filter(p => p && p.dossier).map(async p => {
+    const [d, envois, liv, retour] = await Promise.all(['donnees', 'envois', 'livraison', 'retour'].map(f => K.lireJson('/' + p.dossier + '/' + f + '.json')));
     if (!d) return null;
     const ev = (envois && Array.isArray(envois.envois)) ? envois.envois : [];
-    const livs = (liv && liv.livraisons) || [];
-    const der = livs[livs.length - 1] || {};
-    return {dossier: p.dossier, d, retour: !!retour,
-      envoye: ev.length > 0, envoyeLe: Date.parse(typeof ev[ev.length - 1] === 'string' ? ev[ev.length - 1] : (ev[ev.length - 1] || {}).le || '') || 0,
+    const livs = (liv && liv.livraisons) || [], der = livs[livs.length - 1] || {};
+    return { dossier: p.dossier, d, retour: !!retour, envoye: ev.length > 0, envoyeLe: Date.parse(typeof ev[ev.length - 1] === 'string' ? ev[ev.length - 1] : (ev[ev.length - 1] || {}).le || '') || 0,
       livre: !!(liv && liv.livre), livreLe: Date.parse(der.le || '') || 0, zip: der.lien || '',
-      strat: Date.parse(d.deadline_strategiste || '') || 0, desi: Date.parse(d.deadline_designer || '') || 0, client: Date.parse(d.deadline || '') || 0};
+      strat: Date.parse(d.deadline_strategiste || '') || 0, desi: Date.parse(d.deadline_designer || '') || 0, client: Date.parse(d.deadline || '') || 0 };
   }))).filter(Boolean);
-
-  const prochaine = x => (!x.envoye ? x.strat : x.desi) || x.client || 9e15;
-  const enCours = tous.filter(x => !x.livre).sort((a, b) => prochaine(a) - prochaine(b));
-  const livres = tous.filter(x => x.livre).sort((a, b) => b.livreLe - a.livreLe);
-  $('cStrat').textContent = enCours.filter(x => !x.envoye).length;
-  $('cDesi').textContent = enCours.filter(x => x.envoye).length;
-  $('cLivre').textContent = livres.length;
-  const nbRetard = enCours.filter(x => etat(x).retard).length;
-  $('cRetard').textContent = nbRetard;
-  $('boxRetard').classList.toggle('alerte', nbRetard > 0);
-  $('nbE').textContent = enCours.length; $('nbL').textContent = livres.length;
-  $('encours').innerHTML = enCours.length ? enCours.map(carte).join('') : '<div class="vide">Aucun projet en cours. Les nouveaux projets apparaissent ici dès que leur dossier est prêt.</div>';
-  $('livres').innerHTML = livres.length ? livres.map(carteFaite).join('') : '<div class="vide">Aucun projet livré en ligne.</div>';
-
-  const liste = await lire('/_admin/dossiers.json');
-  TOUS = Array.isArray(liste) ? liste.slice().sort((a, b) => {
-    const t = c => /^TEST|^REDO/.test(c) ? 1 : 0;
-    return t(a) - t(b) || a.localeCompare(b);
-  }) : [];
-  $('nbT').textContent = TOUS.length;
-  afficherTous();
 }
-$('q').addEventListener('input', afficherTous);
-$('plus').onclick = () => { MONTRER = 1e9; afficherTous(); };
-go();
+function rafraichir(...quoi) { quoi.forEach(q => { S[q] = null; }); K.rendre(); }
+
+// ---------- production : état d'un projet ----------
+function commandeDe(x) { return (S.commandes || []).find(c => c.dossier === x.dossier || (x.d.livraison && c.dossier === x.d.livraison.projet)); }
+function etatProd(x) {
+  const now = Date.now(), c = commandeDe(x);
+  const auClient = c && ['livre', 'revisions', 'valide'].includes(c.statut);
+  if (auClient) return { cle: 'client', texte: STATUTS[c.statut][0], pill: STATUTS[c.statut][1] };
+  if (x.livre) return { cle: 'livrer', texte: 'À livrer au client', pill: 'n' };
+  if (!x.envoye) return x.strat && x.strat < now ? { cle: 'strat', texte: 'Fiche en retard', pill: 'r', retard: true } : { cle: 'strat', texte: 'Chez le stratégiste', pill: 'b' };
+  return x.desi && x.desi < now ? { cle: 'desi', texte: 'Designer en retard', pill: 'r', retard: true } : { cle: 'desi', texte: 'Chez le designer', pill: 'v' };
+}
+function etapesProd(x) {
+  const c = commandeDe(x);
+  return [{ t: 'Dossier prêt', f: true }, { t: 'Fiche envoyée', f: x.envoye }, { t: 'Visuels générés', f: x.envoye }, { t: 'Livré par le designer', f: x.livre },
+    { t: 'Livré au client', f: !!(c && ['livre', 'revisions', 'valide'].includes(c.statut)) }, { t: 'Validé', f: !!(c && c.statut === 'valide') }];
+}
+const nomProjet = x => (x.d.brand_name || x.dossier) + (x.d.livraison && x.d.livraison.sur > 1 ? ' · livraison ' + x.d.livraison.n + '/' + x.d.livraison.sur : '');
+function liensProjet(x, petit) {
+  const prod = (x.d.livraison && x.d.livraison.projet) || x.dossier, b = [];
+  const l = (h, t, cls) => '<a class="btn ' + (cls || 'btn-s') + ' btn-sm" href="' + esc(h) + '" target="_blank" rel="noopener">' + t + '</a>';
+  b.push(l('/' + prod + '/', 'Dossier'));
+  b.push(l('/fiche/?projet=' + encodeURIComponent(x.dossier), 'Fiche'));
+  if (x.retour) b.push(l('/retours/?projet=' + encodeURIComponent(x.dossier), esc(nomBrief(x.d))));
+  if (x.envoye) { b.push(l('/' + x.dossier + '/creas/', 'Aperçu')); if (!petit) b.push(l('/' + x.dossier + '/creas/telecharger.html', 'Téléchargement')); }
+  if (x.zip) b.push(l(x.zip, 'Créas livrées', 'btn-p'));
+  return '<div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">' + b.join('') + '</div>';
+}
+function nomBrief(d) {
+  const M = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+  const l = d && d.livraison;
+  if (d && (d.abonnement || (l && l.type === 'abonnement'))) { const m = M[new Date(Date.parse(d.deadline || '') || Date.now()).getMonth()]; return 'Brief ' + (/^[aeiouâ]/.test(m) ? "d'" : 'de ') + m; }
+  if (l && l.sur > 1) return 'Brief de la livraison ' + l.n + '/' + l.sur;
+  return 'Brief du client';
+}
+
+// ---------- coquille ----------
+function conf() {
+  const enCours = (S.prod || []).filter(x => etatProd(x).cle !== 'client').length;
+  return {
+    cta: { texte: 'Nouveau client', href: '#/clients/nouveau' },
+    sections: [
+      { titre: 'Espace', liens: [{ id: 'accueil', texte: 'Vue d\'ensemble', icone: 'accueil', href: '#/' }] },
+      { titre: 'Commercial', liens: [
+        { id: 'clients', texte: 'Clients', icone: 'gens', href: '#/clients', nb: S.clients ? S.clients.length || '' : '' },
+        { id: 'commandes', texte: 'Commandes', icone: 'sac', href: '#/commandes' }] },
+      { titre: 'Production', liens: [
+        { id: 'projets', texte: 'Projets', icone: 'dossier', href: '#/projets', nb: enCours || '' },
+        { id: 'dossiers', texte: 'Tous les dossiers', icone: 'calques', href: '#/dossiers' },
+        { id: 'fiche', texte: 'Fiche créas', icone: 'doc', href: '/fiche/', ext: true },
+        { id: 'strat', texte: 'Espace stratégiste', icone: 'ampoule', href: '/strategiste/', ext: true },
+        { id: 'desi', texte: 'Designer space', icone: 'pinceau', href: '/designer/', ext: true }] },
+      { titre: 'Équipe', liens: [{ id: 'equipe', texte: 'Équipe', icone: 'bouclier', href: '#/equipe' }] }
+    ],
+    qui: { nom: S.moi && S.moi.nom ? S.moi.nom.charAt(0).toUpperCase() + S.moi.nom.slice(1) : 'Admin', role: 'Fondateur · admin' },
+    sortie: '/_deconnexion',
+    recherche: rechercher
+  };
+}
+function rechercher(q) {
+  q = q.toLowerCase(); if (!q) return [];
+  const r = [];
+  (S.clients || []).filter(c => (c.marque + ' ' + (c.contact || '') + ' ' + (c.email || '')).toLowerCase().includes(q)).slice(0, 5)
+    .forEach(c => r.push({ texte: c.marque, type: 'Client', icone: 'gens', href: '#/clients/' + c.id }));
+  (S.commandes || []).filter(c => ('#' + c.ref + ' ' + c.marque).toLowerCase().includes(q)).slice(0, 4)
+    .forEach(c => r.push({ texte: '#' + c.ref + ' · ' + c.marque, type: 'Commande', icone: 'sac', href: '#/clients/' + c.client_id }));
+  (S.prod || []).filter(x => (nomProjet(x) + ' ' + x.dossier).toLowerCase().includes(q)).slice(0, 4)
+    .forEach(x => r.push({ texte: nomProjet(x), type: 'Projet', icone: 'dossier', href: '/' + ((x.d.livraison && x.d.livraison.projet) || x.dossier) + '/', ext: true }));
+  (S.dossiers || []).filter(d => d.toLowerCase().includes(q)).slice(0, 4)
+    .forEach(d => r.push({ texte: d, type: 'Dossier', icone: 'calques', href: '/' + d + '/', ext: true }));
+  return r.slice(0, 12);
+}
+
+// ---------- VUE D'ENSEMBLE ----------
+function ecranAccueil() {
+  const R = S.resume || {}, P = S.prod || [];
+  const etats = P.map(x => ({ x, e: etatProd(x) }));
+  const nb = cle => etats.filter(y => y.e.cle === cle).length;
+  const retards = etats.filter(y => y.e.retard);
+  const briefs = (S.commandes || []).filter(c => c.statut === 'brief');
+  const aLivrer = etats.filter(y => y.e.cle === 'livrer');
+  let h = '<div class="ph"><div><h1>Vue d\'ensemble</h1><p>' + esc(K.date(Date.now(), { weekday: 'long', year: undefined })) + ' · tout ce qui se passe chez Kreative.</p></div>' +
+    '<div class="act"><a class="btn btn-s" href="#/clients/nouveau">' + i.plus + 'Nouveau client</a><a class="btn btn-p" href="#/projets">' + i.dossier + 'Voir la production</a></div></div>';
+  h += '<div class="grid g4">' +
+    kpi('Clients', R.clients != null ? R.clients : '·', (S.clients || []).filter(c => c.nb_commandes > 0).length + ' avec au moins une commande') +
+    kpi('Commandes en cours', R.en_cours != null ? R.en_cours : '·', briefs.length + ' en attente de brief') +
+    kpi('Abonnements mensuels', R.mensuels != null ? R.mensuels : '·', 'commandes en formule mensuelle') +
+    kpi('Chiffre sur 30 jours', K.euros(R.ca_30j || 0), 'commandes enregistrées') + '</div>';
+  h += '<div class="grid g4" style="margin-top:14px">' +
+    kpi('Chez le stratégiste', nb('strat'), 'fiches à remplir') + kpi('Chez le designer', nb('desi'), 'visuels à livrer') +
+    kpi('À livrer au client', aLivrer.length, 'livrés par le designer') + kpi('En retard', retards.length, retards.length ? 'à surveiller' : 'tout est dans les temps', retards.length ? 'color:var(--red)' : '') + '</div>';
+  const todo = [
+    ...retards.map(y => ({ t: nomProjet(y.x), s: y.e.texte, ic: 'horloge', p: 'r', href: '/fiche/?projet=' + y.x.dossier, ext: 1 })),
+    ...aLivrer.map(y => ({ t: nomProjet(y.x), s: 'Livré par le designer, à envoyer au client', ic: 'envoi', p: 'n', href: y.x.zip || '/' + y.x.dossier + '/creas/', ext: 1 })),
+    ...briefs.map(c => ({ t: c.marque + ' · #' + c.ref, s: 'Brief attendu depuis ' + K.ilya(c.cree_le).replace('il y a ', ''), ic: 'doc', p: 'a', href: '#/clients/' + c.client_id }))
+  ];
+  h += '<div class="grid g2" style="margin-top:14px"><div class="card"><div class="card-h"><h3>À traiter</h3><span class="pill">' + todo.length + '</span></div><div class="card-b liste">' +
+    (todo.length ? todo.slice(0, 8).map(t => '<a class="li" style="text-decoration:none" href="' + esc(t.href) + '"' + (t.ext ? ' target="_blank" rel="noopener"' : '') + '><span class="ic">' + i[t.ic] + '</span><span class="t"><b style="font-weight:600">' + esc(t.t) + '</b><span class="sub muted" style="display:block;font-size:12.5px">' + esc(t.s) + '</span></span>' + i.fleche.replace('<svg', '<svg width="15" height="15" style="opacity:.35"') + '</a>').join('')
+      : '<div class="vide">' + i.coche + 'Rien d\'urgent. Tout roule.</div>') + '</div></div>' +
+    '<div class="card"><div class="card-h"><h3>Derniers clients</h3><a class="btn btn-g btn-sm" href="#/clients">Tous</a></div><div class="card-b liste">' +
+    ((S.clients || []).length ? S.clients.slice(0, 6).map(c => '<a class="li" style="text-decoration:none" href="#/clients/' + esc(c.id) + '">' + K.tuile(c.marque) + '<span class="t"><b style="font-weight:600">' + esc(c.marque) + '</b><span class="muted" style="display:block;font-size:12.5px">' + esc(c.contact || c.email || '') + '</span></span><small>' + (c.nb_commandes ? c.nb_commandes + ' commande' + (c.nb_commandes > 1 ? 's' : '') : 'aucune commande') + '</small></a>').join('')
+      : '<div class="vide">' + i.gens + 'Aucun client. <a href="#/clients/nouveau">Créer le premier</a></div>') + '</div></div></div>';
+  return h;
+}
+const kpi = (l, v, d, st) => '<div class="card kpi"><div class="lab">' + esc(l) + '</div><div class="v"' + (st ? ' style="' + st + '"' : '') + '>' + esc(v) + '</div><div class="d">' + esc(d) + '</div></div>';
+
+// ---------- PROJETS ----------
+function ecranProjets() {
+  const P = (S.prod || []).slice();
+  const vue = S.vueProjets;
+  const enCours = P.filter(x => etatProd(x).cle !== 'client').length;
+  let h = '<div class="ph"><div><h1>Projets</h1><p>' + enCours + ' en production · ' + (P.length - enCours) + ' livrés au client</p></div>' +
+    '<div class="act"><div class="onglets">' + [['kanban', 'Kanban', 'colonnes'], ['suivi', 'Suivi', 'coche'], ['tableau', 'Tableau', 'liste']].map(v =>
+      '<button class="' + (vue === v[0] ? 'on' : '') + '" onclick="S.vueProjets=\'' + v[0] + '\';K.rendre()">' + i[v[2]] + v[1] + '</button>').join('') + '</div>' +
+    '<button class="btn btn-s" onclick="rafraichir(\'prod\')">' + i.rafraichir + 'Actualiser</button></div></div>';
+  if (!P.length) return h + '<div class="card"><div class="vide">' + i.dossier + 'Aucun projet en production. Ils apparaissent ici dès que n8n crée leur dossier.</div></div>';
+  const tri = (a, b) => ((!a.envoye ? a.strat : a.desi) || a.client || 9e15) - ((!b.envoye ? b.strat : b.desi) || b.client || 9e15);
+  if (vue === 'kanban') {
+    const cols = [['strat', 'Chez le stratégiste', 'var(--blue)'], ['desi', 'Chez le designer', 'var(--violet)'], ['livrer', 'À livrer au client', 'var(--ink)'], ['client', 'Chez le client', 'var(--green)']];
+    return h + '<div class="kanban">' + cols.map(([cle, t, coul]) => {
+      const l = P.filter(x => etatProd(x).cle === cle).sort(tri);
+      return '<div class="col"><div class="col-h"><i style="background:' + coul + '"></i>' + t + '<span class="c">' + l.length + '</span></div>' +
+        (l.map(x => {
+          const e = etatProd(x), et = etapesProd(x), pc = Math.round(et.filter(y => y.f).length * 100 / et.length);
+          const ech = !x.envoye ? x.strat : !x.livre ? x.desi : x.client;
+          return '<a class="kcarte" href="/' + esc((x.d.livraison && x.d.livraison.projet) || x.dossier) + '/" target="_blank" rel="noopener"><b>' + esc(nomProjet(x)) + '</b><small>' + esc(x.d.nb_creas || '?') + ' créas · ' + esc(x.d.pack || '') + '</small>' +
+            '<div class="barre"><i style="width:' + pc + '%"></i></div><div class="pied"><span>' + i.horloge.replace('<svg', '<svg width="13" height="13" style="vertical-align:-2px"') + ' ' + (ech ? esc(K.dateHeure(ech)) : '·') + '</span>' +
+            (e.retard ? '<span class="pill r">Retard</span>' : '') + '</div></a>';
+        }).join('') || '<div class="vide" style="padding:18px 8px">Aucun</div>') + '</div>';
+    }).join('') + '</div>';
+  }
+  if (vue === 'tableau') {
+    return h + '<div class="grid" style="gap:12px">' + P.sort(tri).map(x => {
+      const e = etatProd(x), c = commandeDe(x);
+      return '<div class="card pad" style="padding:18px 20px"><div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">' + K.tuile(x.d.brand_name || x.dossier) +
+        '<div style="min-width:0"><b style="font-size:16px;font-family:var(--titre)">' + esc(nomProjet(x)) + '</b><div class="muted" style="font-size:12.5px">' + esc(x.dossier) + ' · ' + esc(x.d.nb_creas || '?') + ' créas' + (c ? ' · #' + esc(c.ref) : '') + '</div></div>' +
+        '<span class="pill ' + e.pill + '"><i></i>' + esc(e.texte) + '</span><div style="margin-left:auto">' + liensProjet(x) + '</div></div>' +
+        '<div class="grid g3" style="margin-top:14px;gap:10px">' + [['Fiche du stratégiste', x.strat, x.envoye, x.envoyeLe], ['Rendu du designer', x.desi, x.livre, x.livreLe], ['Livraison client', x.client, false, 0]].map(([t, ms, f, le]) =>
+          '<div style="border:1px solid var(--line);border-radius:11px;padding:10px 12px;background:var(--soft)"><div class="lab">' + t + '</div><div style="font-size:13.5px;margin-top:3px;' + (f ? 'color:var(--green)' : ms && ms < Date.now() ? 'color:var(--red);font-weight:600' : '') + '">' +
+          (f ? '✓ ' + (le ? esc(K.dateHeure(le)) : 'fait') : ms ? esc(K.dateHeure(ms)) : '·') + '</div></div>').join('') + '</div></div>';
+    }).join('') + '</div>';
+  }
+  // suivi
+  const cols = ['Dossier prêt', 'Fiche envoyée', 'Visuels générés', 'Livré designer', 'Livré client', 'Validé'];
+  return h + '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Client</th>' + cols.map(c => '<th style="text-align:center">' + c + '</th>').join('') +
+    '<th>Avancement</th><th>Échéance</th><th></th></tr></thead><tbody>' + P.sort(tri).map(x => {
+      const et = etapesProd(x), pc = Math.round(et.filter(y => y.f).length * 100 / et.length), e = etatProd(x);
+      const ech = !x.envoye ? x.strat : !x.livre ? x.desi : x.client;
+      return '<tr><td><b>' + esc(nomProjet(x)) + '</b><span class="sub">' + esc(x.dossier) + '</span></td>' +
+        et.map(y => '<td style="text-align:center"><input type="checkbox" disabled' + (y.f ? ' checked' : '') + '></td>').join('') +
+        '<td style="min-width:120px"><div class="barre' + (pc === 100 ? ' g' : '') + '"><i style="width:' + pc + '%"></i></div><span class="sub">' + pc + ' %</span></td>' +
+        '<td style="white-space:nowrap"><span class="pill ' + e.pill + '">' + esc(e.texte) + '</span><span class="sub">' + (ech ? esc(K.dateHeure(ech)) : '') + '</span></td>' +
+        '<td class="fin">' + liensProjet(x, true) + '</td></tr>';
+    }).join('') + '</tbody></table></div></div>';
+}
+
+// ---------- CLIENTS ----------
+function ecranClients() {
+  const C = S.clients || [], q = S.chClients.toLowerCase(), f = S.filtreClients;
+  const relancer = c => c.nb_commandes > 0 && c.derniere_commande && Date.now() - c.derniere_commande > 21 * 864e5;
+  const filtres = { tous: () => true, actifs: c => c.nb_commandes > 0, sans: c => !c.nb_commandes, relancer, bloques: c => c.statut === 'bloque' };
+  const liste = C.filter(filtres[f]).filter(c => !q || (c.marque + ' ' + (c.contact || '') + ' ' + (c.email || '')).toLowerCase().includes(q));
+  const chip = (k, t, coul) => '<button class="chip' + (f === k ? ' on' : '') + '" onclick="S.filtreClients=\'' + k + '\';K.rendre()">' + (coul ? '<i style="color:' + coul + '"></i>' : '') + t + '<span class="c">' + C.filter(filtres[k]).length + '</span></button>';
+  let h = '<div class="ph"><div><h1>Clients</h1><p>' + C.length + ' compte' + (C.length > 1 ? 's' : '') + ' · ' + C.reduce((s, c) => s + c.nb_commandes, 0) + ' commandes au total</p></div>' +
+    '<div class="act"><a class="btn btn-p" href="#/clients/nouveau">' + i.plus + 'Ajouter un client</a></div></div>';
+  h += '<div class="filtres">' + chip('tous', 'Tous') + chip('actifs', 'Avec commande', 'var(--green)') + chip('sans', 'Sans commande', 'var(--amber)') + chip('relancer', 'À relancer', 'var(--red)') +
+    '<div class="champ-r" style="margin-left:auto">' + i.chercher + '<input id="ch-clients" placeholder="Rechercher un client…" value="' + esc(S.chClients) + '"></div></div>';
+  if (!C.length) return h + '<div class="card"><div class="vide">' + i.gens + 'Aucun client pour l\'instant.<br><a class="btn btn-p btn-sm" style="margin-top:14px" href="#/clients/nouveau">Ajouter le premier client</a></div></div>';
+  h += '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Client</th><th>Contact</th><th class="num">Commandes</th><th class="num">Total</th><th>Dernière commande</th><th>Dernière connexion</th><th>Statut</th><th></th></tr></thead><tbody>' +
+    (liste.map(c => '<tr class="clic" onclick="location.hash=\'#/clients/' + esc(c.id) + '\'"><td><div class="nom">' + K.tuile(c.marque) + '<div><b>' + esc(c.marque) + '</b><span class="sub">' + esc(c.email || 'pas d\'email') + '</span></div></div></td>' +
+      '<td>' + esc(c.contact || '·') + '<span class="sub">' + esc(c.telephone || '') + '</span></td><td class="num">' + c.nb_commandes + '</td><td class="num">' + K.euros(c.total) + '</td>' +
+      '<td>' + (c.derniere_commande ? esc(K.date(c.derniere_commande)) : '<span class="muted">·</span>') + '</td><td>' + (c.vu_le ? esc(K.ilya(c.vu_le)) : '<span class="muted">jamais</span>') + '</td>' +
+      '<td>' + (c.statut === 'bloque' ? '<span class="pill r">Bloqué</span>' : relancer(c) ? '<span class="pill a"><i></i>À relancer</span>' : c.nb_commandes ? '<span class="pill g"><i></i>Client</span>' : '<span class="pill">Nouveau</span>') + '</td>' +
+      '<td class="fin">' + i.fleche.replace('<svg', '<svg width="16" height="16" style="opacity:.35"') + '</td></tr>').join('') || '<tr><td colspan="8"><div class="vide">Aucun client ne correspond.</div></td></tr>') +
+    '</tbody></table></div></div>';
+  return h;
+}
+function brancherClients() {
+  const c = document.getElementById('ch-clients');
+  if (c) { c.oninput = () => { S.chClients = c.value; const pos = c.selectionStart; K.rendre(); const n = document.getElementById('ch-clients'); n.focus(); n.setSelectionRange(pos, pos); }; }
+}
+
+function formClient(c) {
+  c = c || {};
+  const ch = (id, l, v, t, ph, aide) => '<div class="champ"><label for="' + id + '">' + l + '</label><input class="in" id="' + id + '" type="' + (t || 'text') + '" value="' + esc(v || '') + '" placeholder="' + esc(ph || '') + '">' + (aide ? '<div class="aide">' + aide + '</div>' : '') + '</div>';
+  return ch('f-marque', 'Marque *', c.marque, 'text', 'Le nom de la marque') +
+    '<div class="grid g2" style="gap:12px">' + ch('f-contact', 'Contact', c.contact, 'text', 'Prénom et nom') + ch('f-tel', 'Téléphone', c.telephone, 'tel', '06…') + '</div>' +
+    ch('f-email', 'Email', c.email, 'email', 'client@marque.fr', 'Le lien d\'accès à son espace est envoyé à cette adresse.') + ch('f-site', 'Site', c.site, 'url', 'https://…') +
+    '<div class="champ"><label for="f-notes">Notes internes</label><textarea class="in" id="f-notes" placeholder="Visible par vous seulement">' + esc(c.notes || '') + '</textarea></div>';
+}
+const lireForm = () => ({ marque: K.$('#f-marque').value, contact: K.$('#f-contact').value, telephone: K.$('#f-tel').value, email: K.$('#f-email').value, site: K.$('#f-site').value, notes: K.$('#f-notes').value });
+function nouveauClient() {
+  const v = K.fenetre('<div class="fen-h"><h2>Nouveau client</h2><p>Son espace est créé tout de suite, avec son lien d\'accès personnel.</p></div><div class="fen-b">' + formClient() + '</div>' +
+    '<div class="fen-f"><button class="btn btn-s" data-n>Annuler</button><button class="btn btn-p" data-o>Créer le client</button></div>');
+  v.querySelector('[data-n]').onclick = () => { K.fermer(); history.back(); };
+  v.querySelector('[data-o]').onclick = async e => {
+    e.target.disabled = true;
+    try { const r = await K.api('/api/admin/clients', { methode: 'POST', corps: lireForm() }); K.fermer(); S.clients = null; S.resume = null; K.toast('Client créé'); K.aller('#/clients/' + r.id); }
+    catch (err) { K.toast(err.message); e.target.disabled = false; }
+  };
+}
+
+// ---------- FICHE CLIENT ----------
+let FICHE = null;
+async function ecranClient(id) {
+  if (!FICHE || FICHE.client.id !== id) {
+    try { FICHE = await K.api('/api/admin/clients/' + id); } catch (e) { return '<a class="retour" href="#/clients">' + i.gauche + 'Clients</a><div class="card"><div class="vide">' + esc(e.message) + '</div></div>'; }
+  }
+  const c = FICHE.client, cmds = FICHE.commandes;
+  let h = '<a class="retour" href="#/clients">' + i.gauche + 'Retour aux clients</a>';
+  h += '<div class="ph"><div style="display:flex;align-items:center;gap:16px">' + K.tuile(c.marque, true) + '<div><h1>' + esc(c.marque) + '</h1><p>' +
+    [c.contact, c.email, c.telephone].filter(Boolean).map(esc).join(' · ') + (c.site ? ' · <a href="' + esc(c.site) + '" target="_blank" rel="noopener">' + esc(c.site.replace(/^https?:\/\//, '')) + '</a>' : '') + '</p></div></div>' +
+    '<div class="act"><a class="btn btn-s" href="/client/?client=' + esc(c.id) + '" target="_blank" rel="noopener">' + i.oeil + 'Voir son espace</a>' +
+    '<button class="btn btn-s" id="b-modif">' + i.crayon + 'Modifier</button><button class="btn btn-p" id="b-cmd">' + i.plus + 'Nouvelle commande</button></div></div>';
+  h += '<div class="grid g3">' + kpi('Commandes', cmds.length, cmds.filter(x => !['valide', 'annule'].includes(x.statut)).length + ' en cours') +
+    kpi('Total commandé', K.euros(cmds.reduce((s, x) => s + (x.prix || 0), 0)), cmds.some(x => x.formule === 'mensuel') ? 'dont abonnement mensuel' : 'commandes uniques') +
+    kpi('Dernière connexion', c.vu_le ? K.ilya(c.vu_le) : 'jamais', 'client depuis le ' + K.date(c.cree_le)) + '</div>';
+  h += '<div class="card pad" style="margin-top:14px"><div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap"><div><h3 style="font-size:15px">Lien d\'accès à son espace</h3>' +
+    '<p class="muted" style="font-size:13px;margin-top:4px">Personnel et permanent : il le reconnecte sur n\'importe quel appareil. Ne le partagez qu\'avec lui.</p></div>' +
+    '<button class="btn btn-g btn-sm" id="b-regen">' + i.rafraichir + 'Nouveau lien</button></div>' +
+    '<div class="lien-box" style="margin-top:14px"><code>' + esc(c.lien) + '</code><button class="btn btn-s btn-sm" id="b-copier">' + i.copier + 'Copier</button>' +
+    '<button class="btn btn-p btn-sm" id="b-mail"' + (c.email ? '' : ' disabled title="Ajoutez un email"') + '>' + i.mail + 'Envoyer par email</button></div></div>';
+  h += '<div class="sec"><div><h2>Commandes</h2><p>Reliez chaque commande à son dossier de production dès que le brief est arrivé.</p></div></div>';
+  h += cmds.length ? '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Commande</th><th>Pack</th><th class="num">Prix</th><th>Dossier de production</th><th>Statut</th><th>Avancement</th><th></th></tr></thead><tbody>' +
+    cmds.map(k => '<tr><td><b>#' + esc(k.ref) + '</b><span class="sub">' + esc(K.date(k.cree_le)) + '</span></td><td>' + esc(PACKS_NOMS[k.pack] || k.pack) + ' · ' + k.nb_creas + ' créas<span class="sub">' + ({ unique: 'Commande unique', mensuel: 'Mensuel', custom: 'Sur mesure' }[k.formule] || '') + '</span></td>' +
+      '<td class="num">' + K.euros(k.prix) + '</td><td>' + choixDossier(k) + '</td><td>' + choixStatut(k) + '</td>' +
+      '<td style="min-width:120px"><div class="barre"><i style="width:' + k.progression + '%"></i></div><span class="sub">' + k.progression + ' %</span></td>' +
+      '<td class="fin"><button class="btn btn-g btn-sm" data-suppr="' + esc(k.id) + '" title="Supprimer">' + i.poubelle + '</button></td></tr>').join('') + '</tbody></table></div></div>'
+    : '<div class="card"><div class="vide">' + i.sac + 'Aucune commande. <a href="#" id="b-cmd2">Enregistrer sa première commande</a></div></div>';
+  h += '<div class="grid g2" style="margin-top:14px"><div class="card"><div class="card-h"><h3>Activité</h3></div><div class="card-b liste">' +
+    (FICHE.activite.length ? FICHE.activite.map(a => '<div class="li"><span class="ic">' + i.coche + '</span><span class="t">' + esc(a.texte) + '</span><small>' + esc(K.ilya(a.le)) + '</small></div>').join('') : '<div class="vide">Rien pour l\'instant.</div>') + '</div></div>' +
+    '<div class="card pad"><h3 style="font-size:15px">Notes internes</h3><p class="tx2" style="white-space:pre-wrap;margin-top:10px;font-size:13.5px">' + (c.notes ? esc(c.notes) : '<span class="muted">Aucune note.</span>') + '</p>' +
+    '<div style="display:flex;gap:8px;margin-top:18px;flex-wrap:wrap"><button class="btn btn-s btn-sm" id="b-bloquer">' + (c.statut === 'bloque' ? 'Débloquer l\'accès' : 'Bloquer l\'accès') + '</button>' +
+    '<button class="btn btn-r btn-sm" id="b-suppr">' + i.poubelle + 'Supprimer le client</button></div></div></div>';
+  return h;
+}
+function choixDossier(k) {
+  const opts = (S.dossiers || []).filter(d => !/^TEST|^REDO/.test(d));
+  return '<select class="in" style="height:34px;font-size:13px;min-width:190px" data-dossier="' + esc(k.id) + '"><option value="">· pas encore de dossier ·</option>' +
+    opts.map(d => '<option' + (d === k.dossier ? ' selected' : '') + '>' + esc(d) + '</option>').join('') + (k.dossier && !opts.includes(k.dossier) ? '<option selected>' + esc(k.dossier) + '</option>' : '') + '</select>';
+}
+function choixStatut(k) {
+  return '<select class="in" style="height:34px;font-size:13px;min-width:140px" data-statut="' + esc(k.id) + '">' +
+    Object.entries(STATUTS).map(([v, [t]]) => '<option value="' + v + '"' + (v === k.statut ? ' selected' : '') + '>' + t + '</option>').join('') + '</select>';
+}
+function brancherClient() {
+  if (!FICHE) return;
+  const c = FICHE.client, b = id => document.getElementById(id);
+  const recharger = async () => { FICHE = null; S.clients = null; S.commandes = null; S.resume = null; await K.rendre(); };
+  if (b('b-copier')) b('b-copier').onclick = () => K.copier(c.lien, 'Lien copié');
+  if (b('b-mail')) b('b-mail').onclick = async e => {
+    e.target.disabled = true;
+    try { await K.api('/api/admin/clients/' + c.id + '/envoyer-lien', { methode: 'POST' }); K.toast('Lien envoyé à ' + c.email); recharger(); }
+    catch (err) { K.toast(err.message); e.target.disabled = false; }
+  };
+  if (b('b-regen')) b('b-regen').onclick = async () => {
+    if (!await K.confirmer('Créer un nouveau lien ?', 'L\'ancien lien ne marchera plus. Pensez à envoyer le nouveau au client.', 'Créer un nouveau lien')) return;
+    await K.api('/api/admin/clients/' + c.id + '/nouveau-lien', { methode: 'POST' }); K.toast('Nouveau lien créé'); recharger();
+  };
+  if (b('b-modif')) b('b-modif').onclick = () => {
+    const v = K.fenetre('<div class="fen-h"><h2>Modifier ' + esc(c.marque) + '</h2></div><div class="fen-b">' + formClient(c) + '</div><div class="fen-f"><button class="btn btn-s" data-n>Annuler</button><button class="btn btn-p" data-o>Enregistrer</button></div>');
+    v.querySelector('[data-n]').onclick = K.fermer;
+    v.querySelector('[data-o]').onclick = async () => { try { await K.api('/api/admin/clients/' + c.id, { methode: 'PATCH', corps: lireForm() }); K.fermer(); K.toast('Enregistré'); recharger(); } catch (e) { K.toast(e.message); } };
+  };
+  const cmd = () => nouvelleCommande(c, recharger);
+  if (b('b-cmd')) b('b-cmd').onclick = cmd;
+  if (b('b-cmd2')) b('b-cmd2').onclick = e => { e.preventDefault(); cmd(); };
+  if (b('b-bloquer')) b('b-bloquer').onclick = async () => {
+    const bloquer = c.statut !== 'bloque';
+    if (bloquer && !await K.confirmer('Bloquer l\'accès ?', c.marque + ' ne pourra plus ouvrir son espace tant que vous ne le débloquez pas.', 'Bloquer', true)) return;
+    await K.api('/api/admin/clients/' + c.id, { methode: 'PATCH', corps: { statut: bloquer ? 'bloque' : 'actif' } }); K.toast(bloquer ? 'Accès bloqué' : 'Accès rétabli'); recharger();
+  };
+  if (b('b-suppr')) b('b-suppr').onclick = async () => {
+    if (!await K.confirmer('Supprimer ' + c.marque + ' ?', 'Le client, ses commandes et son historique sont effacés. Les dossiers de production ne sont pas touchés.', 'Supprimer définitivement', true)) return;
+    await K.api('/api/admin/clients/' + c.id, { methode: 'DELETE' }); FICHE = null; S.clients = null; S.resume = null; S.commandes = null; K.toast('Client supprimé'); K.aller('#/clients');
+  };
+  document.querySelectorAll('[data-dossier]').forEach(s => s.onchange = async () => {
+    try { await K.api('/api/admin/commandes/' + s.dataset.dossier, { methode: 'PATCH', corps: { dossier: s.value } }); K.toast(s.value ? 'Dossier relié' : 'Dossier retiré'); recharger(); } catch (e) { K.toast(e.message); }
+  });
+  document.querySelectorAll('[data-statut]').forEach(s => s.onchange = async () => {
+    try { await K.api('/api/admin/commandes/' + s.dataset.statut, { methode: 'PATCH', corps: { statut: s.value } }); K.toast('Statut mis à jour'); recharger(); } catch (e) { K.toast(e.message); }
+  });
+  document.querySelectorAll('[data-suppr]').forEach(x => x.onclick = async () => {
+    if (!await K.confirmer('Supprimer cette commande ?', 'Elle disparaît de l\'espace du client. Le dossier de production n\'est pas touché.', 'Supprimer', true)) return;
+    await K.api('/api/admin/commandes/' + x.dataset.suppr, { methode: 'DELETE' }); K.toast('Commande supprimée'); recharger();
+  });
+}
+function nouvelleCommande(c, apres) {
+  const P = (S.resume && S.resume.packs) || {};
+  const v = K.fenetre('<div class="fen-h"><h2>Nouvelle commande</h2><p>' + esc(c.marque) + ' · elle apparaît tout de suite dans son espace.</p></div><div class="fen-b">' +
+    '<div class="grid g2" style="gap:12px"><div class="champ"><label>Pack</label><select class="in" id="c-pack">' + ['starter', 'growth', 'scale', 'custom'].map(k => '<option value="' + k + '"' + (k === 'growth' ? ' selected' : '') + '>' + PACKS_NOMS[k] + '</option>').join('') + '</select></div>' +
+    '<div class="champ"><label>Formule</label><select class="in" id="c-formule"><option value="unique">Commande unique</option><option value="mensuel">Mensuel</option><option value="custom">Sur mesure</option></select></div></div>' +
+    '<div class="grid g2" style="gap:12px"><div class="champ"><label>Nombre de créatives</label><input class="in" id="c-nb" type="number" min="1"></div>' +
+    '<div class="champ"><label>Prix (€ HT)</label><input class="in" id="c-prix" type="number" min="0"></div></div>' +
+    '<div class="champ"><label>Dossier de production</label>' + choixDossier({ id: 'nouveau', dossier: '' }).replace('data-dossier="nouveau"', 'id="c-dossier"') + '<div class="aide">Laissez vide si le client n\'a pas encore envoyé son brief : il le remplira depuis son espace.</div></div>' +
+    '</div><div class="fen-f"><button class="btn btn-s" data-n>Annuler</button><button class="btn btn-p" data-o>Enregistrer la commande</button></div>');
+  const maj = () => { const k = K.$('#c-pack').value, f = K.$('#c-formule').value, p = P[k] || {}; K.$('#c-nb').value = p.creas || ''; K.$('#c-prix').value = (f === 'mensuel' ? p.mensuel : p.unique) || ''; };
+  K.$('#c-pack').onchange = maj; K.$('#c-formule').onchange = maj; maj();
+  v.querySelector('[data-n]').onclick = K.fermer;
+  v.querySelector('[data-o]').onclick = async e => {
+    e.target.disabled = true;
+    try {
+      const r = await K.api('/api/admin/commandes', { methode: 'POST', corps: { client_id: c.id, pack: K.$('#c-pack').value, formule: K.$('#c-formule').value, nb_creas: K.$('#c-nb').value, prix: K.$('#c-prix').value, dossier: K.$('#c-dossier').value } });
+      K.fermer(); K.toast('Commande #' + r.ref + ' enregistrée'); apres();
+    } catch (err) { K.toast(err.message); e.target.disabled = false; }
+  };
+}
+
+// ---------- COMMANDES ----------
+function ecranCommandes() {
+  const C = S.commandes || [], f = S.filtreCmd;
+  const filtres = { en_cours: c => ['brief', 'production', 'livre', 'revisions'].includes(c.statut), brief: c => c.statut === 'brief', mensuel: c => c.formule === 'mensuel' && c.statut !== 'annule', toutes: () => true };
+  const chip = (k, t) => '<button class="chip' + (f === k ? ' on' : '') + '" onclick="S.filtreCmd=\'' + k + '\';K.rendre()">' + t + '<span class="c">' + C.filter(filtres[k]).length + '</span></button>';
+  let h = '<div class="ph"><div><h1>Commandes</h1><p>' + C.filter(filtres.en_cours).length + ' en cours · ' + K.euros(C.filter(c => c.statut !== 'annule').reduce((s, c) => s + (c.prix || 0), 0)) + ' au total</p></div></div>' +
+    '<div class="filtres">' + chip('en_cours', 'En cours') + chip('brief', 'Brief attendu') + chip('mensuel', 'Mensuelles') + chip('toutes', 'Toutes') + '</div>';
+  const l = C.filter(filtres[f]);
+  if (!C.length) return h + '<div class="card"><div class="vide">' + i.sac + 'Aucune commande. Elles s\'enregistrent depuis la fiche d\'un client.</div></div>';
+  return h + '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Commande</th><th>Client</th><th>Pack</th><th class="num">Prix</th><th>Dossier</th><th>Statut</th><th>Date</th></tr></thead><tbody>' +
+    (l.map(c => '<tr class="clic" onclick="location.hash=\'#/clients/' + esc(c.client_id) + '\'"><td><b>#' + esc(c.ref) + '</b></td><td><div class="nom">' + K.tuile(c.marque) + '<b>' + esc(c.marque) + '</b></div></td>' +
+      '<td>' + esc(PACKS_NOMS[c.pack] || c.pack) + ' · ' + c.nb_creas + '<span class="sub">' + ({ unique: 'Unique', mensuel: 'Mensuel', custom: 'Sur mesure' }[c.formule] || '') + '</span></td><td class="num">' + K.euros(c.prix) + '</td>' +
+      '<td>' + (c.dossier ? '<code style="font-size:12px">' + esc(c.dossier) + '</code>' : '<span class="muted">·</span>') + '</td><td><span class="pill ' + STATUTS[c.statut][1] + '"><i></i>' + STATUTS[c.statut][0] + '</span></td><td>' + esc(K.date(c.cree_le)) + '</td></tr>').join('')
+      || '<tr><td colspan="7"><div class="vide">Aucune commande ici.</div></td></tr>') + '</tbody></table></div></div>';
+}
+
+// ---------- DOSSIERS ----------
+function ecranDossiers() {
+  const D = S.dossiers || [], q = S.chDossiers.toUpperCase().replace(/\s+/g, '');
+  const l = D.filter(d => !q || d.includes(q));
+  const MOIS = { '01': 'janv.', '02': 'févr.', '03': 'mars', '04': 'avr.', '05': 'mai', '06': 'juin', '07': 'juil.', '08': 'août', '09': 'sept.', '10': 'oct.', '11': 'nov.', '12': 'déc.' };
+  let h = '<div class="ph"><div><h1>Tous les dossiers</h1><p>' + D.length + ' dossiers dans le dépôt, y compris ceux qui ne sont plus en production.</p></div></div>' +
+    '<div class="filtres"><div class="champ-r">' + i.chercher + '<input id="ch-dossiers" placeholder="Chercher une marque ou un code…" value="' + esc(S.chDossiers) + '"></div></div>';
+  return h + '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Dossier</th><th>Mois</th><th></th></tr></thead><tbody>' +
+    (l.map(d => { const m = d.match(/_(\d{2})_/); return '<tr><td><div class="nom">' + K.tuile(d.split('_')[0]) + '<b>' + esc(d) + '</b>' + (/^TEST|^REDO/.test(d) ? '<span class="pill">test</span>' : '') + '</div></td><td class="muted">' + (m && MOIS[m[1]] || '') + '</td>' +
+      '<td class="fin"><div style="display:flex;gap:6px;justify-content:flex-end">' + [['/' + d + '/', 'Dossier'], ['/fiche/?projet=' + d, 'Fiche'], ['/' + d + '/creas/', 'Aperçu']].map(([u, t]) => '<a class="btn btn-s btn-sm" href="' + esc(u) + '" target="_blank" rel="noopener">' + t + '</a>').join('') + '</div></td></tr>'; }).join('')
+      || '<tr><td colspan="3"><div class="vide">Aucun dossier.</div></td></tr>') + '</tbody></table></div></div>';
+}
+function brancherDossiers() {
+  const c = document.getElementById('ch-dossiers');
+  if (c) c.oninput = () => { S.chDossiers = c.value; const pos = c.selectionStart; K.rendre(); const n = document.getElementById('ch-dossiers'); n.focus(); n.setSelectionRange(pos, pos); };
+}
+
+// ---------- ÉQUIPE ----------
+function ecranEquipe() {
+  const E = S.equipe || [], R = { admin: ['Admin', 'n'], strategiste: ['Stratégiste', 'b'], designer: ['Designer', 'v'] };
+  return '<div class="ph"><div><h1>Équipe</h1><p>Les comptes qui ont accès aux espaces internes.</p></div></div>' +
+    '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Personne</th><th>Rôle</th><th>Arrive sur</th><th>Lien à lui envoyer</th></tr></thead><tbody>' +
+    E.map(p => '<tr><td><div class="nom"><span class="av">' + esc(K.initiales(p.nom)) + '</span><b>' + esc(p.nom.charAt(0).toUpperCase() + p.nom.slice(1)) + '</b></div></td>' +
+      '<td><span class="pill ' + (R[p.role] || ['', ''])[1] + '">' + esc((R[p.role] || [p.role])[0]) + '</span></td><td class="muted">' + esc(p.espace) + '</td>' +
+      '<td><div class="lien-box"><code>' + esc(location.origin + p.espace) + '</code><button class="btn btn-s btn-sm" onclick="K.copier(\'' + esc(location.origin + p.espace) + '\',\'Lien copié\')">' + i.copier + '</button></div></td></tr>').join('') +
+    '</tbody></table></div></div>' +
+    '<div class="note" style="margin-top:16px;max-width:760px">Pour ajouter ou retirer quelqu\'un : Cloudflare → le Worker « espace » → Settings → Variables and Secrets → <b>ACCES</b>. ' +
+    'Une entrée par personne : <code>prénom=motdepasse:rôle</code> (admin, strategiste ou designer). Retirer une entrée coupe son accès tout de suite.</div>';
+}
+
+// ---------- RENDU ----------
+const ECRANS = {
+  '': { id: 'accueil', t: 'Vue d\'ensemble', a: 'accueil', b: [], besoins: ['resume', 'clients', 'commandes', 'prod'], f: ecranAccueil },
+  projets: { id: 'projets', t: 'Projets', a: 'dossier', b: ['Production'], besoins: ['commandes', 'prod'], f: ecranProjets, large: true },
+  clients: { id: 'clients', t: 'Clients', a: 'gens', b: ['Commercial'], besoins: ['clients', 'resume', 'dossiers'], f: p => p[0] === 'nouveau' ? (setTimeout(nouveauClient, 0), ecranClients()) : p[0] ? ecranClient(p[0]) : ecranClients(), ap: p => p[0] && p[0] !== 'nouveau' ? brancherClient() : brancherClients() },
+  commandes: { id: 'commandes', t: 'Commandes', a: 'sac', b: ['Commercial'], besoins: ['commandes'], f: ecranCommandes },
+  dossiers: { id: 'dossiers', t: 'Tous les dossiers', a: 'calques', b: ['Production'], besoins: ['dossiers'], f: ecranDossiers, ap: brancherDossiers },
+  equipe: { id: 'equipe', t: 'Équipe', a: 'bouclier', b: [], besoins: ['equipe'], f: ecranEquipe }
+};
+let rendu = 0;
+K.rendre = async () => {
+  const n = ++rendu;
+  const r = K.route(), e = ECRANS[r.ecran] || ECRANS[''];
+  await charger('moi');
+  const enAttente = e.besoins.filter(q => S[q] == null);
+  if (enAttente.length && !document.querySelector('.app')) document.getElementById('racine').innerHTML = '<div class="chargement">Chargement…</div>';
+  await Promise.all(e.besoins.map(q => charger(q)));
+  const contenu = await e.f(r.params);
+  if (n !== rendu) return;
+  const c = conf();
+  const titre = r.ecran === 'clients' && FICHE && r.params[0] === FICHE.client.id ? FICHE.client.marque : e.t;
+  document.getElementById('racine').innerHTML = K.coquille(c, e.id, K.ariane(e.a, ...(e.b.length ? e.b : ['Admin']), titre), contenu, e.large);
+  K.brancherCoquille(c);
+  if (e.ap) e.ap(r.params);
+  document.title = titre + ' · Admin Kreative';
+  // la production et les dossiers se chargent en fond pour la recherche et les compteurs
+  ['prod', 'dossiers', 'clients', 'commandes'].forEach(q => { if (S[q] == null) charger(q).then(() => { if (n === rendu && q === 'prod') { const nb = document.querySelector('.nav a[href="#/projets"] .nb'); if (!nb) K.rendre(); } }); });
+};
+K.rendre();
 </script>
 </body>
 </html>

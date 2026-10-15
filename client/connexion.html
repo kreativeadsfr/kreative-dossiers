@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Espace client · Kreative</title>
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+<link rel="stylesheet" href="/ui/app.css">
+<script src="/ui/app.js"></script>
+</head>
+<body>
+<div class="seul">
+  <form class="card" id="f">
+    <img src="/ui/logo-kreative-noir.png" alt="Kreative">
+    <h1>Votre espace client</h1>
+    <p id="intro">Entrez l'adresse email utilisée lors de votre commande. Nous vous envoyons votre lien d'accès personnel.</p>
+    <div class="champ"><label for="email">Adresse email</label>
+      <input class="in" id="email" type="email" autocomplete="email" required placeholder="vous@entreprise.fr"></div>
+    <button class="btn btn-p btn-lg btn-bloc" type="submit">Recevoir mon lien d'accès</button>
+    <p class="muted" id="etat" style="margin:16px 0 0;font-size:13px;min-height:18px"></p>
+    <p class="muted" style="margin:14px 0 0;font-size:12.5px">Un souci ? Écrivez-nous sur <a href="https://api.whatsapp.com/send?phone=33756921042&text=Bonjour%20Kreative%2C%20je%20n%27arrive%20pas%20%C3%A0%20acc%C3%A9der%20%C3%A0%20mon%20espace." target="_blank" rel="noopener">WhatsApp</a>.</p>
+  </form>
+</div>
+<script>
+if (new URLSearchParams(location.search).get('lien') === 'invalide')
+  document.getElementById('intro').textContent = 'Ce lien n\'est plus valable. Entrez votre adresse email : nous vous envoyons un nouveau lien d\'accès.';
+document.getElementById('f').onsubmit = async e => {
+  e.preventDefault();
+  const b = e.target.querySelector('button'), etat = document.getElementById('etat');
+  b.disabled = true; etat.textContent = 'Envoi…';
+  try {
+    const r = await fetch('/api/client/lien', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: document.getElementById('email').value }) });
+    const d = await r.json();
+    etat.textContent = d.message || 'C\'est envoyé.';
+    etat.style.color = 'var(--green)';
+  } catch (err) { etat.textContent = 'L\'envoi n\'a pas marché. Réessayez dans un instant.'; }
+  b.disabled = false;
+};
+</script>
+</body>
+</html>

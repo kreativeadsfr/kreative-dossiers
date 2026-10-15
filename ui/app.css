@@ -779,6 +779,10 @@ a.lien-kpi:hover{border-color:var(--line2)}
 
 /* ---------- Mon brief : les réponses du client, à relire ---------- */
 .brief-recu{max-width:860px}
+.brief-tete{display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap}
+.brief-tete .t{flex:1;min-width:150px}
+.brief-tete .acts{display:flex;gap:8px;flex-wrap:wrap}
+@media(max-width:560px){.brief-tete .acts{flex-basis:100%}}
 .brief-qr{margin-top:22px;border-top:1px solid var(--line)}
 .brief-qr .qr{padding:16px 0;border-bottom:1px solid var(--line)}
 .brief-qr .qr:last-child{border-bottom:0;padding-bottom:0}
@@ -786,6 +790,7 @@ a.lien-kpi:hover{border-color:var(--line2)}
 .brief-qr .r{font-size:15px;line-height:1.6;color:var(--ink);margin-top:5px;white-space:pre-wrap;overflow-wrap:anywhere}
 .brief-qr .fics{display:flex;gap:10px;flex-wrap:wrap;white-space:normal}
 .brief-qr .fics a{display:flex;flex-direction:column;gap:6px;width:120px;text-decoration:none;font-size:12px;color:var(--tx2)}
-.brief-qr .fics img,.brief-qr .fics svg{width:120px;height:120px;object-fit:cover;border-radius:10px;border:1px solid var(--line);background:var(--soft)}
-.brief-qr .fics svg{padding:40px;color:var(--tx3)}
+.brief-qr .vign{position:relative;width:120px;height:120px;border-radius:10px;border:1px solid var(--line);overflow:hidden;
+  background:var(--soft) center/30px no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a39b92' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z'/%3E%3Cpath d='M14 3v5h5'/%3E%3C/svg%3E")}
+.brief-qr .vign img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .brief-qr .fics span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}

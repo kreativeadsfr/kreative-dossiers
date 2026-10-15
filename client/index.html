@@ -282,12 +282,12 @@ function ecranBrief(id) {
     let rep = []; try { rep = c.brief_json ? JSON.parse(c.brief_json) : []; } catch (e) { rep = []; }
     h += '<div class="ph"><div><h1>Mon brief</h1><p>' + esc(nom(c)) + ' · commande #' + esc(c.ref) + '</p></div></div>';
     if (recus.length > 1) h += '<div class="filtres">' + recus.map(x => '<a class="chip' + (x.id === c.id ? ' on' : '') + '" href="#/brief/' + esc(x.id) + '">' + esc(nom(x)) + '</a>').join('') + '</div>';
-    h += '<div class="card pad brief-recu"><div style="display:flex;gap:14px;align-items:flex-start"><span class="tuile" style="background:var(--green)">' + i.coche.replace('<svg', '<svg width="18" height="18"') + '</span>' +
-      '<div style="flex:1"><h3 style="font-size:17px">Brief bien reçu</h3>' + (c.brief_le ? '<p class="muted" style="margin-top:5px;font-size:13.5px">Le ' + esc(K.dateHeure(c.brief_le)) + '.</p>' : '') + '</div>' +
-      '<div style="display:flex;gap:8px;flex-wrap:wrap"><a class="btn btn-s btn-sm" href="' + wa('Bonjour Kreative, je voudrais modifier mon brief (' + nom(c) + ', #' + c.ref + ') : ') + '" target="_blank" rel="noopener">Demander une modification</a>' +
+    h += '<div class="card pad brief-recu"><div class="brief-tete"><span class="tuile" style="background:var(--green)">' + i.coche.replace('<svg', '<svg width="18" height="18"') + '</span>' +
+      '<div class="t"><h3 style="font-size:17px">Brief bien reçu</h3>' + (c.brief_le ? '<p class="muted" style="margin-top:5px;font-size:13.5px">Le ' + esc(K.dateHeure(c.brief_le)) + '.</p>' : '') + '</div>' +
+      '<div class="acts"><a class="btn btn-s btn-sm" href="' + wa('Bonjour Kreative, je voudrais modifier mon brief (' + nom(c) + ', #' + c.ref + ') : ') + '" target="_blank" rel="noopener">Demander une modification</a>' +
       '<a class="btn btn-g btn-sm" href="#/projets/' + esc(c.id) + '">Voir le projet</a></div></div>' +
       (rep.length ? '<div class="brief-qr">' + rep.map(x => '<div class="qr"><div class="q">' + esc(x.q) + '</div><div class="r">' +
-        (x.fichiers ? '<div class="fics">' + x.fichiers.map(f => '<a href="' + esc(f.url) + '" target="_blank" rel="noopener">' + (/\.(png|jpe?g|webp|gif)(\?|$)/i.test(f.url + f.nom) ? '<img src="' + esc(f.url) + '" alt="" loading="lazy" onerror="this.style.visibility=\'hidden\'">' : i.doc) + '<span>' + esc(f.nom) + '</span></a>').join('') + '</div>' : esc(x.texte)) +
+        (x.fichiers ? '<div class="fics">' + x.fichiers.map(f => '<a href="' + esc(f.url) + '" target="_blank" rel="noopener">' + '<span class="vign">' + (/\.(png|jpe?g|webp|gif)(\?|$)/i.test(f.url + f.nom) ? '<img src="' + esc(f.url) + '" alt="" loading="lazy" onerror="this.remove()">' : '') + '</span>' + '<span>' + esc(f.nom) + '</span></a>').join('') + '</div>' : esc(x.texte)) +
         '</div></div>').join('') + '</div>'
         : '<p class="muted" style="margin-top:18px;font-size:13.5px">Vos réponses apparaîtront ici pour vos prochains briefs.</p>') + '</div>';
     return h;
@@ -300,6 +300,22 @@ function ecranBrief(id) {
   h += '<div class="card" style="overflow:hidden"><iframe src="' + esc(lien) + '" title="Votre brief Kreative" style="display:block;width:100%;height:calc(100vh - 260px);min-height:620px;border:0" allow="clipboard-write"></iframe></div>' +
     '<p class="muted" style="font-size:12.5px;margin-top:12px;text-align:center">Une fois votre brief envoyé, votre projet passe en production. Vous suivez son avancement dans « Mes projets ».</p>';
   return h;
+}
+
+// le client envoie son brief dans le formulaire : dès que Kreative l'a reçu, la page affiche « Brief bien reçu » et ses réponses
+let veilleBrief = 0;
+function attendreBrief(id) {
+  clearInterval(veilleBrief); veilleBrief = 0;
+  if (D.apercu || !D.commandes.some(c => etat(c) === 'confirmee')) return;
+  const avant = D.commandes.filter(c => etat(c) === 'confirmee').length;
+  veilleBrief = setInterval(async () => {
+    if (!/^#\/brief/.test(location.hash)) { clearInterval(veilleBrief); veilleBrief = 0; return; }
+    if (document.visibilityState !== 'visible') return;
+    try {
+      const d = await K.api('/api/client/moi');
+      if (d.commandes.filter(c => etat(c) === 'confirmee').length < avant) { clearInterval(veilleBrief); veilleBrief = 0; D = d; K.toast('Brief bien reçu, merci !'); K.rendre(); }
+    } catch (e) {}
+  }, 5000);
 }
 
 // ---------- FACTURES ----------
@@ -542,7 +558,7 @@ const ECRANS = {
   '': ['accueil', 'accueil', () => ['Accueil'], () => ecranAccueil()],
   projets: ['projets', 'dossier', p => p[1] === 'creatives' ? ['Mes projets', nomProjetDe(p[0]), 'Créatives'] : p[0] ? ['Mes projets', nomProjetDe(p[0])] : ['Mes projets'],
     p => p[1] === 'creatives' ? ecranCreatives(p[0]) : p[0] ? ecranProjet(p[0]) : ecranProjets(), p => p[1] === 'creatives' ? brancherCreatives(p) : brancherProjet()],
-  brief: ['brief', 'doc', () => ['Mon brief'], p => ecranBrief(p[0])],
+  brief: ['brief', 'doc', () => ['Mon brief'], p => ecranBrief(p[0]), p => attendreBrief(p[0])],
   factures: ['factures', 'recu', () => ['Factures'], () => ecranFactures()],
   commander: ['commander', 'panier', p => p[0] === 'paiement' ? ['Commander des créas', 'Paiement'] : p[0] && D.packs[p[0]] ? ['Commander des créas', 'Pack ' + D.packs[p[0]].nom] : ['Commander des créas'],
     p => p[0] === 'paiement' ? ecranPaiement() : p[0] ? ecranPanier(p[0]) : ecranCommander(), p => p[0] === 'paiement' ? brancherPaiement() : p[0] ? brancherPanier() : null],

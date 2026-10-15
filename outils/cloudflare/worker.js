@@ -368,7 +368,7 @@ async function connexion(req, env, url) {
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Inter+Tight:wght@500;600&display=swap" rel="stylesheet">
 <style>
-*{box-sizing:border-box}html,body{margin:0;min-height:100%}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%}html{caret-color:transparent}input{caret-color:auto}
 body{background:#f9f6f4;color:#000;font:400 16px/1.5 Inter,system-ui,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px 16px}
 .c{width:100%;max-width:400px;background:#fff;border:1px solid #ebe5df;border-radius:28px;padding:36px 32px;box-shadow:0 12px 40px rgba(31,31,31,.06)}
 .logo{height:26px;display:block;margin:0 0 30px}

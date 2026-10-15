@@ -919,22 +919,35 @@ async function ouvre(dossier){
     say("Projet "+(PRJ.brand_name||dossier)+" ouvert.","ok");
 }
 
+/* 15/10 : le nom du brief selon le type de projet :
+   sur-mesure -> « Brief de la livraison 2/4 », abonnement -> « Brief de novembre » */
+function nomBrief(d){
+  const M=["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
+  const l=d&&d.livraison;
+  if(d&&(d.abonnement||(l&&l.type==="abonnement"))){
+    const m=M[new Date(Date.parse(d.deadline||"")||Date.now()).getMonth()];
+    return "Brief "+(/^[aeiouâ]/.test(m)?"d'":"de ")+m;
+  }
+  if(l&&l.sur>1) return "Brief de la livraison "+l.n+"/"+l.sur;
+  return "Brief du client";
+}
 /* 13/10 : les retours du client sur la livraison precedente
    (sur-mesure et abonnement), ecrits par n8n dans retour.json */
 async function chargeRetour(dossier){
   const box=$("retour"); box.hidden=true; box.open=false; box.innerHTML="";
-  let r=null;
+  let r=null,dd=null;
   try{const x=await fetch("../"+dossier+"/retour.json?t="+Date.now(),{cache:"no-store"});if(x.ok)r=await x.json()}catch(e){r=null}
   if(!r||r.dossier!==dossier)return;
+  try{const y=await fetch("../"+dossier+"/donnees.json?t="+Date.now(),{cache:"no-store"});if(y.ok)dd=await y.json()}catch(e){dd=null}
   /* 14/10 : replie, juste les gagnantes et le lien vers la page des retours */
   const g=r.gagnantes||[];
   const src=f=>f.chemin?"../"+f.chemin:(f.url||"");
   const img=f=>'<a href="'+esc(src(f))+'" target="_blank" rel="noopener" title="'+esc(f.nom||"")+'">'+
     '<img src="'+esc(src(f))+'"'+(f.chemin&&f.url?' data-u="'+esc(f.url)+'" onerror="if(this.dataset.u){this.src=this.dataset.u;this.parentNode.href=this.dataset.u;this.removeAttribute(\'data-u\')}"':'')+
     ' alt="'+esc(f.nom||"")+'" loading="lazy"></a>';
-  box.innerHTML='<summary>Retours du client'+(g.length?' <small>'+g.length+' créa'+(g.length>1?'s':'')+' gagnante'+(g.length>1?'s':'')+'</small>':'')+'</summary>'+
+  box.innerHTML='<summary>'+esc(nomBrief(dd))+(g.length?' <small>'+g.length+' créa'+(g.length>1?'s':'')+' gagnante'+(g.length>1?'s':'')+'</small>':'')+'</summary>'+
     '<div class="rb">'+(g.length?'<div class="rimgs">'+g.map(img).join("")+'</div>':'')+
-    '<a class="rvoir" href="../retours/?projet='+encodeURIComponent(dossier)+'" target="_blank" rel="noopener">Voir les retours ↗</a></div>';
+    '<a class="rvoir" href="../retours/?projet='+encodeURIComponent(dossier)+'" target="_blank" rel="noopener">Voir le brief ↗</a></div>';
   box.hidden=false;
 }
 

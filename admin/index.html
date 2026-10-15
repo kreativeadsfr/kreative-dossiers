@@ -146,12 +146,24 @@ function liens(x) {
   const d = x.d, prod = (d.livraison && d.livraison.projet) || x.dossier, b = [];
   b.push(lien('../' + prod + '/', 'Dossier de prod'));
   b.push(lien('../fiche/?projet=' + encodeURIComponent(x.dossier), 'Fiche'));
-  if (x.retour) b.push(lien('../retours/?projet=' + encodeURIComponent(x.dossier), 'Retours du client'));
+  if (x.retour) b.push(lien('../retours/?projet=' + encodeURIComponent(x.dossier), esc(nomBrief(x.d))));
   if (x.envoye) { b.push(lien('../' + x.dossier + '/creas/', 'Aperçu designer')); b.push(lien('../' + x.dossier + '/creas/telecharger.html', 'Téléchargement')); }
   if (x.zip) b.push(lien(x.zip, 'Créas livrées', 'k-btn'));
   return '<div class="liens">' + b.join('') + '</div>';
 }
 
+/* 15/10 : le nom du brief selon le type de projet :
+   sur-mesure -> « Brief de la livraison 2/4 », abonnement -> « Brief de novembre » */
+function nomBrief(d){
+  const M=["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
+  const l=d&&d.livraison;
+  if(d&&(d.abonnement||(l&&l.type==="abonnement"))){
+    const m=M[new Date(Date.parse(d.deadline||"")||Date.now()).getMonth()];
+    return "Brief "+(/^[aeiouâ]/.test(m)?"d'":"de ")+m;
+  }
+  if(l&&l.sur>1) return "Brief de la livraison "+l.n+"/"+l.sur;
+  return "Brief du client";
+}
 function carte(x) {
   const d = x.d, l = d.livraison, e = etat(x);
   const nom = esc(d.brand_name || x.dossier) + (l && l.sur > 1 ? ' <span style="color:var(--k-tx3);font-weight:500">· livraison ' + l.n + '/' + l.sur + '</span>' : '');

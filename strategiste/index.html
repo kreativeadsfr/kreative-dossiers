@@ -61,7 +61,7 @@
 <div class="w">
   <div class="hero">
     <h1>Tes <em>projets</em></h1>
-    <p>Les fiches à remplir, avec leur échéance. Pour chaque projet : le dossier de production, les retours du client quand il y en a, et la fiche.</p>
+    <p>Les fiches à remplir, avec leur échéance. Pour chaque projet : le dossier de production, le brief du client quand il y en a (livraisons suivantes et abonnements), et la fiche.</p>
   </div>
   <div class="titre"><h2>À faire</h2><span class="nb" id="nbF">0</span></div>
   <div class="liste" id="afaire"><div class="charge">Chargement de tes projets…</div></div>
@@ -90,13 +90,25 @@ function nomDe(x){
   return esc(x.d.brand_name || x.dossier) + (l && l.sur > 1 ? ' <span style="color:var(--k-tx3);font-weight:500">· livraison ' + l.n + '/' + l.sur + '</span>' : '');
 }
 
+/* 15/10 : le nom du brief selon le type de projet :
+   sur-mesure -> « Brief de la livraison 2/4 », abonnement -> « Brief de novembre » */
+function nomBrief(d){
+  const M=["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
+  const l=d&&d.livraison;
+  if(d&&(d.abonnement||(l&&l.type==="abonnement"))){
+    const m=M[new Date(Date.parse(d.deadline||"")||Date.now()).getMonth()];
+    return "Brief "+(/^[aeiouâ]/.test(m)?"d'":"de ")+m;
+  }
+  if(l&&l.sur>1) return "Brief de la livraison "+l.n+"/"+l.sur;
+  return "Brief du client";
+}
 function carte(x){
   const d = x.d, dossierProd = (d.livraison && d.livraison.projet) || x.dossier;
   return '<article class="p"><div class="l1"><div><h3 class="nom">' + nomDe(x) + '</h3>' +
     '<div class="meta"><b>' + esc(d.nb_creas || '?') + ' créas</b>' + (x.strat ? ' · fiche avant ' + esc(quand(x.strat)) : '') + '</div></div>' +
     badge(x.strat) +
     '<div class="act"><a class="k-btn2" href="../' + esc(dossierProd) + '/" target="_blank" rel="noopener">Dossier</a>' +
-    (x.retour ? '<a class="k-btn2" href="../retours/?projet=' + encodeURIComponent(x.dossier) + '" target="_blank" rel="noopener">Retours du client</a>' : '') +
+    (x.retour ? '<a class="k-btn2" href="../retours/?projet=' + encodeURIComponent(x.dossier) + '" target="_blank" rel="noopener">' + esc(nomBrief(x.d)) + '</a>' : '') +
     '<a class="k-btn" href="../fiche/?projet=' + encodeURIComponent(x.dossier) + '" target="_blank" rel="noopener">Ouvrir la fiche</a></div></div></article>';
 }
 

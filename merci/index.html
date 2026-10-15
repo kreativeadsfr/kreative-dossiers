@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
 <title>Merci pour votre commande · Kreative</title>
-<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png"><link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png"><link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png"><link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="stylesheet" href="/ui/app.css">
 <style>
 /* Page de confirmation après un paiement sur la landing (liens de paiement Stripe).
@@ -17,30 +17,15 @@
 .merci svg.ok{width:92px;height:92px;display:block;margin:0 auto;overflow:visible;animation:m-saut .5s cubic-bezier(.2,1.4,.4,1) .8s both}
 .merci .anneau{fill:none;stroke:var(--blue);stroke-width:3;stroke-linecap:round;stroke-dasharray:158;stroke-dashoffset:158;transform:rotate(-90deg);transform-origin:center;
   animation:m-trace .65s cubic-bezier(.65,0,.35,1) .15s forwards,m-remplit .3s ease-out .75s forwards}
-.merci .coche{fill:none;stroke:#fff;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:36;stroke-dashoffset:36;animation:m-trace .35s cubic-bezier(.65,0,.35,1) .9s forwards}
+.merci .coche{fill:none;stroke:#fff;stroke-width:3.4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:24;stroke-dashoffset:24;animation:m-trace .35s cubic-bezier(.65,0,.35,1) .9s forwards}
 .merci h1{font-size:34px;letter-spacing:-.035em;margin-top:30px;animation:m-monte .45s ease-out 1.05s both}
 .merci .texte{font-size:16px;line-height:1.6;color:var(--tx2);margin:14px auto 0;max-width:440px;text-wrap:balance;animation:m-monte .45s ease-out 1.15s both}
-.merci .suite{margin-top:34px;animation:m-monte .45s ease-out 1.25s both}
-.merci .m-etapes{display:flex;align-items:flex-start;justify-content:center;max-width:420px;margin:0 auto}
-.merci .m-etape{flex:1;display:flex;flex-direction:column;align-items:center;gap:9px;position:relative;font-size:12.5px;color:var(--tx3);font-weight:500}
-.merci .m-etape+.m-etape::before{content:'';position:absolute;top:13px;left:calc(-50% + 22px);width:calc(100% - 44px);height:2px;border-radius:2px;background:var(--blue)}
-.merci .m-etape .pt{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--blue);color:#fff}
-.merci .m-etape .pt svg{width:14px;height:14px}
-.merci .m-etape.ici{color:var(--ink);font-weight:600}
-.merci .m-etape.ici .pt{background:var(--panel);border:2px solid var(--blue);color:var(--blue);box-shadow:0 0 0 0 rgba(77,148,255,.45);animation:m-pouls 1.8s ease-out 1.8s infinite}
-.merci .m-etape.ici .pt i{width:8px;height:8px;border-radius:50%;background:var(--blue)}
-.merci .m-etape.ici::before{background:linear-gradient(90deg,var(--blue),var(--line))}
-.merci .prochaine{margin-top:22px;font-size:16px;font-weight:600;color:var(--ink)}
+.merci .prochaine{margin-top:30px;animation:m-monte .45s ease-out 1.25s both;font-size:16px;font-weight:600;color:var(--ink)}
 .merci .aide{font-size:13.5px;color:var(--tx3);line-height:1.7;margin-top:30px;padding-top:22px;border-top:1px solid var(--line);animation:m-monte .45s ease-out 1.35s both}
 .merci .aide a{color:var(--ink);font-weight:600;text-decoration:underline;text-underline-offset:2px}
-.merci .renvoi{display:none;gap:8px;margin-top:14px}
-.merci .renvoi.ouvert{display:flex}
-.merci .renvoi .in{flex:1}
-.merci #etat{font-size:13px;margin-top:10px;min-height:18px;color:var(--tx3)}
 @keyframes m-trace{to{stroke-dashoffset:0}}
 @keyframes m-remplit{to{fill:var(--blue)}}
 @keyframes m-saut{0%{transform:scale(1)}40%{transform:scale(1.12)}100%{transform:scale(1)}}
-@keyframes m-pouls{0%{box-shadow:0 0 0 0 rgba(77,148,255,.45)}70%{box-shadow:0 0 0 10px rgba(77,148,255,0)}100%{box-shadow:0 0 0 0 rgba(77,148,255,0)}}
 @keyframes m-monte{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){.merci *{animation-duration:.01s!important;animation-delay:0s!important}}
 </style>
@@ -49,36 +34,13 @@
 <main class="merci">
   <div class="boite">
     <img class="logo" src="/ui/logo-kreative-noir.png" alt="Kreative">
-    <svg class="ok" viewBox="0 0 56 56" aria-hidden="true"><circle class="anneau" cx="28" cy="28" r="25"/><path class="coche" d="M17 29.5l7.5 7.5L40 21.5"/></svg>
+    <svg class="ok" viewBox="0 0 56 56" aria-hidden="true"><circle class="anneau" cx="28" cy="28" r="25"/><path class="coche" d="M20.5 28.6l5 5L35.5 23.4"/></svg>
     <h1>Merci pour votre commande.</h1>
     <p class="texte">Votre paiement a bien été reçu. Votre espace client Kreative vient d'être créé.</p>
     <p class="texte">Nous vous avons envoyé un email à l'adresse utilisée lors du paiement. Il contient votre lien d'accès personnel.</p>
-    <div class="suite">
-      <div class="m-etapes">
-        <div class="m-etape"><span class="pt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>Paiement reçu</div>
-        <div class="m-etape"><span class="pt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>Accès envoyé</div>
-        <div class="m-etape ici"><span class="pt"><i></i></span>Votre brief</div>
-      </div>
-      <p class="prochaine">Connectez-vous pour remplir votre brief client.</p>
-    </div>
-    <p class="aide">Pas reçu l'email ? Regardez dans vos spams, ou <a href="#" id="renvoyer">recevez-le à nouveau</a>.<br>
-      Erreur d'adresse : écrivez-nous sur <a href="https://api.whatsapp.com/send?phone=33756921042&text=Bonjour%20Kreative%2C%20je%20viens%20de%20commander%20et%20je%20n%27ai%20pas%20re%C3%A7u%20mon%20lien" target="_blank" rel="noopener">WhatsApp</a>.</p>
-    <form class="renvoi" id="f"><input class="in" id="email" type="email" required placeholder="L'adresse utilisée lors du paiement" autocomplete="email"><button class="btn btn-p" type="submit">Envoyer</button></form>
-    <p id="etat"></p>
+    <p class="prochaine">Connectez-vous pour remplir votre brief client.</p>
+    <p class="aide">Erreur d'adresse : écrivez-nous sur <a href="https://api.whatsapp.com/send?phone=33756921042&text=Bonjour%20Kreative%2C%20je%20viens%20de%20commander%20et%20je%20n%27ai%20pas%20re%C3%A7u%20mon%20lien" target="_blank" rel="noopener">WhatsApp</a>.</p>
   </div>
 </main>
-<script>
-document.getElementById('renvoyer').onclick = e => { e.preventDefault(); document.getElementById('f').classList.add('ouvert'); document.getElementById('email').focus(); };
-document.getElementById('f').onsubmit = async e => {
-  e.preventDefault();
-  const b = e.target.querySelector('button'), etat = document.getElementById('etat');
-  b.disabled = true; etat.textContent = 'Envoi…';
-  try {
-    const r = await fetch('/api/client/lien', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: document.getElementById('email').value }) });
-    const d = await r.json(); etat.textContent = d.message || 'C\'est envoyé.'; etat.style.color = 'var(--green)';
-  } catch (err) { etat.textContent = 'L\'envoi n\'a pas marché. Réessayez dans un instant.'; }
-  b.disabled = false;
-};
-</script>
 </body>
 </html>

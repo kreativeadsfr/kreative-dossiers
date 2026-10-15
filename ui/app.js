@@ -42,6 +42,7 @@
       doc.setFont('helvetica', 'normal'); doc.setFontSize(10); doc.setTextColor(110);
       doc.text('Émise le ' + K.date(f.emise_le || Date.now()), 190, 35, { align: 'right' });
       doc.text('Payée' + (f.payee_le ? ' le ' + K.date(f.payee_le) : ''), 190, 41, { align: 'right' });
+      if (o && o.commande && o.commande !== f.numero) doc.text('Commande n° ' + e(o.commande), 190, 47, { align: 'right' });
       doc.setTextColor(0); doc.setFontSize(10); doc.text('Facturé à', 20, 60);
       doc.setFont('helvetica', 'bold'); doc.setFontSize(12); doc.text(e((o && o.client) || f.marque || ''), 20, 67);
       doc.setFont('helvetica', 'normal'); doc.setFontSize(10); if (o && o.email) doc.text(e(o.email), 20, 73);

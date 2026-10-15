@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex">
 <title>Admin · Kreative</title>
-<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png"><link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png"><link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png"><link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="stylesheet" href="/ui/app.css">
 <script src="/ui/app.js"></script>
 <script src="/ui/review.js"></script>
@@ -210,6 +210,13 @@ function calendrier() {
     '<div class="cal-pied"><span class="cal-choix">' + (lo ? esc(f(lo)) + ' → ' + (hi ? esc(f(hi)) : '<i>choisissez la fin</i>') : 'Choisissez le premier jour') + '</span>' +
     '<button type="button" class="btn btn-g btn-sm" data-cal-annuler>Annuler</button><button type="button" class="btn btn-d btn-sm" data-cal-ok' + (lo && hi ? '' : ' disabled') + '>Appliquer</button></div></div></div>';
 }
+// la plage choisie se colore et le pied du calendrier se met à jour, sans rien redessiner
+function majCalendrier(cal) {
+  const x = CAL.debut, y = CAL.fin || CAL.debut, f = iso => K.date(jourDe(iso), { year: undefined, month: 'short' });
+  cal.querySelectorAll('[data-jour]').forEach(o => { const j = o.dataset.jour; o.classList.toggle('debut', !!x && j === x); o.classList.toggle('fin', !!x && j === y); o.classList.toggle('dans', !!x && j > x && j < y); });
+  cal.querySelector('.cal-choix').innerHTML = x ? esc(f(x)) + ' → ' + (CAL.fin ? esc(f(CAL.fin)) : '<i>choisissez la fin</i>') : 'Choisissez le premier jour';
+  cal.querySelector('[data-cal-ok]').disabled = !(CAL.debut && CAL.fin);
+}
 function brancherPeriode() {
   document.querySelectorAll('[data-periode]').forEach(b => b.onclick = () => { PERIODE.mode = b.dataset.periode; CAL.ouvert = false; K.rendre(); });
   const ouvrir = document.querySelector('[data-cal-ouvrir]');
@@ -223,16 +230,29 @@ function brancherPeriode() {
   const cal = document.querySelector('.cal');
   if (cal) {
     cal.onclick = e => e.stopPropagation();
-    cal.querySelectorAll('[data-cal-mois]').forEach(b => b.onclick = () => { const m = new Date(CAL.mois); CAL.mois = new Date(m.getFullYear(), m.getMonth() + Number(b.dataset.calMois), 1).getTime(); K.rendre(); });
-    cal.querySelectorAll('[data-jour]').forEach(b => {
-      b.onclick = () => { const j = b.dataset.jour; if (!CAL.debut || CAL.fin) { CAL.debut = j; CAL.fin = null; } else { CAL.fin = j; if (CAL.fin < CAL.debut) [CAL.debut, CAL.fin] = [CAL.fin, CAL.debut]; } CAL.survol = null; K.rendre(); };
+    // changer de mois : les deux mois glissent, sans redessiner la page
+    cal.querySelectorAll('[data-cal-mois]').forEach(b => b.onclick = () => {
+      const sens = Number(b.dataset.calMois), m = new Date(CAL.mois);
+      CAL.mois = new Date(m.getFullYear(), m.getMonth() + sens, 1).getTime();
+      const deux = cal.querySelector('.cal-deux'), p = new Date(new Date(CAL.mois).getFullYear(), new Date(CAL.mois).getMonth() - 1, 1).getTime();
+      deux.innerHTML = grilleMois(p) + grilleMois(CAL.mois);
+      deux.classList.remove('va-g', 'va-d'); void deux.offsetWidth; deux.classList.add(sens > 0 ? 'va-d' : 'va-g');
+      const now = new Date(); cal.querySelector('[data-cal-mois="1"]').disabled = CAL.mois >= new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+      brancherJours(cal);
+    });
+    brancherJours(cal);
+    function brancherJours(cal) { cal.querySelectorAll('[data-jour]').forEach(b => {
+      b.onclick = () => {
+        const j = b.dataset.jour; if (!CAL.debut || CAL.fin) { CAL.debut = j; CAL.fin = null; } else { CAL.fin = j; if (CAL.fin < CAL.debut) [CAL.debut, CAL.fin] = [CAL.fin, CAL.debut]; }
+        CAL.survol = null; majCalendrier(cal);
+      };
       // aperçu de la plage au survol : on change juste les classes, sans redessiner
       b.onmouseenter = () => {
         if (!CAL.debut || CAL.fin) return;
         const s = b.dataset.jour, [x, y] = s < CAL.debut ? [s, CAL.debut] : [CAL.debut, s];
         cal.querySelectorAll('[data-jour]').forEach(o => { const j = o.dataset.jour; o.classList.toggle('debut', j === x); o.classList.toggle('fin', j === y); o.classList.toggle('dans', j > x && j < y); });
       };
-    });
+    }); }
     cal.querySelectorAll('[data-rac]').forEach(b => b.onclick = () => {
       const k = b.dataset.rac, auj = new Date(); auj.setHours(0, 0, 0, 0); let a = auj.getTime(), z = auj.getTime();
       if (/^\d+$/.test(k)) a = z - Math.max(0, Number(k) - 1) * 864e5;

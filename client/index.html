@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex">
 <title>Espace client · Kreative</title>
-<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png"><link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png"><link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png"><link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="stylesheet" href="/ui/app.css">
 <script src="/ui/app.js"></script>
 <script src="/ui/review.js"></script>
@@ -277,11 +277,19 @@ function ecranBrief(id) {
   let h = apercu();
   if (!c) return h + '<div class="ph"><div><h1>Mon brief</h1><p>Votre brief s\'ouvre dès votre première commande.</p></div></div><div class="card"><div class="vide">' + i.doc + 'Aucune commande pour l\'instant.</div></div>';
   if (etat(c) !== 'confirmee') {
-    return h + '<div class="ph"><div><h1>Mon brief</h1><p>' + esc(nom(c)) + ' · commande #' + esc(c.ref) + '</p></div></div>' +
-      '<div class="card pad" style="max-width:720px"><div style="display:flex;gap:14px;align-items:flex-start"><span class="tuile" style="background:var(--green)">' + i.coche.replace('<svg', '<svg width="18" height="18"') + '</span>' +
-      '<div><h3 style="font-size:17px">Brief bien reçu</h3>' + (c.brief_le ? '<p class="muted" style="margin-top:5px;font-size:13.5px">Le ' + esc(K.dateHeure(c.brief_le)) + '.</p>' : '') +
-      '<div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap"><a class="btn btn-s btn-sm" href="' + wa('Bonjour Kreative, je voudrais modifier mon brief (' + nom(c) + ', #' + c.ref + ') : ') + '" target="_blank" rel="noopener">Demander une modification</a>' +
-      '<a class="btn btn-g btn-sm" href="#/projets/' + esc(c.id) + '">Voir le projet</a></div></div></div></div>';
+    const recus = D.commandes.filter(x => etat(x) !== 'confirmee');
+    let rep = []; try { rep = c.brief_json ? JSON.parse(c.brief_json) : []; } catch (e) { rep = []; }
+    h += '<div class="ph"><div><h1>Mon brief</h1><p>' + esc(nom(c)) + ' · commande #' + esc(c.ref) + '</p></div></div>';
+    if (recus.length > 1) h += '<div class="filtres">' + recus.map(x => '<a class="chip' + (x.id === c.id ? ' on' : '') + '" href="#/brief/' + esc(x.id) + '">' + esc(nom(x)) + '</a>').join('') + '</div>';
+    h += '<div class="card pad brief-recu"><div style="display:flex;gap:14px;align-items:flex-start"><span class="tuile" style="background:var(--green)">' + i.coche.replace('<svg', '<svg width="18" height="18"') + '</span>' +
+      '<div style="flex:1"><h3 style="font-size:17px">Brief bien reçu</h3>' + (c.brief_le ? '<p class="muted" style="margin-top:5px;font-size:13.5px">Le ' + esc(K.dateHeure(c.brief_le)) + '.</p>' : '') + '</div>' +
+      '<div style="display:flex;gap:8px;flex-wrap:wrap"><a class="btn btn-s btn-sm" href="' + wa('Bonjour Kreative, je voudrais modifier mon brief (' + nom(c) + ', #' + c.ref + ') : ') + '" target="_blank" rel="noopener">Demander une modification</a>' +
+      '<a class="btn btn-g btn-sm" href="#/projets/' + esc(c.id) + '">Voir le projet</a></div></div>' +
+      (rep.length ? '<div class="brief-qr">' + rep.map(x => '<div class="qr"><div class="q">' + esc(x.q) + '</div><div class="r">' +
+        (x.fichiers ? '<div class="fics">' + x.fichiers.map(f => '<a href="' + esc(f.url) + '" target="_blank" rel="noopener">' + (/\.(png|jpe?g|webp|gif)(\?|$)/i.test(f.url + f.nom) ? '<img src="' + esc(f.url) + '" alt="" loading="lazy" onerror="this.style.visibility=\'hidden\'">' : i.doc) + '<span>' + esc(f.nom) + '</span></a>').join('') + '</div>' : esc(x.texte)) +
+        '</div></div>').join('') + '</div>'
+        : '<p class="muted" style="margin-top:18px;font-size:13.5px">Vos réponses apparaîtront ici pour vos prochains briefs.</p>') + '</div>';
+    return h;
   }
   const lien = (LIENS.fillout[c.pack] || LIENS.fillout.custom) + '?commande=' + encodeURIComponent(c.ref) + '&client=' + encodeURIComponent(D.client.id) +
     (D.client.email ? '&email=' + encodeURIComponent(D.client.email) : '') + '&marque=' + encodeURIComponent(D.client.marque);
@@ -310,7 +318,7 @@ document.addEventListener('click', e => {
   if (!b || !D) return;
   const f = (D.factures || []).find(x => x.id === b.dataset.fdl); if (!f) return;
   const c = D.commandes.find(x => x.id === f.commande_id);
-  K.telechargerFacture(f, { client: D.client.marque, email: D.client.email, projet: c ? nom(c) + ' · ' + c.nb_creas + ' créatives' : '' });
+  K.telechargerFacture(f, { client: D.client.marque, email: D.client.email, commande: c ? c.ref : '', projet: c ? nom(c) + ' · ' + c.nb_creas + ' créatives' : '' });
 });
 function ecranFactures() {
   const F = payees(D.factures);
@@ -325,10 +333,13 @@ const AVANTAGES = {
   growth: [['12 visuels Ads', 1], ['Tous les formats Meta', 1], ['Révisions illimitées', 1], ['Livraison en 48 h', 1], ['Contact WhatsApp inclus', 1], ['Angles marketing variés', 1], ['Support prioritaire', 0], ['Stratégie personnalisée', 0]],
   scale: [['24 visuels Ads', 1], ['Tous les formats Meta', 1], ['Révisions illimitées', 1], ['Livraison en 72 h', 1], ['Contact WhatsApp inclus', 1], ['Angles marketing variés', 1], ['Support prioritaire', 1], ['Stratégie personnalisée', 1]]
 };
+const ENGAGEMENT = 'Les tarifs mensuels supposent un engagement de 3 mois, puis sans engagement. Résiliable à tout moment ensuite depuis votre espace.';
+// le prix d'une option : l'express a un prix fixe par pack
+const prixOpt = (o, pack) => (o.par_pack && o.par_pack[pack] != null) ? o.par_pack[pack] : o.valeur;
 function ecranCommander() {
   const m = formule === 'mensuel';
   let h = apercu() + '<div class="ph" style="justify-content:center;text-align:center;margin-bottom:34px"><div><h1>Vos prochaines créatives</h1>' +
-    '<p style="max-width:580px;margin:10px auto 0;line-height:1.6">Une créative s\'use en trois à quatre semaines. Reprenez un pack quand vous en avez besoin, ou passez au mensuel et payez moins cher chaque commande.</p>' +
+    '<p style="max-width:580px;margin:10px auto 0;line-height:1.6">Une créative s\'use en deux à trois semaines. Reprenez un pack quand vous en avez besoin, ou passez à l\'abonnement et payez moins cher chaque commande.</p>' +
     '<div class="onglets" style="margin-top:22px"><button class="' + (m ? 'on' : '') + '" onclick="formule=\'mensuel\';K.rendre()">Mensuel · 15 % de moins</button>' +
     '<button class="' + (!m ? 'on' : '') + '" onclick="formule=\'unique\';K.rendre()">Commande unique</button></div></div></div>';
   h += '<div class="offres">' + ['starter', 'growth', 'scale'].map(k => {
@@ -345,7 +356,7 @@ function ecranCommander() {
     '<div class="acts"><a class="btn btn-d btn-lg" href="#/commander/custom">Configurer mon pack ' + i.fleche + '</a></div></div>' +
     '<ul>' + ['Volume de créatives au choix', 'Tous les formats Meta', 'Révisions illimitées', 'Options : express, A/B tests', 'Contact WhatsApp inclus',
       'Angles marketing variés', 'Support prioritaire', 'Stratégie personnalisée', 'Interlocuteur dédié', 'Cadence de livraison au choix'].map(a => '<li>' + i.coche + '<span>' + a + '</span></li>').join('') + '</ul></div></div>';
-  h += '<p class="confiance">' + (m ? 'Engagement 3 mois, puis sans engagement.' : 'Paiement unique, sans engagement.') + '<span>' + i.cadenas + 'Paiement sécurisé par Stripe</span></p>';
+  h += '<p class="confiance">' + (m ? ENGAGEMENT : 'Paiement unique, sans engagement.') + '</p>';
   return h;
 }
 
@@ -367,7 +378,7 @@ function devis(o) {
     if (m) { lignes.push(['Remise mensuelle −' + Math.round(r * 100) + ' %', -base * r]); base *= 1 - r; }
   }
   opts.filter(x => x.type === 'pct').forEach(x => { const v = base * x.valeur / 100; lignes.push([x.nom + ' (+' + x.valeur + ' %)', v]); base += v; });
-  opts.filter(x => x.type === 'fixe').forEach(x => { lignes.push([x.nom, x.valeur]); base += x.valeur; });
+  opts.filter(x => x.type === 'fixe').forEach(x => { const v = prixOpt(x, o.pack); lignes.push([x.nom, v]); base += v; });
   return { lignes, total: Math.round(base), nb, unitaire: u };
 }
 // le délai de livraison après le brief : celui du pack, ou selon le volume pour le Custom ; l'express le divise par deux
@@ -393,7 +404,7 @@ function ecranPanier(pack) {
   else h += '<div class="card bloc"><h3>Inclus dans le pack ' + esc(P.nom) + '</h3><ul class="inclus">' + AVANTAGES[pack].filter(a => a[1]).map(a => '<li>' + i.coche + '<span>' + esc(a[0]) + '</span></li>').join('') + '</ul></div>';
   h += '<div class="card bloc"><h3>Formule</h3><div class="onglets" style="margin-top:14px"><button class="' + (m ? 'on' : '') + '" data-cf-formule="mensuel">Mensuel · ' + Math.round(C.remise_mensuel * 100) + ' % de moins</button>' +
     '<button class="' + (!m ? 'on' : '') + '" data-cf-formule="unique">Commande unique</button></div>' +
-    '<p class="aide" style="margin-top:12px">' + (m ? 'Prélevé chaque mois, engagement 3 mois puis sans engagement.' : 'Payé en une fois, sans engagement.') + '</p></div>';
+    '<p class="aide" style="margin-top:12px">' + (m ? 'Prélevé chaque mois. ' + ENGAGEMENT : 'Payé en une fois, sans engagement.') + '</p></div>';
   h += '<div class="card bloc"><h3>Options</h3><p class="aide">Pour aller plus loin sur ce pack.</p><div class="opts" id="cf-opts">' + listeOptions() + '</div></div>';
   h += '</div><div class="card recap" id="cf-recap">' + recap() + '</div></div>';
   return h;
@@ -401,7 +412,7 @@ function ecranPanier(pack) {
 // le prix d'une option : par créa (ça se lit mieux), ou en % pour l'express
 function listeOptions() {
   return D.options.map(o => '<div class="opt' + (CFG.options.includes(o.id) ? ' on' : '') + '" data-cf-opt="' + esc(o.id) + '" role="checkbox" aria-checked="' + CFG.options.includes(o.id) + '" tabindex="0"><span class="case">' + i.coche + '</span>' +
-    '<div><b>' + esc(o.nom) + '</b><small>' + esc(o.detail) + '</small></div><span class="px">' + (o.type === 'pct' ? '+' + o.valeur + ' %' : o.type === 'fixe' ? '+' + K.euros(o.valeur) : '+' + o.valeur + ' €<small>par créa</small>') + '</span></div>').join('');
+    '<div><b>' + esc(o.nom) + '</b><small>' + esc(o.detail) + '</small></div><span class="px">' + (o.type === 'pct' ? '+' + o.valeur + ' %' : o.type === 'fixe' ? '+' + K.euros(prixOpt(o, CFG.pack)) : '+' + o.valeur + ' €<small>par créa</small>') + '</span></div>').join('');
 }
 function recap() {
   const d = devis(), m = CFG.formule === 'mensuel', P = D.packs[CFG.pack];
@@ -409,9 +420,9 @@ function recap() {
     '<p class="muted" style="font-size:13px;margin-top:3px">' + (m ? 'Abonnement mensuel' : 'Commande unique') + '</p>' +
     '<div style="margin-top:14px">' + d.lignes.map(l => '<div class="ligne"><span>' + esc(l[0]) + '</span><b>' + (l[1] < 0 ? '−' : '') + K.euros(Math.abs(Math.round(l[1]))) + '</b></div>').join('') + '</div>' +
     '<div class="total"><span class="muted">Total' + (m ? ' par mois' : '') + '</span><b>' + K.euros(d.total) + '</b></div>' +
-    '<div class="unitaire">' + K.euros(Math.round(d.total / d.nb)) + ' <span>la créative' + (m ? ' · engagement 3 mois' : '') + '</span></div>' +
+    '<div class="unitaire">' + K.euros(Math.round(d.total / d.nb)) + ' <span>la créative</span></div>' +
     '<div class="delai">' + i.horloge + 'Livrée en ' + esc(delai()) + ' après votre brief</div>' +
-    '<button class="btn btn-d btn-bloc btn-lg" id="cf-payer">Commander</button>' +
+    '<a class="btn btn-d btn-bloc btn-lg" id="cf-payer" href="#" target="_blank" rel="noopener">Commander</a>' +
     '<p class="confiance petit"><span>' + i.cadenas + 'Paiement sécurisé par Stripe</span></p>';
 }
 function brancherPanier() {
@@ -429,26 +440,43 @@ function brancherPanier() {
   });
   const brancherPayer = () => {
     const b = document.getElementById('cf-payer'), P = D.packs[CFG.pack];
-    b.onclick = () => payer({ pack: CFG.pack, formule: CFG.formule, nb_creas: CFG.nb, options: CFG.options,
-      texte: 'Pack ' + P.nom + ', ' + devis().nb + ' créatives (' + (CFG.formule === 'mensuel' ? 'mensuel' : 'commande unique') + ')' + (CFG.options.length ? ' + ' + D.options.filter(o => CFG.options.includes(o.id)).map(o => o.nom).join(', ') : '') }, b);
+    const corps = { pack: CFG.pack, formule: CFG.formule, nb_creas: CFG.nb, options: CFG.options,
+      texte: 'Pack ' + P.nom + ', ' + devis().nb + ' créatives (' + (CFG.formule === 'mensuel' ? 'mensuel' : 'commande unique') + ')' + (CFG.options.length ? ' + ' + D.options.filter(o => CFG.options.includes(o.id)).map(o => o.nom).join(', ') : '') };
+    preparerPaiement(corps, b);
+    b.onclick = e => payer(corps, b, e);
   };
   brancherOpts(); brancherPayer();
 }
 
 // ---------- LE PAIEMENT : dans le portail (Stripe intégré), sinon la page Stripe dans le même onglet ----------
 let PAIEMENT = null;
-// Le paiement s'ouvre dans un NOUVEL onglet : le portail reste ouvert derrière.
-// L'onglet est ouvert tout de suite (au clic), sinon le navigateur le bloquerait après l'attente du serveur.
-function ongletPaiement() {
-  let w = null;
-  try { w = window.open('', '_blank'); } catch (e) {}
-  if (w) {
-    try { w.document.write('<!doctype html><meta charset="utf-8"><title>Paiement sécurisé · Kreative</title><body style="margin:0;display:grid;place-items:center;height:100vh;font:15px system-ui,sans-serif;color:#6b7280;background:#f8f6f3">Ouverture du paiement sécurisé…</body>'); w.document.close(); } catch (e) {}
-  }
-  return {
-    aller(url) { if (w && !w.closed) { try { w.opener = null; } catch (e) {} w.location.href = url; } else location.href = url; },
-    fermer() { if (w && !w.closed) w.close(); }
-  };
+// Le paiement s'ouvre dans un NOUVEL onglet, directement sur la page Stripe : le portail reste ouvert derrière.
+// La page Stripe est préparée pendant que le client choisit : « Commander » est un vrai lien, rien à attendre.
+const PRE = { cle: '', url: '', le: 0, attente: null, minuteur: 0 };
+const cleDe = c => JSON.stringify([c.pack, c.formule, c.nb_creas, (c.options || []).slice().sort()]);
+function lienDirect(corps) {
+  if (D.paiement) return null;
+  const lien = corps.pack !== 'custom' && !(corps.options || []).length && D.liens && D.liens[corps.pack] && D.liens[corps.pack][corps.formule];
+  if (lien) return lien + '?client_reference_id=' + encodeURIComponent(D.client.id) + (D.client.email ? '&prefilled_email=' + encodeURIComponent(D.client.email) : '') + '&locale=fr';
+  return wa('Bonjour Kreative, je souhaite commander : ' + corps.texte);
+}
+function preparerPaiement(corps, b) {
+  if (D.apercu) { b.removeAttribute('target'); return; }
+  const direct = lienDirect(corps);
+  if (direct) { b.href = direct; return; }
+  const cle = cleDe(corps), frais = PRE.url && PRE.cle === cle && Date.now() - PRE.le < 20 * 60e3;
+  if (frais) { b.href = PRE.url; return; }
+  b.href = '#';
+  clearTimeout(PRE.minuteur);
+  PRE.minuteur = setTimeout(() => {
+    PRE.cle = cle; PRE.url = '';
+    PRE.attente = K.api('/api/client/paiement', { methode: 'POST', corps: { ...corps, prepare: true } }).then(r => {
+      if (PRE.cle !== cle) return null;
+      PRE.url = r.url; PRE.le = Date.now();
+      const lien = document.getElementById('cf-payer'); if (lien) lien.href = r.url;
+      return r.url;
+    }).catch(e => { PRE.erreur = e.message; return null; });
+  }, 350);
 }
 // quand le client revient sur le portail après avoir payé : sa commande apparaît toute seule
 let suiviPaiement = null;
@@ -464,22 +492,16 @@ function suivreLePaiement() {
   };
   document.addEventListener('visibilitychange', suiviPaiement); window.addEventListener('focus', suiviPaiement);
 }
-async function payer(corps, bouton) {
-  if (D.apercu) { K.toast('Aperçu : le paiement s\'ouvre seulement pour le client.'); return; }
-  const avant = bouton.innerHTML, onglet = ongletPaiement();
-  const fini = () => { bouton.disabled = false; bouton.innerHTML = avant; };
-  bouton.disabled = true; bouton.textContent = 'Ouverture du paiement…';
-  // 1. la page Stripe au montant exact (pack, formule et options), créée par le portail
-  if (D.paiement) {
-    try { const r = await K.api('/api/client/paiement', { methode: 'POST', corps: corps }); onglet.aller(r.url); suivreLePaiement(); K.toast('Le paiement s\'est ouvert dans un nouvel onglet'); }
-    catch (e) { onglet.fermer(); K.toast(e.message); }
-    fini(); return;
-  }
-  // 2. sans la clé Stripe : le lien de paiement du pack (sans option)
-  const lien = corps.pack !== 'custom' && !(corps.options || []).length && D.liens && D.liens[corps.pack] && D.liens[corps.pack][corps.formule];
-  if (lien) { onglet.aller(lien + '?client_reference_id=' + encodeURIComponent(D.client.id) + (D.client.email ? '&prefilled_email=' + encodeURIComponent(D.client.email) : '') + '&locale=fr'); suivreLePaiement(); fini(); return; }
-  // 3. sinon : WhatsApp
-  onglet.aller(wa('Bonjour Kreative, je souhaite commander : ' + corps.texte)); fini();
+async function payer(corps, bouton, e) {
+  if (D.apercu) { if (e) e.preventDefault(); K.toast('Aperçu : le paiement s\'ouvre seulement pour le client.'); return; }
+  suivreLePaiement();
+  if (bouton.getAttribute('href') !== '#') return;   // le lien Stripe est prêt : le navigateur l'ouvre dans un nouvel onglet
+  // rare : la page Stripe n'est pas encore prête (clic très rapide) : on l'attend, puis on l'ouvre
+  if (e) e.preventDefault();
+  const w = window.open('', '_blank');
+  const url = await (PRE.attente || Promise.resolve(null));
+  if (url) { if (w) { try { w.opener = null; } catch (x) {} w.location.href = url; } else location.href = url; }
+  else { if (w) w.close(); K.toast(PRE.erreur || 'Le paiement n\'a pas pu s\'ouvrir. Réessayez dans un instant.'); }
 }
 function ecranPaiement() {
   if (!PAIEMENT) return '<a class="retour" href="#/commander">' + i.gauche + 'Retour aux offres</a><div class="card"><div class="vide">' + i.carte + 'Choisissez d\'abord votre pack.</div></div>';

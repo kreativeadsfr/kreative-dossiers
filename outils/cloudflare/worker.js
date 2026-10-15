@@ -27,7 +27,7 @@ const ANCIENS = [
 ];
 const COOKIE = 'k_espace';
 const DUREE_JOURS = 60;
-const PUBLICS = /^\/(ui\/kreative\.css|ui\/(app|review)\.(css|js)|ui\/logo-[a-z0-9-]+\.png|ui\/[a-z0-9-]+\.svg|favicon-\d+\.png)$/;
+const PUBLICS = /^\/(ui\/kreative\.css|ui\/(app|review)\.(css|js)|ui\/logo-[a-z0-9-]+\.png|ui\/[a-z0-9-]+\.svg|favicon-\d+\.png|apple-touch-icon\.png)$/;
 const INTERDITS = /(^|\/)(\.git|\.github|outils)(\/|$)|\.\./;
 const LIMITE_REECRITURE = 3 * 1024 * 1024;   // au-delà, le texte passe tel quel
 const LIMITE_SCRIPT = 64 * 1024;              // scripts inline réécrits jusqu'à 64 ko
@@ -69,7 +69,23 @@ async function traiter(req, env, ctx) {
 
   // ---------- la page de confirmation après un achat sur la landing (publique) ----------
   // Lien de paiement Stripe → « Après le paiement » → rediriger vers https://app.kreativeads.fr/merci
-  if (chemin === '/merci' || chemin === '/merci/') return servir('merci/index.html', env, ctx, { brut: false, origine: url.origin, req });
+  // une page par pack : /merci-starter, /merci-growth, /merci-scale, /merci-custom (et /merci)
+  if (/^\/merci(-(starter|growth|scale|custom))?\/?$/.test(chemin)) return servir('merci/index.html', env, ctx, { brut: false, origine: url.origin, req });
+  // Le paiement depuis la landing, au montant exact, pour TOUS les packs (Custom compris) :
+  //   https://app.kreativeads.fr/payer/custom?creas=45&options=express,ab_visuel
+  //   https://app.kreativeads.fr/payer/growth   (formule=mensuel pour l'abonnement)
+  // Le compte client est créé au paiement (webhook), puis la page /merci-<pack> s'affiche.
+  const pay = chemin.match(/^\/payer\/(starter|growth|scale|custom)\/?$/);
+  if (pay && req.method === 'GET') {
+    if (!env.STRIPE_SECRET) return redirection('https://kreativeads.fr/');
+    const q = url.searchParams, opts = (q.get('options') || '').split(',').map(x => x.trim()).filter(Boolean);
+    const d = devis(pay[1], q.get('formule') === 'mensuel' ? 'mensuel' : 'unique', Number(q.get('creas') || q.get('nb')) || null, opts);
+    const retour = /^https:\/\/([a-z0-9-]+\.)*kreativeads\.fr(\/|$)/.test(req.headers.get('Referer') || '') ? req.headers.get('Referer') : 'https://kreativeads.fr/';
+    try {
+      const sess = await appelStripe(env, 'checkout/sessions', sessionStripe(d, { succes: url.origin + '/merci-' + d.pack, annule: retour }));
+      return new Response(null, { status: 303, headers: { Location: sess.url, 'Cache-Control': 'no-store' } });
+    } catch (e) { return texte('Le paiement n\'a pas pu s\'ouvrir. Réessayez dans un instant, ou écrivez-nous sur WhatsApp : 07 56 92 10 42.', 502); }
+  }
   // ---------- connexion ----------
   if (chemin === '/_connexion') return connexion(req, env, url);
   // déconnexion : retour à la page de connexion de son espace (en anglais pour un designer)
@@ -511,7 +527,7 @@ async function connexion(req, env, url) {
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const html = `<!DOCTYPE html><html lang="${en ? 'en' : 'fr'}"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex">
-<title>Kreative</title><link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+<title>Kreative</title><link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png"><link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png"><link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png"><link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Inter+Tight:wght@500;600&display=swap" rel="stylesheet">
 <style>
@@ -580,11 +596,13 @@ const packDuLien = id => { for (const [pack, f] of Object.entries(LIENS_PAIEMENT
 // Les options (upsells), pour tous les packs. Le prix est TOUJOURS recalculé ici,
 // jamais pris dans ce qu'envoie le navigateur.
 const OPTIONS = [
-  { id: 'express', nom: 'Livraison express', detail: 'Livrée 2 fois plus vite', type: 'fixe', valeur: 390 },
+  // l'express : un prix fixe selon le pack
+  { id: 'express', nom: 'Livraison express', detail: 'Livrée 2 fois plus vite', type: 'fixe', valeur: 390, par_pack: { starter: 90, growth: 190, scale: 290, custom: 390 } },
   { id: 'ab_visuel', nom: 'A/B test visuel', detail: 'Même texte sur 2 visuels différents', type: 'par_crea', valeur: 20 },
   { id: 'ab_texte', nom: 'A/B test texte', detail: 'Même visuel avec 2 textes différents', type: 'par_crea', valeur: 15 }
 ];
 // Le pack Custom se configure dans l'espace client : nombre de créas et options.
+const prixOption = (o, pack) => (o.par_pack && o.par_pack[pack] != null) ? o.par_pack[pack] : o.valeur;
 const CUSTOM = {
   min: 30, max: 100, pas: 5,
   // délai de livraison selon le volume : [jusqu'à N créas, heures]
@@ -613,10 +631,13 @@ function devis(pack, formule, nbDemande, optionsDemandees) {
     if (m) base = base * (1 - CUSTOM.remise_mensuel);
   }
   for (const o of options) if (o.type === 'pct') base += base * o.valeur / 100;
-  for (const o of options) if (o.type === 'fixe') base += o.valeur;
+  for (const o of options) if (o.type === 'fixe') base += prixOption(o, pack);
   const total = Math.round(base);
   const P = PACKS[pack];
+  // ce que voit le client sur la page Stripe : le nom du pack, puis le contenu en points
+  const points = [nb + (pack === 'custom' ? ' créatives' : ' visuels statiques') + (m ? ' par mois' : ''), 'Livrés en 1:1, 4:5 et 9:16'].concat(options.map(o => o.nom));
   return { pack, formule: m ? 'mensuel' : 'unique', nb, options: options.map(o => o.id), unitaire, total,
+    nom: 'Pack ' + P.nom, description: points.join(' • '),
     libelle: 'Pack ' + P.nom + (m ? ' · abonnement mensuel' : ' · paiement en une fois') + ' · ' + nb + ' créatives' + (m ? ' par mois' : '') +
       (options.length ? ' · ' + options.map(o => o.nom).join(', ') : '') };
 }
@@ -651,7 +672,7 @@ async function base(env) {
       env.DB.prepare(`CREATE INDEX IF NOT EXISTS i_fac_client ON factures(client_id)`)
     ]);
     // colonnes ajoutées après coup : sans effet si elles existent déjà
-    for (const col of ['avis_le INTEGER', 'avis_ignore_le INTEGER', 'valide_le INTEGER', 'stripe_session TEXT', 'stripe_abo TEXT', 'stripe_facture TEXT', 'options TEXT']) {
+    for (const col of ['avis_le INTEGER', 'avis_ignore_le INTEGER', 'valide_le INTEGER', 'stripe_session TEXT', 'stripe_abo TEXT', 'stripe_facture TEXT', 'options TEXT', 'brief_json TEXT']) {
       try { await env.DB.prepare('ALTER TABLE commandes ADD COLUMN ' + col).run(); } catch (e) {}
     }
     for (const col of ['stripe_client TEXT', 'photo TEXT', 'photo_le INTEGER']) {
@@ -940,30 +961,13 @@ async function apiClient(req, env, ctx, url, chemin, methode, cl, apercu) {
     if (!env.STRIPE_SECRET) return json({ erreur: 'Le paiement en ligne arrive bientôt. Écrivez-nous sur WhatsApp pour commander.' }, 503);
     const b = await corpsJson(req);
     const d = devis(String(b.pack || ''), b.formule, b.nb_creas, Array.isArray(b.options) ? b.options.map(String) : []);
-    const meta = { kreative_client: cl.id, pack: d.pack, formule: d.formule, nb_creas: String(d.nb), options: d.options.join(','), total: String(d.total) };
-    const m = d.formule === 'mensuel';
-    const p = {
-      mode: m ? 'subscription' : 'payment', locale: 'fr', client_reference_id: cl.id, metadata: meta,
-      success_url: url.origin + '/client/#/merci', cancel_url: url.origin + '/client/#/commander',
-      allow_promotion_codes: 'true', billing_address_collection: 'required', tax_id_collection: { enabled: 'true' },
-      consent_collection: { terms_of_service: 'required' },   // comme les liens de paiement : les CGV à accepter
-      line_items: [{ quantity: 1, price_data: { currency: 'eur', unit_amount: String(Math.round(d.total * 100)),
-        product_data: { name: d.libelle, description: 'Kreative · créatives publicitaires Meta, livrées en 1:1, 4:5 et 9:16' },
-        recurring: m ? { interval: 'month' } : undefined } }]
-    };
+    const p = sessionStripe(d, { client: cl, succes: url.origin + '/client/#/merci', annule: url.origin + '/client/#/commander' });
     // paiement dans la page du portail (Stripe intégré) quand la clé publique est là
     const integre = false;   // la page de paiement Stripe s'ouvre (choix de Kreative)
     if (integre) { p.ui_mode = 'embedded'; p.return_url = url.origin + '/client/?paiement=ok'; delete p.success_url; delete p.cancel_url; }
-    if (cl.stripe_client) p.customer = cl.stripe_client; else p.customer_email = cl.email || undefined;
-    if (m) p.subscription_data = { metadata: meta };
-    else {
-      p.invoice_creation = { enabled: 'true', invoice_data: { metadata: meta } };
-      p.payment_intent_data = { metadata: meta };
-      if (!cl.stripe_client) p.customer_creation = 'always';
-    }
     try {
       const s = await appelStripe(env, 'checkout/sessions', p);
-      await noter(db, cl.id, null, 'paiement', 'Paiement ouvert · ' + d.libelle + ' · ' + d.total + ' €');
+      if (!b.prepare) await noter(db, cl.id, null, 'paiement', 'Paiement ouvert · ' + d.libelle + ' · ' + d.total + ' €');
       return json({ url: s.url || null, client_secret: integre ? s.client_secret : null, total: d.total });
     } catch (e) { return json({ erreur: 'Stripe : ' + e.message }, 502); }
   }
@@ -1802,6 +1806,27 @@ async function servirFichier(req, env, ctx, url, id) {
 // ---------- n8n : relier le brief Fillout à sa commande ----------
 // Appelé par les workflows des briefs (en-tête X-Kreative-Cle = CLE) avec le
 // dossier créé et ce que le portail a mis dans le lien du formulaire.
+// les réponses Fillout, gardées propres : la question, puis un texte ou des fichiers
+function briefPropre(questions) {
+  if (!Array.isArray(questions)) return [];
+  const sortie = []; let taille = 0;
+  for (const q of questions.slice(0, 120)) {
+    if (!q || typeof q !== 'object') continue;
+    const nom = propre(q.name || q.question || q.label, 300), v = q.value !== undefined ? q.value : q.reponse;
+    if (!nom || v === null || v === undefined || v === '' || (Array.isArray(v) && !v.length)) continue;
+    let r;
+    if (Array.isArray(v) && v.every(x => x && typeof x === 'object' && x.url)) r = { fichiers: v.slice(0, 20).map(x => ({ url: String(x.url).slice(0, 600), nom: propre(x.filename || x.name || 'fichier', 120) })).filter(x => /^https:\/\//.test(x.url)) };
+    else if (Array.isArray(v)) r = { texte: propre(v.map(x => x && typeof x === 'object' ? (x.label || x.value || JSON.stringify(x)) : x).join(', '), 4000) };
+    else if (typeof v === 'object') r = { texte: propre(Object.values(v).filter(x => x !== null && x !== '').join(', '), 4000) };
+    else if (typeof v === 'boolean') r = { texte: v ? 'Oui' : 'Non' };
+    else r = { texte: propre(String(v), 4000) };
+    if (!r.texte && !(r.fichiers && r.fichiers.length)) continue;
+    taille += nom.length + JSON.stringify(r).length;
+    if (taille > 90000) break;
+    sortie.push({ q: nom, ...r });
+  }
+  return sortie;
+}
 async function apiN8n(req, env, ctx, url, chemin, methode) {
   if (!env.CLE || !egal(req.headers.get('X-Kreative-Cle') || '', env.CLE)) return json({ erreur: 'Accès refusé' }, 403);
   const db = await base(env);
@@ -1820,6 +1845,9 @@ async function apiN8n(req, env, ctx, url, chemin, methode) {
     if (!k) return json({ ok: false, message: 'Aucune commande en attente de brief pour ce client : à relier à la main dans l\'admin.' });
     if (k.dossier && k.dossier !== dossier) return json({ ok: false, message: 'La commande #' + k.ref + ' est déjà reliée au dossier ' + k.dossier + '.' });
     await db.prepare("UPDATE commandes SET dossier = ?, brief_le = COALESCE(brief_le, ?), statut = CASE WHEN statut = 'brief' THEN 'production' ELSE statut END WHERE id = ?").bind(dossier, maintenant(), k.id).run();
+    // le brief lui-même (questions et réponses), pour que le client le relise dans son espace
+    const rep = briefPropre(b.questions);
+    if (rep.length) await db.prepare('UPDATE commandes SET brief_json = ? WHERE id = ?').bind(JSON.stringify(rep), k.id).run();
     await noter(db, k.client_id, k.id, 'brief', 'Brief reçu, production lancée');
     return json({ ok: true, commande: k.ref });
   }
@@ -1877,11 +1905,45 @@ async function paiementRecu(env, ctx, url, s) {
     options: meta.options ? String(meta.options).split(',').filter(Boolean) : [], stripe_session: s.id,
     stripe_abo: typeof s.subscription === 'string' ? s.subscription : null, stripe_facture: typeof s.invoice === 'string' ? s.invoice : null,
     texte: 'Paiement reçu, commande confirmée' });
-  if (typeof s.invoice === 'string') await db.prepare('UPDATE factures SET commande_id = COALESCE(commande_id, ?), client_id = COALESCE(client_id, ?) WHERE stripe_id = ?').bind(r.id, cl.id, s.invoice).run();
+  if (typeof s.invoice === 'string') {
+    await db.prepare('UPDATE factures SET commande_id = COALESCE(commande_id, ?), client_id = COALESCE(client_id, ?) WHERE stripe_id = ?').bind(r.id, cl.id, s.invoice).run();
+    // la facture est parfois arrivée avant le paiement : son numéro devient tout de suite celui de la commande
+    const f = await db.prepare('SELECT numero FROM factures WHERE stripe_id = ?').bind(s.invoice).first();
+    if (f && f.numero) await numeroDeCommande(db, r.id, s.invoice, f.numero);
+  }
   if (nouveau && cl.jeton) {
     const envoi = envoyerEmail(env, emailAcces(url, { ...cl, email }, lienAcces(url, cl.jeton)));
     if (ctx && ctx.waitUntil) ctx.waitUntil(envoi); else await envoi;
   }
+}
+// une session de paiement Stripe au montant exact (pack, formule, options) : depuis le portail
+// (client connu) ou depuis la landing (le compte est créé au paiement)
+function sessionStripe(d, o) {
+  const m = d.formule === 'mensuel', cl = o.client;
+  const meta = { pack: d.pack, formule: d.formule, nb_creas: String(d.nb), options: d.options.join(','), total: String(d.total) };
+  if (cl) meta.kreative_client = cl.id; else meta.source = 'landing';
+  const p = {
+    mode: m ? 'subscription' : 'payment', locale: 'fr', metadata: meta,
+    success_url: o.succes, cancel_url: o.annule,
+    allow_promotion_codes: 'true', billing_address_collection: 'required', tax_id_collection: { enabled: 'true' },
+    consent_collection: { terms_of_service: 'required' },   // comme les liens de paiement : les CGV à accepter
+    line_items: [{ quantity: 1, price_data: { currency: 'eur', unit_amount: String(Math.round(d.total * 100)),
+      product_data: { name: d.nom, description: d.description }, recurring: m ? { interval: 'month' } : undefined } }]
+  };
+  if (cl) { p.client_reference_id = cl.id; if (cl.stripe_client) p.customer = cl.stripe_client; else if (cl.email) p.customer_email = cl.email; }
+  if (m) p.subscription_data = { metadata: meta };
+  else {
+    p.invoice_creation = { enabled: 'true', invoice_data: { metadata: meta } };
+    p.payment_intent_data = { metadata: meta };
+    if (!cl || !cl.stripe_client) p.customer_creation = 'always';
+  }
+  return p;
+}
+async function numeroDeCommande(db, commandeId, factureId, numero) {
+  try {
+    await db.prepare('UPDATE commandes SET ref = ?, stripe_facture = COALESCE(stripe_facture, ?) WHERE id = ? AND (stripe_facture IS NULL OR stripe_facture = ?) AND ref != ?')
+      .bind(String(numero), factureId, commandeId, factureId, String(numero)).run();
+  } catch (e) {}
 }
 function formulaireStripe(o, prefixe, sortie) {
   sortie = sortie || [];
@@ -1947,6 +2009,9 @@ async function enregistrerFacture(env, inv) {
       } catch (e) { k = await db.prepare('SELECT id, client_id FROM commandes WHERE stripe_facture = ?').bind(inv.id).first(); }
     } else if (derniere && !derniere.stripe_facture) k = { id: derniere.id, client_id: derniere.client_id };
   }
+  // le numéro de la facture Stripe devient LE numéro de la commande : le même partout (portail, factures, emails).
+  // Stripe numérote dans l'ordre pour tout le compte (IEVKJLPP-0023, -0024…).
+  if (k && inv.number && inv.status !== 'void') await numeroDeCommande(db, k.id, inv.id, inv.number);
   const statut = { paid: 'payee', open: 'ouverte', void: 'annulee', uncollectible: 'impayee' }[inv.status] || inv.status;
   const payee = inv.status_transitions && inv.status_transitions.paid_at ? inv.status_transitions.paid_at * 1000 : null;
   const avant = await db.prepare('SELECT id, statut FROM factures WHERE stripe_id = ?').bind(inv.id).first();

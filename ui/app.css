@@ -678,6 +678,11 @@ a.lien-kpi:hover{border-color:var(--line2)}
 .cal-fl:disabled{opacity:.3;cursor:default;background:none}
 .cal-fl svg{width:17px;height:17px}
 .cal-deux{display:flex;gap:28px}
+.cal-deux.va-d{animation:cal-d .26s cubic-bezier(.2,.8,.2,1)}
+.cal-deux.va-g{animation:cal-g .26s cubic-bezier(.2,.8,.2,1)}
+@keyframes cal-d{from{opacity:.2;transform:translateX(18px)}to{opacity:1;transform:none}}
+@keyframes cal-g{from{opacity:.2;transform:translateX(-18px)}to{opacity:1;transform:none}}
+.cal-corps{overflow:hidden}
 .cal-mois{width:266px}
 .cal-titre{text-align:center;font-weight:600;font-size:14.5px;height:24px;line-height:24px;margin-bottom:12px;text-transform:capitalize;letter-spacing:-.01em}
 .cal-jours,.cal-grille{display:grid;grid-template-columns:repeat(7,38px)}
@@ -756,3 +761,16 @@ a.lien-kpi:hover{border-color:var(--line2)}
 .confiance svg{width:15px;height:15px;color:var(--green);stroke-width:2.2}
 .confiance.petit{margin-top:12px;font-size:12.5px}
 .recap .unitaire{margin-top:8px}
+
+/* ---------- Mon brief : les réponses du client, à relire ---------- */
+.brief-recu{max-width:860px}
+.brief-qr{margin-top:22px;border-top:1px solid var(--line)}
+.brief-qr .qr{padding:16px 0;border-bottom:1px solid var(--line)}
+.brief-qr .qr:last-child{border-bottom:0;padding-bottom:0}
+.brief-qr .q{font-size:13px;font-weight:600;color:var(--tx3);line-height:1.45}
+.brief-qr .r{font-size:15px;line-height:1.6;color:var(--ink);margin-top:5px;white-space:pre-wrap;overflow-wrap:anywhere}
+.brief-qr .fics{display:flex;gap:10px;flex-wrap:wrap;white-space:normal}
+.brief-qr .fics a{display:flex;flex-direction:column;gap:6px;width:120px;text-decoration:none;font-size:12px;color:var(--tx2)}
+.brief-qr .fics img,.brief-qr .fics svg{width:120px;height:120px;object-fit:cover;border-radius:10px;border:1px solid var(--line);background:var(--soft)}
+.brief-qr .fics svg{padding:40px;color:var(--tx3)}
+.brief-qr .fics span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}

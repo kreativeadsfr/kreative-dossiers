@@ -169,16 +169,81 @@ function libellePeriode() {
   const [a, b] = bornes(), f = t => K.date(t, { year: undefined });
   return PERIODE.mode === 'perso' ? 'Du ' + f(a) + ' au ' + f(b) : (PERIODE.mode === '7' ? '7 derniers jours' : '30 derniers jours') + ' · du ' + f(a) + ' au ' + f(b);
 }
+// le choix de la période : 7 jours, 30 jours, ou un calendrier (deux mois, raccourcis, plage)
+const CAL = { ouvert: false, mois: null, debut: null, fin: null, survol: null };
+const isoJour = t => { const d = new Date(t); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+const jourDe = iso => { const [a, m, j] = iso.split('-').map(Number); return new Date(a, m - 1, j).getTime(); };
+const MOIS_CAL = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
 function choixPeriode() {
-  const iso = t => new Date(t - new Date(t).getTimezoneOffset() * 6e4).toISOString().slice(0, 10), [a, b] = bornes();
-  return '<div class="onglets">' + [['7', '7 jours'], ['30', '30 jours'], ['perso', 'Personnalisé']].map(([k, t]) => '<button class="' + (PERIODE.mode === k ? 'on' : '') + '" data-periode="' + k + '">' + t + '</button>').join('') + '</div>' +
-    (PERIODE.mode === 'perso' ? '<div class="dates"><input type="date" class="in" id="p-du" value="' + iso(a) + '"><span>au</span><input type="date" class="in" id="p-au" value="' + iso(b) + '"></div>' : '');
+  const [a, b] = bornes(), f = t => K.date(t, { year: undefined, month: 'short' });
+  return '<div class="periode"><div class="onglets">' + [['7', '7 jours'], ['30', '30 jours']].map(([k, t]) => '<button class="' + (PERIODE.mode === k ? 'on' : '') + '" data-periode="' + k + '">' + t + '</button>').join('') +
+    '<button class="' + (PERIODE.mode === 'perso' ? 'on' : '') + '" data-cal-ouvrir>' + i.calendrier + (PERIODE.mode === 'perso' ? esc(f(a) + ' → ' + f(b)) : 'Personnalisé') + '</button></div>' +
+    (CAL.ouvert ? calendrier() : '') + '</div>';
+}
+function grilleMois(debutMois) {
+  const d = new Date(debutMois), an = d.getFullYear(), m = d.getMonth(), premier = (new Date(an, m, 1).getDay() + 6) % 7, nb = new Date(an, m + 1, 0).getDate();
+  const auj = isoJour(Date.now()), lo = CAL.debut, hi = CAL.fin || CAL.survol;
+  const [x, y] = lo && hi ? (lo <= hi ? [lo, hi] : [hi, lo]) : [lo, lo];
+  let h = '<div class="cal-mois"><div class="cal-titre">' + MOIS_CAL[m] + ' ' + an + '</div><div class="cal-jours">' + ['lu', 'ma', 'me', 'je', 've', 'sa', 'di'].map(j => '<span>' + j + '</span>').join('') + '</div><div class="cal-grille">';
+  for (let n = 0; n < premier; n++) h += '<span></span>';
+  for (let j = 1; j <= nb; j++) {
+    const iso = an + '-' + String(m + 1).padStart(2, '0') + '-' + String(j).padStart(2, '0'), futur = iso > auj;
+    const cls = [iso === auj ? 'auj' : '', x && iso === x ? 'debut' : '', y && iso === y ? 'fin' : '', x && y && iso > x && iso < y ? 'dans' : '', futur ? 'off' : ''].filter(Boolean).join(' ');
+    h += '<button type="button" class="' + cls + '" data-jour="' + iso + '"' + (futur ? ' disabled' : '') + '>' + j + '</button>';
+  }
+  return h + '</div></div>';
+}
+function calendrier() {
+  const m = new Date(CAL.mois), prec = new Date(m.getFullYear(), m.getMonth() - 1, 1).getTime();
+  const raccourcis = [['Aujourd\'hui', 0], ['7 derniers jours', 7], ['30 derniers jours', 30], ['90 derniers jours', 90], ['Ce mois-ci', 'mois'], ['Mois dernier', 'moisder'], ['Cette année', 'an'], ['Depuis le début', 'tout']];
+  const lo = CAL.debut, hi = CAL.fin, f = iso => K.date(jourDe(iso), { year: undefined, month: 'short' });
+  const now = new Date(), dernier = CAL.mois >= new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+  return '<div class="cal" role="dialog" aria-label="Choisir une période"><div class="cal-rac"><div class="cal-rac-t">Raccourcis</div>' + raccourcis.map(([t, k]) => '<button type="button" data-rac="' + k + '">' + t + '</button>').join('') + '</div>' +
+    '<div class="cal-corps"><div class="cal-nav"><button type="button" class="cal-fl" data-cal-mois="-1" aria-label="Mois précédent">' + i.chevG + '</button><button type="button" class="cal-fl" data-cal-mois="1" aria-label="Mois suivant"' + (dernier ? ' disabled' : '') + '>' + i.chevD + '</button></div>' +
+    '<div class="cal-deux">' + grilleMois(prec) + grilleMois(CAL.mois) + '</div>' +
+    '<div class="cal-pied"><span class="cal-choix">' + (lo ? esc(f(lo)) + ' → ' + (hi ? esc(f(hi)) : '<i>choisissez la fin</i>') : 'Choisissez le premier jour') + '</span>' +
+    '<button type="button" class="btn btn-g btn-sm" data-cal-annuler>Annuler</button><button type="button" class="btn btn-d btn-sm" data-cal-ok' + (lo && hi ? '' : ' disabled') + '>Appliquer</button></div></div></div>';
 }
 function brancherPeriode() {
-  document.querySelectorAll('[data-periode]').forEach(b => b.onclick = () => { PERIODE.mode = b.dataset.periode; K.rendre(); });
-  const du = document.getElementById('p-du'), au = document.getElementById('p-au');
-  const maj = () => { PERIODE.du = du.value; PERIODE.au = au.value; K.rendre(); };
-  if (du) { du.onchange = maj; au.onchange = maj; }
+  document.querySelectorAll('[data-periode]').forEach(b => b.onclick = () => { PERIODE.mode = b.dataset.periode; CAL.ouvert = false; K.rendre(); });
+  const ouvrir = document.querySelector('[data-cal-ouvrir]');
+  if (ouvrir) ouvrir.onclick = e => {
+    e.stopPropagation();
+    if (CAL.ouvert) { CAL.ouvert = false; K.rendre(); return; }
+    const [a, b] = bornes(), m = new Date(b);
+    Object.assign(CAL, { ouvert: true, mois: new Date(m.getFullYear(), m.getMonth(), 1).getTime(), debut: isoJour(a), fin: isoJour(b), survol: null });
+    K.rendre();
+  };
+  const cal = document.querySelector('.cal');
+  if (cal) {
+    cal.onclick = e => e.stopPropagation();
+    cal.querySelectorAll('[data-cal-mois]').forEach(b => b.onclick = () => { const m = new Date(CAL.mois); CAL.mois = new Date(m.getFullYear(), m.getMonth() + Number(b.dataset.calMois), 1).getTime(); K.rendre(); });
+    cal.querySelectorAll('[data-jour]').forEach(b => {
+      b.onclick = () => { const j = b.dataset.jour; if (!CAL.debut || CAL.fin) { CAL.debut = j; CAL.fin = null; } else { CAL.fin = j; if (CAL.fin < CAL.debut) [CAL.debut, CAL.fin] = [CAL.fin, CAL.debut]; } CAL.survol = null; K.rendre(); };
+      // aperçu de la plage au survol : on change juste les classes, sans redessiner
+      b.onmouseenter = () => {
+        if (!CAL.debut || CAL.fin) return;
+        const s = b.dataset.jour, [x, y] = s < CAL.debut ? [s, CAL.debut] : [CAL.debut, s];
+        cal.querySelectorAll('[data-jour]').forEach(o => { const j = o.dataset.jour; o.classList.toggle('debut', j === x); o.classList.toggle('fin', j === y); o.classList.toggle('dans', j > x && j < y); });
+      };
+    });
+    cal.querySelectorAll('[data-rac]').forEach(b => b.onclick = () => {
+      const k = b.dataset.rac, auj = new Date(); auj.setHours(0, 0, 0, 0); let a = auj.getTime(), z = auj.getTime();
+      if (/^\d+$/.test(k)) a = z - Math.max(0, Number(k) - 1) * 864e5;
+      else if (k === 'mois') a = new Date(auj.getFullYear(), auj.getMonth(), 1).getTime();
+      else if (k === 'moisder') { a = new Date(auj.getFullYear(), auj.getMonth() - 1, 1).getTime(); z = new Date(auj.getFullYear(), auj.getMonth(), 0).getTime(); }
+      else if (k === 'an') a = new Date(auj.getFullYear(), 0, 1).getTime();
+      else if (k === 'tout') { const F = ((S.factures && S.factures.factures) || []).map(f => f.payee_le || f.emise_le).concat((S.commandes || []).map(c => c.cree_le)).filter(Boolean); a = F.length ? Math.min(...F) : a; }
+      Object.assign(PERIODE, { mode: 'perso', du: isoJour(a), au: isoJour(z) }); CAL.ouvert = false; K.rendre();
+    });
+    cal.querySelector('[data-cal-annuler]').onclick = () => { CAL.ouvert = false; K.rendre(); };
+    cal.querySelector('[data-cal-ok]').onclick = () => { if (!CAL.debut || !CAL.fin) return; Object.assign(PERIODE, { mode: 'perso', du: CAL.debut, au: CAL.fin }); CAL.ouvert = false; K.rendre(); };
+    if (!brancherPeriode.fermeture) {
+      brancherPeriode.fermeture = true;
+      document.addEventListener('click', () => { if (CAL.ouvert) { CAL.ouvert = false; K.rendre(); } });
+      document.addEventListener('keydown', e => { if (e.key === 'Escape' && CAL.ouvert) { CAL.ouvert = false; K.rendre(); } });
+    }
+  }
   // l'infobulle du graphique
   const g = document.getElementById('graph-ventes'), bulle = document.getElementById('graph-bulle');
   if (g && bulle) {

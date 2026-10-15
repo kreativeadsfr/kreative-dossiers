@@ -8,6 +8,7 @@
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png"><link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png"><link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png"><link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="stylesheet" href="/ui/app.css">
 <script src="/ui/app.js"></script>
+<script src="/ui/panier.js"></script>
 <script src="/ui/review.js"></script>
 </head>
 <body>
@@ -328,14 +329,7 @@ function ecranFactures() {
 }
 
 // ---------- COMMANDER ----------
-const AVANTAGES = {
-  starter: [['6 visuels Ads', 1], ['Tous les formats Meta', 1], ['2 cycles de révisions', 1], ['Livraison en 48 h', 1], ['Contact WhatsApp inclus', 1], ['Angles marketing variés', 0], ['Support prioritaire', 0], ['Stratégie personnalisée', 0]],
-  growth: [['12 visuels Ads', 1], ['Tous les formats Meta', 1], ['Révisions illimitées', 1], ['Livraison en 48 h', 1], ['Contact WhatsApp inclus', 1], ['Angles marketing variés', 1], ['Support prioritaire', 0], ['Stratégie personnalisée', 0]],
-  scale: [['24 visuels Ads', 1], ['Tous les formats Meta', 1], ['Révisions illimitées', 1], ['Livraison en 72 h', 1], ['Contact WhatsApp inclus', 1], ['Angles marketing variés', 1], ['Support prioritaire', 1], ['Stratégie personnalisée', 1]]
-};
-const ENGAGEMENT = 'Les tarifs mensuels supposent un engagement de 3 mois, puis sans engagement. Résiliable à tout moment ensuite depuis votre espace.';
-// le prix d'une option : l'express a un prix fixe par pack
-const prixOpt = (o, pack) => (o.par_pack && o.par_pack[pack] != null) ? o.par_pack[pack] : o.valeur;
+const AVANTAGES = K.panier.AVANTAGES, ENGAGEMENT = K.panier.ENGAGEMENT;
 function ecranCommander() {
   const m = formule === 'mensuel';
   let h = apercu() + '<div class="ph" style="justify-content:center;text-align:center;margin-bottom:34px"><div><h1>Vos prochaines créatives</h1>' +
@@ -360,92 +354,20 @@ function ecranCommander() {
   return h;
 }
 
-// ---------- LE PANIER : le pack choisi, sa formule, ses options ----------
-// même calcul que le serveur (devis) ; le serveur recalcule de toute façon le prix
-const CFG = { pack: 'growth', nb: 30, formule: 'mensuel', options: [] };
-function devis(o) {
-  o = o || CFG;
-  const m = o.formule === 'mensuel', r = D.custom.remise_mensuel, opts = D.options.filter(x => o.options.includes(x.id)), lignes = [];
-  let base, nb, u;
-  if (o.pack !== 'custom') {
-    const P = D.packs[o.pack]; nb = P.creas; base = m ? P.mensuel : P.unique; u = Math.round(base / nb);
-    lignes.push(['Pack ' + P.nom + ' · ' + nb + ' créatives', base]);
-    opts.filter(x => x.type === 'par_crea').forEach(x => { const v = nb * x.valeur; lignes.push([x.nom + ' · ' + nb + ' × ' + x.valeur + ' €', v]); base += v; });
-  } else {
-    nb = o.nb; u = D.custom.paliers.filter(x => nb >= x[0]).pop()[1];
-    base = nb * u; lignes.push([nb + ' créatives × ' + u + ' €', base]);
-    opts.filter(x => x.type === 'par_crea').forEach(x => { const v = nb * x.valeur; lignes.push([x.nom + ' · ' + nb + ' × ' + x.valeur + ' €', v]); base += v; });
-    if (m) { lignes.push(['Remise mensuelle −' + Math.round(r * 100) + ' %', -base * r]); base *= 1 - r; }
-  }
-  opts.filter(x => x.type === 'pct').forEach(x => { const v = base * x.valeur / 100; lignes.push([x.nom + ' (+' + x.valeur + ' %)', v]); base += v; });
-  opts.filter(x => x.type === 'fixe').forEach(x => { const v = prixOpt(x, o.pack); lignes.push([x.nom, v]); base += v; });
-  return { lignes, total: Math.round(base), nb, unitaire: u };
-}
-// le délai de livraison après le brief : celui du pack, ou selon le volume pour le Custom ; l'express le divise par deux
-function delai(o) {
-  o = o || CFG;
-  let h = o.pack === 'custom' ? (D.custom.delais.find(x => o.nb <= x[0]) || D.custom.delais[D.custom.delais.length - 1])[1] : D.packs[o.pack].delai;
-  if (o.options.includes('express')) h = Math.round(h / 2);
-  return h <= 72 ? h + ' h' : Math.round(h / 24) + ' jours';
-}
+// ---------- LE PANIER : le module commun (ui/panier.js), le même que la page publique ----------
+const CFG = K.panier.cfg;
 function ecranPanier(pack) {
+  K.panier.d = { packs: D.packs, custom: D.custom, options: D.options };
   if (!D.packs[pack] || pack === 'paiement') pack = 'growth';
-  if (CFG.pack !== pack) { CFG.pack = pack; CFG.options = []; }
-  CFG.formule = formule;   // la formule choisie sur la page des offres
-  const custom = pack === 'custom', P = D.packs[pack], C = D.custom, m = CFG.formule === 'mensuel', d = devis();
-  let h = apercu() + '<a class="retour" href="#/commander">' + i.gauche + 'Retour aux offres</a>' +
-    '<div class="ph"><div><h1>' + (custom ? 'Votre pack Custom' : 'Pack ' + esc(P.nom)) + '</h1><p>' +
-    (custom ? 'Choisissez le volume et les options que vous souhaitez.' : 'Choisissez la formule et les options que vous souhaitez.') + '</p></div></div>';
-  h += '<div class="config"><div class="grid" style="gap:16px">';
-  if (custom) h += '<div class="card bloc"><h3>Nombre de créatives</h3><p class="aide">Chaque créative est livrée en 1:1, 4:5 et 9:16.</p>' +
-    '<div class="nb-creas"><b id="cf-nb">' + CFG.nb + '</b><span>créatives' + (m ? ' par mois' : '') + '</span></div>' +
-    '<input class="curseur" type="range" id="cf-range" min="' + C.min + '" max="' + C.max + '" step="' + C.pas + '" value="' + CFG.nb + '">' +
-    '<div class="reperes"><span>' + C.min + '</span><span>' + C.max + '</span></div></div>';
-  else h += '<div class="card bloc"><h3>Inclus dans le pack ' + esc(P.nom) + '</h3><ul class="inclus">' + AVANTAGES[pack].filter(a => a[1]).map(a => '<li>' + i.coche + '<span>' + esc(a[0]) + '</span></li>').join('') + '</ul></div>';
-  h += '<div class="card bloc"><h3>Formule</h3><div class="onglets" style="margin-top:14px"><button class="' + (m ? 'on' : '') + '" data-cf-formule="mensuel">Mensuel · ' + Math.round(C.remise_mensuel * 100) + ' % de moins</button>' +
-    '<button class="' + (!m ? 'on' : '') + '" data-cf-formule="unique">Commande unique</button></div>' +
-    '<p class="aide" style="margin-top:12px">' + (m ? 'Prélevé chaque mois. ' + ENGAGEMENT : 'Payé en une fois, sans engagement.') + '</p></div>';
-  h += '<div class="card bloc"><h3>Options</h3><p class="aide">Pour aller plus loin sur ce pack.</p><div class="opts" id="cf-opts">' + listeOptions() + '</div></div>';
-  h += '</div><div class="card recap" id="cf-recap">' + recap() + '</div></div>';
-  return h;
-}
-// le prix d'une option : par créa (ça se lit mieux), ou en % pour l'express
-function listeOptions() {
-  return D.options.map(o => '<div class="opt' + (CFG.options.includes(o.id) ? ' on' : '') + '" data-cf-opt="' + esc(o.id) + '" role="checkbox" aria-checked="' + CFG.options.includes(o.id) + '" tabindex="0"><span class="case">' + i.coche + '</span>' +
-    '<div><b>' + esc(o.nom) + '</b><small>' + esc(o.detail) + '</small></div><span class="px">' + (o.type === 'pct' ? '+' + o.valeur + ' %' : o.type === 'fixe' ? '+' + K.euros(prixOpt(o, CFG.pack)) : '+' + o.valeur + ' €<small>par créa</small>') + '</span></div>').join('');
-}
-function recap() {
-  const d = devis(), m = CFG.formule === 'mensuel', P = D.packs[CFG.pack];
-  return '<div class="lab">Récapitulatif</div><h3 style="margin-top:8px">Pack ' + esc(P.nom) + ' · ' + d.nb + ' créatives</h3>' +
-    '<p class="muted" style="font-size:13px;margin-top:3px">' + (m ? 'Abonnement mensuel' : 'Commande unique') + '</p>' +
-    '<div style="margin-top:14px">' + d.lignes.map(l => '<div class="ligne"><span>' + esc(l[0]) + '</span><b>' + (l[1] < 0 ? '−' : '') + K.euros(Math.abs(Math.round(l[1]))) + '</b></div>').join('') + '</div>' +
-    '<div class="total"><span class="muted">Total' + (m ? ' par mois' : '') + '</span><b>' + K.euros(d.total) + '</b></div>' +
-    '<div class="unitaire">' + K.euros(Math.round(d.total / d.nb)) + ' <span>la créative</span></div>' +
-    '<div class="delai">' + i.horloge + 'Livrée en ' + esc(delai()) + ' après votre brief</div>' +
-    '<a class="btn btn-d btn-bloc btn-lg" id="cf-payer" href="#" target="_blank" rel="noopener">Commander</a>' +
-    '<p class="confiance petit"><span>' + i.cadenas + 'Paiement sécurisé par Stripe</span></p>';
+  K.panier.choisir(pack, formule);   // la formule choisie sur la page des offres
+  return apercu() + K.panier.html({ retour: '<a class="retour" href="#/commander">' + i.gauche + 'Retour aux offres</a>' });
 }
 function brancherPanier() {
-  const maj = () => {
-    document.getElementById('cf-recap').innerHTML = recap(); document.getElementById('cf-opts').innerHTML = listeOptions();
-    const n = document.getElementById('cf-nb'); if (n) n.textContent = CFG.nb;
-    brancherOpts(); brancherPayer();
-  };
-  const r = document.getElementById('cf-range');
-  if (r) r.oninput = () => { CFG.nb = Number(r.value); maj(); };
-  document.querySelectorAll('[data-cf-formule]').forEach(b => b.onclick = () => { formule = b.dataset.cfFormule; K.rendre(); });
-  const brancherOpts = () => document.querySelectorAll('[data-cf-opt]').forEach(o => {
-    const basculer = () => { const id = o.dataset.cfOpt; CFG.options = CFG.options.includes(id) ? CFG.options.filter(x => x !== id) : CFG.options.concat(id); maj(); };
-    o.onclick = basculer; o.onkeydown = e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); basculer(); } };
+  K.panier.brancher({
+    surFormule: f => { formule = f; K.rendre(); },
+    surChange: (corps, lien) => preparerPaiement(corps, lien),
+    surClic: (corps, lien, e) => payer(corps, lien, e)
   });
-  const brancherPayer = () => {
-    const b = document.getElementById('cf-payer'), P = D.packs[CFG.pack];
-    const corps = { pack: CFG.pack, formule: CFG.formule, nb_creas: CFG.nb, options: CFG.options,
-      texte: 'Pack ' + P.nom + ', ' + devis().nb + ' créatives (' + (CFG.formule === 'mensuel' ? 'mensuel' : 'commande unique') + ')' + (CFG.options.length ? ' + ' + D.options.filter(o => CFG.options.includes(o.id)).map(o => o.nom).join(', ') : '') };
-    preparerPaiement(corps, b);
-    b.onclick = e => payer(corps, b, e);
-  };
-  brancherOpts(); brancherPayer();
 }
 
 // ---------- LE PAIEMENT : dans le portail (Stripe intégré), sinon la page Stripe dans le même onglet ----------

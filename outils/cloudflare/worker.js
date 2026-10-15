@@ -27,7 +27,7 @@ const ANCIENS = [
 ];
 const COOKIE = 'k_espace';
 const DUREE_JOURS = 60;
-const PUBLICS = /^\/(ui\/kreative\.css|ui\/(app|review)\.(css|js)|ui\/logo-[a-z0-9-]+\.png|ui\/[a-z0-9-]+\.svg|favicon-\d+\.png|apple-touch-icon\.png)$/;
+const PUBLICS = /^\/(ui\/kreative\.css|ui\/(app|review|panier)\.(css|js)|ui\/logo-[a-z0-9-]+\.png|ui\/[a-z0-9-]+\.svg|favicon-\d+\.png|apple-touch-icon\.png)$/;
 const INTERDITS = /(^|\/)(\.git|\.github|outils)(\/|$)|\.\./;
 const LIMITE_REECRITURE = 3 * 1024 * 1024;   // au-delà, le texte passe tel quel
 const LIMITE_SCRIPT = 64 * 1024;              // scripts inline réécrits jusqu'à 64 ko
@@ -75,6 +75,11 @@ async function traiter(req, env, ctx) {
   //   https://app.kreativeads.fr/payer/custom?creas=45&options=express,ab_visuel
   //   https://app.kreativeads.fr/payer/growth   (formule=mensuel pour l'abonnement)
   // Le compte client est créé au paiement (webhook), puis la page /merci-<pack> s'affiche.
+  // le panier public de la landing (« Voir les options », « Configurer mon pack ») et ses données
+  if (/^\/commander\/(starter|growth|scale|custom)\/?$/.test(chemin)) return servir('commander/index.html', env, ctx, { brut: false, origine: url.origin, req });
+  if (chemin === '/commander' || chemin === '/commander/') return redirection('/commander/growth' + url.search);
+  if (chemin === '/api/offres' && req.method === 'GET')
+    return new Response(JSON.stringify({ packs: PACKS, custom: CUSTOM, options: OPTIONS, paiement: !!env.STRIPE_SECRET }), { headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'public, max-age=300' } });
   const pay = chemin.match(/^\/payer\/(starter|growth|scale|custom)\/?$/);
   if (pay && req.method === 'GET') {
     if (!env.STRIPE_SECRET) return redirection('https://kreativeads.fr/');
@@ -615,31 +620,34 @@ const CUSTOM = {
 // (déjà comprise dans le prix mensuel des packs fixes, appliquée aussi aux options).
 function devis(pack, formule, nbDemande, optionsDemandees) {
   const m = formule === 'mensuel';
-  const options = OPTIONS.filter(o => (optionsDemandees || []).includes(o.id));
+  // une option : « express », ou « ab_visuel:5 » (5 créas en A/B test, au plus le nombre de créas du pack)
+  const demandes = {};
+  for (const x of optionsDemandees || []) { const [id, q] = String(x).split(':'); demandes[id] = q === undefined ? null : Number(q); }
   let nb, unitaire, base;
   if (pack !== 'custom') {
     pack = PACKS[pack] ? pack : 'growth';
-    const P = PACKS[pack];
-    nb = P.creas; base = m ? P.mensuel : P.unique; unitaire = Math.round(base / nb);
-    for (const o of options) if (o.type === 'par_crea') base += nb * o.valeur;
+    nb = PACKS[pack].creas; base = m ? PACKS[pack].mensuel : PACKS[pack].unique; unitaire = Math.round(base / nb);
   } else {
     nb = Math.round(Number(nbDemande) || CUSTOM.min);
     nb = Math.min(CUSTOM.max, Math.max(CUSTOM.min, Math.round(nb / CUSTOM.pas) * CUSTOM.pas));
     unitaire = CUSTOM.paliers.filter(x => nb >= x[0]).pop()[1];
     base = nb * unitaire;
-    for (const o of options) if (o.type === 'par_crea') base += nb * o.valeur;
-    if (m) base = base * (1 - CUSTOM.remise_mensuel);
   }
+  const options = OPTIONS.filter(o => o.id in demandes).map(o => ({ ...o,
+    qte: o.type === 'par_crea' ? Math.min(nb, Math.max(1, Math.round(demandes[o.id] == null || !isFinite(demandes[o.id]) ? nb : demandes[o.id]))) : 1 }));
+  for (const o of options) if (o.type === 'par_crea') base += o.qte * o.valeur;
+  if (pack === 'custom' && m) base = base * (1 - CUSTOM.remise_mensuel);
   for (const o of options) if (o.type === 'pct') base += base * o.valeur / 100;
   for (const o of options) if (o.type === 'fixe') base += prixOption(o, pack);
   const total = Math.round(base);
   const P = PACKS[pack];
+  const nomOpt = o => o.nom + (o.type === 'par_crea' ? ' × ' + o.qte : '');
   // ce que voit le client sur la page Stripe : le nom du pack, puis le contenu en points
-  const points = [nb + (pack === 'custom' ? ' créatives' : ' visuels statiques') + (m ? ' par mois' : ''), 'Livrés en 1:1, 4:5 et 9:16'].concat(options.map(o => o.nom));
-  return { pack, formule: m ? 'mensuel' : 'unique', nb, options: options.map(o => o.id), unitaire, total,
+  const points = [nb + (pack === 'custom' ? ' créatives' : ' visuels statiques') + (m ? ' par mois' : ''), 'Livrés en 1:1, 4:5 et 9:16'].concat(options.map(nomOpt));
+  return { pack, formule: m ? 'mensuel' : 'unique', nb, options: options.map(o => o.type === 'par_crea' ? o.id + ':' + o.qte : o.id), unitaire, total,
     nom: 'Pack ' + P.nom, description: points.join(' • '),
     libelle: 'Pack ' + P.nom + (m ? ' · abonnement mensuel' : ' · paiement en une fois') + ' · ' + nb + ' créatives' + (m ? ' par mois' : '') +
-      (options.length ? ' · ' + options.map(o => o.nom).join(', ') : '') };
+      (options.length ? ' · ' + options.map(nomOpt).join(', ') : '') };
 }
 
 // le délai de livraison (en heures, après le brief) : celui du pack, ou selon le volume

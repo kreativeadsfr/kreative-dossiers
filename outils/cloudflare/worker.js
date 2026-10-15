@@ -359,8 +359,8 @@ async function connexion(req, env, url) {
   if (!/^\/(?!\/)/.test(suite)) suite = '/';
   const en = /^\/(designer|[^/]+\/creas)(\/|$)/.test(suite);
   const T = en
-    ? { titre: 'Sign in', sous: 'Enter the password Kreative gave you.', mdp: 'Password', bouton: 'Sign in', err: 'Wrong password. Please try again.' }
-    : { titre: 'Connexion', sous: 'Entre le mot de passe que Kreative t\'a donné.', mdp: 'Mot de passe', bouton: 'Entrer', err: 'Mot de passe incorrect. Réessaie.' };
+    ? { titre: 'Sign in', sous: 'Sign in to your Kreative workspace.', mdp: 'Password', bouton: 'Sign in', err: 'Incorrect password. Please try again.' }
+    : { titre: 'Connexion', sous: 'Connectez-vous à votre espace Kreative.', mdp: 'Mot de passe', bouton: 'Se connecter', err: 'Mot de passe incorrect. Veuillez réessayer.' };
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const html = `<!DOCTYPE html><html lang="${en ? 'en' : 'fr'}"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex">

@@ -151,7 +151,8 @@ function ecranLivrer(id) {
       (F.some(y => y.format === 'autre') ? '<span class="pill r">Other sizes · ' + F.filter(y => y.format === 'autre').length + '</span>' : '') + '</div>' +
       '<div class="champ" style="margin-top:16px"><label for="lv-note">Note for Kreative (optional)</label><textarea class="in" id="lv-note" rows="3" placeholder="Anything we should know"></textarea></div>' +
       '<button class="btn btn-p btn-bloc btn-lg" id="lv-envoyer"' + (F.length ? '' : ' disabled') + '>' + i.envoi + 'Send to Kreative' + (F.length ? ' (' + F.length + ' files)' : '') + '</button><p class="muted" id="lv-etat" style="font-size:13px;margin-top:10px;min-height:18px"></p>';
-  } else gauche += '<div class="rv-note" style="margin-top:14px">' + i.coche + '<div><b>Version ' + der.version + ': ' + esc(ST_EN[der.statut][0].toLowerCase()) + '.</b> ' + (der.statut === 'a_verifier' ? 'Kreative checks your files, then sends them to the client or back to you.' : der.statut === 'envoyee' ? 'The client is reviewing it. Their comments will show up here.' : 'Nothing more to do on this project.') + '</div></div>';
+  } else gauche += '<div class="etat-envoi"><span class="pastille">' + i.coche + '</span><div><b>' + (der.statut === 'a_verifier' ? 'Version ' + der.version + ' sent to Kreative' : der.statut === 'envoyee' ? 'Version ' + der.version + ' is with the client' : 'Approved by the client') + '</b>' +
+    '<small>' + (der.statut === 'a_verifier' ? 'Kreative checks your files, then sends them to the client or back to you.' : der.statut === 'envoyee' ? 'The client is reviewing it. Their comments will show up here.' : 'Nothing more to do on this project.') + (der.depose_le ? ' · ' + esc(quand(der.depose_le)) : '') + '</small></div></div>';
   gauche += '</div>';
   h += '<div class="grid g2" style="align-items:start">' + gauche +
     '<div class="card pad"><h3 style="font-size:15px">Project files</h3><p class="muted" style="font-size:13px;margin-top:4px">Check the brand kit and the copy before exporting.</p>' +
@@ -221,6 +222,19 @@ async function deposer(fichiers, x) {
   DL.choix = travail.id;
   await chargerDl(x.dossier);
 }
+// la confirmation d'envoi : le cercle se trace, la coche apparaît, puis la carte passe au nouvel état
+function animerEnvoi(carte, n) {
+  return new Promise(ok => {
+    if (!carte) return ok();
+    const v = document.createElement('div');
+    v.className = 'envoye-anim';
+    v.innerHTML = '<svg viewBox="0 0 56 56" aria-hidden="true"><circle class="anneau" cx="28" cy="28" r="25"/><path class="coche" d="M17 29.5l7.5 7.5L40 21.5"/></svg>' +
+      '<b>Sent to Kreative</b><small>' + n + ' file' + (n > 1 ? 's' : '') + ' delivered. Kreative checks them, then sends them to the client.</small>';
+    carte.style.position = 'relative'; carte.appendChild(v);
+    setTimeout(() => v.classList.add('sortie'), 2300);
+    setTimeout(ok, 2700);
+  });
+}
 function brancherLivrer(id) {
   const s = document.getElementById('lv-projet'); if (s) s.onchange = () => K.aller('#/livrer/' + s.value);
   const x = id && K.prod.trouver(id);
@@ -253,8 +267,9 @@ function brancherLivrer(id) {
     if (manque.length && !await K.confirmer('Some formats are incomplete', 'Missing files in ' + manque.map(f => NOMS_F[f]).join(', ') + '. Send anyway?', 'Send anyway')) return;
     b.disabled = true; etat.textContent = 'Sending…';
     try {
-      const r = await K.api('/api/equipe/livraisons/' + travail.id + '/envoyer', { methode: 'POST', corps: { note: document.getElementById('lv-note').value.trim() } });
-      K.toast(r.message); E.livs = await K.api('/api/equipe/livraisons').catch(() => E.livs); await K.prod.charger(true); marquer(); await chargerDl(x.dossier);
+      await K.api('/api/equipe/livraisons/' + travail.id + '/envoyer', { methode: 'POST', corps: { note: document.getElementById('lv-note').value.trim() } });
+      await animerEnvoi(b.closest('.card'), travail.fichiers.length);
+      E.livs = await K.api('/api/equipe/livraisons').catch(() => E.livs); await K.prod.charger(true); marquer(); await chargerDl(x.dossier);
     } catch (e) { etat.textContent = e.message; b.disabled = false; }
   };
 }

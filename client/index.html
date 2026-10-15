@@ -345,8 +345,7 @@ function ecranCommander() {
     '<div class="acts"><a class="btn btn-d btn-lg" href="#/commander/custom">Configurer mon pack ' + i.fleche + '</a></div></div>' +
     '<ul>' + ['Volume de créatives au choix', 'Tous les formats Meta', 'Révisions illimitées', 'Options : express, A/B tests', 'Contact WhatsApp inclus',
       'Angles marketing variés', 'Support prioritaire', 'Stratégie personnalisée', 'Interlocuteur dédié', 'Cadence de livraison au choix'].map(a => '<li>' + i.coche + '<span>' + a + '</span></li>').join('') + '</ul></div></div>';
-  h += '<p class="muted" style="text-align:center;margin-top:24px;font-size:12.5px">' + (m ? 'Les tarifs mensuels supposent un engagement de 3 mois, puis sans engagement.' : 'Paiement unique, sans engagement. Production lancée dès la réception de votre brief.') +
-    ' Paiement sécurisé par Stripe, facture automatique.</p>';
+  h += '<p class="confiance">' + (m ? 'Engagement 3 mois, puis sans engagement.' : 'Paiement unique, sans engagement.') + '<span>' + i.cadenas + 'Paiement sécurisé par Stripe</span></p>';
   return h;
 }
 
@@ -368,6 +367,7 @@ function devis(o) {
     if (m) { lignes.push(['Remise mensuelle −' + Math.round(r * 100) + ' %', -base * r]); base *= 1 - r; }
   }
   opts.filter(x => x.type === 'pct').forEach(x => { const v = base * x.valeur / 100; lignes.push([x.nom + ' (+' + x.valeur + ' %)', v]); base += v; });
+  opts.filter(x => x.type === 'fixe').forEach(x => { lignes.push([x.nom, x.valeur]); base += x.valeur; });
   return { lignes, total: Math.round(base), nb, unitaire: u };
 }
 // le délai de livraison après le brief : celui du pack, ou selon le volume pour le Custom ; l'express le divise par deux
@@ -389,8 +389,7 @@ function ecranPanier(pack) {
   if (custom) h += '<div class="card bloc"><h3>Nombre de créatives</h3><p class="aide">Chaque créative est livrée en 1:1, 4:5 et 9:16.</p>' +
     '<div class="nb-creas"><b id="cf-nb">' + CFG.nb + '</b><span>créatives' + (m ? ' par mois' : '') + '</span></div>' +
     '<input class="curseur" type="range" id="cf-range" min="' + C.min + '" max="' + C.max + '" step="' + C.pas + '" value="' + CFG.nb + '">' +
-    '<div class="reperes"><span>' + C.min + '</span><span>' + C.max + '</span></div>' +
-    '<div class="unitaire" id="cf-unit">' + d.unitaire + ' € <span>la créative</span></div></div>';
+    '<div class="reperes"><span>' + C.min + '</span><span>' + C.max + '</span></div></div>';
   else h += '<div class="card bloc"><h3>Inclus dans le pack ' + esc(P.nom) + '</h3><ul class="inclus">' + AVANTAGES[pack].filter(a => a[1]).map(a => '<li>' + i.coche + '<span>' + esc(a[0]) + '</span></li>').join('') + '</ul></div>';
   h += '<div class="card bloc"><h3>Formule</h3><div class="onglets" style="margin-top:14px"><button class="' + (m ? 'on' : '') + '" data-cf-formule="mensuel">Mensuel · ' + Math.round(C.remise_mensuel * 100) + ' % de moins</button>' +
     '<button class="' + (!m ? 'on' : '') + '" data-cf-formule="unique">Commande unique</button></div>' +
@@ -402,7 +401,7 @@ function ecranPanier(pack) {
 // le prix d'une option : par créa (ça se lit mieux), ou en % pour l'express
 function listeOptions() {
   return D.options.map(o => '<div class="opt' + (CFG.options.includes(o.id) ? ' on' : '') + '" data-cf-opt="' + esc(o.id) + '" role="checkbox" aria-checked="' + CFG.options.includes(o.id) + '" tabindex="0"><span class="case">' + i.coche + '</span>' +
-    '<div><b>' + esc(o.nom) + '</b><small>' + esc(o.detail) + '</small></div><span class="px">' + (o.type === 'pct' ? '+' + o.valeur + ' %' : '+' + o.valeur + ' €<small>par créa</small>') + '</span></div>').join('');
+    '<div><b>' + esc(o.nom) + '</b><small>' + esc(o.detail) + '</small></div><span class="px">' + (o.type === 'pct' ? '+' + o.valeur + ' %' : o.type === 'fixe' ? '+' + K.euros(o.valeur) : '+' + o.valeur + ' €<small>par créa</small>') + '</span></div>').join('');
 }
 function recap() {
   const d = devis(), m = CFG.formule === 'mensuel', P = D.packs[CFG.pack];
@@ -410,16 +409,15 @@ function recap() {
     '<p class="muted" style="font-size:13px;margin-top:3px">' + (m ? 'Abonnement mensuel' : 'Commande unique') + '</p>' +
     '<div style="margin-top:14px">' + d.lignes.map(l => '<div class="ligne"><span>' + esc(l[0]) + '</span><b>' + (l[1] < 0 ? '−' : '') + K.euros(Math.abs(Math.round(l[1]))) + '</b></div>').join('') + '</div>' +
     '<div class="total"><span class="muted">Total' + (m ? ' par mois' : '') + '</span><b>' + K.euros(d.total) + '</b></div>' +
-    '<p class="muted" style="font-size:12.5px;margin-top:6px">Soit ' + K.euros(Math.round(d.total / d.nb)) + ' la créative' + (m ? ' · engagement 3 mois' : '') + '</p>' +
+    '<div class="unitaire">' + K.euros(Math.round(d.total / d.nb)) + ' <span>la créative' + (m ? ' · engagement 3 mois' : '') + '</span></div>' +
     '<div class="delai">' + i.horloge + 'Livrée en ' + esc(delai()) + ' après votre brief</div>' +
     '<button class="btn btn-d btn-bloc btn-lg" id="cf-payer">Commander</button>' +
-    '<p class="muted" style="font-size:12px;margin-top:10px;text-align:center">' + i.bouclier.replace('<svg', '<svg width="13" height="13" style="vertical-align:-2px"') + ' Paiement sécurisé par Stripe · facture automatique</p>';
+    '<p class="confiance petit"><span>' + i.cadenas + 'Paiement sécurisé par Stripe</span></p>';
 }
 function brancherPanier() {
   const maj = () => {
     document.getElementById('cf-recap').innerHTML = recap(); document.getElementById('cf-opts').innerHTML = listeOptions();
     const n = document.getElementById('cf-nb'); if (n) n.textContent = CFG.nb;
-    const u = document.getElementById('cf-unit'); if (u) u.innerHTML = devis().unitaire + ' € <span>la créative</span>';
     brancherOpts(); brancherPayer();
   };
   const r = document.getElementById('cf-range');
@@ -441,13 +439,17 @@ function brancherPanier() {
 let PAIEMENT = null;
 async function payer(corps, bouton) {
   if (D.apercu) { K.toast('Aperçu : le paiement s\'ouvre seulement pour le client.'); return; }
-  if (!D.paiement) { location.href = wa('Bonjour Kreative, je souhaite commander : ' + corps.texte); return; }
-  const avant = bouton.innerHTML; bouton.disabled = true; bouton.textContent = 'Préparation du paiement…';
-  try {
-    const r = await K.api('/api/client/paiement', { methode: 'POST', corps: { ...corps, integre: !!D.stripe_public } });
-    if (r.client_secret) { PAIEMENT = { secret: r.client_secret, total: r.total, texte: corps.texte }; K.aller('#/commander/paiement'); return; }
-    location.href = r.url;
-  } catch (e) { K.toast(e.message); bouton.disabled = false; bouton.innerHTML = avant; }
+  const avant = bouton.innerHTML; bouton.disabled = true; bouton.textContent = 'Ouverture du paiement…';
+  // 1. la page Stripe au montant exact (pack, formule et options), créée par le portail
+  if (D.paiement) {
+    try { const r = await K.api('/api/client/paiement', { methode: 'POST', corps: corps }); location.href = r.url; return; }
+    catch (e) { K.toast(e.message); bouton.disabled = false; bouton.innerHTML = avant; return; }
+  }
+  // 2. sans la clé Stripe : le lien de paiement du pack (sans option)
+  const lien = corps.pack !== 'custom' && !(corps.options || []).length && D.liens && D.liens[corps.pack] && D.liens[corps.pack][corps.formule];
+  if (lien) { location.href = lien + '?client_reference_id=' + encodeURIComponent(D.client.id) + (D.client.email ? '&prefilled_email=' + encodeURIComponent(D.client.email) : '') + '&locale=fr'; return; }
+  // 3. sinon : WhatsApp
+  location.href = wa('Bonjour Kreative, je souhaite commander : ' + corps.texte);
 }
 function ecranPaiement() {
   if (!PAIEMENT) return '<a class="retour" href="#/commander">' + i.gauche + 'Retour aux offres</a><div class="card"><div class="vide">' + i.carte + 'Choisissez d\'abord votre pack.</div></div>';
@@ -493,17 +495,17 @@ function ecranProfil() {
   return apercu() + '<div class="ph"><div><h1>Mon profil</h1><p>Les informations de votre compte Kreative.</p></div></div>' +
     '<div class="profil grid" style="gap:14px"><div class="card"><h3 style="font-size:16px;margin-bottom:18px">Vos informations</h3>' +
     '<div class="photo-l"><span class="rond" style="background:' + K.teinte(c.marque) + '">' + (urlPhoto() ? '<img src="' + esc(urlPhoto()) + '" alt="">' : esc(K.initiales(c.marque))) + '</span>' +
-    '<div><b style="font-size:14px">Photo de profil</b><div class="muted" style="font-size:12.5px">Votre logo ou votre photo, au format carré de préférence.</div>' +
+    '<div><b style="font-size:14px">Photo de profil</b><div class="muted" style="font-size:12.5px">Votre logo, ou la photo de votre choix.</div>' +
     '<div class="bts"><button class="btn btn-s btn-sm" id="p-photo">' + i.image + (urlPhoto() ? 'Changer' : 'Ajouter une photo') + '</button>' +
     (urlPhoto() ? '<button class="btn btn-g btn-sm" id="p-photo-x">Retirer</button>' : '') + '</div>' +
     '<input type="file" id="p-fichier" accept="image/*" hidden></div></div>' +
     ch('p-marque', 'Marque', c.marque, 'text', 'Le nom de votre marque') +
     '<div class="grid g2" style="gap:12px">' + ch('p-contact', 'Votre nom', c.contact, 'text', 'Prénom et nom') + ch('p-tel', 'Téléphone', c.telephone, 'tel', '06…') + '</div>' +
-    ch('p-email', 'Email', c.email, 'email', 'vous@marque.fr', 'C\'est aussi l\'adresse où vous recevez votre lien d\'accès et vos factures.') +
+    ch('p-email', 'Email', c.email, 'email', 'vous@marque.fr') +
     ch('p-site', 'Site', c.site, 'url', 'https://…') +
     '<div style="display:flex;justify-content:flex-end;margin-top:8px"><button class="btn btn-p" id="p-ok">Enregistrer</button></div></div>' +
     '<div class="card" style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap"><div><h3 style="font-size:15px">Se déconnecter</h3>' +
-    '<p class="muted" style="font-size:13px;margin-top:4px">Votre lien d\'accès reste valable : il vous reconnecte quand vous voulez.</p></div>' +
+    '<p class="muted" style="font-size:13px;margin-top:4px">Votre lien d\'accès reste valable : il vous reconnecte quand vous le souhaitez.</p></div>' +
     '<a class="btn btn-s" href="' + (D.apercu ? '/admin/#/clients/' + esc(c.id) : '/client/sortie') + '">' + i.sortie + 'Se déconnecter</a></div></div>';
 }
 // la photo est recadrée en carré et réduite à 256 px dans le navigateur avant l'envoi

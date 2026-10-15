@@ -61,9 +61,9 @@
           const coms = f.commentaires.filter(c => opt.mode !== 'client' || !c.interne).length, video = /^video\//.test(f.type);
           return '<div class="rv-carte" data-rv-voir="' + esc(f.id) + '"><div class="rv-mini">' +
             (video && !/mini=1/.test(f.mini) ? '<video src="' + esc(f.url) + '#t=0.5" muted preload="metadata"></video>' : '<img src="' + esc(f.mini) + '" alt="" loading="lazy">') +
-            (f.approuve_le ? '<span class="rv-ok" title="Approuvée">' + I.coche + '</span>' : '') + (coms ? '<span class="rv-coms">' + I.bulle + coms + '</span>' : '') + '</div>' +
+            (f.approuve_le ? '<span class="rv-ok" title="Approuvée">' + I.coche + '</span>' : '') + (coms ? '<span class="rv-coms' + (opt.supprimer ? ' bas' : '') + '">' + I.bulle + coms + '</span>' : '') +
+            (opt.supprimer ? '<button class="rv-retirer" data-rv-suppr="' + esc(f.id) + '" title="Remove this file" aria-label="Remove ' + esc(f.nom) + '">' + I.x + '</button>' : '') + '</div>' +
             '<div class="rv-pied"><div><b title="' + esc(f.nom) + '">' + esc(f.nom) + '</b><small>' + T(video ? 'Vidéo' : 'Image') + ' · ' + esc(RV.taille(f.taille)) + '</small></div>' +
-            (opt.supprimer ? '<button class="rv-ico" data-rv-suppr="' + esc(f.id) + '" title="Remove">' + I.poubelle + '</button>' : '') +
             '<a class="rv-ico" href="' + esc(f.url) + '?dl=1" download="' + esc(f.nom) + '" title="' + T('Télécharger') + '" data-rv-stop>' + I.telecharger + '</a></div></div>';
         }).join('') + '</div>' : '') + '</div>';
     });

@@ -198,20 +198,21 @@ function tableauDeBord(retards) {
   const total = ventes.reduce((t, f) => t + (f.montant || 0), 0), totalAvant = avant.reduce((t, f) => t + (f.montant || 0), 0);
   const C = S.commandes || [], clients = S.clients || [];
   const nouveaux = clients.filter(c => dans(c.cree_le || 0, a, b)).length;
-  // abonnements actifs : un client avec une commande mensuelle de moins de 35 jours
-  const abos = {}; C.filter(c => c.formule === 'mensuel' && c.statut !== 'annule' && c.cree_le > Date.now() - 35 * J).forEach(c => { if (!abos[c.client_id] || abos[c.client_id].cree_le < c.cree_le) abos[c.client_id] = c; });
-  const mrr = Object.values(abos).reduce((t, c) => t + (c.prix || 0), 0);
   let h = '<div class="sec" style="margin-top:4px"><div><h2>Ventes</h2><p>Les paiements Stripe de la période.</p></div><a class="btn btn-g btn-sm" href="#/factures">Factures</a></div>';
-  h += '<div class="grid g4">' + kpi('Encaissé', K.euros(total), variation(total, totalAvant)) + kpi('Paiements', ventes.length, variation(ventes.length, avant.length)) +
+  // LTV : ce qu'un client dépense en moyenne chez Kreative, depuis toujours (jusqu'à la fin de la période)
+  const parClient = {}; F.filter(f => f.client_id && quand(f) <= b).forEach(f => { parClient[f.client_id] = (parClient[f.client_id] || 0) + (f.montant || 0); });
+  const payeurs = Object.keys(parClient).length, ltv = payeurs ? Object.values(parClient).reduce((t, v) => t + v, 0) / payeurs : 0;
+  const rachat = Object.keys(parClient).filter(id => F.filter(f => f.client_id === id && quand(f) <= b).length > 1).length;
+  h += '<div class="grid g4">' + kpi('CA', K.euros(total), variation(total, totalAvant)) + kpi('Paiements', ventes.length, variation(ventes.length, avant.length)) +
     kpi('Panier moyen', ventes.length ? K.euros(Math.round(total / ventes.length)) : '·', ventes.length ? 'par paiement' : 'aucun paiement') +
-    kpi('Abonnements actifs', Object.keys(abos).length, mrr ? K.euros(mrr) + ' par mois' : 'aucun abonnement en cours') + '</div>';
+    kpi('LTV', payeurs ? K.euros(Math.round(ltv)) : '·', payeurs ? 'par client · ' + rachat + ' sur ' + payeurs + ' ont racheté' : 'aucun client payant') + '</div>';
   // le graphique : encaissé par jour (par semaine au-delà de 3 mois)
   const pas = duree > 92 * J ? 7 * J : J, cases = [];
   for (let t = a; t <= b; t += pas) cases.push({ t, v: 0 });
   ventes.forEach(f => { const n = Math.min(cases.length - 1, Math.floor((quand(f) - a) / pas)); cases[n].v += f.montant || 0; });
   const max = Math.max(...cases.map(c => c.v), 1), haut = Math.ceil(max / 100) * 100 || 100;
   const lab = t => K.date(t, { year: undefined, month: 'short' });
-  h += '<div class="card graph" style="margin-top:14px"><div class="card-h"><h3>Encaissé ' + (pas === J ? 'par jour' : 'par semaine') + '</h3><span class="muted" style="font-size:13px">' + K.euros(total) + ' sur la période</span></div>' +
+  h += '<div class="card graph" style="margin-top:14px"><div class="card-h"><h3>CA ' + (pas === J ? 'par jour' : 'par semaine') + '</h3><span class="muted" style="font-size:13px">' + K.euros(total) + ' sur la période</span></div>' +
     '<div class="graph-zone" id="graph-ventes"><div class="graph-grille">' + [1, .5, 0].map(r => '<div><span>' + K.euros(Math.round(haut * r)) + '</span></div>').join('') + '</div>' +
     '<div class="graph-barres">' + cases.map(c => '<div class="bar" data-v="' + K.euros(Math.round(c.v)) + '" data-d="' + (pas === J ? K.date(c.t, { weekday: 'short', year: undefined }) : 'semaine du ' + lab(c.t)) + '"><i style="height:' + (c.v ? Math.max(2, c.v / haut * 100) : 0) + '%"></i></div>').join('') + '</div>' +
     '<div class="graph-x">' + cases.map((c, n) => '<span>' + (n === 0 || n === cases.length - 1 || (cases.length > 10 && n % Math.ceil(cases.length / 6) === 0) || cases.length <= 10 ? esc(lab(c.t)) : '') + '</span>').join('') + '</div>' +
@@ -305,12 +306,12 @@ function raisonRelance(c) {
 function ecranClients() {
   const C = S.clients || [], q = S.chClients.toLowerCase(), f = S.filtreClients;
   const relancer = c => !!raisonRelance(c);
-  const filtres = { tous: () => true, actifs: c => c.en_cours > 0, relancer, bloques: c => c.statut === 'bloque' };
+  const filtres = { tous: () => true, actifs: c => c.en_cours > 0, abonnes: c => c.dernier_mensuel && c.dernier_mensuel > Date.now() - 35 * 864e5, relancer, bloques: c => c.statut === 'bloque' };
   const liste = C.filter(filtres[f]).filter(c => !q || (c.marque + ' ' + (c.contact || '') + ' ' + (c.email || '')).toLowerCase().includes(q));
   const chip = (k, t, coul) => '<button class="chip' + (f === k ? ' on' : '') + '" onclick="S.filtreClients=\'' + k + '\';K.rendre()">' + (coul ? '<i style="color:' + coul + '"></i>' : '') + t + '<span class="c">' + C.filter(filtres[k]).length + '</span></button>';
   let h = '<div class="ph"><div><h1>Clients</h1><p>' + C.length + ' compte' + (C.length > 1 ? 's' : '') + ' · ' + C.reduce((s, c) => s + c.nb_commandes, 0) + ' commandes au total</p></div>' +
     '<div class="act"><button class="btn btn-s" onclick="exporterClients()">' + i.telecharger + 'Exporter</button><a class="btn btn-p" href="#/clients/nouveau">' + i.plus + 'Ajouter un client</a></div></div>';
-  h += '<div class="filtres">' + chip('tous', 'Tous') + chip('actifs', 'Projet en cours', 'var(--blue)') + chip('relancer', 'À relancer', 'var(--red)') +
+  h += '<div class="filtres">' + chip('tous', 'Tous') + chip('actifs', 'Projet en cours', 'var(--blue)') + chip('abonnes', 'Abonnés', 'var(--violet)') + chip('relancer', 'À relancer', 'var(--red)') +
     '<div class="champ-r" style="margin-left:auto">' + i.chercher + '<input id="ch-clients" placeholder="Rechercher un client…" value="' + esc(S.chClients) + '"></div></div>';
   if (!C.length) return h + '<div class="card"><div class="vide">' + i.gens + 'Aucun client pour l\'instant.<br><a class="btn btn-p btn-sm" style="margin-top:14px" href="#/clients/nouveau">Ajouter le premier client</a></div></div>';
   h += '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Client</th><th>Contact</th><th class="num">Commandes</th><th class="num">Total</th><th>Dernière commande</th><th>Dernière connexion</th><th>Statut</th><th></th></tr></thead><tbody>' +

@@ -67,6 +67,9 @@ async function traiter(req, env, ctx) {
     return servir(sous, env, ctx, { brut: true, origine: url.origin, req });
   }
 
+  // ---------- la page de confirmation après un achat sur la landing (publique) ----------
+  // Lien de paiement Stripe → « Après le paiement » → rediriger vers https://app.kreativeads.fr/merci
+  if (chemin === '/merci' || chemin === '/merci/') return servir('merci/index.html', env, ctx, { brut: false, origine: url.origin, req });
   // ---------- connexion ----------
   if (chemin === '/_connexion') return connexion(req, env, url);
   // déconnexion : retour à la page de connexion de son espace (en anglais pour un designer)
@@ -577,7 +580,7 @@ const packDuLien = id => { for (const [pack, f] of Object.entries(LIENS_PAIEMENT
 // Les options (upsells), pour tous les packs. Le prix est TOUJOURS recalculé ici,
 // jamais pris dans ce qu'envoie le navigateur.
 const OPTIONS = [
-  { id: 'express', nom: 'Livraison express', detail: 'Livrée 2 fois plus vite', type: 'pct', valeur: 20 },
+  { id: 'express', nom: 'Livraison express', detail: 'Livrée 2 fois plus vite', type: 'fixe', valeur: 390 },
   { id: 'ab_visuel', nom: 'A/B test visuel', detail: 'Même texte sur 2 visuels différents', type: 'par_crea', valeur: 20 },
   { id: 'ab_texte', nom: 'A/B test texte', detail: 'Même visuel avec 2 textes différents', type: 'par_crea', valeur: 15 }
 ];
@@ -610,6 +613,7 @@ function devis(pack, formule, nbDemande, optionsDemandees) {
     if (m) base = base * (1 - CUSTOM.remise_mensuel);
   }
   for (const o of options) if (o.type === 'pct') base += base * o.valeur / 100;
+  for (const o of options) if (o.type === 'fixe') base += o.valeur;
   const total = Math.round(base);
   const P = PACKS[pack];
   return { pack, formule: m ? 'mensuel' : 'unique', nb, options: options.map(o => o.id), unitaire, total,
@@ -924,7 +928,7 @@ async function apiClient(req, env, ctx, url, chemin, methode, cl, apercu) {
         recurring: m ? { interval: 'month' } : undefined } }]
     };
     // paiement dans la page du portail (Stripe intégré) quand la clé publique est là
-    const integre = !!(b.integre && env.STRIPE_PUBLIC);
+    const integre = false;   // la page de paiement Stripe s'ouvre (choix de Kreative)
     if (integre) { p.ui_mode = 'embedded'; p.return_url = url.origin + '/client/?paiement=ok'; delete p.success_url; delete p.cancel_url; }
     if (cl.stripe_client) p.customer = cl.stripe_client; else p.customer_email = cl.email || undefined;
     if (m) p.subscription_data = { metadata: meta };
@@ -1098,7 +1102,8 @@ async function apiAdmin(req, env, ctx, url, chemin, methode) {
     const { results } = await db.prepare(`SELECT c.*, COUNT(k.id) AS nb_commandes, COALESCE(SUM(k.prix),0) AS total,
       MAX(k.cree_le) AS derniere_commande, SUM(CASE WHEN k.statut IN ('brief','production','livre','revisions') THEN 1 ELSE 0 END) AS en_cours,
       SUM(CASE WHEN k.statut = 'valide' AND k.avis_le IS NULL THEN 1 ELSE 0 END) AS sans_avis,
-      MIN(CASE WHEN k.statut = 'brief' THEN k.cree_le END) AS brief_attendu_depuis, MAX(k.valide_le) AS derniere_validation
+      MIN(CASE WHEN k.statut = 'brief' THEN k.cree_le END) AS brief_attendu_depuis, MAX(k.valide_le) AS derniere_validation,
+      MAX(CASE WHEN k.formule = 'mensuel' THEN k.cree_le END) AS dernier_mensuel
       FROM clients c LEFT JOIN commandes k ON k.client_id = c.id AND k.statut != 'annule'
       GROUP BY c.id ORDER BY c.cree_le DESC`).all();
     return json(results.map(({ photo, ...c }) => ({ ...c, lien: lienAcces(url, c.jeton) })));
@@ -1661,11 +1666,12 @@ async function paiementRecu(env, ctx, url, s) {
     if (!emailValide(email)) return;
     const det = s.customer_details || {};
     const id = 'c_' + aleatoire(10), jeton = aleatoire(32);
-    const marque = propre((det.business_name || det.name || email.split('@')[0]), 80);
+    const info = s.collected_information || {};
+    const marque = propre((info.business_name || det.business_name || det.name || info.individual_name || email.split('@')[0]), 80);
     await db.prepare('INSERT INTO clients (id, marque, contact, email, telephone, jeton, cree_le) VALUES (?,?,?,?,?,?,?)')
-      .bind(id, marque, propre(det.name, 80), email, propre(det.phone, 40), jeton, maintenant()).run();
+      .bind(id, marque, propre(det.name || info.individual_name, 80), email, propre(det.phone, 40), jeton, maintenant()).run();
     await noter(db, id, null, 'client', 'Espace client créé');
-    cl = { id, marque, contact: det.name || '', email, jeton };
+    cl = { id, marque, contact: det.name || info.individual_name || '', email, jeton };
     nouveau = true;
   }
   if (s.customer && !cl.stripe_client) await db.prepare('UPDATE clients SET stripe_client = ? WHERE id = ?').bind(String(s.customer), cl.id).run();

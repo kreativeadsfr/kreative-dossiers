@@ -27,6 +27,33 @@
   })();
   K.estDemo = d => /^TEST_DEMO_/.test(String(d || ''));
 
+  // ---------- télécharger une facture ----------
+  // La facture Stripe (PDF officiel) quand elle existe ; sinon un PDF fait ici avec ce qu'on sait
+  // (factures ajoutées à la main, ou de démonstration).
+  let jspdf = null;
+  K.telechargerFacture = async (f, o) => {
+    if (f.pdf) { const a = document.createElement('a'); a.href = f.pdf; a.target = '_blank'; a.rel = 'noopener'; document.body.appendChild(a); a.click(); a.remove(); return; }
+    try {
+      if (!window.jspdf) { if (!jspdf) jspdf = new Promise((ok, ko) => { const sc = document.createElement('script'); sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'; sc.onload = ok; sc.onerror = ko; document.head.appendChild(sc); }); await jspdf; }
+      const doc = new window.jspdf.jsPDF({ unit: 'mm', format: 'a4' }), e = t => String(t == null ? '' : t);
+      const euros = n => (Math.round((n || 0) * 100) / 100).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).replace(/ | /g, ' ') + ' EUR';
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(22); doc.text('Kreative', 20, 28);
+      doc.setFontSize(16); doc.text('Facture ' + e(f.numero || ''), 190, 28, { align: 'right' });
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(10); doc.setTextColor(110);
+      doc.text('Émise le ' + K.date(f.emise_le || Date.now()), 190, 35, { align: 'right' });
+      doc.text('Payée' + (f.payee_le ? ' le ' + K.date(f.payee_le) : ''), 190, 41, { align: 'right' });
+      doc.setTextColor(0); doc.setFontSize(10); doc.text('Facturé à', 20, 60);
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(12); doc.text(e((o && o.client) || f.marque || ''), 20, 67);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(10); if (o && o.email) doc.text(e(o.email), 20, 73);
+      doc.setDrawColor(220); doc.line(20, 90, 190, 90);
+      doc.setTextColor(110); doc.text('Description', 20, 97); doc.text('Montant TTC', 190, 97, { align: 'right' });
+      doc.line(20, 101, 190, 101); doc.setTextColor(0); doc.setFontSize(11);
+      doc.text(e((o && o.projet) || 'Créatives publicitaires Kreative'), 20, 110); doc.text(euros(f.montant), 190, 110, { align: 'right' });
+      doc.line(20, 118, 190, 118); doc.setFont('helvetica', 'bold'); doc.text('Total payé', 120, 128); doc.text(euros(f.montant), 190, 128, { align: 'right' });
+      doc.save('Facture-' + e(f.numero || 'Kreative').replace(/[^A-Za-z0-9-]+/g, '-') + '.pdf');
+    } catch (err) { K.toast('La facture n\'a pas pu se préparer.'); }
+  };
+
   // ---------- thème (clair par défaut, sombre au choix, retenu) ----------
   // les espaces de l'équipe restent en clair (les pages de production le sont) : <html data-clair>
   try { if (localStorage.getItem('k-theme') === 'dark' && !document.documentElement.hasAttribute('data-clair')) document.documentElement.dataset.theme = 'dark'; } catch (e) {}

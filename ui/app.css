@@ -638,3 +638,21 @@ a.lien-kpi:hover{border-color:var(--line2)}
   .rv-outils{margin:0}
   .rv-nom{display:none}
 }
+
+/* ---------- tableau de bord : période et graphique ---------- */
+.dates{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--tx3)}
+.dates .in{height:36px;width:150px}
+.graph-zone{position:relative;padding:18px 20px 12px 74px}
+.graph-grille{position:absolute;left:20px;right:20px;top:18px;height:180px;display:flex;flex-direction:column;justify-content:space-between;pointer-events:none}
+.graph-grille div{border-top:1px solid var(--line);position:relative;height:0}
+.graph-grille span{position:absolute;left:0;top:-8px;font-size:11.5px;color:var(--tx3);font-variant-numeric:tabular-nums;background:var(--panel);padding-right:6px}
+.graph-barres{position:relative;height:180px;display:flex;align-items:flex-end;gap:2px}
+.graph-barres .bar{flex:1;height:100%;display:flex;align-items:flex-end;cursor:default;min-width:0}
+.graph-barres .bar i{display:block;width:100%;background:var(--blue);border-radius:4px 4px 0 0;transition:opacity .12s}
+.graph-barres .bar:hover i{opacity:.75}
+.graph-barres .bar:hover{background:var(--soft);border-radius:4px}
+.graph-x{display:flex;gap:2px;margin-top:8px}
+.graph-x span{flex:1;min-width:0;font-size:11px;color:var(--tx3);white-space:nowrap;overflow:visible;text-align:center}
+.graph-bulle{position:absolute;top:0;width:150px;padding:8px 10px;border-radius:10px;background:var(--ink);color:var(--panel);font-size:12px;pointer-events:none;z-index:3;box-shadow:var(--ombre2)}
+.graph-bulle b{display:block;font-size:14px}
+.graph-bulle span{opacity:.75}

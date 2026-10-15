@@ -1002,7 +1002,7 @@ async function creerDemo(db, env) {
       for (const [type, texte, le] of act) await db.prepare('INSERT INTO activite (client_id, commande_id, type, texte, le) VALUES (?,?,?,?,?)').bind(id, k, type, texte, le).run();
       nb++;
       await db.prepare('INSERT INTO factures (id, client_id, commande_id, numero, montant, montant_ht, statut, emise_le, payee_le, source, cree_le) VALUES (?,?,?,?,?,?,?,?,?,?,?)')
-        .bind('f_demo_' + n, id, k, 'DEMO-2026-' + String(nb).padStart(3, '0'), prix, prix, slug === 'velvo' ? 'ouverte' : 'payee', cree, slug === 'velvo' ? null : cree, 'demo', now).run();
+        .bind('f_demo_' + n, id, k, 'DEMO-2026-' + String(nb).padStart(3, '0'), prix, prix, 'payee', cree, cree, 'demo', now).run();
     }
   }
   await livraisonsDemo(db, now);
@@ -1399,7 +1399,7 @@ async function apiEquipe(req, env, ctx, url, chemin, methode, qui) {
     const format = FORMATS_OK.includes(url.searchParams.get('format')) ? url.searchParams.get('format') : 'autre';
     const nom = propre(url.searchParams.get('nom'), 120).replace(/[^A-Za-z0-9._ -]/g, '_') || 'fichier';
     const type = (req.headers.get('Content-Type') || '').split(';')[0];
-    if (!/^(image\/(png|jpeg|webp|gif)|video\/(mp4|quicktime|webm))$/.test(type)) return json({ erreur: 'Images (PNG, JPG, WebP) or videos (MP4, MOV) only.' }, 415);
+    if (type !== 'image/png') return json({ erreur: 'PNG files only.' }, 415);
     const taille = Number(req.headers.get('Content-Length') || 0);
     if (taille > 95e6) return json({ erreur: 'File too large (95 MB max).' }, 413);
     const id = 'fi_' + aleatoire(12), cle = 'livraisons/' + l.dossier + '/' + l.id + '/' + id + '-' + nom.replace(/\s+/g, '_');

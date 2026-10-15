@@ -55,7 +55,7 @@ function conf() {
       { id: 'accueil', texte: 'Accueil', icone: 'accueil', href: '#/' },
       { id: 'projets', texte: 'Mes projets', icone: 'dossier', href: '#/projets', nb: D.commandes.length || '' },
       { id: 'brief', texte: 'Mon brief', icone: 'doc', href: '#/brief' },
-      { id: 'factures', texte: 'Factures', icone: 'recu', href: '#/factures', nb: (D.factures || []).length || '' }
+      { id: 'factures', texte: 'Factures', icone: 'recu', href: '#/factures', nb: payees(D.factures).length || '' }
     ] }, { titre: 'Kreative', liens: [
       { id: 'contact', texte: 'Nous contacter', icone: 'message', href: '#/contact' },
       { id: 'avis', texte: 'Laisser un avis', icone: 'etoile', href: '#/avis' }
@@ -95,7 +95,7 @@ function ecranAccueil() {
     : '<div class="card"><div class="vide">' + i.dossier + 'Aucun projet pour l\'instant.<br><a class="btn btn-p btn-sm" style="margin-top:14px" href="#/commander">Commander mes premières créas</a></div></div>';
 
   if (principal) {
-    const pas = prochaineEtape(principal), F = D.factures || [], derniere = F[0];
+    const pas = prochaineEtape(principal), F = payees(D.factures), derniere = F[0];
     h += '<div class="grid g3" style="margin-top:14px">' +
       '<a class="card kpi lien-kpi" href="#/projets/' + esc(principal.id) + '"><div class="lab">Prochaine étape</div><div class="v s">' + esc(pas.titre) + '</div><div class="d">' + esc(pas.texte) + '</div></a>' +
       '<div class="card kpi"><div class="lab">Livraison prévue</div><div class="v s">' + (principal.deadline ? esc(K.jour(principal.deadline)) : 'Dès votre brief') + '</div><div class="d">' +
@@ -177,7 +177,7 @@ function ecranProjet(id) {
   h += action(c.avis_le ? 'ok' : e === 'valide' ? 'on' : 'off', i.etoile, 'Trustpilot', 'Votre avis', 'Une minute pour nous dire comment ça s\'est passé.',
     c.avis_le ? '<div class="etat ok">✓ Merci pour votre avis</div>' : e === 'valide' ? '<button class="btn btn-tp btn-sm" data-avis="' + esc(c.id) + '">Laisser mon avis</button>' : '<div class="etat">À la fin du projet</div>');
   h += '</div>';
-  const F = facturesDe(c);
+  const F = payees(facturesDe(c));
   if (F.length) h += '<div class="sec"><div><h2>Factures</h2><p>Les factures de ce projet.</p></div></div><div class="card"><div class="tbl-wrap">' + tableFactures(F) + '</div></div>';
   return h;
 }
@@ -294,19 +294,26 @@ function ecranBrief(id) {
 }
 
 // ---------- FACTURES ----------
-const FACT = { payee: ['Payée', 'g'], ouverte: ['À régler', 'a'], impayee: ['Impayée', 'r'], annulee: ['Annulée', ''] };
+// les factures : un historique, chacune se télécharge
+const payees = F => (F || []).filter(f => f.statut === 'payee' || f.source !== 'stripe');
 function tableFactures(F) {
-  return '<table class="tbl"><thead><tr><th>Facture</th><th>Projet</th><th class="num">Montant</th><th>Statut</th><th>Date</th><th></th></tr></thead><tbody>' +
+  return '<table class="tbl"><thead><tr><th>Facture</th><th>Projet</th><th class="num">Montant</th><th>Date</th><th></th></tr></thead><tbody>' +
     F.map(f => {
-      const c = D.commandes.find(x => x.id === f.commande_id), st = FACT[f.statut] || [f.statut || '·', ''];
+      const c = D.commandes.find(x => x.id === f.commande_id);
       return '<tr><td><b>' + esc(f.numero || 'Facture') + '</b></td><td>' + (c ? '<a href="#/projets/' + esc(c.id) + '">' + esc(nom(c)) + '</a>' : '<span class="muted">·</span>') + '</td>' +
-        '<td class="num">' + K.euros(f.montant) + '</td><td><span class="pill ' + st[1] + '"><i></i>' + esc(st[0]) + '</span></td><td>' + esc(K.date(f.emise_le)) + '</td>' +
-        '<td class="fin"><div style="display:flex;gap:6px;justify-content:flex-end">' + (f.pdf ? '<a class="btn btn-s btn-sm" href="' + esc(f.pdf) + '" target="_blank" rel="noopener">' + i.telecharger + 'PDF</a>' : '') +
-        (f.lien ? '<a class="btn btn-g btn-sm" href="' + esc(f.lien) + '" target="_blank" rel="noopener">' + (f.statut === 'ouverte' ? 'Régler' : 'Voir') + '</a>' : '') + '</div></td></tr>';
+        '<td class="num">' + K.euros(f.montant) + '</td><td>' + esc(K.date(f.emise_le)) + '</td>' +
+        '<td class="fin"><button class="btn btn-s btn-sm" data-fdl="' + esc(f.id) + '">' + i.telecharger + 'Télécharger</button></td></tr>';
     }).join('') + '</tbody></table>';
 }
+document.addEventListener('click', e => {
+  const b = e.target.closest && e.target.closest('[data-fdl]');
+  if (!b || !D) return;
+  const f = (D.factures || []).find(x => x.id === b.dataset.fdl); if (!f) return;
+  const c = D.commandes.find(x => x.id === f.commande_id);
+  K.telechargerFacture(f, { client: D.client.marque, email: D.client.email, projet: c ? nom(c) + ' · ' + c.nb_creas + ' créatives' : '' });
+});
 function ecranFactures() {
-  const F = D.factures || [];
+  const F = payees(D.factures);
   let h = apercu() + '<div class="ph"><div><h1>Factures</h1><p>Toutes vos factures Kreative, à télécharger quand vous le souhaitez.</p></div></div>';
   return h + (F.length ? '<div class="card"><div class="tbl-wrap">' + tableFactures(F) + '</div></div>'
     : '<div class="card"><div class="vide">' + i.recu + 'Vos factures apparaissent ici après chaque paiement.</div></div>');

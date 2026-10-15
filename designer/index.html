@@ -144,7 +144,7 @@ function ecranLivrer(id) {
   if (der && der.statut === 'a_corriger') gauche += '<div class="rv-note" style="margin-top:14px">' + i.crayon + '<div><b>Kreative sent version ' + der.version + ' back.</b> ' + esc(der.note_kreative || 'See the comments on the files below.') + ' Upload the corrected files: a file with the same name replaces the old one.</div></div>';
   if (der && der.statut === 'review_terminee') { const n = der.fichiers.reduce((s, f) => s + f.commentaires.filter(c => !c.interne).length, 0); gauche += '<div class="rv-note" style="margin-top:14px">' + i.message + '<div><b>The client sent ' + n + ' comment' + (n > 1 ? 's' : '') + ' on version ' + der.version + '.</b> Open the files below to read them, then upload the corrected files (same file name replaces the old one).</div></div>'; }
   if (peutDeposer) {
-    gauche += '<div class="depot" id="lv-depot" style="margin-top:14px">' + i.telecharger + '<b>Drop your files here, or click to choose</b><small>PNG, JPG or MP4. The format (1:1, 4:5, 9:16) is detected from the size.</small><input type="file" id="lv-fichiers" multiple accept="image/png,image/jpeg,image/webp,video/mp4,video/quicktime" hidden></div>' +
+    gauche += '<div class="depot" id="lv-depot" style="margin-top:14px">' + i.telecharger + '<b>Drop your PNG files here, or click to choose</b><small>PNG only. The format (1:1, 4:5, 9:16) is detected from the size.</small><input type="file" id="lv-fichiers" multiple accept="image/png,.png" hidden></div>' +
       '<div class="envois" id="lv-envois">' + DL.envois.map(e => '<div class="envoi-l"><span>' + esc(e.nom) + '</span><div class="barre' + (e.ok ? ' g' : '') + '"><i style="width:' + e.pc + '%"></i></div><small class="muted">' + esc(e.etat) + '</small></div>').join('') + '</div>';
     const attendu = Number(x.nb) || 0;
     gauche += '<div class="compte-formats">' + ['1x1', '4x5', '9x16'].map(f => { const n = F.filter(y => y.format === f).length; return '<span class="pill ' + (attendu && n >= attendu ? 'g' : n ? 'a' : '') + '">' + NOMS_F[f] + ' · ' + n + (attendu ? ' / ' + attendu : '') + '</span>'; }).join('') +
@@ -190,6 +190,9 @@ function envoyerFichier(livraison, f, format, d, suivi) {
   });
 }
 async function deposer(fichiers, x) {
+  const refuses = Array.from(fichiers).filter(f => f.type !== 'image/png');
+  if (refuses.length) K.toast(refuses.length + ' file' + (refuses.length > 1 ? 's' : '') + ' skipped: PNG only.');
+  fichiers = Array.from(fichiers).filter(f => f.type === 'image/png');
   if (!fichiers.length) return;
   let travail = ((DL.donnees && DL.donnees.versions) || [])[0];
   try { if (!travail || travail.statut !== 'brouillon') travail = await K.api('/api/equipe/livraisons', { methode: 'POST', corps: { dossier: x.dossier } }); }

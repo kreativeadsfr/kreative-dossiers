@@ -142,7 +142,7 @@
   }
   function rendre() {
     var P = D.packs[pack];
-    q('titre').innerHTML = 'Pack <em>' + P.nom + '</em>';
+    q('titre').textContent = 'Pack ' + P.nom;
     q('intro').textContent = pack === 'custom' ? 'Choisissez le volume et les options : le prix s\'affiche tout de suite.' : 'Ajoutez les options que vous souhaitez, puis passez commande.';
     q('pack').innerHTML = (pack === 'custom'
       ? '<h2>Nombre de créatives</h2><p class="kc-aide">Chaque créative est livrée en 1:1, 4:5 et 9:16. Plus vous en prenez, moins chacune coûte.</p><div class="kc-nb"><b>' + C.nb + '</b><span>créatives</span></div><input type="range" min="' + D.custom.min + '" max="' + D.custom.max + '" step="' + D.custom.pas + '" value="' + C.nb + '" aria-label="Nombre de créatives"><div class="kc-reperes"><span>' + D.custom.min + '</span><span>' + D.custom.max + '</span></div>'

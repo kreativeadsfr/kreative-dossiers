@@ -85,9 +85,12 @@ async function traiter(req, env, ctx) {
     if (!env.STRIPE_SECRET) return redirection('https://kreativeads.fr/');
     const q = url.searchParams, opts = (q.get('options') || '').split(',').map(x => x.trim()).filter(Boolean);
     const d = devis(pay[1], q.get('formule') === 'mensuel' ? 'mensuel' : 'unique', Number(q.get('creas') || q.get('nb')) || null, opts);
-    const retour = /^https:\/\/([a-z0-9-]+\.)*kreativeads\.fr(\/|$)/.test(req.headers.get('Referer') || '') ? req.headers.get('Referer') : 'https://kreativeads.fr/';
+    // annulation : retour sur la page panier du site (kreativeads.fr/commander/<pack>), même depuis le bloc Embed de Framer
+    const ref = req.headers.get('Referer') || '';
+    const retour = ref.startsWith(url.origin + '/commander/') ? 'https://kreativeads.fr/commander/' + d.pack
+      : /^https:\/\/([a-z0-9-]+\.)*kreativeads\.fr(\/|$)/.test(ref) ? ref : 'https://kreativeads.fr/';
     try {
-      const sess = await appelStripe(env, 'checkout/sessions', sessionStripe(d, { succes: 'https://kreativeads.fr/merci-' + d.pack, annule: retour }));
+      const sess = await appelStripe(env, 'checkout/sessions', sessionStripe(d, { succes: 'https://kreativeads.fr/merci-' + d.pack + '?session_id={CHECKOUT_SESSION_ID}', annule: retour }));
       return new Response(null, { status: 303, headers: { Location: sess.url, 'Cache-Control': 'no-store' } });
     } catch (e) { return texte('Le paiement n\'a pas pu s\'ouvrir. Réessayez dans un instant, ou écrivez-nous sur WhatsApp : 07 56 92 10 42.', 502); }
   }
@@ -2122,7 +2125,7 @@ function sessionStripe(d, o) {
   }
   if (m) p.subscription_data = { metadata: meta };
   else {
-    p.invoice_creation = { enabled: 'true', invoice_data: { metadata: meta } };
+    p.invoice_creation = { enabled: 'true', invoice_data: { metadata: meta, description: d.description } };   // le détail (créas, formats, options) sur la facture
     p.payment_intent_data = { metadata: meta };
     if (!cl || !cl.stripe_client) p.customer_creation = 'always';
   }

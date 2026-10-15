@@ -6,6 +6,10 @@
 <meta name="robots" content="noindex">
 <title>Espace client · Kreative</title>
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png"><link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png"><link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png"><link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/client/manifest.webmanifest">
+<meta name="theme-color" content="#ffffff">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Kreative"><meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="stylesheet" href="/ui/app.css">
 <script src="/ui/app.js"></script>
 <script src="/ui/panier.js"></script>
@@ -49,6 +53,62 @@ const enCours = () => D.commandes.filter(c => !['valide', 'annule'].includes(eta
 const prenom = () => (D.client.contact || '').trim().split(/\s+/)[0] || D.client.marque;
 const facturesDe = c => (D.factures || []).filter(f => f.commande_id === c.id);
 
+// ---------- L'APP : l'espace client sur l'écran d'accueil du téléphone, avec des notifications ----------
+const APP = {
+  installation: null,   // Android (Chrome) : la fenêtre d'installation, gardée pour le bouton
+  mobile: () => matchMedia('(max-width: 860px)').matches || /iPhone|iPad|Android/i.test(navigator.userAgent),
+  installee: () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true,
+  ios: () => /iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1),
+  safari: () => /Safari/i.test(navigator.userAgent) && !/CriOS|FxiOS|EdgiOS|GSA|Instagram|FBAN|FBAV/i.test(navigator.userAgent),
+  notifs: () => 'Notification' in window && Notification.permission === 'granted'
+};
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); APP.installation = e; if (/^#\/app/.test(location.hash)) K.rendre(); });
+window.addEventListener('appinstalled', () => { APP.installation = null; K.toast('L\'app Kreative est sur votre écran d\'accueil'); if (/^#\/app/.test(location.hash)) K.rendre(); });
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('/client/sw.js', { scope: '/client/' }).catch(() => {});
+const octets = b => { const p = '='.repeat((4 - b.length % 4) % 4), s = atob((b + p).replace(/-/g, '+').replace(/_/g, '/')); return Uint8Array.from(s, c => c.charCodeAt(0)); };
+async function activerNotifs() {
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) { K.toast(APP.ios() ? 'Ouvrez d\'abord l\'app depuis votre écran d\'accueil.' : 'Les notifications ne sont pas disponibles ici.'); return false; }
+  const ok = await Notification.requestPermission();
+  if (ok !== 'granted') { K.toast('Notifications refusées : vous pouvez les activer dans les réglages du téléphone.'); return false; }
+  try {
+    const reg = await navigator.serviceWorker.ready, { cle } = await K.api('/api/client/push/cle');
+    const sub = (await reg.pushManager.getSubscription()) || await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: octets(cle) });
+    await K.api('/api/client/push', { methode: 'POST', corps: { subscription: sub.toJSON() } });
+    K.toast('Notifications activées'); return true;
+  } catch (e) { K.toast('Les notifications n\'ont pas pu s\'activer. Réessayez.'); return false; }
+}
+function ecranApp() {
+  const ins = APP.installee(), ios = APP.ios();
+  let h = apercu() + '<div class="ph"><div><h1>L\'app Kreative</h1><p>Votre espace client sur l\'écran d\'accueil de votre téléphone, avec une notification dès que vos créatives sont prêtes.</p></div></div>';
+  h += '<div class="card app-carte"><div class="app-icone"><img src="/app-icon-192.png" alt=""><span>Kreative</span></div>';
+  if (ins) {
+    h += '<div class="app-etat ok">' + i.coche + 'L\'app est installée</div>' +
+      (APP.notifs() ? '<div class="app-etat ok">' + i.cloche + 'Notifications activées</div>'
+        : '<button class="btn btn-d btn-bloc btn-lg" id="app-notifs">' + i.cloche + 'Activer les notifications</button><p class="aide">Pour savoir tout de suite quand vos créatives ou une nouvelle version sont prêtes.</p>');
+  } else if (APP.installation) {
+    h += '<button class="btn btn-d btn-bloc btn-lg" id="app-installer">Installer l\'app</button><p class="aide">Gratuit, sans passer par un store. Elle s\'ajoute à votre écran d\'accueil.</p>';
+  } else if (ios && !APP.safari()) {
+    h += '<p class="aide fort">Ouvrez cette page dans Safari pour installer l\'app.</p><button class="btn btn-s btn-bloc" id="app-copier">' + i.copier + 'Copier le lien</button>';
+  } else if (ios) {
+    h += '<button class="btn btn-d btn-bloc btn-lg" id="app-guide">Installer l\'app</button><p class="aide">Gratuit, sans passer par l\'App Store.</p>' +
+      '<ol class="app-etapes" id="app-etapes" hidden><li><span>' + i.partager + '</span><div>Touchez <b>Partager</b>, en bas de Safari</div></li><li><span>' + i.plusCarre + '</span><div>Choisissez <b>Sur l\'écran d\'accueil</b></div></li><li><span>' + i.coche + '</span><div>Touchez <b>Ajouter</b> : l\'app Kreative est installée</div></li></ol>';
+  } else {
+    h += '<p class="aide fort">Ouvrez votre espace sur votre téléphone pour installer l\'app.</p><p class="aide">Sur Android : le menu ⋮ de Chrome, puis « Installer l\'application ».</p>';
+  }
+  return h + '</div>';
+}
+function brancherApp() {
+  if (APP.installee() && !sessionStorage.getItem('k-app')) { try { sessionStorage.setItem('k-app', '1'); } catch (e) {} K.api('/api/client/app', { methode: 'POST' }).catch(() => {}); }
+  const b = document.getElementById('app-installer');
+  if (b) b.onclick = async () => { const p = APP.installation; if (!p) return; p.prompt(); const r = await p.userChoice.catch(() => ({})); APP.installation = null; if (r.outcome === 'accepted') K.toast('C\'est installé !'); K.rendre(); };
+  const g = document.getElementById('app-guide');
+  if (g) g.onclick = () => { const e = document.getElementById('app-etapes'); e.hidden = false; g.hidden = true; e.classList.add('montre'); };
+  const n = document.getElementById('app-notifs');
+  if (n) n.onclick = async () => { n.disabled = true; await activerNotifs(); K.rendre(); };
+  const c = document.getElementById('app-copier');
+  if (c) c.onclick = () => K.copier(location.origin + '/client/#/app', 'Lien copié : collez-le dans Safari');
+}
+
 function conf() {
   return {
     cta: { texte: 'Commander des créas', href: '#/commander' },
@@ -60,7 +120,7 @@ function conf() {
     ] }, { titre: 'Kreative', liens: [
       { id: 'contact', texte: 'Nous contacter', icone: 'message', href: '#/contact' },
       { id: 'avis', texte: 'Laisser un avis', icone: 'etoile', href: '#/avis' }
-    ] }],
+    ].concat(APP.mobile() ? [{ id: 'app', texte: 'App', icone: 'telephone', href: '#/app' }] : []) }],
     qui: { nom: D.client.marque, role: D.client.contact || D.client.email || 'Client', tuile: true, photo: urlPhoto() },
     menu: ['<a href="#/profil">' + i.utilisateur + 'Mon profil</a>'],
     sansTheme: true,
@@ -582,6 +642,7 @@ const ECRANS = {
   projets: ['projets', 'dossier', p => p[1] === 'creatives' ? ['Mes projets', nomProjetDe(p[0]), 'Créatives'] : p[0] ? ['Mes projets', nomProjetDe(p[0])] : ['Mes projets'],
     p => p[1] === 'creatives' ? ecranCreatives(p[0]) : p[0] ? ecranProjet(p[0]) : ecranProjets(), p => p[1] === 'creatives' ? brancherCreatives(p) : brancherProjet()],
   brief: ['brief', 'doc', () => ['Mon brief'], p => ecranBrief(p[0]), p => attendreBrief(p[0])],
+  app: ['app', 'telephone', () => ['App'], () => ecranApp(), () => brancherApp()],
   factures: ['factures', 'recu', () => ['Factures'], () => ecranFactures()],
   commander: ['commander', 'panier', p => p[0] === 'paiement' ? ['Commander des créas', 'Paiement'] : p[0] && D.packs[p[0]] ? ['Commander des créas', 'Pack ' + D.packs[p[0]].nom] : ['Commander des créas'],
     p => p[0] === 'paiement' ? ecranPaiement() : p[0] ? ecranPanier(p[0]) : ecranCommander(), p => p[0] === 'paiement' ? brancherPaiement() : p[0] ? brancherPanier() : null],
@@ -604,6 +665,8 @@ if (params.get('paiement') === 'ok') history.replaceState(null, '', location.pat
 (async () => {
   try {
     D = await K.api('/api/client/moi'); K.rendre();
+    // ouverte depuis l'écran d'accueil : l'app est installée (Kreative le voit dans l'admin)
+    if (APP.installee() && !D.apercu) K.api('/api/client/app', { methode: 'POST' }).catch(() => {});
     // un projet validé sans avis : la fenêtre Trustpilot revient une fois par visite
     const sansAvis = D.commandes.find(c => etat(c) === 'valide' && !c.avis_le && !c.avis_ignore_le);
     let vu = false; try { vu = sessionStorage.getItem('k-avis') === '1'; } catch (e) {}

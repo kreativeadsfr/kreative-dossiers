@@ -515,19 +515,34 @@ function raisonRelance(c) {
   if (!c.nb_commandes && c.cree_le && now - c.cree_le > 7 * J) return 'Jamais commandé';
   return '';
 }
+// une notification (une promo, une nouvelle) aux clients qui ont activé les notifications de l'app
+function notifierClients() {
+  const C = S.clients || [], avec = C.filter(c => c.notifs > 0).length, app = C.filter(c => c.app_le).length;
+  const v = K.fenetre('<div class="fen-h"><h2>Envoyer une notification</h2><p>' + avec + ' client' + (avec > 1 ? 's' : '') + ' avec les notifications activées · ' + app + ' avec l\'app installée.</p></div>' +
+    '<div class="fen-b"><div class="champ"><label>Titre</label><input class="in" id="nt-titre" maxlength="80" placeholder="−20 % pendant 48 h"></div>' +
+    '<div class="champ"><label>Message</label><textarea class="in" id="nt-texte" rows="3" maxlength="240" style="height:auto;padding:10px 12px" placeholder="Code KREATIVE20 sur votre prochain pack, jusqu\'à dimanche minuit."></textarea></div>' +
+    '<div class="champ"><label>Au clic, ouvrir</label><select class="in" id="nt-url"><option value="/client/#/commander">Commander des créas</option><option value="/client/">L\'accueil de l\'espace</option><option value="/client/#/projets">Mes projets</option></select></div></div>' +
+    '<div class="fen-f"><button class="btn btn-s" data-n>Annuler</button><button class="btn btn-p" data-o' + (avec ? '' : ' disabled') + '>Envoyer à ' + avec + ' client' + (avec > 1 ? 's' : '') + '</button></div>');
+  v.querySelector('[data-n]').onclick = K.fermer;
+  v.querySelector('[data-o]').onclick = async e => {
+    e.target.disabled = true;
+    try { const r = await K.api('/api/admin/notifier', { methode: 'POST', corps: { titre: K.$('#nt-titre').value, texte: K.$('#nt-texte').value, url: K.$('#nt-url').value } }); K.fermer(); K.toast(r.message); }
+    catch (x) { K.toast(x.message); e.target.disabled = false; }
+  };
+}
 function ecranClients() {
   const C = S.clients || [], q = S.chClients.toLowerCase(), f = S.filtreClients;
   const relancer = c => !!raisonRelance(c);
-  const filtres = { tous: () => true, actifs: c => c.en_cours > 0, abonnes: c => c.dernier_mensuel && c.dernier_mensuel > Date.now() - 35 * 864e5, relancer, bloques: c => c.statut === 'bloque' };
+  const filtres = { tous: () => true, actifs: c => c.en_cours > 0, abonnes: c => c.dernier_mensuel && c.dernier_mensuel > Date.now() - 35 * 864e5, relancer, app: c => !!c.app_le, bloques: c => c.statut === 'bloque' };
   const liste = C.filter(filtres[f]).filter(c => !q || (c.marque + ' ' + (c.contact || '') + ' ' + (c.email || '')).toLowerCase().includes(q));
   const chip = (k, t, coul) => '<button class="chip' + (f === k ? ' on' : '') + '" onclick="S.filtreClients=\'' + k + '\';K.rendre()">' + (coul ? '<i style="color:' + coul + '"></i>' : '') + t + '<span class="c">' + C.filter(filtres[k]).length + '</span></button>';
   let h = '<div class="ph"><div><h1>Clients</h1><p>' + C.length + ' compte' + (C.length > 1 ? 's' : '') + ' · ' + C.reduce((s, c) => s + c.nb_commandes, 0) + ' commandes au total</p></div>' +
-    '<div class="act"><button class="btn btn-s" onclick="exporterClients()">' + i.telecharger + 'Exporter</button><a class="btn btn-p" href="#/clients/nouveau">' + i.plus + 'Ajouter un client</a></div></div>';
-  h += '<div class="filtres">' + chip('tous', 'Tous') + chip('actifs', 'Projet en cours', 'var(--blue)') + chip('abonnes', 'Abonnés', 'var(--violet)') + chip('relancer', 'À relancer', 'var(--red)') +
+    '<div class="act"><button class="btn btn-s" onclick="notifierClients()">' + i.cloche + 'Notification</button><button class="btn btn-s" onclick="exporterClients()">' + i.telecharger + 'Exporter</button><a class="btn btn-p" href="#/clients/nouveau">' + i.plus + 'Ajouter un client</a></div></div>';
+  h += '<div class="filtres">' + chip('tous', 'Tous') + chip('actifs', 'Projet en cours', 'var(--blue)') + chip('abonnes', 'Abonnés', 'var(--violet)') + chip('relancer', 'À relancer', 'var(--red)') + chip('app', 'Avec l\'app', 'var(--green)') +
     '<div class="champ-r" style="margin-left:auto">' + i.chercher + '<input id="ch-clients" placeholder="Rechercher un client…" value="' + esc(S.chClients) + '"></div></div>';
   if (!C.length) return h + '<div class="card"><div class="vide">' + i.gens + 'Aucun client pour l\'instant.<br><a class="btn btn-p btn-sm" style="margin-top:14px" href="#/clients/nouveau">Ajouter le premier client</a></div></div>';
   h += '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Client</th><th>Contact</th><th class="num">Commandes</th><th class="num">Total</th><th>Dernière commande</th><th>Dernière connexion</th><th>Statut</th><th></th></tr></thead><tbody>' +
-    (liste.map(c => '<tr class="clic" onclick="location.hash=\'#/clients/' + esc(c.id) + '\'"><td><div class="nom">' + tuileClient(c) + '<div><b>' + esc(c.marque) + '</b><span class="sub">' + esc(c.email || 'pas d\'email') + '</span></div></div></td>' +
+    (liste.map(c => '<tr class="clic" onclick="location.hash=\'#/clients/' + esc(c.id) + '\'"><td><div class="nom">' + tuileClient(c) + '<div><b>' + esc(c.marque) + (c.app_le ? ' <span class="pill g" title="' + (c.notifs ? 'App installée, notifications activées' : 'App installée') + '">App' + (c.notifs ? ' · notifs' : '') + '</span>' : '') + '</b><span class="sub">' + esc(c.email || 'pas d\'email') + '</span></div></div></td>' +
       '<td>' + esc(c.contact || '·') + '<span class="sub">' + esc(c.telephone || '') + '</span></td><td class="num">' + c.nb_commandes + '</td><td class="num">' + K.euros(c.total) + '</td>' +
       '<td>' + (c.derniere_commande ? esc(K.date(c.derniere_commande)) : '<span class="muted">·</span>') + '</td><td>' + (c.vu_le ? esc(K.ilya(c.vu_le)) : '<span class="muted">jamais</span>') + '</td>' +
       '<td>' + (c.statut === 'bloque' ? '<span class="pill r">Bloqué</span>' : relancer(c) ? '<span class="pill a"><i></i>' + esc(raisonRelance(c)) + '</span>' : c.en_cours ? '<span class="pill b"><i></i>Projet en cours</span>' : c.nb_commandes ? '<span class="pill g"><i></i>Client</span>' : '<span class="pill">Nouveau</span>') + '</td>' +

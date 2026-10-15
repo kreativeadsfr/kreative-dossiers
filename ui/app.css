@@ -794,3 +794,22 @@ a.lien-kpi:hover{border-color:var(--line2)}
   background:var(--soft) center/30px no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a39b92' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z'/%3E%3Cpath d='M14 3v5h5'/%3E%3C/svg%3E")}
 .brief-qr .vign img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .brief-qr .fics span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ---------- l'app (espace client sur l'écran d'accueil) ---------- */
+.app-carte{max-width:420px;margin:0 auto;padding:36px 26px 30px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:14px}
+.app-icone{display:flex;flex-direction:column;align-items:center;gap:9px;margin-bottom:12px}
+.app-icone img{width:96px;height:96px;border-radius:22px;box-shadow:0 14px 34px -12px rgba(15,23,42,.35),0 0 0 1px rgba(15,23,42,.06)}
+.app-icone span{font-size:14px;font-weight:500;color:var(--ink);letter-spacing:-.01em}
+.app-carte .btn{max-width:320px}
+.app-carte .btn svg{width:17px;height:17px}
+.app-carte .aide{font-size:13px;color:var(--tx3);line-height:1.5;max-width:300px}
+.app-carte .aide.fort{color:var(--tx2);font-size:14px}
+.app-etat{display:inline-flex;align-items:center;gap:8px;font-weight:600;font-size:14px;color:var(--green);background:var(--green-soft);padding:9px 14px;border-radius:999px}
+.app-etat svg{width:16px;height:16px}
+.app-etapes{list-style:none;margin:6px 0 0;padding:0;display:flex;flex-direction:column;gap:10px;width:100%;max-width:330px;text-align:left}
+.app-etapes li{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:var(--panel);font-size:14px;line-height:1.35}
+.app-etapes li span{width:34px;height:34px;flex:none;border-radius:10px;background:var(--blue-soft);color:var(--blue);display:grid;place-items:center}
+.app-etapes li span svg{width:18px;height:18px}
+.app-etapes.montre li{animation:app-in .35s cubic-bezier(.2,.9,.3,1) both}
+.app-etapes.montre li:nth-child(2){animation-delay:.08s}.app-etapes.montre li:nth-child(3){animation-delay:.16s}
+@keyframes app-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}

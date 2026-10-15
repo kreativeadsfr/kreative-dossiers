@@ -27,7 +27,7 @@ const ANCIENS = [
 ];
 const COOKIE = 'k_espace';
 const DUREE_JOURS = 60;
-const PUBLICS = /^\/(ui\/kreative\.css|ui\/(app|review|panier)\.(css|js)|ui\/logo-[a-z0-9-]+\.png|ui\/[a-z0-9-]+\.svg|favicon-\d+\.png|apple-touch-icon\.png)$/;
+const PUBLICS = /^\/(ui\/kreative\.css|ui\/(app|review|panier)\.(css|js)|ui\/logo-[a-z0-9-]+\.png|ui\/[a-z0-9-]+\.svg|favicon-\d+\.png|apple-touch-icon\.png|app-icon-[a-z0-9-]+\.png)$/;
 const INTERDITS = /(^|\/)(\.git|\.github|outils)(\/|$)|\.\./;
 const LIMITE_REECRITURE = 3 * 1024 * 1024;   // au-delà, le texte passe tel quel
 const LIMITE_SCRIPT = 64 * 1024;              // scripts inline réécrits jusqu'à 64 ko
@@ -689,7 +689,7 @@ async function base(env) {
     for (const col of ['avis_le INTEGER', 'avis_ignore_le INTEGER', 'valide_le INTEGER', 'stripe_session TEXT', 'stripe_abo TEXT', 'stripe_facture TEXT', 'options TEXT', 'brief_json TEXT']) {
       try { await env.DB.prepare('ALTER TABLE commandes ADD COLUMN ' + col).run(); } catch (e) {}
     }
-    for (const col of ['stripe_client TEXT', 'photo TEXT', 'photo_le INTEGER']) {
+    for (const col of ['stripe_client TEXT', 'photo TEXT', 'photo_le INTEGER', 'app_le INTEGER']) {
       try { await env.DB.prepare('ALTER TABLE clients ADD COLUMN ' + col).run(); } catch (e) {}
     }
     try { await env.DB.prepare('CREATE UNIQUE INDEX IF NOT EXISTS i_cmd_session ON commandes(stripe_session)').run(); } catch (e) {}
@@ -698,6 +698,8 @@ async function base(env) {
     // numéros de commande lisibles : 1001, 1002… (les anciens « K-101 » deviennent 1001)
     try { await env.DB.prepare("UPDATE commandes SET ref = CAST(CAST(substr(ref, 3) AS INTEGER) + 900 AS TEXT) WHERE ref LIKE 'K-%'").run(); } catch (e) {}
     BASE_PRETE = true;
+    // la démo n'existe plus : ses clients, commandes et factures fictifs s'effacent tout seuls
+    try { if (await env.DB.prepare("SELECT 1 AS x FROM clients WHERE id LIKE 'c_demo_%' LIMIT 1").first()) await retirerDemo(env.DB, env); } catch (e) {}
   }
   return env.DB;
 }
@@ -803,6 +805,9 @@ async function routerPortail(req, env, ctx, url, chemin) {
     return apiEquipe(req, env, ctx, url, chemin.slice('/api/equipe'.length), methode, qui);
   }
 
+  // ---- l'app de l'espace client (à installer sur l'écran d'accueil) : manifeste et service worker, publics ----
+  if (chemin === '/client/manifest.webmanifest') return new Response(JSON.stringify(MANIFESTE), { headers: { 'Content-Type': 'application/manifest+json; charset=utf-8', 'Cache-Control': 'public, max-age=3600' } });
+  if (chemin === '/client/sw.js') return new Response(SERVICE_WORKER, { headers: { 'Content-Type': 'text/javascript; charset=utf-8', 'Cache-Control': 'no-cache', 'Service-Worker-Allowed': '/client/' } });
   // ---- la page de connexion du client (publique) ----
   if (chemin === '/client/connexion') return servir('client/connexion.html', env, ctx, { brut: false, origine: url.origin, req });
 
@@ -946,6 +951,25 @@ async function apiClient(req, env, ctx, url, chemin, methode, cl, apercu) {
   if (methode !== 'GET' && apercu) return json({ erreur: 'Aperçu : rien n\'est enregistré à la place du client.' }, 403);
 
   // son profil
+  // l'app : installée (ouverte depuis l'écran d'accueil), notifications
+  if (chemin === '/app' && methode === 'POST') {
+    if (!apercu) await db.prepare('UPDATE clients SET app_le = COALESCE(app_le, ?) WHERE id = ?').bind(maintenant(), cl.id).run();
+    return json({ ok: true });
+  }
+  if (chemin === '/push/cle' && methode === 'GET') return json({ cle: (await clesVapid(env)).publique });
+  if (chemin === '/push' && methode === 'POST') {
+    if (apercu) return json({ ok: true });
+    const b = await corpsJson(req), ep = String((b.subscription && b.subscription.endpoint) || '');
+    if (!/^https:\/\//.test(ep) && !(env.PUSH_TEST && ep.startsWith(env.PUSH_TEST))) return json({ erreur: 'Abonnement invalide' }, 400);
+    const ldb = await baseLiv(env);
+    await ldb.prepare('INSERT INTO push_abos (endpoint, client_id, cree_le) VALUES (?,?,?) ON CONFLICT(endpoint) DO UPDATE SET client_id = excluded.client_id').bind(ep.slice(0, 1000), cl.id, maintenant()).run();
+    await db.prepare('UPDATE clients SET app_le = COALESCE(app_le, ?) WHERE id = ?').bind(maintenant(), cl.id).run();
+    return json({ ok: true });
+  }
+  if (chemin === '/notifications/derniere' && methode === 'GET') {
+    const n = await (await baseLiv(env)).prepare('SELECT titre, texte, url, cree_le FROM notifications WHERE client_id = ? ORDER BY id DESC LIMIT 1').bind(cl.id).first();
+    return json(n || { titre: 'Kreative', texte: 'Du nouveau dans votre espace.', url: '/client/' });
+  }
   if (chemin === '/moi' && methode === 'PATCH') {
     const b = await corpsJson(req);
     if ('photo' in b) {
@@ -1142,13 +1166,25 @@ async function apiAdmin(req, env, ctx, url, chemin, methode) {
   const b = methode === 'GET' ? {} : await corpsJson(req);
   let m;
 
+  // une notification aux clients qui ont l'app (une promo, une nouvelle) ou à un seul client
+  if (chemin === '/notifier' && methode === 'POST') {
+    const titre = propre(b.titre, 80), texte = propre(b.texte, 240), lien = /^\/client\//.test(String(b.url || '')) ? propre(b.url, 200) : '/client/';
+    if (!titre || !texte) return json({ erreur: 'Écrivez un titre et un message.' }, 400);
+    const ldb = await baseLiv(env);
+    const { results } = b.client ? { results: [{ client_id: String(b.client) }] } : await ldb.prepare('SELECT DISTINCT client_id FROM push_abos').all();
+    let appareils = 0;
+    for (const r of results) appareils += await notifier(env, r.client_id, { titre, texte, url: lien });
+    return json({ ok: true, clients: results.length, appareils, message: 'Notification envoyée à ' + results.length + ' client' + (results.length > 1 ? 's' : '') + '.' });
+  }
   if (chemin === '/clients' && methode === 'GET') {
+    await baseLiv(env);
     await synchroStatuts(db);
     const { results } = await db.prepare(`SELECT c.*, COUNT(k.id) AS nb_commandes, COALESCE(SUM(k.prix),0) AS total,
       MAX(k.cree_le) AS derniere_commande, SUM(CASE WHEN k.statut IN ('brief','production','livre','revisions') THEN 1 ELSE 0 END) AS en_cours,
       SUM(CASE WHEN k.statut = 'valide' AND k.avis_le IS NULL THEN 1 ELSE 0 END) AS sans_avis,
       MIN(CASE WHEN k.statut = 'brief' THEN k.cree_le END) AS brief_attendu_depuis, MAX(k.valide_le) AS derniere_validation,
-      MAX(CASE WHEN k.formule = 'mensuel' THEN k.cree_le END) AS dernier_mensuel
+      MAX(CASE WHEN k.formule = 'mensuel' THEN k.cree_le END) AS dernier_mensuel,
+      (SELECT COUNT(*) FROM push_abos p WHERE p.client_id = c.id) AS notifs
       FROM clients c LEFT JOIN commandes k ON k.client_id = c.id AND k.statut != 'annule'
       GROUP BY c.id ORDER BY c.cree_le DESC`).all();
     return json(results.map(({ photo, ...c }) => ({ ...c, lien: lienAcces(url, c.jeton) })));
@@ -1343,6 +1379,9 @@ async function baseLiv(env) {
       db.prepare(`CREATE TABLE IF NOT EXISTS commentaires (id INTEGER PRIMARY KEY AUTOINCREMENT, fichier_id TEXT NOT NULL, livraison_id TEXT,
         auteur TEXT, role TEXT, texte TEXT, forme TEXT, couleur TEXT, interne INTEGER DEFAULT 0, cree_le INTEGER)`),
       db.prepare('CREATE TABLE IF NOT EXISTS prod_etapes (dossier TEXT PRIMARY KEY, etape TEXT, le INTEGER, par TEXT)'),
+      db.prepare('CREATE TABLE IF NOT EXISTS push_abos (endpoint TEXT PRIMARY KEY, client_id TEXT, cree_le INTEGER)'),
+      db.prepare('CREATE TABLE IF NOT EXISTS notifications (id INTEGER PRIMARY KEY AUTOINCREMENT, client_id TEXT, titre TEXT, texte TEXT, url TEXT, cree_le INTEGER)'),
+      db.prepare('CREATE TABLE IF NOT EXISTS reglages (cle TEXT PRIMARY KEY, valeur TEXT)'),
       db.prepare('CREATE TABLE IF NOT EXISTS retours (id INTEGER PRIMARY KEY AUTOINCREMENT, apres TEXT, suivante TEXT, commande_id TEXT, client_id TEXT, reponses TEXT, recu_le INTEGER)'),
       db.prepare('CREATE INDEX IF NOT EXISTS i_liv_dossier ON livraisons(dossier)'),
       db.prepare('CREATE INDEX IF NOT EXISTS i_fic_liv ON fichiers(livraison_id)'),
@@ -1410,6 +1449,8 @@ async function envoyerAuClient(env, ctx, url, db, l) {
   // une partie (1/2…) renvoyée après retouches : la commande repart en production
   if (!finale && k.statut === 'revisions') await db.prepare("UPDATE commandes SET statut = 'production' WHERE id = ?").bind(k.id).run();
   await noter(db, k.client_id, k.id, 'livre', l.version > 1 ? 'Nouvelle version de vos créatives (version ' + l.version + ')' : 'Vos créatives sont livrées');
+  const notif = notifier(env, k.client_id, { titre: l.version > 1 ? 'La nouvelle version est prête' : 'Vos créatives sont prêtes', texte: k.marque + ' · ' + (l.version > 1 ? 'version ' + l.version + ', avec vos retouches.' : 'regardez-les et dites-nous ce que vous en pensez.'), url: '/client/#/projets/' + k.id + '/creatives' });
+  if (ctx && ctx.waitUntil) ctx.waitUntil(notif); else await notif;
   if (k.email && k.jeton && !/^TEST_DEMO_/.test(l.dossier)) {
     const prenom = String(k.contact || '').trim().split(/\s+/)[0], lien = lienAcces(url, k.jeton);
     const envoi = envoyerEmail(env, { type: 'creatives', a: k.email, marque: k.marque, contact: k.contact || '', lien,
@@ -1504,6 +1545,64 @@ async function deplacerProjet(env, ctx, url, db, dossier, vers, qui, confirme) {
   // à livrer au client (vérification)
   await noterEtape();
   return { action: 'etape', message: 'Projet passé en vérification.' };
+}
+
+// ============================================================
+//  L'APP DE L'ESPACE CLIENT : installée sur l'écran d'accueil (PWA),
+//  avec des notifications (Web Push, sans contenu chiffré : le téléphone
+//  est réveillé, puis l'app lit la dernière notification du client).
+//  Les clés VAPID sont créées toutes seules et gardées dans la base.
+// ============================================================
+const MANIFESTE = { name: 'Kreative', short_name: 'Kreative', description: 'Votre espace client Kreative', id: '/client/', start_url: '/client/?app=1', scope: '/client/',
+  display: 'standalone', background_color: '#f8f6f3', theme_color: '#ffffff', lang: 'fr',
+  icons: [{ src: '/app-icon-192.png', sizes: '192x192', type: 'image/png' }, { src: '/app-icon-512.png', sizes: '512x512', type: 'image/png' },
+    { src: '/app-icon-maskable.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' }] };
+const SERVICE_WORKER = `self.addEventListener('install', e => self.skipWaiting());
+self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
+self.addEventListener('fetch', () => {});
+self.addEventListener('push', e => e.waitUntil(fetch('/api/client/notifications/derniere', { credentials: 'include' }).then(r => r.json()).catch(() => ({}))
+  .then(n => self.registration.showNotification(n.titre || 'Kreative', { body: n.texte || 'Du nouveau dans votre espace.', icon: '/app-icon-192.png', badge: '/favicon-48.png', data: { url: n.url || '/client/' } }))));
+self.addEventListener('notificationclick', e => { e.notification.close(); const u = (e.notification.data && e.notification.data.url) || '/client/';
+  e.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(l => { const w = l.find(x => x.url.includes('/client/')); return w ? w.navigate(u).then(x => (x || w).focus()) : self.clients.openWindow(u); })); });`;
+const b64u = buf => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+let VAPID = null;
+async function clesVapid(env) {
+  if (VAPID) return VAPID;
+  const db = await baseLiv(env);
+  let r = await db.prepare("SELECT valeur FROM reglages WHERE cle = 'vapid'").first();
+  if (!r) {
+    const k = await crypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, true, ['sign', 'verify']);
+    const jwk = await crypto.subtle.exportKey('jwk', k.privateKey), pub = b64u(await crypto.subtle.exportKey('raw', k.publicKey));
+    await db.prepare("INSERT OR IGNORE INTO reglages (cle, valeur) VALUES ('vapid', ?)").bind(JSON.stringify({ jwk, pub })).run();
+    r = await db.prepare("SELECT valeur FROM reglages WHERE cle = 'vapid'").first();
+  }
+  const v = JSON.parse(r.valeur);
+  VAPID = { publique: v.pub, privee: await crypto.subtle.importKey('jwk', v.jwk, { name: 'ECDSA', namedCurve: 'P-256' }, false, ['sign']) };
+  return VAPID;
+}
+async function jetonVapid(env, endpoint) {
+  const v = await clesVapid(env), enc = o => b64u(new TextEncoder().encode(JSON.stringify(o)));
+  const corps = enc({ typ: 'JWT', alg: 'ES256' }) + '.' + enc({ aud: new URL(endpoint).origin, exp: Math.floor(Date.now() / 1000) + 12 * 3600, sub: 'mailto:contact@kreativeads.fr' });
+  const sig = await crypto.subtle.sign({ name: 'ECDSA', hash: 'SHA-256' }, v.privee, new TextEncoder().encode(corps));
+  return { jwt: corps + '.' + b64u(sig), cle: v.publique };
+}
+// une notification au client : gardée (l'app la lit), puis chaque appareil abonné est réveillé
+async function notifier(env, clientId, n) {
+  try {
+    const db = await baseLiv(env);
+    await db.prepare('INSERT INTO notifications (client_id, titre, texte, url, cree_le) VALUES (?,?,?,?,?)').bind(clientId, String(n.titre || 'Kreative').slice(0, 120), String(n.texte || '').slice(0, 300), String(n.url || '/client/').slice(0, 300), maintenant()).run();
+    const { results } = await db.prepare('SELECT endpoint FROM push_abos WHERE client_id = ?').bind(clientId).all();
+    let envoyes = 0;
+    for (const a of results) {
+      try {
+        const { jwt, cle } = await jetonVapid(env, a.endpoint);
+        const r = await fetch(a.endpoint, { method: 'POST', headers: { TTL: '86400', Urgency: 'high', Authorization: 'vapid t=' + jwt + ', k=' + cle, 'Content-Length': '0' } });
+        if (r.status === 404 || r.status === 410) await db.prepare('DELETE FROM push_abos WHERE endpoint = ?').bind(a.endpoint).run();
+        else if (r.ok) envoyes++;
+      } catch (e) {}
+    }
+    return envoyes;
+  } catch (e) { return 0; }
 }
 
 // ---------- les emails (le HTML est fait ici ; n8n l'envoie tel quel) ----------

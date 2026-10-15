@@ -460,16 +460,25 @@ async function lacherKanban() {
     await poser(); KB.drag = null; await rendreKanban();
   };
   if (!x || vers === d.colDepart) { await poser(); KB.drag = null; await rendreKanban(); return; }
-  // une action qui part chez le client : on demande d'abord
-  if (vers === 'client' && x.v && x.v.statut === 'a_verifier' && !await K.confirmer('Envoyer au client ?', 'La version ' + x.v.version + ' de ' + nomProjet(x) + ' part chez le client, qui reçoit un email pour la voir.', 'Envoyer au client')) return retour();
-  if (vers === 'client' && x.v && x.v.statut === 'brouillon') { K.toast('La designer n\'a pas encore envoyé ses fichiers.'); return retour(); }
+  // ce qui part chez le client, ou lui retire sa review, se confirme d'abord
+  const demander = (st, version) => st === 'a_verifier' && vers === 'client'
+    ? K.confirmer('Envoyer au client ?', 'La version ' + version + ' de ' + nomProjet(x) + ' part chez le client, qui reçoit un email pour la voir.', 'Envoyer au client')
+    : K.confirmer('Demander des retouches ?', 'La review de la version ' + version + ' se termine pour le client, et les retouches partent ' + (vers === 'strat' ? 'chez le stratégiste.' : 'chez la designer.'), 'Lancer les retouches');
+  let confirme = false;
+  const st0 = x.v && x.v.statut;
+  if ((vers === 'client' && st0 === 'a_verifier') || (['desi', 'strat'].includes(vers) && ['envoyee', 'approuvee'].includes(st0))) {
+    if (!await demander(st0, x.v.version)) return retour();
+    confirme = true;
+  }
+  if (vers === 'client' && st0 === 'brouillon') { K.toast('La designer n\'a pas encore envoyé ses fichiers.'); return retour(); }
   await poser();
   try {
-    const r = await K.api('/api/equipe/deplacer', { methode: 'POST', corps: { dossier: x.dossier, vers } });
-    if (r.erreur) { K.toast(r.message); }
-    else K.toast(r.message);
-    await K.prod.chargerEtats(r.etats);
-    if (r.action === 'envoyee' || r.action === 'retouches' || r.action === 'etape') { S.commandes = null; S.livraisons = null; await charger('commandes', true); }
+    let r = await K.api('/api/equipe/deplacer', { methode: 'POST', corps: { dossier: x.dossier, vers, confirme } });
+    // l'état avait changé entre-temps : on demande, puis on recommence
+    if (r.confirmer) r = await demander(r.statut, r.version) ? await K.api('/api/equipe/deplacer', { methode: 'POST', corps: { dossier: x.dossier, vers, confirme: true } }) : { message: 'Rien n\'a changé.' };
+    K.toast(r.message);
+    if (r.etats) await K.prod.chargerEtats(r.etats);
+    if (r.action) { S.commandes = null; S.livraisons = null; await charger('commandes', true); }
   } catch (e) { K.toast(e.message); }
   KB.drag = null;
   await rendreKanban();
@@ -850,7 +859,8 @@ function brancherLivraison() {
   const env = document.querySelector('[data-envoyer-client]');
   if (env) env.onclick = async () => {
     if (!await K.confirmer('Envoyer au client ?', 'Le client reçoit un email et voit les ' + l.fichiers.length + ' fichiers dans son espace, pour sa review.', 'Envoyer au client')) return;
-    try { const r = await K.api('/api/equipe/livraisons/' + l.id + '/decision', { methode: 'POST', corps: { action: 'envoyer' } }); K.toast(r.message); S.livraisons = null; S.commandes = null; await charger('livraisons'); await chargerLivraison(l.dossier); } catch (e) { K.toast(e.message); }
+    env.disabled = true;
+    try { const r = await K.api('/api/equipe/livraisons/' + l.id + '/decision', { methode: 'POST', corps: { action: 'envoyer' } }); K.toast(r.message); S.livraisons = null; S.commandes = null; await charger('livraisons'); await K.prod.chargerEtats(); await chargerLivraison(l.dossier); } catch (e) { K.toast(e.message); env.disabled = false; }
   };
   document.querySelectorAll('[data-router]').forEach(b => b.onclick = async () => {
     if (b.classList.contains('on')) return;
@@ -865,7 +875,8 @@ function brancherLivraison() {
     let pour = 'designer';
     v.querySelectorAll('[data-pour]').forEach(b => b.onclick = () => { pour = b.dataset.pour; v.querySelectorAll('[data-pour]').forEach(y => y.classList.toggle('on', y === b)); });
     v.querySelector('[data-o]').onclick = async () => {
-      try { const r = await K.api('/api/equipe/livraisons/' + l.id + '/decision', { methode: 'POST', corps: { action: 'corriger', pour, note: v.querySelector('#note-corr').value } }); K.fermer(); K.toast(r.message); S.livraisons = null; await charger('livraisons'); await chargerLivraison(l.dossier); } catch (e) { K.toast(e.message); }
+      const ok = v.querySelector('[data-o]'); ok.disabled = true;
+      try { const r = await K.api('/api/equipe/livraisons/' + l.id + '/decision', { methode: 'POST', corps: { action: 'corriger', pour, note: v.querySelector('#note-corr').value } }); K.fermer(); K.toast(r.message); S.livraisons = null; await charger('livraisons'); await K.prod.chargerEtats(); await chargerLivraison(l.dossier); } catch (e) { K.toast(e.message); ok.disabled = false; }
     };
   };
 }

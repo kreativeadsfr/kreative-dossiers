@@ -658,6 +658,8 @@ async function base(env) {
       try { await env.DB.prepare('ALTER TABLE clients ADD COLUMN ' + col).run(); } catch (e) {}
     }
     try { await env.DB.prepare('CREATE UNIQUE INDEX IF NOT EXISTS i_cmd_session ON commandes(stripe_session)').run(); } catch (e) {}
+    // une facture Stripe = une seule commande, même si Stripe envoie plusieurs événements en même temps
+    try { await env.DB.prepare('CREATE UNIQUE INDEX IF NOT EXISTS i_cmd_facture ON commandes(stripe_facture) WHERE stripe_facture IS NOT NULL').run(); } catch (e) {}
     // numéros de commande lisibles : 1001, 1002… (les anciens « K-101 » deviennent 1001)
     try { await env.DB.prepare("UPDATE commandes SET ref = CAST(CAST(substr(ref, 3) AS INTEGER) + 900 AS TEXT) WHERE ref LIKE 'K-%'").run(); } catch (e) {}
     BASE_PRETE = true;
@@ -813,7 +815,7 @@ async function lireJsonDepot(env, chemin) {
   let v = null;
   try { const r = await lireGithub(chemin, env, 'GET'); v = r.ok ? await r.json() : null; } catch (e) { v = null; }
   if (CACHE_JSON.size > 300) CACHE_JSON.clear();
-  CACHE_JSON.set(chemin, { v: v && JSON.stringify(v).length > 300000 ? { deadline: v.deadline, brand_name: v.brand_name, envois: v.envois, livre: v.livre } : v, fin: Date.now() + 20000 });
+  CACHE_JSON.set(chemin, { v: v && JSON.stringify(v).length > 300000 ? { dossier: v.dossier, deadline: v.deadline, brand_name: v.brand_name, envois: v.envois, livre: v.livre, livraison: v.livraison, nb_creas: v.nb_creas, pack: v.pack, abonnement: v.abonnement, deadline_strategiste: v.deadline_strategiste, deadline_designer: v.deadline_designer } : v, fin: Date.now() + 20000 });
   return v;
 }
 // Une seule source de vérité pour le statut et les étapes, partout :
@@ -833,9 +835,12 @@ async function avancement(env, cmd) {
     // les versions déposées dans le portail et le Kanban de Kreative disent la même chose au client
     try {
       const db = await baseLiv(env);
-      const [v, o] = await Promise.all([
-        db.prepare('SELECT statut FROM livraisons WHERE dossier = ? OR dossier LIKE ? ORDER BY COALESCE(depose_le, cree_le) DESC LIMIT 1').bind(cmd.dossier, cmd.dossier + '_L%').first(),
-        db.prepare('SELECT etape FROM prod_etapes WHERE dossier = ?').bind(cmd.dossier).first()]);
+      let [v, o] = await Promise.all([
+        db.prepare(`SELECT statut, MAX(COALESCE(cree_le,0), COALESCE(depose_le,0), COALESCE(verifie_le,0), COALESCE(envoye_le,0), COALESCE(review_le,0), COALESCE(retouche_le,0)) AS le
+          FROM livraisons WHERE dossier = ? OR dossier LIKE ? ORDER BY COALESCE(depose_le, cree_le) DESC LIMIT 1`).bind(cmd.dossier, cmd.dossier + '_L%').first(),
+        db.prepare('SELECT etape, le FROM prod_etapes WHERE dossier = ?').bind(cmd.dossier).first()]);
+      const fiche = envois && Array.isArray(envois.envois) && envois.envois.length ? Date.parse((e => typeof e === 'string' ? e : (e || {}).le)(envois.envois[envois.envois.length - 1]) || '') || 0 : 0;
+      if (o && o.le <= Math.max(v ? v.le : 0, fiche)) o = null;
       if (v) { envoye = true; designer = v.statut === 'a_verifier' || (designer && v.statut !== 'brouillon' && v.statut !== 'a_corriger' && v.statut !== 'review_terminee'); }
       if (o && ['desi', 'livrer', 'client'].includes(o.etape)) envoye = true;
       if (o && ['livrer', 'client'].includes(o.etape)) designer = true;
@@ -969,6 +974,7 @@ async function apiClient(req, env, ctx, url, chemin, methode, cl, apercu) {
     if (!k) return json({ erreur: 'Commande introuvable' }, 404);
     if (m[2] === 'valider') {
       if (!['livre', 'revisions'].includes(k.statut)) return json({ erreur: 'Cette commande ne peut pas encore être validée.' }, 409);
+      if (await partiesRestantes(env, db, k)) return json({ erreur: 'La suite de votre commande arrive bientôt : vous pourrez tout valider à la dernière livraison.' }, 409);
       await db.prepare("UPDATE commandes SET statut = 'valide', valide_le = ? WHERE id = ?").bind(maintenant(), k.id).run();
       await noter(db, cl.id, k.id, 'valide', 'Créatives validées · projet terminé');
       return json({ ok: true });
@@ -1323,6 +1329,8 @@ async function baseLiv(env) {
       db.prepare('CREATE INDEX IF NOT EXISTS i_com_fic ON commentaires(fichier_id)')]);
     // les retouches : qui doit agir en premier (le stratégiste pour les textes, la designer pour le visuel)
     for (const col of ['retouche TEXT', 'retouche_le INTEGER']) { try { await db.prepare('ALTER TABLE livraisons ADD COLUMN ' + col).run(); } catch (e) {} }
+    // une seule version N par projet, même si deux dépôts partent en même temps
+    try { await db.prepare('CREATE UNIQUE INDEX IF NOT EXISTS u_liv_version ON livraisons(dossier, version)').run(); } catch (e) {}
     LIV_PRETE = true;
   }
   return db;
@@ -1362,19 +1370,25 @@ async function estDerniereLivraison(env, dossier) {
 // renvoyer une version : à la designer, ou d'abord au stratégiste (textes)
 async function renvoyerVersion(db, l, pour, note) {
   const now = maintenant();
-  await db.prepare("UPDATE livraisons SET statut = 'a_corriger', note_kreative = ?, verifie_le = ?, retouche = ?, retouche_le = ? WHERE id = ?")
+  const ch = await db.prepare("UPDATE livraisons SET statut = 'a_corriger', note_kreative = ?, verifie_le = ?, retouche = ?, retouche_le = ? WHERE id = ? AND statut = 'a_verifier'")
     .bind(note || null, now, pour, now, l.id).run();
+  if (!ch.meta || ch.meta.changes !== 1) return false;
   await db.prepare('DELETE FROM prod_etapes WHERE dossier = ?').bind(l.dossier).run();
+  return true;
 }
 // envoyer une version au client : la commande passe « livré », le client reçoit l'email
 async function envoyerAuClient(env, ctx, url, db, l) {
   const now = maintenant();
-  await db.prepare("UPDATE livraisons SET statut = 'envoyee', envoye_le = ?, verifie_le = ?, retouche = NULL WHERE id = ?").bind(now, now, l.id).run();
+  // une seule fois, même si deux clics (ou un clic et un glisser) arrivent en même temps
+  const ch = await db.prepare("UPDATE livraisons SET statut = 'envoyee', envoye_le = ?, verifie_le = ?, retouche = NULL WHERE id = ? AND statut = 'a_verifier'").bind(now, now, l.id).run();
+  if (!ch.meta || ch.meta.changes !== 1) return false;
   await db.prepare('DELETE FROM prod_etapes WHERE dossier = ?').bind(l.dossier).run();
   const k = await commandeDuDossier(db, l.dossier);
-  if (!k) return;
+  if (!k) return true;
   const finale = await estDerniereLivraison(env, l.dossier);
   if (finale && !['valide', 'annule'].includes(k.statut)) await db.prepare("UPDATE commandes SET statut = 'livre', livre_le = COALESCE(livre_le, ?) WHERE id = ?").bind(now, k.id).run();
+  // une partie (1/2…) renvoyée après retouches : la commande repart en production
+  if (!finale && k.statut === 'revisions') await db.prepare("UPDATE commandes SET statut = 'production' WHERE id = ?").bind(k.id).run();
   await noter(db, k.client_id, k.id, 'livre', l.version > 1 ? 'Nouvelle version de vos créatives (version ' + l.version + ')' : 'Vos créatives sont livrées');
   if (k.email && k.jeton && !/^TEST_DEMO_/.test(l.dossier)) {
     const prenom = String(k.contact || '').trim().split(/\s+/)[0], lien = lienAcces(url, k.jeton);
@@ -1385,6 +1399,18 @@ async function envoyerAuClient(env, ctx, url, db, l) {
         bouton: ['Voir mes créatives', lien] }) });
     if (ctx && ctx.waitUntil) ctx.waitUntil(envoi); else await envoi;
   }
+  return true;
+}
+// un projet en plusieurs livraisons dont la dernière n'est pas encore chez le client ?
+async function partiesRestantes(env, db, k) {
+  if (!k || !k.dossier) return false;
+  const base = baseDossier(k.dossier);
+  let d1 = await lireJsonDepot(env, k.dossier + '/donnees.json');
+  if (!(d1 && d1.livraison)) d1 = await lireJsonDepot(env, base + '_L1/donnees.json');
+  const l = d1 && d1.livraison;
+  if (!l || !(l.sur > 1)) return false;
+  const fin = await db.prepare("SELECT 1 AS ok FROM livraisons WHERE dossier = ? AND statut IN ('envoyee','review_terminee','approuvee') LIMIT 1").bind(base + '_L' + l.sur).first();
+  return !fin;
 }
 // les retours du client parlent-ils des textes ? Alors le stratégiste corrige d'abord, la designer ensuite.
 // Un commentaire compte pour les textes quand il parle de mots (citation, remplacer, faute, accroche…)
@@ -1410,7 +1436,7 @@ async function etatsProduction(db) {
   return { etats, commandes, le: maintenant() };
 }
 // glisser un projet dans une autre colonne du Kanban : une vraie action quand il y en a une, sinon l'étape est notée
-async function deplacerProjet(env, ctx, url, db, dossier, vers, qui) {
+async function deplacerProjet(env, ctx, url, db, dossier, vers, qui, confirme) {
   const v = await db.prepare('SELECT * FROM livraisons WHERE dossier = ? ORDER BY version DESC LIMIT 1').bind(dossier).first();
   const k = await commandeDuDossier(db, dossier), now = maintenant();
   const noterEtape = async () => db.prepare('INSERT INTO prod_etapes (dossier, etape, le, par) VALUES (?,?,?,?) ON CONFLICT(dossier) DO UPDATE SET etape = excluded.etape, le = excluded.le, par = excluded.par')
@@ -1422,8 +1448,21 @@ async function deplacerProjet(env, ctx, url, db, dossier, vers, qui) {
     if (k) await noter(db, k.client_id, k.id, 'revisions', 'Retouches en cours');
   };
   const st = v && v.statut;
+  // ce qui part chez le client, ou lui retire sa review, se confirme toujours (l'état a pu changer depuis l'écran)
+  if (!confirme && ((vers === 'client' && st === 'a_verifier') || (['desi', 'strat'].includes(vers) && ['envoyee', 'approuvee'].includes(st))))
+    return { confirmer: true, statut: st, version: v.version };
   if (vers === 'client') {
-    if (st === 'a_verifier') { await envoyerAuClient(env, ctx, url, db, v); return { action: 'envoyee', message: 'Version ' + v.version + ' envoyée au client.' }; }
+    if (st === 'a_verifier') {
+      if (!await envoyerAuClient(env, ctx, url, db, v)) return { erreur: true, message: 'Cette version a déjà été envoyée.' };
+      return { action: 'envoyee', message: 'Version ' + v.version + ' envoyée au client.' };
+    }
+    // retouches demandées par erreur : la version revient chez le client, sa review reprend
+    if (st === 'review_terminee' && v.envoye_le) {
+      await db.prepare("UPDATE livraisons SET statut = 'envoyee', review_le = NULL, retouche = NULL, retouche_le = ? WHERE id = ?").bind(now, v.id).run();
+      await db.prepare('DELETE FROM prod_etapes WHERE dossier = ?').bind(dossier).run();
+      if (k && k.statut === 'revisions') await db.prepare("UPDATE commandes SET statut = ? WHERE id = ?").bind(await estDerniereLivraison(env, dossier) ? 'livre' : 'production', k.id).run();
+      return { action: 'retour_client', message: 'La version ' + v.version + ' est de nouveau chez le client.' };
+    }
     if (st === 'brouillon') return { erreur: true, message: 'La designer n\'a pas encore envoyé ses fichiers.' };
     await noterEtape();
     if (!v && k && await estDerniereLivraison(env, dossier) && !['valide', 'annule', 'livre'].includes(k.statut))
@@ -1432,7 +1471,7 @@ async function deplacerProjet(env, ctx, url, db, dossier, vers, qui) {
   }
   if (vers === 'desi' || vers === 'strat') {
     const pour = vers === 'strat' ? 'strategiste' : 'designer';
-    if (st === 'a_verifier') { await renvoyerVersion(db, v, pour, 'Renvoyée depuis le Kanban.'); return { action: 'renvoyee', message: pour === 'strategiste' ? 'Renvoyée au stratégiste.' : 'Renvoyée à la designer.' }; }
+    if (st === 'a_verifier') { if (!await renvoyerVersion(db, v, pour, 'Renvoyée depuis le Kanban.')) return { erreur: true, message: 'Cette version n\'est plus à vérifier.' }; return { action: 'renvoyee', message: pour === 'strategiste' ? 'Renvoyée au stratégiste.' : 'Renvoyée à la designer.' }; }
     if (st === 'envoyee' || st === 'review_terminee' || st === 'a_corriger' || st === 'approuvee') {
       if (st === 'a_corriger') { await db.prepare('UPDATE livraisons SET retouche = ?, retouche_le = ? WHERE id = ?').bind(pour, now, v.id).run(); await db.prepare('DELETE FROM prod_etapes WHERE dossier = ?').bind(dossier).run(); }
       else await retouches(pour);
@@ -1501,7 +1540,13 @@ async function apiEquipe(req, env, ctx, url, chemin, methode, qui) {
     if (der && ['a_verifier', 'envoyee', 'approuvee'].includes(der.statut))
       return json({ erreur: der.statut === 'a_verifier' ? 'Kreative is checking your last delivery.' : der.statut === 'envoyee' ? 'The client is reviewing this delivery.' : 'This delivery is approved.' }, 409);
     const id = 'l_' + aleatoire(10), now = maintenant();
-    await db.prepare('INSERT INTO livraisons (id, dossier, version, statut, cree_le) VALUES (?,?,?,?,?)').bind(id, dossier, der ? der.version + 1 : 1, 'brouillon', now).run();
+    try { await db.prepare('INSERT INTO livraisons (id, dossier, version, statut, cree_le) VALUES (?,?,?,?,?)').bind(id, dossier, der ? der.version + 1 : 1, 'brouillon', now).run(); }
+    catch (e) {
+      // deux dépôts en même temps : le second reprend le brouillon créé par le premier
+      const deja = await db.prepare("SELECT * FROM livraisons WHERE dossier = ? AND statut = 'brouillon' ORDER BY version DESC LIMIT 1").bind(dossier).first();
+      if (deja) return json(await detailLivraison(db, deja, false));
+      return json({ erreur: 'Please try again.' }, 409);
+    }
     if (der) {
       // la nouvelle version reprend les fichiers de la précédente : on ne remplace que ce qui change
       const { results: F } = await db.prepare('SELECT * FROM fichiers WHERE livraison_id = ?').bind(der.id).all();
@@ -1552,7 +1597,8 @@ async function apiEquipe(req, env, ctx, url, chemin, methode, qui) {
     if (!l || l.statut !== 'brouillon') return json({ erreur: 'This delivery was already sent.' }, 409);
     const n = await db.prepare('SELECT COUNT(*) AS n FROM fichiers WHERE livraison_id = ?').bind(l.id).first();
     if (!n || !n.n) return json({ erreur: 'Add your files first.' }, 400);
-    await db.prepare("UPDATE livraisons SET statut = 'a_verifier', depose_le = ?, note_designer = ? WHERE id = ?").bind(maintenant(), propre(b.note, 600) || null, l.id).run();
+    const ch = await db.prepare("UPDATE livraisons SET statut = 'a_verifier', depose_le = ?, note_designer = ? WHERE id = ? AND statut = 'brouillon'").bind(maintenant(), propre(b.note, 600) || null, l.id).run();
+    if (!ch.meta || ch.meta.changes !== 1) return json({ erreur: 'This delivery was already sent.' }, 409);
     await db.prepare('DELETE FROM prod_etapes WHERE dossier = ?').bind(l.dossier).run();
     // Kreative est prévenu sur Telegram par le workflow « Livraison » (sauf un projet de démo)
     if (!/^TEST_DEMO_/.test(l.dossier)) {
@@ -1570,11 +1616,11 @@ async function apiEquipe(req, env, ctx, url, chemin, methode, qui) {
     if (!l || l.statut !== 'a_verifier') return json({ erreur: 'Cette version n\'est plus à vérifier.' }, 409);
     if (b.action === 'corriger') {
       const pour = b.pour === 'strategiste' ? 'strategiste' : 'designer';
-      await renvoyerVersion(db, l, pour, propre(b.note, 1000));
+      if (!await renvoyerVersion(db, l, pour, propre(b.note, 1000))) return json({ erreur: 'Cette version n\'est plus à vérifier.' }, 409);
       return json({ ok: true, message: pour === 'strategiste' ? 'Renvoyée au stratégiste (textes).' : 'Renvoyée à la designer.' });
     }
     if (b.action !== 'envoyer') return json({ erreur: 'Action inconnue' }, 400);
-    await envoyerAuClient(env, ctx, url, db, l);
+    if (!await envoyerAuClient(env, ctx, url, db, l)) return json({ erreur: 'Cette version a déjà été envoyée.' }, 409);
     return json({ ok: true, message: 'Envoyée au client.' });
   }
   // les retours du client : qui s'en occupe (Kreative peut changer)
@@ -1607,8 +1653,8 @@ async function apiEquipe(req, env, ctx, url, chemin, methode, qui) {
     const b = await corpsJson(req);
     const dossier = propre(b.dossier, 80), vers = String(b.vers || '');
     if (!/^[A-Za-z0-9_-]{3,80}$/.test(dossier) || !['strat', 'desi', 'livrer', 'client'].includes(vers)) return json({ erreur: 'Déplacement invalide.' }, 400);
-    const r = await deplacerProjet(env, ctx, url, db, dossier, vers, qui);
-    return json({ ok: true, ...r, etats: await etatsProduction(db) });
+    const r = await deplacerProjet(env, ctx, url, db, dossier, vers, qui, b.confirme === true);
+    return json({ ...r, ok: !r.erreur, etats: await etatsProduction(db) });
   }
   // un commentaire de l'équipe (interne : le client ne le voit pas)
   if (chemin === '/commentaires' && methode === 'POST') {
@@ -1691,6 +1737,9 @@ async function apiClientLivraisons(req, env, ctx, url, chemin, methode, cl, aper
   if ((m = chemin.match(/^\/livraisons\/(l_[A-Za-z0-9_]+)\/terminer$/)) && methode === 'POST') {
     const l = await livraisonDuClient(db, cl, m[1]);
     if (!l || l.statut !== 'envoyee') return json({ erreur: 'Cette review est déjà terminée.' }, 409);
+    // une seule fin de review, même avec deux clics
+    const pris = await db.prepare("UPDATE livraisons SET review_le = ? WHERE id = ? AND statut = 'envoyee' AND review_le IS NULL").bind(maintenant(), l.id).run();
+    if (!pris.meta || pris.meta.changes !== 1) return json({ erreur: 'Cette review est déjà terminée.' }, 409);
     const t = await db.prepare(`SELECT COUNT(*) AS n, SUM(CASE WHEN approuve_le IS NULL THEN 1 ELSE 0 END) AS reste,
       (SELECT COUNT(*) FROM commentaires WHERE livraison_id = ? AND interne = 0) AS coms FROM fichiers WHERE livraison_id = ?`).bind(l.id, l.id).first();
     const now = maintenant(), k = await commandeDuDossier(db, l.dossier);
@@ -1701,7 +1750,11 @@ async function apiClientLivraisons(req, env, ctx, url, chemin, methode, cl, aper
         await db.prepare("UPDATE commandes SET statut = 'valide', valide_le = ? WHERE id = ?").bind(now, k.id).run();
         await noter(db, cl.id, k.id, 'valide', 'Créatives validées · projet terminé');
         valide = true;
-      } else if (k) await noter(db, cl.id, k.id, 'valide', 'Livraison approuvée');
+      } else if (k) {
+        // une partie approuvée (1/2…) : la commande continue, la suite est en production
+        if (k.statut === 'revisions') await db.prepare("UPDATE commandes SET statut = 'production' WHERE id = ?").bind(k.id).run();
+        await noter(db, cl.id, k.id, 'valide', 'Livraison approuvée');
+      }
       return json({ ok: true, approuvee: true, valide, commande: k && k.id });
     }
     const { results: CO } = await db.prepare('SELECT texte FROM commentaires WHERE livraison_id = ? AND interne = 0').bind(l.id).all();
@@ -1758,6 +1811,9 @@ async function apiN8n(req, env, ctx, url, chemin, methode) {
     if (!/^[A-Za-z0-9_-]{3,80}$/.test(dossier)) return json({ erreur: 'dossier invalide' }, 400);
     const ref = propre(b.commande, 20).replace(/^#/, ''), idClient = propre(b.client, 40), email = propre(b.email, 160).toLowerCase();
     let k = ref ? await db.prepare('SELECT * FROM commandes WHERE ref = ?').bind(ref).first() : null;
+    // un lien modifié ou partagé ne relie jamais le brief à la commande d'un autre client
+    if (k && idClient && k.client_id !== idClient) k = null;
+    if (k && !idClient && emailValide(email)) { const c = await db.prepare('SELECT email FROM clients WHERE id = ?').bind(k.client_id).first(); if (!c || String(c.email || '').toLowerCase() !== email) k = null; }
     if (!k && idClient) k = await db.prepare("SELECT * FROM commandes WHERE client_id = ? AND statut = 'brief' ORDER BY cree_le LIMIT 1").bind(idClient).first();
     if (!k && emailValide(email)) k = await db.prepare(`SELECT k.* FROM commandes k JOIN clients c ON c.id = k.client_id
       WHERE lower(c.email) = ? AND k.statut = 'brief' ORDER BY k.cree_le LIMIT 1`).bind(email).first();
@@ -1778,9 +1834,8 @@ async function apiN8n(req, env, ctx, url, chemin, methode) {
 //  Son code de signature va dans le secret STRIPE_WEBHOOK_SECRET.
 //  La clé restreinte (Checkout Sessions en écriture) va dans STRIPE_SECRET :
 //  elle sert seulement à créer les paiements depuis l'espace client.
-//  La clé publiable (pk_live_…) va dans la variable STRIPE_PUBLIC : avec elle,
-//  le paiement s'affiche DANS le portail ; sans elle, le client passe par la
-//  page Stripe dans le même onglet puis revient sur son espace.
+//  La page de paiement Stripe s'ouvre dans un nouvel onglet : le portail reste
+//  ouvert derrière et affiche la commande dès que le client revient.
 //  Un paiement réussi crée la commande (et l'espace client si besoin) ;
 //  chaque mois d'abonnement payé crée la commande du mois suivant.
 //  La facture est rattachée au client par son email, et à une commande
@@ -1885,9 +1940,11 @@ async function enregistrerFacture(env, inv) {
     const derniere = await db.prepare('SELECT * FROM commandes WHERE stripe_abo = ? ORDER BY cree_le DESC LIMIT 1').bind(abo).first();
     if (derniere && inv.billing_reason === 'subscription_cycle' && inv.status === 'paid') {
       // un nouveau mois d'abonnement : une nouvelle commande, avec son propre brief
-      const r = await creerCommande(db, { client_id: derniere.client_id, pack: derniere.pack, formule: 'mensuel', nb: derniere.nb_creas,
-        prix: (inv.total || 0) / 100, options: derniere.options ? derniere.options.split(',') : [], stripe_abo: abo, stripe_facture: inv.id, texte: 'Nouveau mois d\'abonnement' });
-      k = { id: r.id, client_id: derniere.client_id };
+      try {
+        const r = await creerCommande(db, { client_id: derniere.client_id, pack: derniere.pack, formule: 'mensuel', nb: derniere.nb_creas,
+          prix: (inv.total || 0) / 100, options: derniere.options ? derniere.options.split(',') : [], stripe_abo: abo, stripe_facture: inv.id, texte: 'Nouveau mois d\'abonnement' });
+        k = { id: r.id, client_id: derniere.client_id };
+      } catch (e) { k = await db.prepare('SELECT id, client_id FROM commandes WHERE stripe_facture = ?').bind(inv.id).first(); }
     } else if (derniere && !derniere.stripe_facture) k = { id: derniere.id, client_id: derniere.client_id };
   }
   const statut = { paid: 'payee', open: 'ouverte', void: 'annulee', uncollectible: 'impayee' }[inv.status] || inv.status;

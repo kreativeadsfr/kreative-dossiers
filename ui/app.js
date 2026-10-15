@@ -397,7 +397,7 @@
     const verifier = async () => {
       if (document.visibilityState !== 'visible' || !P.liste) return;
       const a = document.activeElement;
-      if (a && (a.tagName === 'TEXTAREA' || (a.tagName === 'INPUT' && a.type !== 'checkbox')) || document.querySelector('#k-fen, .rv-v, .kdrag, .cal, .vp-cadre, .envoi-l, .envoye-anim')) return;
+      if (a && (a.tagName === 'TEXTAREA' || (a.tagName === 'INPUT' && a.type !== 'checkbox')) || document.querySelector('#k-fen, .rv-v, .kdrag, .kplace, .cal, .vp-cadre, .envoi-l:not(.fini), .envoye-anim, .toast')) return;
       let r; try { r = await K.api('/api/equipe/etats'); } catch (e) { return; }
       const sig = JSON.stringify({ etats: r.etats, commandes: r.commandes });
       if (sig === signature) return;

@@ -143,11 +143,11 @@ function ecranLivrer(id) {
   if (der && der.statut === 'review_terminee' && !attenteStrat) { const n = der.fichiers.reduce((s, f) => s + f.commentaires.filter(c => !c.interne).length, 0); gauche += '<div class="rv-note" style="margin-top:14px">' + i.message + '<div><b>The client sent ' + n + ' comment' + (n > 1 ? 's' : '') + ' on version ' + der.version + '.</b> Open the files below to read them, then upload the corrected files (same file name replaces the old one).</div></div>'; }
   if (peutDeposer) {
     gauche += '<div class="depot" id="lv-depot" style="margin-top:14px">' + i.telecharger + '<b>Drop your PNG files here, or click to choose</b><small>PNG only. The format (1:1, 4:5, 9:16) is detected from the size.</small><input type="file" id="lv-fichiers" multiple accept="image/png,.png" hidden></div>' +
-      '<div class="envois" id="lv-envois">' + DL.envois.map(e => '<div class="envoi-l"><span>' + esc(e.nom) + '</span><div class="barre' + (e.ok ? ' g' : '') + '"><i style="width:' + e.pc + '%"></i></div><small class="muted">' + esc(e.etat) + '</small></div>').join('') + '</div>';
+      '<div class="envois" id="lv-envois">' + DL.envois.map(e => '<div class="envoi-l fini"><span>' + esc(e.nom) + '</span><div class="barre' + (e.ok ? ' g' : '') + '"><i style="width:' + e.pc + '%"></i></div><small class="muted">' + esc(e.etat) + '</small></div>').join('') + '</div>';
     const attendu = Number(x.nb) || 0;
     gauche += '<div class="compte-formats">' + ['1x1', '4x5', '9x16'].map(f => { const n = F.filter(y => y.format === f).length; return '<span class="pill ' + (attendu && n >= attendu ? 'g' : n ? 'a' : '') + '">' + NOMS_F[f] + ' · ' + n + (attendu ? ' / ' + attendu : '') + '</span>'; }).join('') +
       (F.some(y => y.format === 'autre') ? '<span class="pill r">Other sizes · ' + F.filter(y => y.format === 'autre').length + '</span>' : '') + '</div>' +
-      '<div class="champ" style="margin-top:16px"><label for="lv-note">Note for Kreative (optional)</label><textarea class="in" id="lv-note" rows="3" placeholder="Anything we should know"></textarea></div>' +
+      '<div class="champ" style="margin-top:16px"><label for="lv-note">Note for Kreative (optional)</label><textarea class="in" id="lv-note" rows="3" placeholder="Anything we should know">' + esc(DL.note || '') + '</textarea></div>' +
       '<button class="btn btn-p btn-bloc btn-lg" id="lv-envoyer"' + (F.length ? '' : ' disabled') + '>' + i.envoi + 'Send to Kreative' + (F.length ? ' (' + F.length + ' files)' : '') + '</button><p class="muted" id="lv-etat" style="font-size:13px;margin-top:10px;min-height:18px"></p>';
   } else if (!attenteStrat) gauche += '<div class="etat-envoi"><span class="pastille">' + i.coche + '</span><div><b>' + (der.statut === 'a_verifier' ? 'Version ' + der.version + ' sent to Kreative' : der.statut === 'envoyee' ? 'Version ' + der.version + ' is with the client' : 'Approved by the client') + '</b>' +
     '<small>' + (der.statut === 'a_verifier' ? 'Kreative checks your files, then sends them to the client or back to you.' : der.statut === 'envoyee' ? 'The client is reviewing it. Their comments will show up here.' : 'Nothing more to do on this project.') + (der.depose_le ? ' · ' + esc(quand(der.depose_le)) : '') + '</small></div></div>';
@@ -257,6 +257,8 @@ function brancherLivrer(id) {
     zone.ondragleave = () => zone.classList.remove('survol');
     zone.ondrop = e => { e.preventDefault(); zone.classList.remove('survol'); deposer(e.dataTransfer.files, x); };
   }
+  const note = document.getElementById('lv-note');
+  if (note) note.oninput = () => { DL.note = note.value; };   // la note reste là pendant les dépôts
   const b = document.getElementById('lv-envoyer');
   if (b) b.onclick = async () => {
     const etat = document.getElementById('lv-etat'), travail = V[0];
@@ -266,6 +268,7 @@ function brancherLivrer(id) {
     b.disabled = true; etat.textContent = 'Sending…';
     try {
       await K.api('/api/equipe/livraisons/' + travail.id + '/envoyer', { methode: 'POST', corps: { note: document.getElementById('lv-note').value.trim() } });
+      DL.note = '';
       await animerEnvoi(b.closest('.card'), travail.fichiers.length);
       E.livs = await K.api('/api/equipe/livraisons').catch(() => E.livs); await K.prod.charger(true); marquer(); await chargerDl(x.dossier);
     } catch (e) { etat.textContent = e.message; b.disabled = false; }

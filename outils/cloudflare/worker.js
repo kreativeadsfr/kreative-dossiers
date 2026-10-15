@@ -150,6 +150,7 @@ function json(o, statut) {
 // ============================================================
 //  LIRE UN FICHIER DU DÉPÔT
 // ============================================================
+const CACHE_PAGES = new Map();
 async function servir(chemin, env, ctx, o) {
   if (INTERDITS.test(chemin)) return texte('Introuvable', 404);
   let fichier = chemin;
@@ -178,7 +179,22 @@ async function servir(chemin, env, ctx, o) {
     if (vu) return vu;
   }
 
+  // les petits JSON lus par les pages de l'équipe (projets.json, donnees.json...) :
+  // 15 s en mémoire, pour ne pas relire GitHub à chaque ouverture de page
+  const jsonPage = !o.brut && /\.json$/i.test(fichier);
+  if (jsonPage) {
+    const vu = CACHE_PAGES.get(fichier);
+    if (vu && vu.fin > Date.now()) return new Response(vu.t, { status: vu.s, headers: { 'Content-Type': TYPES.json, 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex, nofollow' } });
+  }
   const r = await lireGithub(fichier, env, 'GET');
+  if (jsonPage && (r.ok || r.status === 404)) {
+    const t = r.ok ? remplacer(await r.text(), o.origine + '/') : 'Introuvable';
+    if (t.length < 300000) {                       // les gros fichiers ne restent pas en mémoire
+      if (CACHE_PAGES.size > 400) CACHE_PAGES.clear();
+      CACHE_PAGES.set(fichier, { t, s: r.ok ? 200 : 404, fin: Date.now() + 15000 });
+    }
+    return new Response(t, { status: r.ok ? 200 : 404, headers: { 'Content-Type': r.ok ? TYPES.json : 'text/plain; charset=utf-8', 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex, nofollow' } });
+  }
   if (r.status === 404) {
     if (o.brut || !/^text\/html/.test(type)) return texte('Introuvable', 404);
     const en = o.qui && o.qui.role === 'designer';
@@ -519,6 +535,40 @@ const PACKS = {
   scale: { nom: 'Scale', creas: 24, unique: 890, mensuel: 760, revisions: null, delai: 72 },
   custom: { nom: 'Custom', creas: 30, unique: null, mensuel: null, revisions: null, delai: 72 }
 };
+// Le pack Custom se configure dans l'espace client : nombre de créas et options.
+// Le prix est TOUJOURS recalculé ici, jamais pris dans ce qu'envoie le navigateur.
+const CUSTOM = {
+  min: 30, max: 100, pas: 5,
+  paliers: [[30, 35], [50, 32], [75, 29]],          // à partir de N créas : prix par créa
+  remise_mensuel: 0.15,
+  options: [
+    { id: 'express', nom: 'Livraison express 24 h', detail: '+20 % sur le total', type: 'pct', valeur: 20 },
+    { id: 'hooks', nom: '3 accroches par visuel', detail: '+8 € par créa', type: 'par_crea', valeur: 8 },
+    { id: 'appel', nom: 'Stratégie et appel de lancement', detail: '+150 €, une seule fois', type: 'fixe', valeur: 150 }
+  ]
+};
+function devis(pack, formule, nbDemande, optionsDemandees) {
+  const m = formule === 'mensuel';
+  if (pack !== 'custom') {
+    const P = PACKS[pack] || PACKS.growth;
+    return { pack: PACKS[pack] ? pack : 'growth', formule: m ? 'mensuel' : 'unique', nb: P.creas, options: [], total: m ? P.mensuel : P.unique,
+      libelle: 'Pack ' + P.nom + ' · ' + P.creas + ' créatives' + (m ? ' par mois' : '') };
+  }
+  let nb = Math.round(Number(nbDemande) || CUSTOM.min);
+  nb = Math.min(CUSTOM.max, Math.max(CUSTOM.min, Math.round(nb / CUSTOM.pas) * CUSTOM.pas));
+  const unitaire = CUSTOM.paliers.filter(x => nb >= x[0]).pop()[1];
+  const options = CUSTOM.options.filter(o => (optionsDemandees || []).includes(o.id));
+  let base = nb * unitaire;
+  for (const o of options) if (o.type === 'par_crea') base += nb * o.valeur;
+  for (const o of options) if (o.type === 'pct') base += base * o.valeur / 100;
+  if (m) base = base * (1 - CUSTOM.remise_mensuel);
+  const fixe = options.filter(o => o.type === 'fixe').reduce((t, o) => t + o.valeur, 0);
+  const total = Math.round(base + fixe);
+  return { pack: 'custom', formule: m ? 'mensuel' : 'unique', nb, options: options.map(o => o.id), unitaire, total,
+    libelle: 'Pack Custom · ' + nb + ' créatives' + (m ? ' par mois' : '') + (options.length ? ' · ' + options.map(o => o.nom).join(', ') : '') };
+}
+
+// brief = commande confirmée, le brief n'est pas encore arrivé
 const STATUTS = ['brief', 'production', 'livre', 'revisions', 'valide', 'annule'];
 
 let BASE_PRETE = false;
@@ -533,9 +583,19 @@ async function base(env) {
         livre_le INTEGER, deadline INTEGER, notes TEXT)`),
       env.DB.prepare(`CREATE TABLE IF NOT EXISTS activite (id INTEGER PRIMARY KEY AUTOINCREMENT, client_id TEXT, commande_id TEXT,
         type TEXT, texte TEXT, le INTEGER)`),
+      env.DB.prepare(`CREATE TABLE IF NOT EXISTS factures (id TEXT PRIMARY KEY, client_id TEXT, commande_id TEXT, numero TEXT,
+        montant REAL, montant_ht REAL, devise TEXT DEFAULT 'eur', statut TEXT, emise_le INTEGER, payee_le INTEGER, pdf TEXT, lien TEXT,
+        email TEXT, source TEXT, stripe_id TEXT UNIQUE, cree_le INTEGER)`),
       env.DB.prepare(`CREATE INDEX IF NOT EXISTS i_cmd_client ON commandes(client_id)`),
-      env.DB.prepare(`CREATE INDEX IF NOT EXISTS i_act_client ON activite(client_id, le)`)
+      env.DB.prepare(`CREATE INDEX IF NOT EXISTS i_act_client ON activite(client_id, le)`),
+      env.DB.prepare(`CREATE INDEX IF NOT EXISTS i_fac_client ON factures(client_id)`)
     ]);
+    // colonnes ajoutées après coup : sans effet si elles existent déjà
+    for (const col of ['avis_le INTEGER', 'avis_ignore_le INTEGER', 'valide_le INTEGER', 'stripe_session TEXT', 'stripe_abo TEXT', 'stripe_facture TEXT', 'options TEXT']) {
+      try { await env.DB.prepare('ALTER TABLE commandes ADD COLUMN ' + col).run(); } catch (e) {}
+    }
+    try { await env.DB.prepare('ALTER TABLE clients ADD COLUMN stripe_client TEXT').run(); } catch (e) {}
+    try { await env.DB.prepare('CREATE UNIQUE INDEX IF NOT EXISTS i_cmd_session ON commandes(stripe_session)').run(); } catch (e) {}
     BASE_PRETE = true;
   }
   return env.DB;
@@ -618,6 +678,9 @@ async function routerPortail(req, env, ctx, url, chemin) {
     return json({ ok: true, message: 'Si cette adresse correspond à un compte Kreative, vous allez recevoir votre lien d\'accès dans quelques minutes.' });
   }
 
+  // ---- Stripe (public, signé) ----
+  if (chemin === '/api/stripe/webhook' && methode === 'POST') return stripeWebhook(req, env, ctx, url);
+
   // ---- la page de connexion du client (publique) ----
   if (chemin === '/client/connexion') return servir('client/connexion.html', env, ctx, { brut: false, origine: url.origin, req });
 
@@ -653,61 +716,190 @@ async function routerPortail(req, env, ctx, url, chemin) {
 }
 
 // ---------- l'avancement d'une commande, lu dans le dossier de production ----------
+// Petit cache en mémoire (20 s) : 30 clients qui ouvrent leur espace en même
+// temps ne déclenchent pas 30 fois les mêmes lectures sur GitHub.
+const CACHE_JSON = new Map();
 async function lireJsonDepot(env, chemin) {
-  try { const r = await lireGithub(chemin, env, 'GET'); return r.ok ? await r.json() : null; } catch (e) { return null; }
+  const vu = CACHE_JSON.get(chemin);
+  if (vu && vu.fin > Date.now()) return vu.v;
+  let v = null;
+  try { const r = await lireGithub(chemin, env, 'GET'); v = r.ok ? await r.json() : null; } catch (e) { v = null; }
+  if (CACHE_JSON.size > 300) CACHE_JSON.clear();
+  CACHE_JSON.set(chemin, { v: v && JSON.stringify(v).length > 300000 ? { deadline: v.deadline, brand_name: v.brand_name, envois: v.envois, livre: v.livre } : v, fin: Date.now() + 20000 });
+  return v;
 }
+// Une seule source de vérité pour le statut et les étapes, partout :
+//   Commande confirmée → Brief envoyé → Production → Livraison → Validation (→ avis)
+// Le brief compte comme reçu dès qu'un dossier de production est relié.
+// La production est finie quand le designer a livré (livraison.json) ou que
+// les créatives sont parties chez le client.
 async function avancement(env, cmd) {
-  const e = { brief: !!cmd.dossier || !!cmd.brief_le, strategie: false, creation: false, livre: ['livre', 'revisions', 'valide'].includes(cmd.statut),
-    valide: cmd.statut === 'valide', revisions: cmd.statut === 'revisions' };
-  let d = null;
+  const brief = !!cmd.dossier || !!cmd.brief_le;
+  const auClient = ['livre', 'revisions', 'valide'].includes(cmd.statut);
+  let d = null, envoye = false, designer = false;
   if (cmd.dossier) {
     const [donnees, envois, liv] = await Promise.all(['donnees', 'envois', 'livraison'].map(f => lireJsonDepot(env, cmd.dossier + '/' + f + '.json')));
     d = donnees;
-    e.strategie = !!(envois && Array.isArray(envois.envois) && envois.envois.length) || e.livre;
-    e.creation = !!(liv && liv.livre) || e.livre;
+    envoye = !!(envois && Array.isArray(envois.envois) && envois.envois.length);
+    designer = !!(liv && liv.livre);
   }
+  const etat = cmd.statut === 'annule' ? 'annule' : auClient ? cmd.statut : brief ? 'production' : 'confirmee';
   const etapes = [
     { cle: 'commande', titre: 'Commande confirmée', fait: true },
-    { cle: 'brief', titre: 'Brief envoyé', fait: e.brief },
-    { cle: 'strategie', titre: 'Angles et copywriting', fait: e.strategie },
-    { cle: 'creation', titre: 'Création des visuels', fait: e.creation },
-    { cle: 'livraison', titre: 'Livraison de vos créatives', fait: e.livre },
-    { cle: 'validation', titre: 'Validation', fait: e.valide }
+    { cle: 'brief', titre: 'Brief envoyé', fait: brief, detail: 'À remplir depuis votre espace' },
+    { cle: 'production', titre: 'Production', fait: auClient || designer,
+      detail: designer ? 'Contrôle qualité avant l\'envoi' : envoye ? 'Création des visuels' : 'Stratégie et copywriting' },
+    { cle: 'livraison', titre: 'Livraison de vos créatives', fait: auClient, detail: 'Dernières vérifications' },
+    { cle: 'validation', titre: 'Validation', fait: cmd.statut === 'valide', detail: cmd.statut === 'revisions' ? 'Retouches en cours' : 'À vous de valider' },
+    { cle: 'avis', titre: 'Votre avis Trustpilot', fait: !!cmd.avis_le, option: true, detail: 'Une minute pour nous noter' }
   ];
-  const faites = etapes.filter(x => x.fait).length;
-  const enCours = etapes.find(x => !x.fait);
-  return { etapes, progression: Math.round(faites * 100 / etapes.length), en_cours: enCours ? enCours.cle : null,
-    deadline: cmd.deadline || (d && Date.parse(d.deadline)) || null, marque_dossier: d && d.brand_name };
+  const coeur = etapes.filter(x => !x.option);
+  const faites = coeur.filter(x => x.fait).length;
+  const enCours = coeur.find(x => !x.fait) || (cmd.avis_le ? null : etapes[5]);
+  const P = PACKS[cmd.pack] || PACKS.growth;
+  const deadline = cmd.deadline || (d && Date.parse(d.deadline)) || (cmd.brief_le ? cmd.brief_le + P.delai * 36e5 : null);
+  return { etat, etapes, progression: Math.round(faites * 100 / coeur.length), en_cours: enCours ? enCours.cle : null,
+    deadline: deadline || null, marque_dossier: d && d.brand_name };
+}
+
+// le statut suit la réalité : un brief reçu (dossier relié) fait passer en production
+async function synchroStatuts(db) {
+  await db.prepare("UPDATE commandes SET statut = 'production', brief_le = COALESCE(brief_le, ?) WHERE statut = 'brief' AND ((dossier IS NOT NULL AND dossier != '') OR brief_le IS NOT NULL)").bind(maintenant()).run();
 }
 
 async function commandesDuClient(db, env, id, detail) {
+  await synchroStatuts(db);
   const { results } = await db.prepare('SELECT * FROM commandes WHERE client_id = ? AND statut != ? ORDER BY cree_le DESC').bind(id, 'annule').all();
   if (!detail) return results;
   return Promise.all(results.map(async c => ({ ...c, ...(await avancement(env, c)) })));
 }
 
+const FACTURE_PUBLIQUE = f => ({ id: f.id, commande_id: f.commande_id, numero: f.numero, montant: f.montant, montant_ht: f.montant_ht, devise: f.devise,
+  statut: f.statut, emise_le: f.emise_le, payee_le: f.payee_le, pdf: f.pdf, lien: f.lien });
+
 // ---------- API du client ----------
 async function apiClient(req, env, ctx, url, chemin, methode, cl, apercu) {
   const db = await base(env);
+  let m;
   if (chemin === '/moi' && methode === 'GET') {
     const commandes = await commandesDuClient(db, env, cl.id, true);
-    const { results: activite } = await db.prepare('SELECT type, texte, le FROM activite WHERE client_id = ? ORDER BY le DESC LIMIT 12').bind(cl.id).all();
+    const [{ results: activite }, { results: factures }] = await Promise.all([
+      db.prepare('SELECT type, texte, le FROM activite WHERE client_id = ? ORDER BY le DESC LIMIT 12').bind(cl.id).all(),
+      db.prepare("SELECT * FROM factures WHERE client_id = ? AND statut != 'brouillon' ORDER BY emise_le DESC").bind(cl.id).all()]);
     if (!apercu) ctx.waitUntil(db.prepare('UPDATE clients SET vu_le = ? WHERE id = ?').bind(maintenant(), cl.id).run());
-    return json({ apercu, client: { id: cl.id, marque: cl.marque, contact: cl.contact, email: cl.email, site: cl.site, cree_le: cl.cree_le },
-      commandes, activite, packs: PACKS });
+    return json({ apercu, client: { id: cl.id, marque: cl.marque, contact: cl.contact, email: cl.email, telephone: cl.telephone, site: cl.site, cree_le: cl.cree_le },
+      commandes, activite, factures: factures.map(FACTURE_PUBLIQUE), packs: PACKS, custom: CUSTOM, paiement: !!env.STRIPE_SECRET });
+  }
+  // en aperçu, l'admin voit tout mais ne change rien à la place du client
+  if (methode !== 'GET' && apercu) return json({ erreur: 'Aperçu : rien n\'est enregistré à la place du client.' }, 403);
+
+  // son profil
+  if (chemin === '/moi' && methode === 'PATCH') {
+    const b = await corpsJson(req);
+    const champs = ['marque', 'contact', 'email', 'telephone', 'site'].filter(k => k in b);
+    if ('marque' in b && !propre(b.marque, 80)) return json({ erreur: 'Le nom de la marque est obligatoire.' }, 400);
+    if ('email' in b) {
+      const email = propre(b.email, 160).toLowerCase();
+      if (!emailValide(email)) return json({ erreur: 'Adresse email invalide.' }, 400);
+      if (await db.prepare('SELECT id FROM clients WHERE lower(email) = ? AND id != ?').bind(email, cl.id).first()) return json({ erreur: 'Cette adresse est déjà utilisée par un autre compte.' }, 409);
+    }
+    if (!champs.length) return json({ ok: true });
+    await db.prepare('UPDATE clients SET ' + champs.map(k => k + ' = ?').join(', ') + ' WHERE id = ?')
+      .bind(...champs.map(k => k === 'email' ? propre(b[k], 160).toLowerCase() : propre(b[k], k === 'marque' || k === 'contact' ? 80 : 160)), cl.id).run();
+    await noter(db, cl.id, null, 'profil', 'Profil mis à jour');
+    return json({ ok: true });
+  }
+
+  // payer une commande : Stripe Checkout, au montant calculé ici
+  if (chemin === '/paiement' && methode === 'POST') {
+    if (!env.STRIPE_SECRET) return json({ erreur: 'Le paiement en ligne arrive bientôt. Écrivez-nous sur WhatsApp pour commander.' }, 503);
+    const b = await corpsJson(req);
+    const d = devis(String(b.pack || ''), b.formule, b.nb_creas, Array.isArray(b.options) ? b.options.map(String) : []);
+    const meta = { kreative_client: cl.id, pack: d.pack, formule: d.formule, nb_creas: String(d.nb), options: d.options.join(','), total: String(d.total) };
+    const m = d.formule === 'mensuel';
+    const p = {
+      mode: m ? 'subscription' : 'payment', locale: 'fr', client_reference_id: cl.id, metadata: meta,
+      success_url: url.origin + '/client/#/merci', cancel_url: url.origin + '/client/#/commander',
+      allow_promotion_codes: 'true', billing_address_collection: 'required', tax_id_collection: { enabled: 'true' },
+      line_items: [{ quantity: 1, price_data: { currency: 'eur', unit_amount: String(Math.round(d.total * 100)),
+        product_data: { name: d.libelle, description: 'Kreative · créatives publicitaires Meta, livrées en 1:1, 4:5 et 9:16' },
+        recurring: m ? { interval: 'month' } : undefined } }]
+    };
+    if (cl.stripe_client) p.customer = cl.stripe_client; else p.customer_email = cl.email || undefined;
+    if (m) p.subscription_data = { metadata: meta };
+    else {
+      p.invoice_creation = { enabled: 'true', invoice_data: { metadata: meta } };
+      p.payment_intent_data = { metadata: meta };
+      if (!cl.stripe_client) p.customer_creation = 'always';
+    }
+    try {
+      const s = await appelStripe(env, 'checkout/sessions', p);
+      await noter(db, cl.id, null, 'paiement', 'Paiement ouvert · ' + d.libelle + ' · ' + d.total + ' €');
+      return json({ url: s.url, total: d.total });
+    } catch (e) { return json({ erreur: 'Stripe : ' + e.message }, 502); }
+  }
+
+  // valider la livraison, puis l'avis Trustpilot
+  if ((m = chemin.match(/^\/commandes\/(k_[A-Za-z0-9]+)\/(valider|avis)$/)) && methode === 'POST') {
+    const k = await db.prepare('SELECT * FROM commandes WHERE id = ? AND client_id = ?').bind(m[1], cl.id).first();
+    if (!k) return json({ erreur: 'Commande introuvable' }, 404);
+    if (m[2] === 'valider') {
+      if (!['livre', 'revisions'].includes(k.statut)) return json({ erreur: 'Cette commande ne peut pas encore être validée.' }, 409);
+      await db.prepare("UPDATE commandes SET statut = 'valide', valide_le = ? WHERE id = ?").bind(maintenant(), k.id).run();
+      await noter(db, cl.id, k.id, 'valide', 'Créatives validées · projet terminé');
+      return json({ ok: true });
+    }
+    const b = await corpsJson(req);
+    if (b.action === 'ecrit') {
+      await db.prepare('UPDATE commandes SET avis_le = COALESCE(avis_le, ?) WHERE id = ?').bind(maintenant(), k.id).run();
+      if (!k.avis_le) await noter(db, cl.id, k.id, 'avis', 'Merci pour votre avis Trustpilot');
+    } else await db.prepare('UPDATE commandes SET avis_ignore_le = ? WHERE id = ?').bind(maintenant(), k.id).run();
+    return json({ ok: true });
   }
   return json({ erreur: 'Introuvable' }, 404);
 }
 
+// ---------- créer une commande (admin, paiement Stripe, renouvellement mensuel) ----------
+async function creerCommande(db, o) {
+  const id = 'k_' + aleatoire(10);
+  let ref = '';
+  // le numéro suit le dernier ; si deux commandes partent à la même seconde, on réessaie
+  for (let essai = 0; essai < 5; essai++) {
+    const max = await db.prepare('SELECT MAX(CAST(substr(ref, 3) AS INTEGER)) AS n FROM commandes').first();
+    ref = 'K-' + String(Math.max(100, (max && max.n) || 100) + 1 + essai);
+    try {
+      await db.prepare(`INSERT INTO commandes (id, ref, client_id, pack, formule, nb_creas, prix, dossier, statut, cree_le, brief_le, options, stripe_session, stripe_abo, stripe_facture)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`)
+        .bind(id, ref, o.client_id, o.pack, o.formule, o.nb, o.prix, o.dossier || null, o.dossier ? 'production' : 'brief', maintenant(), o.dossier ? maintenant() : null,
+          o.options && o.options.length ? o.options.join(',') : null, o.stripe_session || null, o.stripe_abo || null, o.stripe_facture || null).run();
+      break;
+    } catch (e) { if (!/UNIQUE/i.test(String(e && e.message)) || /stripe_session/.test(String(e && e.message)) || essai === 4) throw e; }
+  }
+  const P = PACKS[o.pack] || PACKS.growth;
+  await noter(db, o.client_id, id, 'commande', (o.texte || 'Commande confirmée') + ' · Pack ' + P.nom + ' · ' + o.nb + ' créatives');
+  if (o.dossier) await noter(db, o.client_id, id, 'brief', 'Brief reçu, production lancée');
+  return { id, ref };
+}
+
 // ---------- API admin ----------
+// le prix et le nombre de créatives des packs Starter, Growth et Scale sont fixes ;
+// seul le pack Custom se règle à la main
+function prixPack(pack, formule, b) {
+  const P = PACKS[pack] || PACKS.growth;
+  if (pack !== 'custom') return { nb: P.creas, prix: formule === 'mensuel' ? P.mensuel : P.unique };
+  const nb = Number(b.nb_creas), prix = b.prix === '' || b.prix == null ? null : Number(b.prix);
+  return { nb: Number.isFinite(nb) && nb > 0 ? Math.round(nb) : P.creas, prix: Number.isFinite(prix) ? prix : null };
+}
 async function apiAdmin(req, env, ctx, url, chemin, methode) {
   const db = await base(env);
   const b = methode === 'GET' ? {} : await corpsJson(req);
   let m;
 
   if (chemin === '/clients' && methode === 'GET') {
+    await synchroStatuts(db);
     const { results } = await db.prepare(`SELECT c.*, COUNT(k.id) AS nb_commandes, COALESCE(SUM(k.prix),0) AS total,
-      MAX(k.cree_le) AS derniere_commande FROM clients c LEFT JOIN commandes k ON k.client_id = c.id AND k.statut != 'annule'
+      MAX(k.cree_le) AS derniere_commande, SUM(CASE WHEN k.statut IN ('brief','production','livre','revisions') THEN 1 ELSE 0 END) AS en_cours
+      FROM clients c LEFT JOIN commandes k ON k.client_id = c.id AND k.statut != 'annule'
       GROUP BY c.id ORDER BY c.cree_le DESC`).all();
     return json(results.map(c => ({ ...c, lien: lienAcces(url, c.jeton) })));
   }
@@ -727,19 +919,24 @@ async function apiAdmin(req, env, ctx, url, chemin, methode) {
     if (!cl) return json({ erreur: 'Client introuvable' }, 404);
     if (methode === 'GET') {
       const commandes = await commandesDuClient(db, env, cl.id, true);
-      const { results: activite } = await db.prepare('SELECT type, texte, le FROM activite WHERE client_id = ? ORDER BY le DESC LIMIT 30').bind(cl.id).all();
-      return json({ client: { ...cl, lien: lienAcces(url, cl.jeton) }, commandes, activite });
+      const [{ results: activite }, { results: factures }] = await Promise.all([
+        db.prepare('SELECT type, texte, le FROM activite WHERE client_id = ? ORDER BY le DESC LIMIT 30').bind(cl.id).all(),
+        db.prepare('SELECT * FROM factures WHERE client_id = ? ORDER BY emise_le DESC').bind(cl.id).all()]);
+      return json({ client: { ...cl, lien: lienAcces(url, cl.jeton) }, commandes, activite, factures });
     }
     if (methode === 'PATCH') {
       const champs = ['marque', 'contact', 'email', 'telephone', 'site', 'statut', 'notes'].filter(k => k in b);
       if (!champs.length) return json({ ok: true });
       if ('email' in b && b.email && !emailValide(propre(b.email))) return json({ erreur: 'Adresse email invalide.' }, 400);
+      if ('email' in b && b.email && await db.prepare('SELECT id FROM clients WHERE lower(email) = ? AND id != ?').bind(propre(b.email, 160).toLowerCase(), cl.id).first())
+        return json({ erreur: 'Un autre client utilise déjà cet email.' }, 409);
       await db.prepare('UPDATE clients SET ' + champs.map(k => k + ' = ?').join(', ') + ' WHERE id = ?')
         .bind(...champs.map(k => k === 'email' ? (propre(b[k], 160).toLowerCase() || null) : propre(b[k], k === 'notes' ? 2000 : 160)), cl.id).run();
       return json({ ok: true });
     }
     if (methode === 'DELETE') {
       await db.batch([db.prepare('DELETE FROM commandes WHERE client_id = ?').bind(cl.id), db.prepare('DELETE FROM activite WHERE client_id = ?').bind(cl.id),
+        db.prepare('UPDATE factures SET client_id = NULL, commande_id = NULL WHERE client_id = ?').bind(cl.id),
         db.prepare('DELETE FROM clients WHERE id = ?').bind(cl.id)]);
       return json({ ok: true });
     }
@@ -760,58 +957,228 @@ async function apiAdmin(req, env, ctx, url, chemin, methode) {
   }
 
   if (chemin === '/commandes' && methode === 'GET') {
-    const { results } = await db.prepare(`SELECT k.*, c.marque, c.contact FROM commandes k JOIN clients c ON c.id = k.client_id
+    await synchroStatuts(db);
+    const { results } = await db.prepare(`SELECT k.*, c.marque, c.contact, c.email FROM commandes k JOIN clients c ON c.id = k.client_id
       ORDER BY k.cree_le DESC`).all();
     return json(results);
   }
   if (chemin === '/commandes' && methode === 'POST') {
     const cl = await db.prepare('SELECT id FROM clients WHERE id = ?').bind(propre(b.client_id, 40)).first();
     if (!cl) return json({ erreur: 'Client introuvable' }, 404);
-    const pack = PACKS[b.pack] ? b.pack : 'growth', formule = ['unique', 'mensuel', 'custom'].includes(b.formule) ? b.formule : 'unique';
-    const P = PACKS[pack];
-    const max = await db.prepare('SELECT MAX(CAST(substr(ref, 3) AS INTEGER)) AS n FROM commandes').first();
-    const ref = 'K-' + String(Math.max(100, (max && max.n) || 100) + 1);
-    const id = 'k_' + aleatoire(10);
-    const nb = Number(b.nb_creas) || P.creas, prix = b.prix != null && b.prix !== '' ? Number(b.prix) : (formule === 'mensuel' ? P.mensuel : P.unique);
-    await db.prepare('INSERT INTO commandes (id, ref, client_id, pack, formule, nb_creas, prix, dossier, statut, cree_le) VALUES (?,?,?,?,?,?,?,?,?,?)')
-      .bind(id, ref, cl.id, pack, formule, nb, Number.isFinite(prix) ? prix : null, propre(b.dossier, 60) || null, b.dossier ? 'production' : 'brief', maintenant()).run();
-    await noter(db, cl.id, id, 'commande', 'Commande #' + ref + ' · Pack ' + P.nom + ' · ' + nb + ' créatives');
-    return json({ id, ref });
+    const pack = PACKS[b.pack] ? b.pack : 'growth', formule = ['unique', 'mensuel'].includes(b.formule) ? b.formule : 'unique';
+    const { nb, prix } = prixPack(pack, formule, b);
+    return json(await creerCommande(db, { client_id: cl.id, pack, formule, nb, prix, dossier: propre(b.dossier, 60) || null }));
   }
   if ((m = chemin.match(/^\/commandes\/(k_[A-Za-z0-9]+)$/))) {
     const k = await db.prepare('SELECT * FROM commandes WHERE id = ?').bind(m[1]).first();
     if (!k) return json({ erreur: 'Commande introuvable' }, 404);
     if (methode === 'PATCH') {
-      const champs = ['pack', 'formule', 'nb_creas', 'prix', 'dossier', 'statut', 'deadline', 'notes'].filter(x => x in b);
       if ('statut' in b && !STATUTS.includes(b.statut)) return json({ erreur: 'Statut inconnu' }, 400);
+      const maj = {};
+      for (const x of ['dossier', 'statut', 'deadline', 'notes']) if (x in b) maj[x] = x === 'deadline' ? (b[x] === '' || b[x] == null ? null : Number(b[x])) : (propre(b[x], 2000) || null);
+      if ('pack' in b || 'formule' in b || 'nb_creas' in b || 'prix' in b) {
+        const pack = PACKS[b.pack] ? b.pack : k.pack, formule = ['unique', 'mensuel'].includes(b.formule) ? b.formule : k.formule;
+        const p = prixPack(pack, formule, { nb_creas: 'nb_creas' in b ? b.nb_creas : k.nb_creas, prix: 'prix' in b ? b.prix : k.prix });
+        Object.assign(maj, { pack, formule, nb_creas: p.nb, prix: p.prix });
+      }
+      const champs = Object.keys(maj);
       if (!champs.length) return json({ ok: true });
-      const val = x => ['nb_creas', 'prix', 'deadline'].includes(x) ? (b[x] === '' || b[x] == null ? null : Number(b[x])) : (propre(b[x], 2000) || null);
-      await db.prepare('UPDATE commandes SET ' + champs.map(x => x + ' = ?').join(', ') + ' WHERE id = ?').bind(...champs.map(val), k.id).run();
-      if ('dossier' in b && b.dossier && !k.dossier) {
+      await db.prepare('UPDATE commandes SET ' + champs.map(x => x + ' = ?').join(', ') + ' WHERE id = ?').bind(...champs.map(x => maj[x]), k.id).run();
+      if (maj.dossier && !k.dossier) {
         await db.prepare("UPDATE commandes SET brief_le = COALESCE(brief_le, ?), statut = CASE WHEN statut = 'brief' THEN 'production' ELSE statut END WHERE id = ?").bind(maintenant(), k.id).run();
         await noter(db, k.client_id, k.id, 'brief', 'Brief reçu, production lancée');
       }
       if ('statut' in b && b.statut !== k.statut) {
-        const textes = { livre: 'Vos créatives sont livrées', revisions: 'Révisions en cours', valide: 'Projet validé', production: 'Production en cours' };
-        if (textes[b.statut]) await noter(db, k.client_id, k.id, b.statut, textes[b.statut] + ' · #' + k.ref);
-        if (b.statut === 'livre') await db.prepare('UPDATE commandes SET livre_le = ? WHERE id = ?').bind(maintenant(), k.id).run();
+        const textes = { livre: 'Vos créatives sont livrées', revisions: 'Retouches en cours', valide: 'Projet validé', production: 'Production en cours' };
+        if (textes[b.statut]) await noter(db, k.client_id, k.id, b.statut, textes[b.statut]);
+        if (b.statut === 'livre') await db.prepare('UPDATE commandes SET livre_le = COALESCE(livre_le, ?) WHERE id = ?').bind(maintenant(), k.id).run();
+        if (b.statut === 'valide') await db.prepare('UPDATE commandes SET valide_le = COALESCE(valide_le, ?) WHERE id = ?').bind(maintenant(), k.id).run();
       }
       return json({ ok: true });
     }
     if (methode === 'DELETE') {
-      await db.prepare('DELETE FROM commandes WHERE id = ?').bind(k.id).run();
+      await db.batch([db.prepare('DELETE FROM commandes WHERE id = ?').bind(k.id), db.prepare('UPDATE factures SET commande_id = NULL WHERE commande_id = ?').bind(k.id)]);
       return json({ ok: true });
     }
   }
+
+  // ---- factures (Stripe les crée seules ; ajout à la main en attendant) ----
+  if (chemin === '/factures' && methode === 'GET') {
+    const { results } = await db.prepare(`SELECT f.*, c.marque, k.ref, k.pack, k.formule, k.cree_le AS commande_le FROM factures f
+      LEFT JOIN clients c ON c.id = f.client_id LEFT JOIN commandes k ON k.id = f.commande_id ORDER BY f.emise_le DESC`).all();
+    return json({ factures: results, stripe: !!env.STRIPE_WEBHOOK_SECRET });
+  }
+  if (chemin === '/factures' && methode === 'POST') {
+    const cl = await db.prepare('SELECT id FROM clients WHERE id = ?').bind(propre(b.client_id, 40)).first();
+    if (!cl) return json({ erreur: 'Choisissez un client.' }, 400);
+    const montant = Number(String(b.montant || '').replace(',', '.'));
+    if (!Number.isFinite(montant) || montant < 0) return json({ erreur: 'Montant invalide.' }, 400);
+    const pdf = propre(b.pdf, 500);
+    if (pdf && !/^https:\/\//.test(pdf)) return json({ erreur: 'Le lien du PDF doit commencer par https://' }, 400);
+    const k = b.commande_id ? await db.prepare('SELECT id FROM commandes WHERE id = ? AND client_id = ?').bind(propre(b.commande_id, 40), cl.id).first() : null;
+    const id = 'f_' + aleatoire(10), emise = Number(b.emise_le) || maintenant(), statut = ['payee', 'ouverte', 'impayee', 'annulee'].includes(b.statut) ? b.statut : 'payee';
+    await db.prepare('INSERT INTO factures (id, client_id, commande_id, numero, montant, statut, emise_le, payee_le, pdf, source, cree_le) VALUES (?,?,?,?,?,?,?,?,?,?,?)')
+      .bind(id, cl.id, k ? k.id : null, propre(b.numero, 40) || null, montant, statut, emise, statut === 'payee' ? emise : null, pdf || null, 'manuel', maintenant()).run();
+    await noter(db, cl.id, k ? k.id : null, 'facture', 'Facture ' + (propre(b.numero, 40) || '') + ' disponible');
+    return json({ id });
+  }
+  if ((m = chemin.match(/^\/factures\/(f_[A-Za-z0-9]+)$/))) {
+    const f = await db.prepare('SELECT * FROM factures WHERE id = ?').bind(m[1]).first();
+    if (!f) return json({ erreur: 'Facture introuvable' }, 404);
+    if (methode === 'PATCH') {
+      const maj = {};
+      if ('client_id' in b) maj.client_id = (await db.prepare('SELECT id FROM clients WHERE id = ?').bind(propre(b.client_id, 40)).first() || {}).id || null;
+      if ('commande_id' in b) maj.commande_id = b.commande_id ? ((await db.prepare('SELECT id FROM commandes WHERE id = ?').bind(propre(b.commande_id, 40)).first() || {}).id || null) : null;
+      if ('statut' in b && ['payee', 'ouverte', 'impayee', 'annulee'].includes(b.statut)) maj.statut = b.statut;
+      const champs = Object.keys(maj);
+      if (champs.length) await db.prepare('UPDATE factures SET ' + champs.map(x => x + ' = ?').join(', ') + ' WHERE id = ?').bind(...champs.map(x => maj[x]), f.id).run();
+      return json({ ok: true });
+    }
+    if (methode === 'DELETE') {
+      if (f.source === 'stripe') return json({ erreur: 'Une facture Stripe se gère dans Stripe.' }, 409);
+      await db.prepare('DELETE FROM factures WHERE id = ?').bind(f.id).run();
+      return json({ ok: true });
+    }
+  }
+
   if (chemin === '/equipe' && methode === 'GET') {
     return json(personnes(env).map(x => ({ nom: x.nom, role: x.role, espace: ACCUEILS[x.role] })));
   }
   if (chemin === '/resume' && methode === 'GET') {
+    await synchroStatuts(db);
     const r = await db.prepare(`SELECT (SELECT COUNT(*) FROM clients) AS clients,
       (SELECT COUNT(*) FROM commandes WHERE statut IN ('brief','production','livre','revisions')) AS en_cours,
       (SELECT COUNT(*) FROM commandes WHERE formule = 'mensuel' AND statut != 'annule') AS mensuels,
-      (SELECT COALESCE(SUM(prix),0) FROM commandes WHERE statut != 'annule' AND cree_le > ?) AS ca_30j`).bind(maintenant() - 30 * 864e5).first();
-    return json({ ...r, packs: PACKS });
+      (SELECT COALESCE(SUM(prix),0) FROM commandes WHERE statut != 'annule' AND cree_le > ?) AS ca_30j,
+      (SELECT COALESCE(SUM(montant),0) FROM factures WHERE statut = 'payee' AND emise_le > ?) AS encaisse_30j,
+      (SELECT COUNT(*) FROM factures WHERE statut IN ('ouverte','impayee')) AS impayees`).bind(maintenant() - 30 * 864e5, maintenant() - 30 * 864e5).first();
+    return json({ ...r, packs: PACKS, custom: CUSTOM, stripe: !!env.STRIPE_WEBHOOK_SECRET, paiement: !!env.STRIPE_SECRET });
   }
   return json({ erreur: 'Introuvable' }, 404);
+}
+
+// ============================================================
+//  STRIPE : les factures arrivent seules
+//  Stripe → Développeurs → Webhooks → point de terminaison
+//  https://<ce site>/api/stripe/webhook, événements « invoice.* ».
+//  Événements : checkout.session.completed et invoice.* .
+//  Son code de signature va dans le secret STRIPE_WEBHOOK_SECRET.
+//  La clé restreinte (Checkout Sessions en écriture) va dans STRIPE_SECRET :
+//  elle sert seulement à créer les paiements depuis l'espace client.
+//  Un paiement réussi crée la commande (et l'espace client si besoin) ;
+//  chaque mois d'abonnement payé crée la commande du mois suivant.
+//  La facture est rattachée au client par son email, et à une commande
+//  si la facture porte la métadonnée « commande » (ex. K-104).
+// ============================================================
+// un paiement Stripe réussi : la commande se crée seule (et l'espace client
+// aussi si c'est un nouveau client, avec son lien d'accès par email)
+async function paiementRecu(env, ctx, url, s) {
+  const db = await base(env);
+  if (await db.prepare('SELECT id FROM commandes WHERE stripe_session = ?').bind(s.id).first()) return;     // déjà traité
+  const meta = s.metadata || {};
+  const email = String((s.customer_details && s.customer_details.email) || s.customer_email || '').toLowerCase();
+  let cl = meta.kreative_client ? await db.prepare('SELECT * FROM clients WHERE id = ?').bind(String(meta.kreative_client)).first() : null;
+  if (!cl && s.customer) cl = await db.prepare('SELECT * FROM clients WHERE stripe_client = ?').bind(String(s.customer)).first();
+  if (!cl && email) cl = await db.prepare('SELECT * FROM clients WHERE lower(email) = ?').bind(email).first();
+  let nouveau = false;
+  if (!cl) {
+    if (!emailValide(email)) return;
+    const det = s.customer_details || {};
+    const id = 'c_' + aleatoire(10), jeton = aleatoire(32);
+    const marque = propre((det.business_name || det.name || email.split('@')[0]), 80);
+    await db.prepare('INSERT INTO clients (id, marque, contact, email, telephone, jeton, cree_le) VALUES (?,?,?,?,?,?,?)')
+      .bind(id, marque, propre(det.name, 80), email, propre(det.phone, 40), jeton, maintenant()).run();
+    await noter(db, id, null, 'client', 'Espace client créé');
+    cl = { id, marque, contact: det.name || '', email, jeton };
+    nouveau = true;
+  }
+  if (s.customer && !cl.stripe_client) await db.prepare('UPDATE clients SET stripe_client = ? WHERE id = ?').bind(String(s.customer), cl.id).run();
+  // le pack : dans les métadonnées (portail), sinon déduit du montant (liens du site)
+  const total = (s.amount_total || 0) / 100, mensuel = s.mode === 'subscription';
+  let pack = PACKS[meta.pack] ? meta.pack : null;
+  if (!pack) pack = Object.keys(PACKS).find(k => PACKS[k][mensuel ? 'mensuel' : 'unique'] === total) || 'custom';
+  const nb = Number(meta.nb_creas) || PACKS[pack].creas;
+  const r = await creerCommande(db, { client_id: cl.id, pack, formule: mensuel ? 'mensuel' : 'unique', nb, prix: total,
+    options: meta.options ? String(meta.options).split(',').filter(Boolean) : [], stripe_session: s.id,
+    stripe_abo: typeof s.subscription === 'string' ? s.subscription : null, stripe_facture: typeof s.invoice === 'string' ? s.invoice : null,
+    texte: 'Paiement reçu, commande confirmée' });
+  if (typeof s.invoice === 'string') await db.prepare('UPDATE factures SET commande_id = COALESCE(commande_id, ?), client_id = COALESCE(client_id, ?) WHERE stripe_id = ?').bind(r.id, cl.id, s.invoice).run();
+  if (nouveau && cl.jeton) {
+    const envoi = envoyerEmail(env, { type: 'acces', a: email, marque: cl.marque, contact: cl.contact || '', lien: lienAcces(url, cl.jeton) });
+    if (ctx && ctx.waitUntil) ctx.waitUntil(envoi); else await envoi;
+  }
+}
+function formulaireStripe(o, prefixe, sortie) {
+  sortie = sortie || [];
+  for (const [k, v] of Object.entries(o)) {
+    if (v === undefined || v === null) continue;
+    const cle = prefixe ? prefixe + '[' + k + ']' : k;
+    if (typeof v === 'object') formulaireStripe(v, cle, sortie);
+    else sortie.push(encodeURIComponent(cle) + '=' + encodeURIComponent(v));
+  }
+  return sortie.join('&');
+}
+async function appelStripe(env, chemin, params) {
+  const r = await fetch((env.STRIPE_API || 'https://api.stripe.com') + '/v1/' + chemin, { method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + env.STRIPE_SECRET, 'Content-Type': 'application/x-www-form-urlencoded' }, body: formulaireStripe(params) });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error((d.error && d.error.message) || ('erreur ' + r.status));
+  return d;
+}
+async function hmacHex(secret, texteASigner) {
+  const k = await crypto.subtle.importKey('raw', new TextEncoder().encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  const s = await crypto.subtle.sign('HMAC', k, new TextEncoder().encode(texteASigner));
+  return Array.from(new Uint8Array(s), x => x.toString(16).padStart(2, '0')).join('');
+}
+async function stripeWebhook(req, env, ctx, url) {
+  if (!env.STRIPE_WEBHOOK_SECRET) return json({ erreur: 'Webhook Stripe pas encore configuré' }, 503);
+  const corps = await req.text();
+  const morceaux = (req.headers.get('Stripe-Signature') || '').split(',').map(x => x.split('='));
+  const t = (morceaux.find(x => x[0] === 't') || [])[1];
+  const v1 = morceaux.filter(x => x[0] === 'v1').map(x => x[1]);
+  if (!t || !v1.length || Math.abs(Date.now() / 1000 - Number(t)) > 600) return json({ erreur: 'Signature absente ou expirée' }, 400);
+  const attendu = await hmacHex(env.STRIPE_WEBHOOK_SECRET, t + '.' + corps);
+  if (!v1.some(v => egal(v, attendu))) return json({ erreur: 'Signature invalide' }, 400);
+  let ev; try { ev = JSON.parse(corps); } catch (e) { return json({ erreur: 'JSON invalide' }, 400); }
+  const o = ev && ev.data && ev.data.object;
+  if (!o) return json({ recu: true });
+  if (ev.type === 'checkout.session.completed' || ev.type === 'checkout.session.async_payment_succeeded') {
+    if (o.payment_status === 'paid' || o.payment_status === 'no_payment_required') await paiementRecu(env, ctx, url, o);
+  } else if (/^invoice\./.test(ev.type || '')) await enregistrerFacture(env, o);
+  return json({ recu: true });
+}
+async function enregistrerFacture(env, inv) {
+  if (!inv.id || inv.status === 'draft') return;
+  const db = await base(env);
+  const email = String(inv.customer_email || '').toLowerCase();
+  const sd = inv.subscription_details || (inv.parent && inv.parent.subscription_details) || {};
+  const abo = (typeof inv.subscription === 'string' && inv.subscription) || sd.subscription || null;
+  const meta = Object.assign({}, sd.metadata, inv.metadata);
+  let cl = meta.kreative_client ? await db.prepare('SELECT id FROM clients WHERE id = ?').bind(String(meta.kreative_client)).first() : null;
+  if (!cl && inv.customer) cl = await db.prepare('SELECT id FROM clients WHERE stripe_client = ?').bind(String(inv.customer)).first();
+  if (!cl && email) cl = await db.prepare('SELECT id FROM clients WHERE lower(email) = ?').bind(email).first();
+  let k = meta.commande ? await db.prepare('SELECT id, client_id FROM commandes WHERE ref = ?').bind(String(meta.commande)).first() : null;
+  if (!k) k = await db.prepare('SELECT id, client_id FROM commandes WHERE stripe_facture = ?').bind(inv.id).first();
+  if (!k && abo) {
+    const derniere = await db.prepare('SELECT * FROM commandes WHERE stripe_abo = ? ORDER BY cree_le DESC LIMIT 1').bind(abo).first();
+    if (derniere && inv.billing_reason === 'subscription_cycle' && inv.status === 'paid') {
+      // un nouveau mois d'abonnement : une nouvelle commande, avec son propre brief
+      const r = await creerCommande(db, { client_id: derniere.client_id, pack: derniere.pack, formule: 'mensuel', nb: derniere.nb_creas,
+        prix: (inv.total || 0) / 100, options: derniere.options ? derniere.options.split(',') : [], stripe_abo: abo, stripe_facture: inv.id, texte: 'Nouveau mois d\'abonnement' });
+      k = { id: r.id, client_id: derniere.client_id };
+    } else if (derniere && !derniere.stripe_facture) k = { id: derniere.id, client_id: derniere.client_id };
+  }
+  const statut = { paid: 'payee', open: 'ouverte', void: 'annulee', uncollectible: 'impayee' }[inv.status] || inv.status;
+  const payee = inv.status_transitions && inv.status_transitions.paid_at ? inv.status_transitions.paid_at * 1000 : null;
+  const avant = await db.prepare('SELECT id, statut FROM factures WHERE stripe_id = ?').bind(inv.id).first();
+  await db.prepare(`INSERT INTO factures (id, client_id, commande_id, numero, montant, montant_ht, devise, statut, emise_le, payee_le, pdf, lien, email, source, stripe_id, cree_le)
+    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+    ON CONFLICT(stripe_id) DO UPDATE SET statut = excluded.statut, numero = COALESCE(excluded.numero, factures.numero), montant = excluded.montant,
+      montant_ht = excluded.montant_ht, payee_le = COALESCE(excluded.payee_le, factures.payee_le), pdf = COALESCE(excluded.pdf, factures.pdf),
+      lien = COALESCE(excluded.lien, factures.lien), client_id = COALESCE(factures.client_id, excluded.client_id), commande_id = COALESCE(factures.commande_id, excluded.commande_id)`)
+    .bind('f_' + aleatoire(10), (k && k.client_id) || (cl && cl.id) || null, k ? k.id : null, inv.number || null, (inv.total || 0) / 100,
+      inv.total_excluding_tax != null ? inv.total_excluding_tax / 100 : null, inv.currency || 'eur', statut, (inv.created || 0) * 1000 || maintenant(), payee,
+      inv.invoice_pdf || null, inv.hosted_invoice_url || null, email || null, 'stripe', inv.id, maintenant()).run();
+  const qui = (k && k.client_id) || (cl && cl.id);
+  if (qui && statut === 'payee' && (!avant || avant.statut !== 'payee')) await noter(db, qui, k ? k.id : null, 'facture', 'Paiement reçu · facture ' + (inv.number || '') + ' disponible');
 }

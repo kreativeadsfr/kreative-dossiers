@@ -14,13 +14,15 @@
 <script>
 /* ============================================================
    PORTAIL CLIENT KREATIVE
-   Accueil, projets (avancement), brief (Fillout intégré),
-   commander, contact WhatsApp, avis Trustpilot.
-   Les données viennent de /api/client/moi.
+   Accueil, projets (avancement en 5 étapes, validation, avis),
+   brief (Fillout intégré), factures, commander (paiement Stripe,
+   configurateur du pack Custom), profil, contact.
+   Les données viennent de /api/client/moi. Le statut et les étapes
+   sont calculés par le serveur (une seule source de vérité).
    ============================================================ */
 const LIENS = {
   whatsapp: 'https://api.whatsapp.com/send?phone=33756921042',
-  trustpilot: 'https://www.trustpilot.com/review/kreativeads.fr',
+  trustpilot: 'https://www.trustpilot.com/evaluate/kreativeads.fr',
   iclosed: 'https://app.iclosed.io/e/kreative/appel-de-decouverte-kreative',
   fillout: {
     starter: 'https://kreative-forms.fillout.com/t/hSWiGFjTVhus',
@@ -28,35 +30,24 @@ const LIENS = {
     scale: 'https://kreative-forms.fillout.com/t/sPx62jwVQqus',
     custom: 'https://kreative-forms.fillout.com/t/oQN3qKRznVus',
     suivant: 'https://kreative-forms.fillout.com/t/9pEDzM8K9Tus'
-  },
-  // les liens de paiement Stripe (à compléter) : tant qu'ils sont vides,
-  // « Commander » ouvre WhatsApp avec un message prêt
-  stripe: {
-    starter: { unique: '', mensuel: '' },
-    growth: { unique: '', mensuel: '' },
-    scale: { unique: '', mensuel: '' }
   }
 };
 const { i, esc } = K;
 let D = null;                 // les données du client
 let formule = 'mensuel';      // onglet de la page Commander
+const CFG = { nb: 30, formule: 'unique', options: [] };   // le configurateur Custom
 
 const params = new URLSearchParams(location.search);
 if (params.get('client')) K.suffixe = '?client=' + encodeURIComponent(params.get('client'));
-const lienInterne = h => h + '';   // les liens restent sur la même page (#)
 
 const wa = texte => LIENS.whatsapp + '&text=' + encodeURIComponent(texte);
 const nomPack = c => 'Pack ' + ((D.packs[c.pack] || {}).nom || c.pack);
-const titreCommande = c => nomPack(c) + ' · ' + c.nb_creas + ' créatives';
-const statutPill = c => {
-  if (c.statut === 'brief') return '<span class="pill a"><i></i>Brief attendu</span>';
-  if (c.statut === 'valide') return '<span class="pill g"><i></i>Terminé</span>';
-  if (c.statut === 'livre') return '<span class="pill g"><i></i>Livré</span>';
-  if (c.statut === 'revisions') return '<span class="pill v"><i></i>Révisions</span>';
-  return '<span class="pill b"><i></i>En cours</span>';
-};
-const enCours = () => D.commandes.filter(c => !['valide', 'annule'].includes(c.statut));
+const nom = c => K.nomCommande(c);
+const coeur = c => c.etapes.filter(e => !e.option);
+const etat = c => c.etat || 'production';
+const enCours = () => D.commandes.filter(c => !['valide', 'annule'].includes(etat(c)));
 const prenom = () => (D.client.contact || '').trim().split(/\s+/)[0] || D.client.marque;
+const facturesDe = c => (D.factures || []).filter(f => f.commande_id === c.id);
 
 function conf() {
   return {
@@ -64,13 +55,15 @@ function conf() {
     sections: [{ titre: 'Espace client', liens: [
       { id: 'accueil', texte: 'Accueil', icone: 'accueil', href: '#/' },
       { id: 'projets', texte: 'Mes projets', icone: 'dossier', href: '#/projets', nb: D.commandes.length || '' },
-      { id: 'brief', texte: 'Mon brief', icone: 'doc', href: '#/brief' }
+      { id: 'brief', texte: 'Mon brief', icone: 'doc', href: '#/brief' },
+      { id: 'factures', texte: 'Factures', icone: 'recu', href: '#/factures', nb: (D.factures || []).length || '' }
     ] }, { titre: 'Kreative', liens: [
       { id: 'contact', texte: 'Nous contacter', icone: 'message', href: '#/contact' },
       { id: 'avis', texte: 'Laisser un avis', icone: 'etoile', href: '#/avis' }
     ] }],
     qui: { nom: D.client.marque, role: D.client.contact || D.client.email || 'Client', tuile: true },
-    menu: ['<a href="' + wa('Bonjour Kreative, ') + '" target="_blank" rel="noopener">' + i.message + 'Nous écrire</a>'],
+    menu: ['<a href="#/profil">' + i.utilisateur + 'Mon profil</a>'],
+    sansTheme: true,
     sortie: D.apercu ? '/admin/#/clients/' + D.client.id : '/client/sortie'
   };
 }
@@ -80,29 +73,36 @@ function apercu() {
     '<small>Vous voyez exactement ce que voit votre client. Rien de ce que vous faites ici ne lui est envoyé.</small></div>' +
     '<a class="btn btn-sm" href="/admin/#/clients/' + esc(D.client.id) + '">Retour à l\'admin</a></div>' : '';
 }
+async function recharger() { D = await K.api('/api/client/moi'); K.rendre(); }
 
 // ---------- ACCUEIL ----------
 function ecranAccueil() {
   const cours = enCours();
   const principal = cours[0] || D.commandes[0];
-  const attente = D.commandes.find(c => c.statut === 'brief');
+  const attente = D.commandes.find(c => etat(c) === 'confirmee');
+  const aValider = D.commandes.find(c => etat(c) === 'livre');
   let h = apercu();
-  if (attente) h += '<div class="bandeau"><span class="ic">' + i.doc + '</span><div><b>Il reste une étape : votre brief</b>' +
-    '<small>Comptez une quinzaine de minutes. Il lance la production de votre ' + esc(nomPack(attente)) + '.</small></div>' +
+  if (aValider) h += '<div class="bandeau"><span class="ic">' + i.image + '</span><div><b>Vos créatives sont prêtes</b>' +
+    '<small>' + esc(nom(aValider)) + ' : regardez-les, puis validez la livraison ou demandez une retouche.</small></div>' +
+    '<a class="btn" href="#/projets/' + esc(aValider.id) + '">Voir et valider</a></div>';
+  else if (attente) h += '<div class="bandeau"><span class="ic">' + i.doc + '</span><div><b>Il reste une étape : votre brief</b>' +
+    '<small>Comptez une quinzaine de minutes. Il lance la production de votre ' + esc(nom(attente)) + '.</small></div>' +
     '<a class="btn" href="#/brief/' + esc(attente.id) + '">Remplir mon brief</a></div>';
   h += '<div class="ph"><div><h1>Bonjour, ' + esc(prenom()) + '</h1><p>Suivez l\'avancement de vos créatives Kreative.</p></div></div>';
 
   h += '<div class="sec" style="margin-top:0"><div><h2>Mes projets</h2><p>Cliquez sur un projet pour voir son avancement, votre brief et vos créatives.</p></div></div>';
-  h += D.commandes.length ? '<div class="projets">' + D.commandes.slice(0, 3).map((c, n) => carteProjet(c, D.commandes.length - n)).join('') + '</div>'
+  h += D.commandes.length ? '<div class="projets">' + D.commandes.slice(0, 3).map(carteProjet).join('') + '</div>'
     : '<div class="card"><div class="vide">' + i.dossier + 'Aucun projet pour l\'instant.<br><a class="btn btn-p btn-sm" style="margin-top:14px" href="#/commander">Commander mes premières créas</a></div></div>';
 
   if (principal) {
-    const livrees = D.commandes.filter(c => ['livre', 'revisions', 'valide'].includes(c.statut)).reduce((s, c) => s + (c.nb_creas || 0), 0);
+    const livrees = D.commandes.filter(c => ['livre', 'revisions', 'valide'].includes(etat(c))).reduce((s, c) => s + (c.nb_creas || 0), 0);
     const total = D.commandes.reduce((s, c) => s + (c.nb_creas || 0), 0);
+    const ce = coeur(principal);
     h += '<div class="grid g4" style="margin-top:14px">' +
-      '<div class="card kpi"><div class="lab">Projet en cours</div><div class="v s">' + esc(nomPack(principal)) + '</div><div class="d">' + principal.progression + ' % · ' + principal.etapes.filter(e => e.fait).length + ' / ' + principal.etapes.length + ' étapes</div><div class="barre"><i style="width:' + principal.progression + '%"></i></div></div>' +
+      '<div class="card kpi"><div class="lab">Projet en cours</div><div class="v s">' + esc(nomPack(principal)) + '</div><div class="d">' + principal.progression + ' % · ' + ce.filter(e => e.fait).length + ' / ' + ce.length + ' étapes</div><div class="barre"><i style="width:' + principal.progression + '%"></i></div></div>' +
       '<div class="card kpi"><div class="lab">Projets en cours</div><div class="v">' + cours.length + '</div><div class="d">' + D.commandes.length + ' projet' + (D.commandes.length > 1 ? 's' : '') + ' au total</div></div>' +
-      '<div class="card kpi"><div class="lab">Livraison prévue</div><div class="v s">' + (principal.deadline ? esc(K.date(principal.deadline, { year: undefined })) : 'Dès le brief') + '</div><div class="d">' + (principal.deadline ? esc(K.jour(principal.deadline)) + ', ' + esc(K.dans(principal.deadline)) : 'Le délai démarre à la réception du brief') + '</div></div>' +
+      '<div class="card kpi"><div class="lab">Livraison prévue</div><div class="v s">' + (principal.deadline ? esc(K.date(principal.deadline, { year: undefined })) : 'Dès le brief') + '</div><div class="d">' +
+        (principal.deadline ? esc(K.jour(principal.deadline)) : 'Le délai démarre à la réception du brief') + '</div></div>' +
       '<div class="card kpi"><div class="lab">Créatives livrées</div><div class="v">' + livrees + ' / ' + total + '</div><div class="d">Toutes vos commandes</div></div></div>';
 
     h += '<div class="grid g2" style="margin-top:14px">' +
@@ -113,12 +113,13 @@ function ecranAccueil() {
   }
   return h;
 }
-const ICONES_ACT = { commande: i.sac, brief: i.doc, livre: i.image, revisions: i.crayon, valide: i.coche, production: i.pinceau, client: i.accueil, lien: i.lien };
+const ICONES_ACT = { commande: i.sac, brief: i.doc, livre: i.image, revisions: i.crayon, valide: i.coche, production: i.pinceau, client: i.accueil, lien: i.lien,
+  facture: i.recu, paiement: i.carte, avis: i.etoile, profil: i.utilisateur };
 
-function carteProjet(c, n) {
-  return '<a class="card projet" href="#/projets/' + esc(c.id) + '"><div class="hd"><span class="ic">' + i.calques + '</span>' + statutPill(c) + '</div>' +
-    '<div class="lab">Projet ' + n + ' · #' + esc(c.ref) + '</div><h3>' + esc(titreCommande(c)) + '</h3>' +
-    '<div class="muted" style="font-size:13px">Commandé le ' + esc(K.date(c.cree_le)) + (c.formule === 'mensuel' ? ' · mensuel' : '') + '</div>' +
+function carteProjet(c) {
+  return '<a class="card projet" href="#/projets/' + esc(c.id) + '"><div class="hd"><span class="ic">' + i.calques + '</span>' + K.pillCommande(c) + '</div>' +
+    '<div class="lab">#' + esc(c.ref) + ' · ' + c.nb_creas + ' créatives</div><h3>' + esc(nom(c)) + '</h3>' +
+    '<div class="muted" style="font-size:13px">Commandé le ' + esc(K.date(c.cree_le)) + (c.formule === 'mensuel' ? ' · abonnement' : '') + '</div>' +
     '<div class="barre" style="margin-top:12px"><i style="width:' + c.progression + '%"></i></div><div class="pc">' + c.progression + ' % d\'avancement</div>' +
     '<span class="btn btn-p btn-sm">Voir le projet ' + i.fleche + '</span></a>';
 }
@@ -128,11 +129,11 @@ function ecranProjets() {
   let h = apercu() + '<div class="ph"><div><h1>Mes projets</h1><p>Toutes vos commandes et leur avancement.</p></div>' +
     '<div class="act"><a class="btn btn-p" href="#/commander">' + i.plus + 'Nouvelle commande</a></div></div>';
   if (!D.commandes.length) return h + '<div class="card"><div class="vide">' + i.dossier + 'Aucun projet pour l\'instant.</div></div>';
-  h += '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Projet</th><th>Commande</th><th>Statut</th><th>Avancement</th><th>Livraison</th><th></th></tr></thead><tbody>' +
-    D.commandes.map(c => '<tr class="clic" onclick="location.hash=\'#/projets/' + esc(c.id) + '\'"><td><b>#' + esc(c.ref) + '</b><span class="sub">' + esc(K.date(c.cree_le)) + '</span></td>' +
-      '<td>' + esc(titreCommande(c)) + '<span class="sub">' + (c.formule === 'mensuel' ? 'Mensuel' : c.formule === 'custom' ? 'Sur mesure' : 'Commande unique') + '</span></td>' +
-      '<td>' + statutPill(c) + '</td><td style="min-width:150px"><div class="barre"><i style="width:' + c.progression + '%"></i></div><span class="sub">' + c.progression + ' %</span></td>' +
-      '<td>' + (c.deadline ? esc(K.date(c.deadline)) : '<span class="muted">·</span>') + '</td><td class="fin">' + i.fleche.replace('<svg', '<svg width="16" height="16" style="opacity:.4"') + '</td></tr>').join('') +
+  h += '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Projet</th><th>Volume</th><th>Statut</th><th>Avancement</th><th>Livraison</th><th></th></tr></thead><tbody>' +
+    D.commandes.map(c => '<tr class="clic" onclick="location.hash=\'#/projets/' + esc(c.id) + '\'"><td><b>' + esc(nom(c)) + '</b><span class="sub">#' + esc(c.ref) + ' · ' + esc(K.date(c.cree_le)) + '</span></td>' +
+      '<td>' + c.nb_creas + ' créatives<span class="sub">' + (c.formule === 'mensuel' ? 'Abonnement mensuel' : 'Commande unique') + '</span></td>' +
+      '<td>' + K.pillCommande(c) + '</td><td style="min-width:150px"><div class="barre' + (c.progression === 100 ? ' g' : '') + '"><i style="width:' + c.progression + '%"></i></div><span class="sub">' + c.progression + ' %</span></td>' +
+      '<td>' + (c.deadline ? esc(K.date(c.deadline)) : '<span class="muted">Dès le brief</span>') + '</td><td class="fin">' + i.fleche.replace('<svg', '<svg width="16" height="16" style="opacity:.4"') + '</td></tr>').join('') +
     '</tbody></table></div></div>';
   return h;
 }
@@ -140,59 +141,110 @@ function ecranProjets() {
 function ecranProjet(id) {
   const c = D.commandes.find(x => x.id === id);
   if (!c) return '<a class="retour" href="#/projets">' + i.gauche + 'Mes projets</a><div class="card"><div class="vide">Projet introuvable.</div></div>';
-  const fait = k => (c.etapes.find(e => e.cle === k) || {}).fait;
+  const e = etat(c), ce = coeur(c), fait = k => (c.etapes.find(x => x.cle === k) || {}).fait;
   let h = apercu() + '<a class="retour" href="#/projets">' + i.gauche + 'Retour à mes projets</a>' +
-    '<div class="ph"><div><h1 style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">' + esc(titreCommande(c)) + ' <span class="pill b">' + c.progression + ' %</span></h1>' +
-    '<p>Commande #' + esc(c.ref) + ' du ' + esc(K.date(c.cree_le)) + (c.deadline ? ' · livraison prévue le ' + esc(K.jour(c.deadline)) : '') + '</p></div></div>';
+    '<div class="ph"><div><h1 style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">' + esc(nom(c)) + ' ' + K.pillCommande(c) + '</h1>' +
+    '<p>Commande #' + esc(c.ref) + ' du ' + esc(K.date(c.cree_le)) + ' · ' + c.nb_creas + ' créatives' + (c.deadline && !fait('livraison') ? ' · livraison prévue le ' + esc(K.jour(c.deadline)) : '') + '</p></div></div>';
   h += '<div class="card pad"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px"><div><h3 style="font-size:16px">Avancement global</h3>' +
-    '<p class="muted" style="font-size:13px;margin-top:3px">' + c.etapes.filter(e => e.fait).length + ' sur ' + c.etapes.length + ' étapes terminées</p></div>' + statutPill(c) + '</div>' +
-    '<div class="barre" style="margin-top:16px;height:7px"><i style="width:' + c.progression + '%"></i></div>' +
-    '<div class="coches">' + c.etapes.map(e => '<div class="coche' + (e.fait ? ' fait' : '') + '"><span class="o">' + (e.fait ? i.coche : '') + '</span>' + esc(e.titre) + '</div>').join('') + '</div></div>';
+    '<p class="muted" style="font-size:13px;margin-top:3px">' + ce.filter(x => x.fait).length + ' sur ' + ce.length + ' étapes terminées</p></div><b style="font:600 22px var(--titre)">' + c.progression + ' %</b></div>' +
+    '<div class="barre' + (c.progression === 100 ? ' g' : '') + '" style="margin-top:16px;height:7px"><i style="width:' + c.progression + '%"></i></div>' +
+    '<div class="coches">' + ce.map(x => '<div class="coche' + (x.fait ? ' fait' : '') + '"><span class="o">' + (x.fait ? i.coche : '') + '</span>' + esc(x.titre) + '</div>').join('') + '</div></div>';
 
   h += '<div class="sec"><div><h2>Vos actions</h2><p>Ce qui vous attend sur ce projet.</p></div></div><div class="actions">';
-  h += action(fait('brief') ? 'ok' : 'on', i.doc, 'Fillout', 'Votre brief', 'Les informations sur votre marque qui lancent la production.',
+  h += action(fait('brief') ? 'ok' : 'on', i.doc, 'Étape 2', 'Votre brief', 'Les informations sur votre marque qui lancent la production.',
     fait('brief') ? '<div class="etat ok">✓ Brief envoyé</div>' : '<a class="btn btn-p btn-sm" href="#/brief/' + esc(c.id) + '">Remplir mon brief</a>');
-  h += action(fait('livraison') ? (c.statut === 'valide' ? 'ok' : 'on') : 'off', i.image, 'Créatives', 'Vos créatives',
-    c.nb_creas + ' créatives en 3 formats (1:1, 4:5, 9:16), à valider ou à commenter.',
-    fait('livraison') ? '<a class="btn btn-p btn-sm" href="' + wa('Bonjour Kreative, je voudrais récupérer les créatives de ma commande #' + c.ref) + '" target="_blank" rel="noopener">Recevoir mes créatives</a>'
-      : '<div class="etat">' + (c.deadline ? 'Prévu le ' + esc(K.date(c.deadline, { year: undefined })) : 'Pas encore disponible') + '</div>');
-  h += action(c.statut === 'revisions' ? 'on' : 'off', i.crayon, 'Révisions', 'Vos retouches',
-    ((D.packs[c.pack] || {}).revisions ? (D.packs[c.pack].revisions + ' cycles de révisions inclus.') : 'Révisions illimitées jusqu\'à validation.'),
-    c.statut === 'revisions' ? '<div class="etat">En cours chez Kreative</div>' : '<div class="etat">' + (fait('livraison') ? 'Aucune demandée' : 'Après la livraison') + '</div>');
-  h += action(c.statut === 'valide' ? 'on' : 'off', i.etoile, 'Trustpilot', 'Votre avis', 'Une minute pour nous dire comment ça s\'est passé.',
-    c.statut === 'valide' ? '<a class="btn btn-s btn-sm" href="' + LIENS.trustpilot + '" target="_blank" rel="noopener">Laisser un avis</a>' : '<div class="etat">À la fin du projet</div>');
+  h += action(fait('livraison') ? 'ok' : 'off', i.image, 'Étape 4', 'Vos créatives',
+    c.nb_creas + ' créatives en 3 formats (1:1, 4:5, 9:16).',
+    fait('livraison') ? '<a class="btn btn-s btn-sm" href="' + wa('Bonjour Kreative, je voudrais récupérer les créatives de mon projet ' + nom(c) + ' (#' + c.ref + ')') + '" target="_blank" rel="noopener">Recevoir mes créatives</a>'
+      : '<div class="etat">' + (c.deadline ? 'Prévu le ' + esc(K.date(c.deadline, { year: undefined })) : 'Après votre brief') + '</div>');
+  h += action(e === 'valide' ? 'ok' : ['livre', 'revisions'].includes(e) ? 'on' : 'off', i.coche, 'Étape 5', 'Validation',
+    e === 'revisions' ? 'Vos retouches sont en cours. Validez quand tout vous convient.' : 'Vous validez la version finale, ou demandez une retouche avant.',
+    e === 'valide' ? '<div class="etat ok">✓ Validé' + (c.valide_le ? ' le ' + esc(K.date(c.valide_le, { year: undefined })) : '') + '</div>'
+      : ['livre', 'revisions'].includes(e) ? '<button class="btn btn-p btn-sm" data-valider="' + esc(c.id) + '">Valider la livraison</button>' +
+        '<a class="btn btn-g btn-sm" style="margin-top:6px" href="' + wa('Bonjour Kreative, je voudrais une retouche sur mon projet ' + nom(c) + ' (#' + c.ref + ') : ') + '" target="_blank" rel="noopener">Demander une retouche</a>'
+      : '<div class="etat">Après la livraison</div>');
+  h += action(c.avis_le ? 'ok' : e === 'valide' ? 'on' : 'off', i.etoile, 'Trustpilot', 'Votre avis', 'Une minute pour nous dire comment ça s\'est passé.',
+    c.avis_le ? '<div class="etat ok">✓ Merci pour votre avis</div>' : e === 'valide' ? '<button class="btn btn-tp btn-sm" data-avis="' + esc(c.id) + '">Laisser mon avis</button>' : '<div class="etat">À la fin du projet</div>');
   h += '</div>';
+  const F = facturesDe(c);
+  if (F.length) h += '<div class="sec"><div><h2>Factures</h2><p>Les factures de ce projet.</p></div></div><div class="card"><div class="tbl-wrap">' + tableFactures(F) + '</div></div>';
   h += '<div class="grid g2" style="margin-top:22px"><div class="card"><div class="card-h"><h3>Étapes du projet</h3></div><div class="card-b">' + K.etapes(c.etapes) + '</div></div>' +
     '<div class="card pad"><h3 style="font-size:15px">Une question sur ce projet ?</h3><p class="muted" style="margin:6px 0 16px;font-size:13.5px">On répond sur WhatsApp, en général dans l\'heure.</p>' +
-    '<a class="btn btn-s" href="' + wa('Bonjour Kreative, une question sur ma commande #' + c.ref + ' : ') + '" target="_blank" rel="noopener">' + i.message + 'Nous écrire</a></div></div>';
+    '<a class="btn btn-s" href="' + wa('Bonjour Kreative, une question sur mon projet ' + nom(c) + ' (#' + c.ref + ') : ') + '" target="_blank" rel="noopener">' + i.message + 'Nous écrire</a></div></div>';
   return h;
 }
-function action(etat, icone, lab, titre, texte, pied) {
-  return '<div class="card action ' + etat + '"><span class="ic">' + icone + '</span><div class="lab">' + esc(lab) + '</div><h3>' + esc(titre) + '</h3><p>' + esc(texte) + '</p>' + pied + '</div>';
+function action(etatCarte, icone, lab, titre, texte, pied) {
+  return '<div class="card action ' + etatCarte + '"><span class="ic">' + icone + '</span><div class="lab">' + esc(lab) + '</div><h3>' + esc(titre) + '</h3><p>' + esc(texte) + '</p>' + pied + '</div>';
+}
+function brancherProjet() {
+  document.querySelectorAll('[data-valider]').forEach(b => b.onclick = async () => {
+    const c = D.commandes.find(x => x.id === b.dataset.valider);
+    if (!await K.confirmer('Valider la livraison ?', 'Vos ' + c.nb_creas + ' créatives deviennent définitives. Pour une retouche, écrivez-nous avant de valider.', 'Valider la livraison')) return;
+    try { await K.api('/api/client/commandes/' + c.id + '/valider', { methode: 'POST' }); await recharger(); fenetreAvis(D.commandes.find(x => x.id === c.id)); }
+    catch (e) { K.toast(e.message); }
+  });
+  document.querySelectorAll('[data-avis]').forEach(b => b.onclick = () => fenetreAvis(D.commandes.find(x => x.id === b.dataset.avis)));
+}
+
+// ---------- L'AVIS TRUSTPILOT (après la validation) ----------
+function fenetreAvis(c) {
+  if (!c) return;
+  const etoile = '<svg viewBox="0 0 24 24"><path d="m12 2.5 2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.3 1.3-6.6-4.9-4.6 6.6-.8Z"/></svg>';
+  const v = K.fenetre('<div class="avis-fen"><div class="rond">' + i.coche + '</div><h2>Projet validé</h2>' +
+    '<p>Vos ' + c.nb_creas + ' créatives sont définitives. Vous pouvez les récupérer dans tous les formats, quand vous voulez.</p><hr>' +
+    '<div class="q">Une minute pour nous laisser un avis ?</div>' +
+    '<div class="etoiles">' + [1, 2, 3, 4, 5].map(n => '<a href="' + LIENS.trustpilot + '" target="_blank" rel="noopener" data-n="' + n + '" class="on" aria-label="' + n + ' étoile' + (n > 1 ? 's' : '') + '">' + etoile + '</a>').join('') + '</div>' +
+    '<a class="btn btn-tp btn-bloc btn-lg" href="' + LIENS.trustpilot + '" target="_blank" rel="noopener" data-ecrire>Écrire mon avis sur Trustpilot</a>' +
+    '<button class="btn btn-s btn-bloc" style="margin-top:10px" data-plustard>Plus tard</button></div>', false);
+  const etoiles = v.querySelectorAll('.etoiles a');
+  etoiles.forEach(a => a.addEventListener('mouseenter', () => etoiles.forEach(x => x.classList.toggle('on', Number(x.dataset.n) <= Number(a.dataset.n)))));
+  v.querySelector('.etoiles').addEventListener('mouseleave', () => etoiles.forEach(x => x.classList.add('on')));
+  const noter = async action => { try { await K.api('/api/client/commandes/' + c.id + '/avis', { methode: 'POST', corps: { action } }); } catch (e) {} };
+  v.querySelectorAll('.etoiles a,[data-ecrire]').forEach(a => a.addEventListener('click', async () => { K.fermer(); K.toast('Merci, ça nous aide énormément'); await noter('ecrit'); recharger(); }));
+  v.querySelector('[data-plustard]').onclick = async () => { K.fermer(); await noter('plus_tard'); recharger(); };
 }
 
 // ---------- BRIEF ----------
 function ecranBrief(id) {
-  const attente = D.commandes.filter(c => c.statut === 'brief');
+  const attente = D.commandes.filter(c => etat(c) === 'confirmee');
   const c = (id && D.commandes.find(x => x.id === id)) || attente[0] || D.commandes[0];
   let h = apercu();
   if (!c) return h + '<div class="ph"><div><h1>Mon brief</h1><p>Votre brief s\'ouvre dès votre première commande.</p></div></div><div class="card"><div class="vide">' + i.doc + 'Aucune commande pour l\'instant.</div></div>';
-  if (c.statut !== 'brief') {
-    return h + '<div class="ph"><div><h1>Mon brief</h1><p>' + esc(titreCommande(c)) + ' · commande #' + esc(c.ref) + '</p></div></div>' +
+  if (etat(c) !== 'confirmee') {
+    return h + '<div class="ph"><div><h1>Mon brief</h1><p>' + esc(nom(c)) + ' · commande #' + esc(c.ref) + '</p></div></div>' +
       '<div class="card pad" style="max-width:720px"><div style="display:flex;gap:14px;align-items:flex-start"><span class="tuile" style="background:var(--green)">' + i.coche.replace('<svg', '<svg width="18" height="18"') + '</span>' +
       '<div><h3 style="font-size:17px">Brief bien reçu</h3><p class="muted" style="margin-top:5px;font-size:13.5px">' + (c.brief_le ? 'Reçu le ' + esc(K.dateHeure(c.brief_le)) + '. ' : '') +
       'C\'est la base de tout ce que nous produisons pour vous.</p>' +
-      '<div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap"><a class="btn btn-s btn-sm" href="' + wa('Bonjour Kreative, je voudrais modifier mon brief (commande #' + c.ref + ') : ') + '" target="_blank" rel="noopener">Demander une modification</a>' +
+      '<div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap"><a class="btn btn-s btn-sm" href="' + wa('Bonjour Kreative, je voudrais modifier mon brief (' + nom(c) + ', #' + c.ref + ') : ') + '" target="_blank" rel="noopener">Demander une modification</a>' +
       '<a class="btn btn-g btn-sm" href="#/projets/' + esc(c.id) + '">Voir le projet</a></div></div></div></div>';
   }
   const lien = (LIENS.fillout[c.pack] || LIENS.fillout.custom) + '?commande=' + encodeURIComponent(c.ref) + '&client=' + encodeURIComponent(D.client.id) +
     (D.client.email ? '&email=' + encodeURIComponent(D.client.email) : '') + '&marque=' + encodeURIComponent(D.client.marque);
-  h += '<div class="ph"><div><h1>Il reste une étape</h1><p>Votre brief lance la production de votre ' + esc(nomPack(c)) + '. Comptez une quinzaine de minutes.</p></div>' +
-    '<span class="pill a"><i></i>Brief attendu · #' + esc(c.ref) + '</span></div>';
-  if (attente.length > 1) h += '<div class="filtres">' + attente.map(x => '<a class="chip' + (x.id === c.id ? ' on' : '') + '" href="#/brief/' + esc(x.id) + '">#' + esc(x.ref) + ' · ' + esc(nomPack(x)) + '</a>').join('') + '</div>';
+  h += '<div class="ph"><div><h1>Il reste une étape</h1><p>Votre brief lance la production de votre ' + esc(nom(c)) + '. Comptez une quinzaine de minutes.</p></div>' +
+    '<span class="pill a"><i></i>Brief à remplir</span></div>';
+  if (attente.length > 1) h += '<div class="filtres">' + attente.map(x => '<a class="chip' + (x.id === c.id ? ' on' : '') + '" href="#/brief/' + esc(x.id) + '">' + esc(nom(x)) + '</a>').join('') + '</div>';
   h += '<div class="card" style="overflow:hidden"><iframe src="' + esc(lien) + '" title="Votre brief Kreative" style="display:block;width:100%;height:calc(100vh - 260px);min-height:620px;border:0" allow="clipboard-write"></iframe></div>' +
     '<p class="muted" style="font-size:12.5px;margin-top:12px;text-align:center">Une fois votre brief envoyé, votre projet passe en production. Vous suivez son avancement dans « Mes projets ».</p>';
   return h;
+}
+
+// ---------- FACTURES ----------
+const FACT = { payee: ['Payée', 'g'], ouverte: ['À régler', 'a'], impayee: ['Impayée', 'r'], annulee: ['Annulée', ''] };
+function tableFactures(F) {
+  return '<table class="tbl"><thead><tr><th>Facture</th><th>Projet</th><th class="num">Montant</th><th>Statut</th><th>Date</th><th></th></tr></thead><tbody>' +
+    F.map(f => {
+      const c = D.commandes.find(x => x.id === f.commande_id), st = FACT[f.statut] || [f.statut || '·', ''];
+      return '<tr><td><b>' + esc(f.numero || 'Facture') + '</b></td><td>' + (c ? '<a href="#/projets/' + esc(c.id) + '">' + esc(nom(c)) + '</a>' : '<span class="muted">·</span>') + '</td>' +
+        '<td class="num">' + K.euros(f.montant) + '</td><td><span class="pill ' + st[1] + '"><i></i>' + esc(st[0]) + '</span></td><td>' + esc(K.date(f.emise_le)) + '</td>' +
+        '<td class="fin"><div style="display:flex;gap:6px;justify-content:flex-end">' + (f.pdf ? '<a class="btn btn-s btn-sm" href="' + esc(f.pdf) + '" target="_blank" rel="noopener">' + i.telecharger + 'PDF</a>' : '') +
+        (f.lien ? '<a class="btn btn-g btn-sm" href="' + esc(f.lien) + '" target="_blank" rel="noopener">' + (f.statut === 'ouverte' ? 'Régler' : 'Voir') + '</a>' : '') + '</div></td></tr>';
+    }).join('') + '</tbody></table>';
+}
+function ecranFactures() {
+  const F = D.factures || [];
+  let h = apercu() + '<div class="ph"><div><h1>Factures</h1><p>Toutes vos factures Kreative, à télécharger quand vous voulez.</p></div></div>';
+  return h + (F.length ? '<div class="card"><div class="tbl-wrap">' + tableFactures(F) + '</div></div>'
+    : '<div class="card"><div class="vide">' + i.recu + 'Vos factures apparaissent ici après chaque paiement.</div></div>');
 }
 
 // ---------- COMMANDER ----------
@@ -203,28 +255,143 @@ const AVANTAGES = {
 };
 function ecranCommander() {
   const m = formule === 'mensuel';
-  let h = apercu() + '<div class="ph" style="justify-content:center;text-align:center"><div><h1>Vos prochaines créatives</h1>' +
-    '<p style="max-width:560px;margin:8px auto 0">Une créative s\'use en trois à quatre semaines. Reprenez un pack quand vous en avez besoin, ou passez au mensuel et payez moins cher chaque commande.</p>' +
-    '<div class="onglets" style="margin-top:18px"><button class="' + (m ? 'on' : '') + '" onclick="formule=\'mensuel\';K.rendre()">Mensuel · 15 % de moins</button>' +
+  let h = apercu() + '<div class="ph" style="justify-content:center;text-align:center;margin-bottom:34px"><div><h1>Vos prochaines créatives</h1>' +
+    '<p style="max-width:580px;margin:10px auto 0;line-height:1.6">Une créative s\'use en trois à quatre semaines. Reprenez un pack quand vous en avez besoin, ou passez au mensuel et payez moins cher chaque commande.</p>' +
+    '<div class="onglets" style="margin-top:22px"><button class="' + (m ? 'on' : '') + '" onclick="formule=\'mensuel\';K.rendre()">Mensuel · 15 % de moins</button>' +
     '<button class="' + (!m ? 'on' : '') + '" onclick="formule=\'unique\';K.rendre()">Commande unique</button></div></div></div>';
-  h += '<div class="offres" style="max-width:1120px;margin:0 auto">' + ['starter', 'growth', 'scale'].map(k => {
+  h += '<div class="offres">' + ['starter', 'growth', 'scale'].map(k => {
     const P = D.packs[k], prix = m ? P.mensuel : P.unique, hot = k === 'growth';
-    const stripe = LIENS.stripe[k][m ? 'mensuel' : 'unique'];
-    const href = stripe || wa('Bonjour Kreative, je souhaite commander le Pack ' + P.nom + ' (' + (m ? 'mensuel' : 'commande unique') + ').');
-    return '<div class="card offre' + (hot ? ' hot' : '') + '">' + (hot ? '<span class="badge-hot">Le plus choisi</span>' : '') +
-      '<div style="display:flex;justify-content:space-between;align-items:center"><h3>Pack ' + esc(P.nom) + '</h3>' + (m ? '<span class="pill b">−15 %</span>' : '') + '</div>' +
-      '<div class="prix">' + (m ? '<span class="barre-prix">' + P.unique + ' €</span>' : '') + prix + ' €' + (m ? ' <small>/ mois</small>' : '') + '</div>' +
-      '<div class="unit">' + Math.floor(prix / P.creas) + ' € la créative · ' + P.creas + ' créatives' + (m ? ' chaque mois' : '') + '</div>' +
-      '<a class="btn ' + (hot ? 'btn-p' : 'btn-d') + ' btn-bloc" href="' + esc(href) + '" target="_blank" rel="noopener">Commander</a>' +
+    return '<div class="card offre' + (hot ? ' hot' : '') + '">' + (hot ? '<span class="badge-hot">Le plus populaire</span>' : '') +
+      '<div class="tete"><h3>Pack ' + esc(P.nom) + '</h3>' + (m ? '<span class="pill b">−15 %</span>' : '') + '</div>' +
+      '<div class="prix">' + (m ? '<span class="barre-prix">' + P.unique + ' €</span>' : '') + '<span>' + prix + ' €</span>' + (m ? '<small>/ mois</small>' : '') + '</div>' +
+      '<div class="unit">' + Math.round(prix / P.creas) + ' € la créative · ' + P.creas + ' créatives' + (m ? ' chaque mois' : '') + '</div>' +
+      '<button class="btn ' + (hot ? 'btn-p' : 'btn-d') + ' btn-bloc btn-lg" data-payer="' + k + '">Commander</button>' +
       '<ul>' + AVANTAGES[k].map(a => '<li class="' + (a[1] ? '' : 'off') + '">' + i.coche + '<span>' + esc(a[0]) + '</span></li>').join('') + '</ul></div>';
   }).join('') +
-    '<div class="card offre offre-c"><div><h3>Pack Custom</h3><div class="prix" style="font-size:32px">Sur mesure</div><div class="unit">Volume, rythme et délai définis avec vous</div>' +
-    '<a class="btn btn-d" style="margin-top:20px" href="' + LIENS.iclosed + '" target="_blank" rel="noopener">Réserver un appel</a>' +
-    '<p class="muted" style="font-size:12px;margin-top:10px">15 minutes, on cale le volume et vous repartez avec un devis.</p></div>' +
-    '<ul style="display:grid;grid-template-columns:1fr 1fr;border:0;margin:0;padding:0">' + ['Volume de créatives illimité', 'Tous les formats Meta', 'Révisions illimitées', 'Délai de livraison négocié', 'Contact WhatsApp inclus',
+    '<div class="card offre offre-c"><div><h3>Pack Custom</h3><div class="prix" style="font-size:38px"><span>Sur mesure</span>' + (m ? '<small>/ mois</small>' : '') + '</div>' +
+    '<div class="unit">À partir de ' + D.custom.min + ' créatives' + (m ? ' par mois' : '') + ', prix dégressif selon le volume.<br>Vous choisissez le volume et les options, le prix s\'affiche tout de suite.</div>' +
+    '<div class="acts"><a class="btn btn-p btn-lg" href="#/commander/custom">Configurer mon pack ' + i.fleche + '</a>' +
+    '<a class="btn btn-s btn-lg" href="' + LIENS.iclosed + '" target="_blank" rel="noopener">Réserver un appel</a></div></div>' +
+    '<ul>' + ['Volume de créatives au choix', 'Tous les formats Meta', 'Révisions illimitées', 'Options : express, accroches, stratégie', 'Contact WhatsApp inclus',
       'Angles marketing variés', 'Support prioritaire', 'Stratégie personnalisée', 'Interlocuteur dédié', 'Cadence de livraison au choix'].map(a => '<li>' + i.coche + '<span>' + a + '</span></li>').join('') + '</ul></div></div>';
-  h += '<p class="muted" style="text-align:center;margin-top:20px;font-size:12px">' + (m ? 'Les tarifs mensuels supposent un engagement de 3 mois, puis sans engagement.' : 'Paiement unique, sans engagement. Production lancée dès la réception de votre brief.') + '</p>';
+  h += '<p class="muted" style="text-align:center;margin-top:24px;font-size:12.5px">' + (m ? 'Les tarifs mensuels supposent un engagement de 3 mois, puis sans engagement.' : 'Paiement unique, sans engagement. Production lancée dès la réception de votre brief.') +
+    ' Paiement sécurisé par Stripe, facture automatique.</p>';
   return h;
+}
+async function payer(corps, bouton) {
+  if (!D.paiement) { window.open(wa('Bonjour Kreative, je souhaite commander : ' + corps.texte), '_blank', 'noopener'); return; }
+  const avant = bouton.innerHTML; bouton.disabled = true; bouton.textContent = 'Redirection vers le paiement…';
+  try { const r = await K.api('/api/client/paiement', { methode: 'POST', corps }); location.href = r.url; }
+  catch (e) { K.toast(e.message); bouton.disabled = false; bouton.innerHTML = avant; }
+}
+function brancherCommander() {
+  document.querySelectorAll('[data-payer]').forEach(b => b.onclick = () => {
+    const P = D.packs[b.dataset.payer];
+    payer({ pack: b.dataset.payer, formule, texte: 'Pack ' + P.nom + ' (' + (formule === 'mensuel' ? 'mensuel' : 'commande unique') + ')' }, b);
+  });
+}
+
+// ---------- CONFIGURATEUR DU PACK CUSTOM ----------
+// même calcul que le serveur (devis) ; le serveur recalcule de toute façon le prix
+function devis() {
+  const C = D.custom, m = CFG.formule === 'mensuel', nb = CFG.nb;
+  const unitaire = C.paliers.filter(x => nb >= x[0]).pop()[1];
+  const opts = C.options.filter(o => CFG.options.includes(o.id));
+  const lignes = [[nb + ' créatives × ' + unitaire + ' €', nb * unitaire]];
+  let base = nb * unitaire;
+  opts.filter(o => o.type === 'par_crea').forEach(o => { lignes.push([o.nom, nb * o.valeur]); base += nb * o.valeur; });
+  opts.filter(o => o.type === 'pct').forEach(o => { lignes.push([o.nom + ' (+' + o.valeur + ' %)', base * o.valeur / 100]); base += base * o.valeur / 100; });
+  if (m) { lignes.push(['Remise mensuelle −' + Math.round(C.remise_mensuel * 100) + ' %', -base * C.remise_mensuel]); base *= 1 - C.remise_mensuel; }
+  opts.filter(o => o.type === 'fixe').forEach(o => { lignes.push([o.nom, o.valeur]); base += o.valeur; });
+  return { lignes, total: Math.round(base), unitaire };
+}
+function ecranConfig() {
+  const C = D.custom;
+  if (!CFG.vu) { CFG.formule = formule; CFG.vu = true; }   // reprend l'onglet choisi sur la page des offres
+  let h = apercu() + '<a class="retour" href="#/commander">' + i.gauche + 'Retour aux offres</a>' +
+    '<div class="ph"><div><h1>Votre pack sur mesure</h1><p>Choisissez le volume et les options : le prix se met à jour tout de suite, et vous payez en ligne.</p></div></div>';
+  h += '<div class="config"><div class="grid" style="gap:16px">' +
+    '<div class="card bloc"><h3>Nombre de créatives</h3><p class="aide">Chaque créative est livrée en 1:1, 4:5 et 9:16.</p>' +
+    '<div class="nb-creas"><b id="cf-nb">' + CFG.nb + '</b><span>créatives' + (CFG.formule === 'mensuel' ? ' par mois' : '') + '</span></div>' +
+    '<input class="curseur" type="range" id="cf-range" min="' + C.min + '" max="' + C.max + '" step="' + C.pas + '" value="' + CFG.nb + '">' +
+    '<div class="reperes"><span>' + C.min + '</span><span>' + C.max + '</span></div>' +
+    '<p class="aide" style="margin-top:14px">' + C.paliers.map((p, n) => (n === 0 ? p[1] + ' € la créative' : 'dès ' + p[0] + ' : ' + p[1] + ' €')).join(' · ') + '</p></div>' +
+    '<div class="card bloc"><h3>Formule</h3><div class="onglets" style="margin-top:14px"><button class="' + (CFG.formule === 'mensuel' ? 'on' : '') + '" data-cf-formule="mensuel">Mensuel · ' + Math.round(C.remise_mensuel * 100) + ' % de moins</button>' +
+    '<button class="' + (CFG.formule === 'unique' ? 'on' : '') + '" data-cf-formule="unique">Commande unique</button></div></div>' +
+    '<div class="card bloc"><h3>Options</h3><p class="aide">À ajouter si vous en avez besoin.</p><div class="opts">' +
+    C.options.map(o => '<div class="opt' + (CFG.options.includes(o.id) ? ' on' : '') + '" data-cf-opt="' + esc(o.id) + '" role="checkbox" tabindex="0"><span class="case">' + i.coche + '</span><div><b>' + esc(o.nom) + '</b><small>' + esc(o.detail) + '</small></div></div>').join('') +
+    '</div></div></div>' +
+    '<div class="card recap" id="cf-recap">' + recap() + '</div></div>';
+  return h;
+}
+function recap() {
+  const d = devis(), m = CFG.formule === 'mensuel';
+  return '<div class="lab">Récapitulatif</div><h3 style="margin-top:8px">Pack Custom · ' + CFG.nb + ' créatives</h3>' +
+    '<div style="margin-top:14px">' + d.lignes.map(l => '<div class="ligne"><span>' + esc(l[0]) + '</span><b>' + (l[1] < 0 ? '−' : '') + K.euros(Math.abs(Math.round(l[1]))) + '</b></div>').join('') + '</div>' +
+    '<div class="total"><span class="muted">Total' + (m ? ' par mois' : '') + '</span><b>' + K.euros(d.total) + '</b></div>' +
+    '<p class="muted" style="font-size:12.5px;margin-top:6px">Soit ' + K.euros(Math.round(d.total / CFG.nb)) + ' la créative' + (m ? ' · engagement 3 mois' : '') + '</p>' +
+    '<button class="btn btn-p btn-bloc btn-lg" id="cf-payer">' + (D.paiement ? 'Payer ' + K.euros(d.total) : 'Commander sur WhatsApp') + '</button>' +
+    '<p class="muted" style="font-size:12px;margin-top:10px;text-align:center">' + i.bouclier.replace('<svg', '<svg width="13" height="13" style="vertical-align:-2px"') + ' Paiement sécurisé par Stripe · facture automatique</p>';
+}
+function brancherConfig() {
+  const maj = () => { document.getElementById('cf-recap').innerHTML = recap(); document.getElementById('cf-nb').textContent = CFG.nb; brancherPayer(); };
+  const r = document.getElementById('cf-range');
+  if (!r) return;
+  r.oninput = () => { CFG.nb = Number(r.value); maj(); };
+  document.querySelectorAll('[data-cf-formule]').forEach(b => b.onclick = () => { CFG.formule = b.dataset.cfFormule; K.rendre(); });
+  document.querySelectorAll('[data-cf-opt]').forEach(o => {
+    const basculer = () => { const id = o.dataset.cfOpt; CFG.options = CFG.options.includes(id) ? CFG.options.filter(x => x !== id) : CFG.options.concat(id); o.classList.toggle('on'); maj(); };
+    o.onclick = basculer; o.onkeydown = e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); basculer(); } };
+  });
+  const brancherPayer = () => {
+    const b = document.getElementById('cf-payer');
+    b.onclick = () => payer({ pack: 'custom', formule: CFG.formule, nb_creas: CFG.nb, options: CFG.options,
+      texte: 'Pack Custom, ' + CFG.nb + ' créatives (' + (CFG.formule === 'mensuel' ? 'mensuel' : 'commande unique') + ')' + (CFG.options.length ? ', options : ' + CFG.options.join(', ') : '') }, b);
+  };
+  brancherPayer();
+}
+
+// ---------- APRÈS LE PAIEMENT ----------
+function ecranMerci() {
+  return '<div class="card pad" style="max-width:620px;margin:40px auto;text-align:center;padding:40px 32px"><div class="avis-fen" style="padding:0"><div class="rond">' + i.coche + '</div>' +
+    '<h2>Paiement reçu, merci</h2><p>Votre commande apparaît dans votre espace dans quelques secondes. Prochaine étape : votre brief, il lance la production.</p></div>' +
+    '<div style="display:flex;gap:10px;justify-content:center;margin-top:24px;flex-wrap:wrap"><a class="btn btn-p btn-lg" href="#/brief">Remplir mon brief</a><a class="btn btn-s btn-lg" href="#/projets">Mes projets</a></div></div>';
+}
+let attenteMerci = 0;
+function brancherMerci() {
+  if (attenteMerci) return;
+  const avant = D.commandes.length; let n = 0;
+  attenteMerci = setInterval(async () => {
+    n++;
+    try { const d = await K.api('/api/client/moi'); if (d.commandes.length > avant || n > 6) { clearInterval(attenteMerci); attenteMerci = 0; D = d; if (d.commandes.length > avant) K.toast('Votre commande est enregistrée'); } } catch (e) {}
+  }, 2500);
+}
+
+// ---------- PROFIL ----------
+function ecranProfil() {
+  const c = D.client;
+  const ch = (id, l, v, t, ph, aide) => '<div class="champ"><label for="' + id + '">' + l + '</label><input class="in" id="' + id + '" type="' + (t || 'text') + '" value="' + esc(v || '') + '" placeholder="' + esc(ph || '') + '">' + (aide ? '<div class="aide">' + aide + '</div>' : '') + '</div>';
+  return apercu() + '<div class="ph"><div><h1>Mon profil</h1><p>Les informations de votre compte Kreative.</p></div></div>' +
+    '<div class="profil grid" style="gap:14px"><div class="card"><h3 style="font-size:16px;margin-bottom:18px">Vos informations</h3>' +
+    ch('p-marque', 'Marque', c.marque, 'text', 'Le nom de votre marque') +
+    '<div class="grid g2" style="gap:12px">' + ch('p-contact', 'Votre nom', c.contact, 'text', 'Prénom et nom') + ch('p-tel', 'Téléphone', c.telephone, 'tel', '06…') + '</div>' +
+    ch('p-email', 'Email', c.email, 'email', 'vous@marque.fr', 'C\'est aussi l\'adresse où vous recevez votre lien d\'accès et vos factures.') +
+    ch('p-site', 'Site', c.site, 'url', 'https://…') +
+    '<div style="display:flex;justify-content:flex-end;margin-top:8px"><button class="btn btn-p" id="p-ok">Enregistrer</button></div></div>' +
+    '<div class="card" style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap"><div><h3 style="font-size:15px">Se déconnecter</h3>' +
+    '<p class="muted" style="font-size:13px;margin-top:4px">Votre lien d\'accès reste valable : il vous reconnecte quand vous voulez.</p></div>' +
+    '<a class="btn btn-s" href="' + (D.apercu ? '/admin/#/clients/' + esc(c.id) : '/client/sortie') + '">' + i.sortie + 'Se déconnecter</a></div></div>';
+}
+function brancherProfil() {
+  const b = document.getElementById('p-ok');
+  if (!b) return;
+  b.onclick = async () => {
+    b.disabled = true;
+    try {
+      await K.api('/api/client/moi', { methode: 'PATCH', corps: { marque: K.$('#p-marque').value, contact: K.$('#p-contact').value, telephone: K.$('#p-tel').value, email: K.$('#p-email').value, site: K.$('#p-site').value } });
+      K.toast('Profil enregistré'); await recharger();
+    } catch (e) { K.toast(e.message); b.disabled = false; }
+  };
 }
 
 // ---------- CONTACT, AVIS ----------
@@ -235,23 +402,26 @@ function ecranContact() {
     '<h2 style="font-size:24px;margin-top:16px;color:#fff">WhatsApp</h2><p style="opacity:.92;margin-top:6px;max-width:420px">Le plus rapide. Votre message arrive directement à l\'équipe.</p></div>' +
     '<div style="padding:20px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">' +
     '<div style="display:flex;gap:28px;flex-wrap:wrap"><div><div class="lab">Numéro</div><b>07 56 92 10 42</b></div><div><div class="lab">Réponse moyenne</div><b>Moins d\'une heure</b></div></div>' +
-    '<a class="btn btn-lg" style="background:#25D366;color:#fff" href="' + wa('Bonjour Kreative, ') + '" target="_blank" rel="noopener">Nous écrire</a></div></div>' +
-    '<div class="note" style="max-width:760px;margin-top:16px">Pour vos créatives elles-mêmes, laissez plutôt votre retour directement sur le visuel concerné, dans votre projet. C\'est là que notre équipe le récupère.</div>';
+    '<a class="btn btn-lg" style="background:#25D366;color:#fff" href="' + wa('Bonjour Kreative, ') + '" target="_blank" rel="noopener">Nous écrire</a></div></div>';
 }
 function ecranAvis() {
+  const etoile = '<svg viewBox="0 0 24 24"><path d="m12 2.5 2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.3 1.3-6.6-4.9-4.6 6.6-.8Z"/></svg>';
   return apercu() + '<div class="ph"><div><h1>Laissez-nous votre avis</h1><p>Un avis prend une minute et nous aide énormément.</p></div></div>' +
-    '<div class="card pad" style="max-width:620px;text-align:center;padding:36px"><h2 style="font-size:21px">Comment s\'est passé votre projet ?</h2>' +
-    '<div style="display:flex;gap:6px;justify-content:center;margin:20px 0">' + [1, 2, 3, 4, 5].map(() => '<a href="' + LIENS.trustpilot + '" target="_blank" rel="noopener" style="width:44px;height:44px;border-radius:9px;background:#00b67a;color:#fff;display:grid;place-items:center;font-size:21px;text-decoration:none">★</a>').join('') + '</div>' +
-    '<p class="muted" style="font-size:13px">Cliquez sur une note : vous arrivez sur notre page Trustpilot.</p>' +
-    '<a class="btn btn-lg" style="margin-top:18px;background:#00b67a;color:#fff" href="' + LIENS.trustpilot + '" target="_blank" rel="noopener">' + i.etoile + 'Écrire mon avis sur Trustpilot</a></div>';
+    '<div class="card" style="max-width:520px"><div class="avis-fen"><h2>Comment s\'est passé votre projet ?</h2>' +
+    '<div class="etoiles">' + [1, 2, 3, 4, 5].map(n => '<a href="' + LIENS.trustpilot + '" target="_blank" rel="noopener" class="on" aria-label="' + n + ' étoiles">' + etoile + '</a>').join('') + '</div>' +
+    '<a class="btn btn-tp btn-bloc btn-lg" href="' + LIENS.trustpilot + '" target="_blank" rel="noopener">Écrire mon avis sur Trustpilot</a>' +
+    '<p class="muted" style="font-size:12.5px;margin-top:12px">Vous arrivez directement sur notre page Trustpilot.</p></div></div>';
 }
 
 // ---------- RENDU ----------
 const ECRANS = {
   '': ['accueil', 'Accueil', () => ecranAccueil()],
-  projets: ['projets', 'Mes projets', p => p[0] ? ecranProjet(p[0]) : ecranProjets()],
+  projets: ['projets', 'Mes projets', p => p[0] ? ecranProjet(p[0]) : ecranProjets(), brancherProjet],
   brief: ['brief', 'Mon brief', p => ecranBrief(p[0])],
-  commander: ['commander', 'Commander', () => ecranCommander()],
+  factures: ['factures', 'Factures', () => ecranFactures()],
+  commander: ['commander', 'Commander', p => p[0] === 'custom' ? ecranConfig() : ecranCommander(), p => p[0] === 'custom' ? brancherConfig() : brancherCommander()],
+  merci: ['projets', 'Paiement reçu', () => ecranMerci(), brancherMerci],
+  profil: ['profil', 'Mon profil', () => ecranProfil(), brancherProfil],
   contact: ['contact', 'Nous contacter', () => ecranContact()],
   avis: ['avis', 'Laisser un avis', () => ecranAvis()]
 };
@@ -261,11 +431,17 @@ K.rendre = () => {
   const c = conf();
   document.getElementById('racine').innerHTML = K.coquille(c, e[0], K.ariane('accueil', 'Espace client', e[1]), e[2](r.params), r.ecran === 'brief');
   K.brancherCoquille(c);
+  if (e[3]) e[3](r.params);
   document.title = e[1] + ' · Kreative';
 };
 (async () => {
-  try { D = await K.api('/api/client/moi'); K.rendre(); }
-  catch (e) {
+  try {
+    D = await K.api('/api/client/moi'); K.rendre();
+    // un projet validé sans avis : la fenêtre Trustpilot revient une fois par visite
+    const sansAvis = D.commandes.find(c => etat(c) === 'valide' && !c.avis_le && !c.avis_ignore_le);
+    let vu = false; try { vu = sessionStorage.getItem('k-avis') === '1'; } catch (e) {}
+    if (sansAvis && !D.apercu && !vu) { try { sessionStorage.setItem('k-avis', '1'); } catch (e) {} setTimeout(() => fenetreAvis(sansAvis), 700); }
+  } catch (e) {
     if (e.statut === 401) location.href = '/client/connexion';
     else document.getElementById('racine').innerHTML = '<div class="chargement">Impossible de charger votre espace. ' + esc(e.message) + '</div>';
   }

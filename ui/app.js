@@ -56,6 +56,10 @@
     bouclier: p('<path d="M12 3 5 6v6c0 4.2 2.9 7.8 7 9 4.1-1.2 7-4.8 7-9V6Z"/>'),
     rafraichir: p('<path d="M20 11a8 8 0 0 0-14.6-4.5L4 8M4 4v4h4M4 13a8 8 0 0 0 14.6 4.5L20 16M20 20v-4h-4"/>'),
     menu: p('<path d="M4 6h16M4 12h16M4 18h16"/>'),
+    recu: p('<path d="M6 3h12v18l-3-2-3 2-3-2-3 2Z"/><path d="M9 8h6M9 12h6M9 16h3"/>'),
+    telecharger: p('<path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5"/><path d="M4 17v2a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-2"/>'),
+    utilisateur: p('<circle cx="12" cy="8" r="3.6"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/>'),
+    carte: p('<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h4"/>'),
     telecharger: p('<path d="M12 4v11m0 0 4-4m-4 4-4-4M4 19h16"/>')
   };
 
@@ -114,7 +118,89 @@
     return v;
   };
   K.fermer = () => { const v = document.getElementById('k-fen'); if (v) v.remove(); };
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') K.fermer(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') { if (document.querySelector('.sel-pan')) K.fermerListes(); else K.fermer(); } });
+
+  // ---------- listes déroulantes maison ----------
+  // Chaque <select class="in"> est doublé d'un bouton et d'une liste stylés.
+  // Le vrai select reste la source de vérité (valeur, événement change),
+  // il est seulement caché : les formulaires et les onchange marchent pareil.
+  const CHEVRON = '<svg class="sel-fl" viewBox="0 0 12 8" fill="none"><path d="M1 1.5 6 6.5l5-5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  K.fermerListes = () => { document.querySelectorAll('.sel-pan').forEach(x => x.remove()); document.querySelectorAll('.sel.ouvert').forEach(x => x.classList.remove('ouvert')); };
+  K.listes = racine => {
+    (racine || document).querySelectorAll('select.in:not([data-k])').forEach(sel => {
+      sel.dataset.k = '1';
+      const boite = document.createElement('div');
+      boite.className = 'sel';
+      if (sel.getAttribute('style')) { boite.setAttribute('style', sel.getAttribute('style')); sel.removeAttribute('style'); }
+      sel.parentNode.insertBefore(boite, sel); boite.appendChild(sel);
+      const btn = document.createElement('button');
+      btn.type = 'button'; btn.className = 'sel-btn';
+      if (sel.id) btn.setAttribute('aria-labelledby', sel.id);
+      boite.appendChild(btn);
+      const maj = () => { const o = sel.options[sel.selectedIndex]; btn.innerHTML = '<span>' + K.esc(o ? o.text : '') + '</span>' + CHEVRON; btn.disabled = sel.disabled; };
+      maj(); sel.addEventListener('change', maj); sel._kMaj = maj;
+      const choisir = n => { if (n === sel.selectedIndex) { K.fermerListes(); return; } sel.selectedIndex = n; maj(); K.fermerListes(); sel.dispatchEvent(new Event('change', { bubbles: true })); };
+      const ouvrir = () => {
+        K.fermerListes();
+        boite.classList.add('ouvert');
+        const pan = document.createElement('div'); pan.className = 'sel-pan'; pan.setAttribute('role', 'listbox');
+        pan.innerHTML = Array.from(sel.options).map((o, n) => '<div class="sel-opt' + (n === sel.selectedIndex ? ' on act' : '') + (o.disabled ? ' off' : '') + '" data-n="' + n + '" role="option">' +
+          '<span>' + K.esc(o.text) + '</span>' + (n === sel.selectedIndex ? K.i.coche : '') + '</div>').join('');
+        document.body.appendChild(pan);
+        const r = btn.getBoundingClientRect(), h = Math.min(pan.scrollHeight, 300), bas = window.innerHeight - r.bottom;
+        pan.style.left = r.left + 'px'; pan.style.minWidth = r.width + 'px';
+        pan.style.top = (bas < h + 16 && r.top > bas ? r.top - h - 6 : r.bottom + 6) + 'px';
+        const on = pan.querySelector('.on'); if (on) on.scrollIntoView({ block: 'nearest' });
+        pan.addEventListener('mousedown', e => e.preventDefault());
+        pan.addEventListener('click', e => { const it = e.target.closest('.sel-opt'); if (it && !it.classList.contains('off')) choisir(Number(it.dataset.n)); });
+        pan.addEventListener('mousemove', e => { const it = e.target.closest('.sel-opt'); if (it) { pan.querySelectorAll('.act').forEach(x => x.classList.remove('act')); it.classList.add('act'); } });
+      };
+      btn.addEventListener('click', e => { e.stopPropagation(); if (boite.classList.contains('ouvert')) K.fermerListes(); else ouvrir(); });
+      btn.addEventListener('keydown', e => {
+        const pan = document.querySelector('.sel-pan');
+        if (!pan) { if (['ArrowDown', 'ArrowUp', 'Enter', ' '].includes(e.key)) { e.preventDefault(); ouvrir(); } return; }
+        const opts = Array.from(pan.querySelectorAll('.sel-opt:not(.off)')); let n = opts.findIndex(x => x.classList.contains('act'));
+        if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+          e.preventDefault(); if (n >= 0) opts[n].classList.remove('act');
+          n = Math.max(0, Math.min(opts.length - 1, n + (e.key === 'ArrowDown' ? 1 : -1))); opts[n].classList.add('act'); opts[n].scrollIntoView({ block: 'nearest' });
+        }
+        if ((e.key === 'Enter' || e.key === ' ') && n >= 0) { e.preventDefault(); choisir(Number(opts[n].dataset.n)); }
+        if (e.key === 'Tab') K.fermerListes();
+      });
+    });
+  };
+  document.addEventListener('click', () => K.fermerListes());
+  window.addEventListener('resize', () => K.fermerListes());
+  document.addEventListener('scroll', e => { if (!(e.target.closest && e.target.closest('.sel-pan'))) K.fermerListes(); }, true);
+  let attente = 0;
+  new MutationObserver(() => { if (!attente) attente = requestAnimationFrame(() => { attente = 0; K.listes(); }); })
+    .observe(document.documentElement, { childList: true, subtree: true });
+
+  // ---------- export CSV (s'ouvre dans Excel, Numbers, Google Sheets) ----------
+  K.csv = (nom, entetes, lignes) => {
+    const cel = v => { const t = v == null ? '' : String(v); return /[";\n\r]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t; };
+    const texte = '\ufeff' + [entetes, ...lignes].map(l => l.map(cel).join(';')).join('\r\n');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([texte], { type: 'text/csv;charset=utf-8' }));
+    a.download = nom + '-' + new Date().toISOString().slice(0, 10) + '.csv';
+    document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  };
+
+  // ---------- commandes : un nom lisible et un statut ----------
+  const MOIS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+  const NOMS_PACKS = { starter: 'Starter', growth: 'Growth', scale: 'Scale', custom: 'Custom' };
+  // « Pack Growth · octobre 2026 » ou « Abonnement Growth · novembre 2026 »
+  K.nomCommande = c => {
+    const d = new Date(c.cree_le || Date.now());
+    return (c.formule === 'mensuel' ? 'Abonnement ' : 'Pack ') + (NOMS_PACKS[c.pack] || c.pack) + ' · ' + MOIS[d.getMonth()] + ' ' + d.getFullYear();
+  };
+  // le statut vu par le client et par l'admin, à partir de l'état calculé par le serveur
+  K.etatCommande = c => {
+    const e = c.etat || ({ brief: 'confirmee', production: 'production' }[c.statut] || c.statut);
+    return ({ confirmee: ['Commande confirmée', 'a'], production: ['En production', 'b'], livre: ['Livré · à valider', 'g'], revisions: ['Retouches en cours', 'v'],
+      valide: ['Validé', 'g'], annule: ['Annulée', ''] })[e] || ['En cours', 'b'];
+  };
+  K.pillCommande = c => { const [t, p] = K.etatCommande(c); return '<span class="pill ' + p + '"><i></i>' + K.esc(t) + '</span>'; };
   K.copier = async (t, msg) => {
     try { await navigator.clipboard.writeText(t); } catch (e) {
       const a = document.createElement('textarea'); a.value = t; document.body.appendChild(a); a.select(); document.execCommand('copy'); a.remove();
@@ -149,7 +235,7 @@
       '<div class="qui"><b>' + K.esc(conf.qui.nom) + '</b><small>' + K.esc(conf.qui.role) + '</small></div>' +
       '<button class="menu-btn" id="k-menu-btn" aria-label="Menu">' + K.i.points + '</button>' +
       '<div class="menu" id="k-menu" hidden>' + (conf.menu || []).join('') +
-      '<button id="k-theme2">' + (sombre ? K.i.soleil : K.i.lune) + (sombre ? 'Thème clair' : 'Thème sombre') + '</button>' +
+      (conf.sansTheme ? '' : '<button id="k-theme2">' + (sombre ? K.i.soleil : K.i.lune) + (sombre ? 'Thème clair' : 'Thème sombre') + '</button>') +
       '<a href="' + K.esc(conf.sortie) + '">' + K.i.sortie + 'Se déconnecter</a></div></div></aside>' +
       '<div class="main"><div class="panel"><header class="top">' +
       '<button class="icon-btn burger" id="k-burger" aria-label="Menu">' + K.i.menu + '</button>' +
@@ -191,9 +277,12 @@
   K.ariane = (icone, ...parts) => (K.i[icone] || '') + parts.map((x, i) => i === parts.length - 1 ? '<b>' + K.esc(x) + '</b>' : '<span>' + K.esc(x) + '</span><i>/</i>').join(' ');
 
   // ---------- étapes ----------
+  // une étape « option » (l'avis) ne compte pas dans l'avancement
   K.etapes = liste => '<div class="etapes">' + liste.map((e, i) => {
     const cours = !e.fait && liste.slice(0, i).every(x => x.fait);
-    return '<div class="etape ' + (e.fait ? 'fait' : cours ? 'cours' : 'attente') + '"><span class="o">' + (e.fait ? K.i.coche : i + 1) + '</span>' +
-      (cours ? '<b>' + K.esc(e.titre) + '</b><span class="pill b"><i></i>En cours</span>' : '<span>' + K.esc(e.titre) + '</span>') + '</div>';
+    const marque = e.fait ? K.i.coche : e.option ? K.i.etoile : i + 1;
+    return '<div class="etape ' + (e.fait ? 'fait' : cours ? 'cours' : 'attente') + (e.option ? ' opt' : '') + '"><span class="o">' + marque + '</span>' +
+      (cours ? '<span class="t"><b>' + K.esc(e.titre) + '</b>' + (e.detail ? '<small>' + K.esc(e.detail) + '</small>' : '') + '</span><span class="pill b"><i></i>' + (e.option ? 'À vous' : 'En cours') + '</span>'
+        : '<span class="t">' + K.esc(e.titre) + '</span>') + '</div>';
   }).join('') + '</div>';
 })();

@@ -21,9 +21,12 @@
    ============================================================ */
 const { i, esc } = K;
 const S = { clients: null, commandes: null, resume: null, prod: null, dossiers: null, equipe: null, moi: null,
-  vueProjets: 'suivi', filtreClients: 'tous', chClients: '', chDossiers: '', filtreCmd: 'en_cours' };
+  factures: null, vueProjets: 'suivi', filtreClients: 'tous', chClients: '', chDossiers: '', filtreCmd: 'en_cours', filtreFact: 'toutes' };
 const PACKS_NOMS = { starter: 'Starter', growth: 'Growth', scale: 'Scale', custom: 'Custom' };
-const STATUTS = { brief: ['Brief attendu', 'a'], production: ['Production', 'b'], livre: ['Livré', 'g'], revisions: ['Révisions', 'v'], valide: ['Terminé', 'g'], annule: ['Annulé', ''] };
+// le statut d'une commande, le même que celui que voit le client
+const STATUTS = { brief: ['Confirmée · brief attendu', 'a'], production: ['En production', 'b'], livre: ['Livré · à valider', 'g'], revisions: ['Retouches en cours', 'v'], valide: ['Validé', 'g'], annule: ['Annulée', ''] };
+const FACT = { payee: ['Payée', 'g'], ouverte: ['En attente', 'a'], impayee: ['Impayée', 'r'], annulee: ['Annulée', ''] };
+const FORMULES = { unique: 'Commande unique', mensuel: 'Abonnement mensuel' };
 const H = 36e5;
 
 // ---------- chargements ----------
@@ -33,6 +36,7 @@ async function charger(quoi, force) {
     commandes: () => K.api('/api/admin/commandes'),
     resume: () => K.api('/api/admin/resume'),
     equipe: () => K.api('/api/admin/equipe'),
+    factures: () => K.api('/api/admin/factures'),
     moi: () => K.lireJson('/_moi'),
     dossiers: async () => { const l = await K.lireJson('/_admin/dossiers.json'); return Array.isArray(l) ? l.sort((a, b) => (/^TEST|^REDO/.test(a) - /^TEST|^REDO/.test(b)) || a.localeCompare(b)) : []; },
     prod: chargerProduction
@@ -101,7 +105,8 @@ function conf() {
       { titre: 'Espace', liens: [{ id: 'accueil', texte: 'Vue d\'ensemble', icone: 'accueil', href: '#/' }] },
       { titre: 'Commercial', liens: [
         { id: 'clients', texte: 'Clients', icone: 'gens', href: '#/clients', nb: S.clients ? S.clients.length || '' : '' },
-        { id: 'commandes', texte: 'Commandes', icone: 'sac', href: '#/commandes' }] },
+        { id: 'commandes', texte: 'Commandes', icone: 'sac', href: '#/commandes' },
+        { id: 'factures', texte: 'Factures', icone: 'recu', href: '#/factures' }] },
       { titre: 'Production', liens: [
         { id: 'projets', texte: 'Projets', icone: 'dossier', href: '#/projets', nb: enCours || '' },
         { id: 'dossiers', texte: 'Tous les dossiers', icone: 'calques', href: '#/dossiers' },
@@ -120,8 +125,8 @@ function rechercher(q) {
   const r = [];
   (S.clients || []).filter(c => (c.marque + ' ' + (c.contact || '') + ' ' + (c.email || '')).toLowerCase().includes(q)).slice(0, 5)
     .forEach(c => r.push({ texte: c.marque, type: 'Client', icone: 'gens', href: '#/clients/' + c.id }));
-  (S.commandes || []).filter(c => ('#' + c.ref + ' ' + c.marque).toLowerCase().includes(q)).slice(0, 4)
-    .forEach(c => r.push({ texte: '#' + c.ref + ' · ' + c.marque, type: 'Commande', icone: 'sac', href: '#/clients/' + c.client_id }));
+  (S.commandes || []).filter(c => ('#' + c.ref + ' ' + c.marque + ' ' + K.nomCommande(c)).toLowerCase().includes(q)).slice(0, 4)
+    .forEach(c => r.push({ texte: c.marque + ' · ' + K.nomCommande(c), type: 'Commande #' + c.ref, icone: 'sac', href: '#/clients/' + c.client_id }));
   (S.prod || []).filter(x => (nomProjet(x) + ' ' + x.dossier).toLowerCase().includes(q)).slice(0, 4)
     .forEach(x => r.push({ texte: nomProjet(x), type: 'Projet', icone: 'dossier', href: '/' + ((x.d.livraison && x.d.livraison.projet) || x.dossier) + '/', ext: true }));
   (S.dossiers || []).filter(d => d.toLowerCase().includes(q)).slice(0, 4)
@@ -143,14 +148,16 @@ function ecranAccueil() {
     kpi('Clients', R.clients != null ? R.clients : '·', (S.clients || []).filter(c => c.nb_commandes > 0).length + ' avec au moins une commande') +
     kpi('Commandes en cours', R.en_cours != null ? R.en_cours : '·', briefs.length + ' en attente de brief') +
     kpi('Abonnements mensuels', R.mensuels != null ? R.mensuels : '·', 'commandes en formule mensuelle') +
-    kpi('Chiffre sur 30 jours', K.euros(R.ca_30j || 0), 'commandes enregistrées') + '</div>';
+    (R.stripe ? kpi('Encaissé sur 30 jours', K.euros(R.encaisse_30j || 0), R.impayees ? R.impayees + ' facture' + (R.impayees > 1 ? 's' : '') + ' en attente' : 'factures Stripe payées')
+      : kpi('Chiffre sur 30 jours', K.euros(R.ca_30j || 0), 'commandes enregistrées')) + '</div>';
   h += '<div class="grid g4" style="margin-top:14px">' +
     kpi('Chez le stratégiste', nb('strat'), 'fiches à remplir') + kpi('Chez le designer', nb('desi'), 'visuels à livrer') +
     kpi('À livrer au client', aLivrer.length, 'livrés par le designer') + kpi('En retard', retards.length, retards.length ? 'à surveiller' : 'tout est dans les temps', retards.length ? 'color:var(--red)' : '') + '</div>';
   const todo = [
     ...retards.map(y => ({ t: nomProjet(y.x), s: y.e.texte, ic: 'horloge', p: 'r', href: '/fiche/?projet=' + y.x.dossier, ext: 1 })),
     ...aLivrer.map(y => ({ t: nomProjet(y.x), s: 'Livré par le designer, à envoyer au client', ic: 'envoi', p: 'n', href: y.x.zip || '/' + y.x.dossier + '/creas/', ext: 1 })),
-    ...briefs.map(c => ({ t: c.marque + ' · #' + c.ref, s: 'Brief attendu depuis ' + K.ilya(c.cree_le).replace('il y a ', ''), ic: 'doc', p: 'a', href: '#/clients/' + c.client_id }))
+    ...briefs.map(c => ({ t: c.marque + ' · ' + K.nomCommande(c), s: 'Commande confirmée, brief attendu depuis ' + K.ilya(c.cree_le).replace('il y a ', ''), ic: 'doc', p: 'a', href: '#/clients/' + c.client_id })),
+    ...(S.commandes || []).filter(c => c.statut === 'livre').map(c => ({ t: c.marque + ' · ' + K.nomCommande(c), s: 'Livré, en attente de validation du client', ic: 'coche', p: 'g', href: '#/clients/' + c.client_id }))
   ];
   h += '<div class="grid g2" style="margin-top:14px"><div class="card"><div class="card-h"><h3>À traiter</h3><span class="pill">' + todo.length + '</span></div><div class="card-b liste">' +
     (todo.length ? todo.slice(0, 8).map(t => '<a class="li" style="text-decoration:none" href="' + esc(t.href) + '"' + (t.ext ? ' target="_blank" rel="noopener"' : '') + '><span class="ic">' + i[t.ic] + '</span><span class="t"><b style="font-weight:600">' + esc(t.t) + '</b><span class="sub muted" style="display:block;font-size:12.5px">' + esc(t.s) + '</span></span>' + i.fleche.replace('<svg', '<svg width="15" height="15" style="opacity:.35"') + '</a>').join('')
@@ -220,7 +227,7 @@ function ecranClients() {
   const liste = C.filter(filtres[f]).filter(c => !q || (c.marque + ' ' + (c.contact || '') + ' ' + (c.email || '')).toLowerCase().includes(q));
   const chip = (k, t, coul) => '<button class="chip' + (f === k ? ' on' : '') + '" onclick="S.filtreClients=\'' + k + '\';K.rendre()">' + (coul ? '<i style="color:' + coul + '"></i>' : '') + t + '<span class="c">' + C.filter(filtres[k]).length + '</span></button>';
   let h = '<div class="ph"><div><h1>Clients</h1><p>' + C.length + ' compte' + (C.length > 1 ? 's' : '') + ' · ' + C.reduce((s, c) => s + c.nb_commandes, 0) + ' commandes au total</p></div>' +
-    '<div class="act"><a class="btn btn-p" href="#/clients/nouveau">' + i.plus + 'Ajouter un client</a></div></div>';
+    '<div class="act"><button class="btn btn-s" onclick="exporterClients()">' + i.telecharger + 'Exporter</button><a class="btn btn-p" href="#/clients/nouveau">' + i.plus + 'Ajouter un client</a></div></div>';
   h += '<div class="filtres">' + chip('tous', 'Tous') + chip('actifs', 'Avec commande', 'var(--green)') + chip('sans', 'Sans commande', 'var(--amber)') + chip('relancer', 'À relancer', 'var(--red)') +
     '<div class="champ-r" style="margin-left:auto">' + i.chercher + '<input id="ch-clients" placeholder="Rechercher un client…" value="' + esc(S.chClients) + '"></div></div>';
   if (!C.length) return h + '<div class="card"><div class="vide">' + i.gens + 'Aucun client pour l\'instant.<br><a class="btn btn-p btn-sm" style="margin-top:14px" href="#/clients/nouveau">Ajouter le premier client</a></div></div>';
@@ -232,6 +239,13 @@ function ecranClients() {
       '<td class="fin">' + i.fleche.replace('<svg', '<svg width="16" height="16" style="opacity:.35"') + '</td></tr>').join('') || '<tr><td colspan="8"><div class="vide">Aucun client ne correspond.</div></td></tr>') +
     '</tbody></table></div></div>';
   return h;
+}
+function exporterClients() {
+  const C = S.clients || [];
+  K.csv('kreative-clients', ['Marque', 'Contact', 'Email', 'Téléphone', 'Site', 'Commandes', 'En cours', 'Total (€)', 'Dernière commande', 'Dernière connexion', 'Client depuis', 'Statut', 'Lien d\'accès', 'Notes'],
+    C.map(c => [c.marque, c.contact, c.email, c.telephone, c.site, c.nb_commandes, c.en_cours || 0, c.total || 0, c.derniere_commande ? K.date(c.derniere_commande) : '',
+      c.vu_le ? K.date(c.vu_le) : 'jamais', K.date(c.cree_le), c.statut === 'bloque' ? 'Bloqué' : c.nb_commandes ? 'Client' : 'Nouveau', c.lien, c.notes]));
+  K.toast(C.length + ' clients exportés');
 }
 function brancherClients() {
   const c = document.getElementById('ch-clients');
@@ -280,11 +294,14 @@ async function ecranClient(id) {
     '<button class="btn btn-p btn-sm" id="b-mail"' + (c.email ? '' : ' disabled title="Ajoutez un email"') + '>' + i.mail + 'Envoyer par email</button></div></div>';
   h += '<div class="sec"><div><h2>Commandes</h2><p>Reliez chaque commande à son dossier de production dès que le brief est arrivé.</p></div></div>';
   h += cmds.length ? '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Commande</th><th>Pack</th><th class="num">Prix</th><th>Dossier de production</th><th>Statut</th><th>Avancement</th><th></th></tr></thead><tbody>' +
-    cmds.map(k => '<tr><td><b>#' + esc(k.ref) + '</b><span class="sub">' + esc(K.date(k.cree_le)) + '</span></td><td>' + esc(PACKS_NOMS[k.pack] || k.pack) + ' · ' + k.nb_creas + ' créas<span class="sub">' + ({ unique: 'Commande unique', mensuel: 'Mensuel', custom: 'Sur mesure' }[k.formule] || '') + '</span></td>' +
+    cmds.map(k => '<tr><td><b>' + esc(K.nomCommande(k)) + '</b><span class="sub">#' + esc(k.ref) + ' · ' + esc(K.date(k.cree_le)) + (k.stripe_session ? ' · payée en ligne' : '') + '</span></td><td>' + k.nb_creas + ' créas<span class="sub">' + esc(FORMULES[k.formule] || '') + '</span></td>' +
       '<td class="num">' + K.euros(k.prix) + '</td><td>' + choixDossier(k) + '</td><td>' + choixStatut(k) + '</td>' +
       '<td style="min-width:120px"><div class="barre"><i style="width:' + k.progression + '%"></i></div><span class="sub">' + k.progression + ' %</span></td>' +
       '<td class="fin"><button class="btn btn-g btn-sm" data-suppr="' + esc(k.id) + '" title="Supprimer">' + i.poubelle + '</button></td></tr>').join('') + '</tbody></table></div></div>'
     : '<div class="card"><div class="vide">' + i.sac + 'Aucune commande. <a href="#" id="b-cmd2">Enregistrer sa première commande</a></div></div>';
+  const F = FICHE.factures || [];
+  h += '<div class="sec"><div><h2>Factures</h2><p>Créées par Stripe à chaque paiement, rattachées à la commande.</p></div><a class="btn btn-g btn-sm" href="#/factures">Toutes les factures</a></div>' +
+    (F.length ? '<div class="card"><div class="tbl-wrap">' + tableFactures(F, false) + '</div></div>' : '<div class="card"><div class="vide">' + i.recu + 'Aucune facture pour ce client.</div></div>');
   h += '<div class="grid g2" style="margin-top:14px"><div class="card"><div class="card-h"><h3>Activité</h3></div><div class="card-b liste">' +
     (FICHE.activite.length ? FICHE.activite.map(a => '<div class="li"><span class="ic">' + i.coche + '</span><span class="t">' + esc(a.texte) + '</span><small>' + esc(K.ilya(a.le)) + '</small></div>').join('') : '<div class="vide">Rien pour l\'instant.</div>') + '</div></div>' +
     '<div class="card pad"><h3 style="font-size:15px">Notes internes</h3><p class="tx2" style="white-space:pre-wrap;margin-top:10px;font-size:13.5px">' + (c.notes ? esc(c.notes) : '<span class="muted">Aucune note.</span>') + '</p>' +
@@ -338,6 +355,7 @@ function brancherClient() {
   document.querySelectorAll('[data-statut]').forEach(s => s.onchange = async () => {
     try { await K.api('/api/admin/commandes/' + s.dataset.statut, { methode: 'PATCH', corps: { statut: s.value } }); K.toast('Statut mis à jour'); recharger(); } catch (e) { K.toast(e.message); }
   });
+  brancherSupprFactures();
   document.querySelectorAll('[data-suppr]').forEach(x => x.onclick = async () => {
     if (!await K.confirmer('Supprimer cette commande ?', 'Elle disparaît de l\'espace du client. Le dossier de production n\'est pas touché.', 'Supprimer', true)) return;
     await K.api('/api/admin/commandes/' + x.dataset.suppr, { methode: 'DELETE' }); K.toast('Commande supprimée'); recharger();
@@ -347,12 +365,21 @@ function nouvelleCommande(c, apres) {
   const P = (S.resume && S.resume.packs) || {};
   const v = K.fenetre('<div class="fen-h"><h2>Nouvelle commande</h2><p>' + esc(c.marque) + ' · elle apparaît tout de suite dans son espace.</p></div><div class="fen-b">' +
     '<div class="grid g2" style="gap:12px"><div class="champ"><label>Pack</label><select class="in" id="c-pack">' + ['starter', 'growth', 'scale', 'custom'].map(k => '<option value="' + k + '"' + (k === 'growth' ? ' selected' : '') + '>' + PACKS_NOMS[k] + '</option>').join('') + '</select></div>' +
-    '<div class="champ"><label>Formule</label><select class="in" id="c-formule"><option value="unique">Commande unique</option><option value="mensuel">Mensuel</option><option value="custom">Sur mesure</option></select></div></div>' +
+    '<div class="champ"><label>Formule</label><select class="in" id="c-formule"><option value="unique">Commande unique</option><option value="mensuel">Abonnement mensuel</option></select></div></div>' +
     '<div class="grid g2" style="gap:12px"><div class="champ"><label>Nombre de créatives</label><input class="in" id="c-nb" type="number" min="1"></div>' +
-    '<div class="champ"><label>Prix (€ HT)</label><input class="in" id="c-prix" type="number" min="0"></div></div>' +
+    '<div class="champ"><label>Prix (€)</label><input class="in" id="c-prix" type="number" min="0"></div></div>' +
+    '<div class="aide" id="c-aide" style="margin:-4px 0 14px;font-size:12.5px;color:var(--tx3)"></div>' +
     '<div class="champ"><label>Dossier de production</label>' + choixDossier({ id: 'nouveau', dossier: '' }).replace('data-dossier="nouveau"', 'id="c-dossier"') + '<div class="aide">Laissez vide si le client n\'a pas encore envoyé son brief : il le remplira depuis son espace.</div></div>' +
     '</div><div class="fen-f"><button class="btn btn-s" data-n>Annuler</button><button class="btn btn-p" data-o>Enregistrer la commande</button></div>');
-  const maj = () => { const k = K.$('#c-pack').value, f = K.$('#c-formule').value, p = P[k] || {}; K.$('#c-nb').value = p.creas || ''; K.$('#c-prix').value = (f === 'mensuel' ? p.mensuel : p.unique) || ''; };
+  // Starter, Growth et Scale ont un prix fixe : seul le pack Custom se règle à la main
+  const maj = () => {
+    const k = K.$('#c-pack').value, f = K.$('#c-formule').value, p = P[k] || {}, fixe = k !== 'custom';
+    const nb = K.$('#c-nb'), prix = K.$('#c-prix');
+    nb.readOnly = prix.readOnly = fixe;
+    if (fixe) { nb.value = p.creas || ''; prix.value = (f === 'mensuel' ? p.mensuel : p.unique) || ''; }
+    else { if (!nb.value || nb.readOnly === false && Number(nb.value) < 1) nb.value = 30; prix.placeholder = 'Montant du devis'; }
+    K.$('#c-aide').textContent = fixe ? 'Prix et volume fixes du Pack ' + PACKS_NOMS[k] + (f === 'mensuel' ? ', par mois.' : '.') : 'Pack Custom : indiquez le volume et le montant convenus avec le client.';
+  };
   K.$('#c-pack').onchange = maj; K.$('#c-formule').onchange = maj; maj();
   v.querySelector('[data-n]').onclick = K.fermer;
   v.querySelector('[data-o]').onclick = async e => {
@@ -369,15 +396,99 @@ function ecranCommandes() {
   const C = S.commandes || [], f = S.filtreCmd;
   const filtres = { en_cours: c => ['brief', 'production', 'livre', 'revisions'].includes(c.statut), brief: c => c.statut === 'brief', mensuel: c => c.formule === 'mensuel' && c.statut !== 'annule', toutes: () => true };
   const chip = (k, t) => '<button class="chip' + (f === k ? ' on' : '') + '" onclick="S.filtreCmd=\'' + k + '\';K.rendre()">' + t + '<span class="c">' + C.filter(filtres[k]).length + '</span></button>';
-  let h = '<div class="ph"><div><h1>Commandes</h1><p>' + C.filter(filtres.en_cours).length + ' en cours · ' + K.euros(C.filter(c => c.statut !== 'annule').reduce((s, c) => s + (c.prix || 0), 0)) + ' au total</p></div></div>' +
-    '<div class="filtres">' + chip('en_cours', 'En cours') + chip('brief', 'Brief attendu') + chip('mensuel', 'Mensuelles') + chip('toutes', 'Toutes') + '</div>';
+  let h = '<div class="ph"><div><h1>Commandes</h1><p>' + C.filter(filtres.en_cours).length + ' en cours · ' + K.euros(C.filter(c => c.statut !== 'annule').reduce((s, c) => s + (c.prix || 0), 0)) + ' au total</p></div>' +
+    '<div class="act"><button class="btn btn-s" onclick="exporterCommandes()">' + i.telecharger + 'Exporter</button></div></div>' +
+    '<div class="filtres">' + chip('en_cours', 'En cours') + chip('brief', 'Brief attendu') + chip('mensuel', 'Abonnements') + chip('toutes', 'Toutes') + '</div>';
   const l = C.filter(filtres[f]);
   if (!C.length) return h + '<div class="card"><div class="vide">' + i.sac + 'Aucune commande. Elles s\'enregistrent depuis la fiche d\'un client.</div></div>';
   return h + '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Commande</th><th>Client</th><th>Pack</th><th class="num">Prix</th><th>Dossier</th><th>Statut</th><th>Date</th></tr></thead><tbody>' +
-    (l.map(c => '<tr class="clic" onclick="location.hash=\'#/clients/' + esc(c.client_id) + '\'"><td><b>#' + esc(c.ref) + '</b></td><td><div class="nom">' + K.tuile(c.marque) + '<b>' + esc(c.marque) + '</b></div></td>' +
-      '<td>' + esc(PACKS_NOMS[c.pack] || c.pack) + ' · ' + c.nb_creas + '<span class="sub">' + ({ unique: 'Unique', mensuel: 'Mensuel', custom: 'Sur mesure' }[c.formule] || '') + '</span></td><td class="num">' + K.euros(c.prix) + '</td>' +
+    (l.map(c => '<tr class="clic" onclick="location.hash=\'#/clients/' + esc(c.client_id) + '\'"><td><b>' + esc(K.nomCommande(c)) + '</b><span class="sub">#' + esc(c.ref) + '</span></td><td><div class="nom">' + K.tuile(c.marque) + '<b>' + esc(c.marque) + '</b></div></td>' +
+      '<td>' + c.nb_creas + ' créas<span class="sub">' + esc(FORMULES[c.formule] || '') + '</span></td><td class="num">' + K.euros(c.prix) + '</td>' +
       '<td>' + (c.dossier ? '<code style="font-size:12px">' + esc(c.dossier) + '</code>' : '<span class="muted">·</span>') + '</td><td><span class="pill ' + STATUTS[c.statut][1] + '"><i></i>' + STATUTS[c.statut][0] + '</span></td><td>' + esc(K.date(c.cree_le)) + '</td></tr>').join('')
       || '<tr><td colspan="7"><div class="vide">Aucune commande ici.</div></td></tr>') + '</tbody></table></div></div>';
+}
+
+function exporterCommandes() {
+  const C = S.commandes || [];
+  K.csv('kreative-commandes', ['Référence', 'Projet', 'Client', 'Contact', 'Email', 'Pack', 'Formule', 'Créatives', 'Prix (€)', 'Statut', 'Dossier', 'Commandée le', 'Brief reçu le', 'Livrée le', 'Payée en ligne'],
+    C.map(c => [c.ref, K.nomCommande(c), c.marque, c.contact, c.email, PACKS_NOMS[c.pack] || c.pack, FORMULES[c.formule] || c.formule, c.nb_creas, c.prix, (STATUTS[c.statut] || [c.statut])[0], c.dossier,
+      K.date(c.cree_le), c.brief_le ? K.date(c.brief_le) : '', c.livre_le ? K.date(c.livre_le) : '', c.stripe_session ? 'oui' : 'non']));
+  K.toast(C.length + ' commandes exportées');
+}
+
+// ---------- FACTURES ----------
+function tableFactures(F, avecClient) {
+  return '<table class="tbl"><thead><tr><th>Facture</th>' + (avecClient ? '<th>Client</th>' : '') + '<th>Projet</th><th class="num">Montant</th><th>Statut</th><th>Émise le</th><th></th></tr></thead><tbody>' +
+    F.map(f => {
+      const k = (S.commandes || []).find(c => c.id === f.commande_id) || (FICHE && FICHE.commandes.find(c => c.id === f.commande_id));
+      const st = FACT[f.statut] || [f.statut || '·', ''];
+      return '<tr><td><b>' + esc(f.numero || 'Sans numéro') + '</b><span class="sub">' + (f.source === 'stripe' ? 'Stripe' : 'Ajoutée à la main') + '</span></td>' +
+        (avecClient ? '<td>' + (f.marque ? '<div class="nom">' + K.tuile(f.marque) + '<a href="#/clients/' + esc(f.client_id) + '"><b>' + esc(f.marque) + '</b></a></div>' : '<span class="muted">' + esc(f.email || 'non rattachée') + '</span>') + '</td>' : '') +
+        '<td>' + (k ? esc(K.nomCommande(k)) + '<span class="sub">#' + esc(k.ref) + '</span>' : '<span class="muted">·</span>') + '</td>' +
+        '<td class="num">' + K.euros(f.montant) + '</td><td><span class="pill ' + st[1] + '"><i></i>' + esc(st[0]) + '</span></td><td>' + esc(K.date(f.emise_le)) + '</td>' +
+        '<td class="fin"><div style="display:flex;gap:6px;justify-content:flex-end">' +
+        (f.pdf ? '<a class="btn btn-s btn-sm" href="' + esc(f.pdf) + '" target="_blank" rel="noopener">' + i.telecharger + 'PDF</a>' : '') +
+        (f.lien ? '<a class="btn btn-g btn-sm" href="' + esc(f.lien) + '" target="_blank" rel="noopener">Voir</a>' : '') +
+        (f.source !== 'stripe' ? '<button class="btn btn-g btn-sm" data-fsuppr="' + esc(f.id) + '" title="Supprimer">' + i.poubelle + '</button>' : '') + '</div></td></tr>';
+    }).join('') + '</tbody></table>';
+}
+function ecranFactures() {
+  const R = S.factures || {}, F = R.factures || [], f = S.filtreFact;
+  const filtres = { toutes: () => true, payee: x => x.statut === 'payee', attente: x => ['ouverte', 'impayee'].includes(x.statut), orphelines: x => !x.client_id };
+  const chip = (k, t) => '<button class="chip' + (f === k ? ' on' : '') + '" onclick="S.filtreFact=\'' + k + '\';K.rendre()">' + t + '<span class="c">' + F.filter(filtres[k]).length + '</span></button>';
+  const payees = F.filter(filtres.payee), mois = Date.now() - 30 * 864e5;
+  let h = '<div class="ph"><div><h1>Factures</h1><p>Chaque paiement Stripe crée sa facture, rattachée au client et à son projet.</p></div>' +
+    '<div class="act"><button class="btn btn-s" onclick="exporterFactures()">' + i.telecharger + 'Exporter</button><button class="btn btn-p" id="b-facture">' + i.plus + 'Ajouter une facture</button></div></div>';
+  if (!R.stripe) h += '<div class="bandeau amb"><span class="ic">' + i.carte + '</span><div><b>Stripe n\'est pas encore branché</b><small>Une fois le webhook Stripe ajouté, les factures arrivent ici toutes seules. En attendant, vous pouvez les ajouter à la main.</small></div></div>';
+  h += '<div class="grid g4">' + kpi('Encaissé sur 30 jours', K.euros(payees.filter(x => (x.payee_le || x.emise_le) > mois).reduce((t, x) => t + (x.montant || 0), 0)), payees.filter(x => (x.payee_le || x.emise_le) > mois).length + ' paiements') +
+    kpi('Encaissé au total', K.euros(payees.reduce((t, x) => t + (x.montant || 0), 0)), payees.length + ' factures payées') +
+    kpi('En attente', K.euros(F.filter(filtres.attente).reduce((t, x) => t + (x.montant || 0), 0)), F.filter(filtres.attente).length + ' facture' + (F.filter(filtres.attente).length > 1 ? 's' : ''), F.filter(filtres.attente).length ? 'color:var(--amber)' : '') +
+    kpi('Non rattachées', F.filter(filtres.orphelines).length, 'à relier à un client') + '</div>';
+  h += '<div class="filtres" style="margin-top:20px">' + chip('toutes', 'Toutes') + chip('payee', 'Payées') + chip('attente', 'En attente') + chip('orphelines', 'Non rattachées') + '</div>';
+  const l = F.filter(filtres[f]);
+  return h + (l.length ? '<div class="card"><div class="tbl-wrap">' + tableFactures(l, true) + '</div></div>' : '<div class="card"><div class="vide">' + i.recu + 'Aucune facture ici.</div></div>');
+}
+function exporterFactures() {
+  const F = (S.factures && S.factures.factures) || [];
+  K.csv('kreative-factures', ['Numéro', 'Client', 'Projet', 'Référence commande', 'Montant (€)', 'Statut', 'Émise le', 'Payée le', 'Source', 'PDF'],
+    F.map(f => { const k = (S.commandes || []).find(c => c.id === f.commande_id); return [f.numero, f.marque || f.email, k ? K.nomCommande(k) : '', f.ref || '', f.montant, (FACT[f.statut] || [f.statut])[0],
+      K.date(f.emise_le), f.payee_le ? K.date(f.payee_le) : '', f.source === 'stripe' ? 'Stripe' : 'Manuelle', f.pdf || '']; }));
+  K.toast(F.length + ' factures exportées');
+}
+function brancherFactures() {
+  const b = document.getElementById('b-facture');
+  if (b) b.onclick = () => {
+    const C = S.clients || [];
+    const v = K.fenetre('<div class="fen-h"><h2>Ajouter une facture</h2><p>Pour une facture faite hors Stripe. Celles de Stripe arrivent seules.</p></div><div class="fen-b">' +
+      '<div class="champ"><label>Client</label><select class="in" id="fa-client"><option value="">Choisir un client</option>' + C.map(c => '<option value="' + esc(c.id) + '">' + esc(c.marque) + '</option>').join('') + '</select></div>' +
+      '<div class="champ"><label>Projet</label><select class="in" id="fa-cmd"><option value="">· aucun ·</option></select></div>' +
+      '<div class="grid g2" style="gap:12px"><div class="champ"><label>Numéro</label><input class="in" id="fa-num" placeholder="KRV-0012"></div><div class="champ"><label>Montant (€)</label><input class="in" id="fa-mt" type="number" min="0" step="0.01"></div></div>' +
+      '<div class="grid g2" style="gap:12px"><div class="champ"><label>Statut</label><select class="in" id="fa-st"><option value="payee">Payée</option><option value="ouverte">En attente</option><option value="impayee">Impayée</option></select></div>' +
+      '<div class="champ"><label>Date</label><input class="in" id="fa-date" type="date" value="' + new Date().toISOString().slice(0, 10) + '"></div></div>' +
+      '<div class="champ"><label>Lien du PDF</label><input class="in" id="fa-pdf" placeholder="https://…"></div></div>' +
+      '<div class="fen-f"><button class="btn btn-s" data-n>Annuler</button><button class="btn btn-p" data-o>Ajouter</button></div>');
+    const cl = K.$('#fa-client'), cm = K.$('#fa-cmd');
+    cl.onchange = () => {
+      cm.innerHTML = '<option value="">· aucun ·</option>' + (S.commandes || []).filter(c => c.client_id === cl.value).map(c => '<option value="' + esc(c.id) + '">' + esc(K.nomCommande(c)) + ' · #' + esc(c.ref) + '</option>').join('');
+      if (cm._kMaj) cm._kMaj();
+    };
+    v.querySelector('[data-n]').onclick = K.fermer;
+    v.querySelector('[data-o]').onclick = async e => {
+      e.target.disabled = true;
+      try {
+        await K.api('/api/admin/factures', { methode: 'POST', corps: { client_id: cl.value, commande_id: cm.value, numero: K.$('#fa-num').value, montant: K.$('#fa-mt').value,
+          statut: K.$('#fa-st').value, emise_le: Date.parse(K.$('#fa-date').value) || Date.now(), pdf: K.$('#fa-pdf').value } });
+        K.fermer(); K.toast('Facture ajoutée'); rafraichir('factures');
+      } catch (err) { K.toast(err.message); e.target.disabled = false; }
+    };
+  };
+  brancherSupprFactures();
+}
+function brancherSupprFactures() {
+  document.querySelectorAll('[data-fsuppr]').forEach(x => x.onclick = async () => {
+    if (!await K.confirmer('Supprimer cette facture ?', 'Elle disparaît du portail. Rien n\'est changé dans votre comptabilité.', 'Supprimer', true)) return;
+    try { await K.api('/api/admin/factures/' + x.dataset.fsuppr, { methode: 'DELETE' }); K.toast('Facture supprimée'); FICHE = null; rafraichir('factures'); } catch (e) { K.toast(e.message); }
+  });
 }
 
 // ---------- DOSSIERS ----------
@@ -413,6 +524,7 @@ function ecranEquipe() {
 // ---------- RENDU ----------
 const ECRANS = {
   '': { id: 'accueil', t: 'Vue d\'ensemble', a: 'accueil', b: [], besoins: ['resume', 'clients', 'commandes', 'prod'], f: ecranAccueil },
+  factures: { id: 'factures', t: 'Factures', a: 'recu', b: ['Commercial'], besoins: ['factures', 'clients', 'commandes'], f: ecranFactures, ap: brancherFactures },
   projets: { id: 'projets', t: 'Projets', a: 'dossier', b: ['Production'], besoins: ['commandes', 'prod'], f: ecranProjets, large: true },
   clients: { id: 'clients', t: 'Clients', a: 'gens', b: ['Commercial'], besoins: ['clients', 'resume', 'dossiers'], f: p => p[0] === 'nouveau' ? (setTimeout(nouveauClient, 0), ecranClients()) : p[0] ? ecranClient(p[0]) : ecranClients(), ap: p => p[0] && p[0] !== 'nouveau' ? brancherClient() : brancherClients() },
   commandes: { id: 'commandes', t: 'Commandes', a: 'sac', b: ['Commercial'], besoins: ['commandes'], f: ecranCommandes },

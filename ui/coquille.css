@@ -1,0 +1,172 @@
+/* ============================================================
+   KREATIVE · COQUILLE DE L'ÉQUIPE
+   La barre latérale et le bandeau du haut, ajoutés par le Worker
+   autour de chaque page de l'équipe (espaces, fiche, dossiers,
+   briefs, visuels). Même look que le portail client et l'admin.
+   Tout est préfixé « kc- » pour ne jamais se mélanger aux styles
+   des pages, y compris les anciens dossiers déjà publiés.
+   En bas : les petits ajustements de chaque type de page.
+   ============================================================ */
+:root{
+  --kc-bg:#f9f6f4; --kc-panel:#ffffff; --kc-soft:#f4f0ec; --kc-soft2:#ece6e0;
+  --kc-line:#ebe5df; --kc-line2:#ddd5cd;
+  --kc-ink:#000000; --kc-tx2:#4f4f4f; --kc-tx3:#8b8580;
+  --kc-blue:#4d94ff; --kc-blue-h:#3584fb; --kc-blue-soft:#eaf2ff;
+  --kc-ombre:0 1px 2px rgba(0,0,0,.04),0 8px 28px rgba(0,0,0,.04);
+  --kc-ombre2:0 1px 2px rgba(0,0,0,.05),0 16px 40px -12px rgba(0,0,0,.16);
+  --kc-titre:"Inter Tight","Inter",-apple-system,"Segoe UI",sans-serif;
+  --kc-texte:"Inter",-apple-system,"Segoe UI",sans-serif;
+}
+html:has(body.kc-on){height:100%;overflow:hidden}
+body.kc-on{margin:0!important;padding:0!important;height:100%!important;min-height:0!important;overflow:hidden!important;
+  display:block!important;background:var(--kc-bg)!important}
+
+/* ---------- la structure ---------- */
+.kc{display:flex;height:100vh;height:100dvh}
+.kc-side,.kc-top{font:400 14px/1.5 var(--kc-texte);color:var(--kc-ink);-webkit-font-smoothing:antialiased;letter-spacing:normal;text-align:left}
+.kc-side *,.kc-top *{box-sizing:border-box}
+.kc-side svg,.kc-top svg{display:block;flex:none}
+.kc-side{width:252px;flex:none;display:flex;flex-direction:column;padding:18px 12px 12px;overflow-y:auto;scrollbar-width:none;background:var(--kc-bg)}
+.kc-main{flex:1;min-width:0;padding:10px 10px 10px 0;display:flex}
+/* translateZ : les éléments « fixes » des pages restent dans le panneau */
+.kc-panel{flex:1;min-width:0;background:var(--kc-panel);border:1px solid var(--kc-line);border-radius:18px;display:flex;flex-direction:column;
+  overflow:hidden;box-shadow:var(--kc-ombre);transform:translateZ(0)}
+.kc-scroll{flex:1;min-height:0;overflow:auto;position:relative}
+
+/* ---------- barre latérale ---------- */
+.kc-side a{text-decoration:none}
+.kc-logo{display:flex;align-items:center;padding:6px 10px 18px}
+.kc-logo img{height:24px;width:auto;display:block;max-width:none}
+.kc-cta{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 2px 18px;padding:12px 16px;border-radius:12px;
+  background:var(--kc-blue);color:#fff!important;font-weight:600;font-size:14px;box-shadow:0 8px 20px -8px rgba(77,148,255,.7);transition:background .15s}
+.kc-cta:hover{background:var(--kc-blue-h)}
+.kc-cta svg{width:16px;height:16px}
+.kc-lab{font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--kc-tx3);padding:14px 12px 6px;line-height:1.5}
+.kc-nav{display:block}
+.kc-side a.kc-l{display:flex;align-items:center;gap:11px;height:38px;padding:0 12px;margin:1px 0;border-radius:10px;color:var(--kc-tx2);
+  font-size:14px;font-weight:500;border:1px solid transparent;background:transparent;transition:background .12s,color .12s;white-space:nowrap}
+.kc-side a.kc-l svg{width:17px;height:17px;stroke-width:1.8}
+.kc-side a.kc-l span{overflow:hidden;text-overflow:ellipsis}
+.kc-side a.kc-l:hover{background:var(--kc-soft);color:var(--kc-ink)}
+.kc-side a.kc-l.on{background:var(--kc-panel);color:var(--kc-ink);border-color:var(--kc-line);box-shadow:var(--kc-ombre)}
+.kc-foot{margin-top:auto;border-top:1px solid var(--kc-line);padding:12px 6px 2px;display:flex;align-items:center;gap:10px;position:relative}
+.kc-av{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--kc-blue-soft);color:#2b6fd6;font:700 12.5px var(--kc-texte);flex:none}
+.kc-qui{min-width:0;flex:1}
+.kc-qui b{display:block;font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.4}
+.kc-qui small{display:block;font-size:12px;color:var(--kc-tx3);line-height:1.4}
+.kc-side button.kc-mb{all:unset;width:30px;height:30px;border-radius:8px;display:grid;place-items:center;color:var(--kc-tx3);cursor:pointer}
+.kc-side button.kc-mb:hover{background:var(--kc-soft);color:var(--kc-ink)}
+.kc-side button.kc-mb svg{width:18px;height:18px}
+.kc-menu{position:absolute;bottom:52px;left:6px;right:6px;background:var(--kc-panel);border:1px solid var(--kc-line);border-radius:12px;box-shadow:var(--kc-ombre2);padding:6px;z-index:40}
+.kc-menu[hidden]{display:none}
+.kc-menu a{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;font-size:13.5px;color:var(--kc-ink)}
+.kc-menu a:hover{background:var(--kc-soft)}
+.kc-menu svg{width:16px;height:16px}
+[id="kc-projet"][hidden]{display:none}
+
+/* ---------- bandeau du haut ---------- */
+.kc-top{height:58px;flex:none;display:flex;align-items:center;gap:16px;padding:0 20px 0 26px;border-bottom:1px solid var(--kc-line);background:var(--kc-panel);position:relative;z-index:30}
+.kc-ariane{display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--kc-tx3);white-space:nowrap;min-width:0;overflow:hidden}
+.kc-ariane svg{width:15px;height:15px}
+.kc-ariane span{overflow:hidden;text-overflow:ellipsis}
+.kc-ariane b{color:var(--kc-ink);font-weight:500;overflow:hidden;text-overflow:ellipsis}
+.kc-ariane i{font-style:normal;opacity:.6}
+.kc-search{flex:1;max-width:440px;margin:0 0 0 auto;position:relative}
+.kc-search input{width:100%;height:36px;border:1px solid var(--kc-line);border-radius:10px;background:var(--kc-soft);padding:0 54px 0 36px;
+  font:400 13.5px var(--kc-texte);color:var(--kc-ink);outline:0;margin:0;box-shadow:none}
+.kc-search input:focus{border-color:var(--kc-blue);background:var(--kc-panel)}
+.kc-search>svg{position:absolute;left:12px;top:10px;width:16px;height:16px;color:var(--kc-tx3)}
+.kc-search kbd{position:absolute;right:8px;top:7px;font:600 11px var(--kc-texte);color:var(--kc-tx3);border:1px solid var(--kc-line2);border-radius:6px;padding:2px 6px;background:var(--kc-panel);line-height:1.4}
+.kc-res{position:absolute;top:42px;left:0;right:0;background:var(--kc-panel);border:1px solid var(--kc-line);border-radius:12px;box-shadow:var(--kc-ombre2);padding:6px;z-index:50;max-height:360px;overflow:auto}
+.kc-res[hidden]{display:none}
+.kc-res a{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;text-decoration:none;font-size:13.5px;color:var(--kc-ink)}
+.kc-res a svg{width:15px;height:15px;color:var(--kc-tx3)}
+.kc-res a:hover,.kc-res a.sel{background:var(--kc-soft)}
+.kc-res small{margin-left:auto;color:var(--kc-tx3);font-size:12px;white-space:nowrap}
+.kc-res .kc-rien{padding:14px;text-align:center;color:var(--kc-tx3);font-size:13.5px}
+.kc-top button.kc-ib{all:unset;width:36px;height:36px;border-radius:10px;border:1px solid var(--kc-line);display:grid;place-items:center;color:var(--kc-tx2);background:var(--kc-panel);cursor:pointer;flex:none;box-sizing:border-box}
+.kc-top button.kc-ib:hover{background:var(--kc-soft);color:var(--kc-ink)}
+.kc-top button.kc-ib svg{width:17px;height:17px}
+.kc-top .kc-burger{display:none!important}
+
+/* ---------- petits écrans : la barre latérale devient un tiroir ---------- */
+@media(max-width:860px){
+  .kc-side{position:fixed;inset:0 auto 0 0;z-index:70;transform:translateX(-102%);transition:transform .2s;box-shadow:var(--kc-ombre2)}
+  .kc.menu-ouvert .kc-side{transform:none;box-shadow:0 0 0 100vmax rgba(10,10,10,.38)}
+  .kc-main{padding:0}
+  .kc-panel{border-radius:0;border:0;box-shadow:none}
+  .kc-top{padding:0 14px;gap:12px}
+  .kc-top .kc-burger{display:grid!important}
+  .kc-search{display:none}
+  .kc-ariane>svg,.kc-ariane>span:first-of-type,.kc-ariane>span:first-of-type+i{display:none}
+}
+@media print{
+  html:has(body.kc-on){height:auto;overflow:visible}
+  body.kc-on{height:auto!important;overflow:visible!important}
+  .kc{display:block;height:auto}.kc-side,.kc-top{display:none}
+  .kc-main,.kc-panel{display:block;padding:0;border:0;box-shadow:none;transform:none}.kc-scroll{overflow:visible}
+}
+
+/* ============================================================
+   LES PAGES DANS LA COQUILLE
+   ============================================================ */
+/* l'ancien en-tête en pilule fait doublon avec le bandeau du haut */
+body.kc-on .k-top{display:none!important}
+/* rayons et boutons du portail */
+body.kc-on{--k-r:16px;--k-r-s:11px}
+body.kc-on .k-btn,body.kc-on.k .tout,body.kc-on.k .dl,body.kc-on.k .go{border-radius:11px;padding:0 18px;height:40px;font-weight:600;font-size:13.5px}
+body.kc-on .k-btn2,body.kc-on.k .adlib-b,body.kc-on.k .lien{border-radius:11px;padding:0 16px;height:40px;font-weight:600;font-size:13.5px;
+  background:var(--kc-panel);border:1px solid var(--kc-line2)}
+body.kc-on .k-btn2:hover,body.kc-on.k .adlib-b:hover,body.kc-on.k .lien:hover{background:var(--kc-soft)}
+
+/* ---------- dossier de production et brief du client ---------- */
+body.kc-on.k-dossier .head{position:static;padding:34px 40px 0;background:transparent;max-width:1180px}
+body.kc-on.k-dossier .head::after{display:none}
+body.kc-on.k-dossier .top{background:none;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;padding:0;border-radius:0;max-width:none;margin:0}
+body.kc-on.k-dossier .top .in{flex-wrap:wrap;align-items:flex-end;justify-content:flex-start;gap:6px 16px}
+body.kc-on.k-dossier .top h1{font-size:34px;letter-spacing:-.035em;white-space:normal;line-height:1.12;flex:1 1 auto}
+body.kc-on.k-dossier .top .infos{font-size:14px;color:var(--kc-tx3);padding-bottom:5px}
+body.kc-on.k-dossier .head nav .in{max-width:none;margin:22px 0 0;padding:3px;display:inline-flex;flex-wrap:wrap;justify-content:flex-start;gap:2px;
+  background:var(--kc-soft);border:1px solid var(--kc-line);border-radius:11px}
+body.kc-on.k-dossier .head nav a{padding:7px 14px;border-radius:8px;font-size:13px;color:var(--kc-tx2)}
+body.kc-on.k-dossier .head nav a:hover{background:var(--kc-panel);color:var(--kc-ink);box-shadow:var(--kc-ombre)}
+body.kc-on.k-dossier .wrap{max-width:1180px;margin:0;padding:0 40px 90px}
+body.kc-on.k-dossier section{padding-top:44px;scroll-margin-top:16px}
+body.kc-on.k-dossier .sh{margin-bottom:16px;gap:12px}
+body.kc-on.k-dossier .sh .n{width:26px;height:26px;font-size:11.5px}
+body.kc-on.k-dossier .sh h2{font-size:22px;letter-spacing:-.025em}
+body.kc-on.k-dossier .card{padding:6px 26px}
+body.kc-on.k-dossier .sitecard{padding:18px 18px 18px 24px}
+body.kc-on.k-dossier .sitecard .u{font-size:20px}
+body.kc-on.k-dossier .thumb,body.kc-on.k-dossier .asset{border-radius:14px}
+body.kc-on.k-retours .liens{margin-top:22px}
+
+/* ---------- visuels (aperçu du designer) ---------- */
+body.kc-on.k-apercu .w{max-width:1180px;margin:0;padding:0 40px 90px}
+body.kc-on.k-apercu header.h{margin:34px 0 26px}
+body.kc-on.k-apercu h1{font-size:34px;letter-spacing:-.035em;line-height:1.12}
+body.kc-on.k-apercu .meta{font-size:14.5px;color:var(--kc-tx3);margin-top:6px}
+body.kc-on.k-apercu .kit{padding:20px 22px}
+body.kc-on.k-apercu .c{padding:20px;gap:26px}
+body.kc-on.k-apercu h2{font-size:22px}
+body.kc-on.k-apercu .liv{border-radius:16px}
+
+/* ---------- téléchargement ---------- */
+body.kc-on.k-telech .boite{margin:10vh auto 40px;border-radius:18px}
+
+/* ---------- fiche créas : la fiche remplit le panneau ---------- */
+body.kc-on.kc-fiche .kc-scroll{display:flex;flex-direction:column;overflow:hidden}
+body.kc-on.kc-fiche .kc-scroll>header{background:var(--kc-panel)}
+body.kc-on.kc-fiche .bar1 h1{display:none}
+body.kc-on.kc-fiche .bar1{padding:16px var(--gut)}
+@media(max-width:900px){body.kc-on.kc-fiche .kc-scroll{display:block;overflow:auto}}
+
+/* ---------- petits écrans ---------- */
+@media(max-width:860px){
+  body.kc-on.k-dossier .head{padding:22px 16px 0}
+  body.kc-on.k-dossier .top h1{font-size:26px}
+  body.kc-on.k-dossier .head nav .in{display:flex;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+  body.kc-on.k-dossier .wrap,body.kc-on.k-apercu .w{padding:0 16px 70px}
+  body.kc-on.k-apercu header.h{margin:22px 0 20px}
+  body.kc-on.k-apercu h1{font-size:28px}
+}

@@ -105,9 +105,9 @@ function conf() {
       { titre: 'Production', liens: [
         { id: 'projets', texte: 'Projets', icone: 'dossier', href: '#/projets', nb: enCours || '' },
         { id: 'dossiers', texte: 'Tous les dossiers', icone: 'calques', href: '#/dossiers' },
-        { id: 'fiche', texte: 'Fiche créas', icone: 'doc', href: '/fiche/', ext: true },
-        { id: 'strat', texte: 'Espace stratégiste', icone: 'ampoule', href: '/strategiste/', ext: true },
-        { id: 'desi', texte: 'Designer space', icone: 'pinceau', href: '/designer/', ext: true }] },
+        { id: 'fiche', texte: 'Fiche créas', icone: 'doc', href: '/fiche/' },
+        { id: 'strat', texte: 'Espace stratégiste', icone: 'ampoule', href: '/strategiste/' },
+        { id: 'desi', texte: 'Designer space', icone: 'pinceau', href: '/designer/' }] },
       { titre: 'Équipe', liens: [{ id: 'equipe', texte: 'Équipe', icone: 'bouclier', href: '#/equipe' }] }
     ],
     qui: { nom: S.moi && S.moi.nom ? S.moi.nom.charAt(0).toUpperCase() + S.moi.nom.slice(1) : 'Admin', role: 'Fondateur · admin' },

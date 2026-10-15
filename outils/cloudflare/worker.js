@@ -206,7 +206,7 @@ async function servir(chemin, env, ctx, o) {
 
   // les pages : les anciens liens GitHub deviennent ce site
   const base = o.origine + '/';
-  if (/^text\/html/.test(type)) return reecrireHtml(new Response(r.body, { status: 200, headers: entetes }), base, barre(o.qui, '/' + chemin));
+  if (/^text\/html/.test(type)) return reecrireHtml(new Response(r.body, { status: 200, headers: entetes }), base, coquille(o.qui, '/' + chemin, o.req));
   const longueur = Number(r.headers.get('content-length') || 0);
   if (longueur > LIMITE_REECRITURE) return new Response(r.body, { status: 200, headers: entetes });
   let t = await r.text();
@@ -220,27 +220,112 @@ function remplacer(t, base) {
   return t.replace(/https:\/\/kreativeadsfr\.github\.io\/kreative-dossiers(?=["'\s<)])/g, base.replace(/\/$/, ''));
 }
 
-// 15/10 : la barre noire n'apparaît que pour l'admin, sur les trois espaces
-// qu'il ouvre depuis le tableau de bord dans le même onglet (stratégiste,
-// designer, fiche), pour y revenir. Statique : en bas à gauche, à droite sur
-// la fiche (à gauche, il y a les boutons de la fiche). Partout ailleurs, les
-// pages s'ouvrent dans un nouvel onglet : pas de barre.
-function barre(qui, chemin) {
-  if (!qui || qui.role !== 'admin') return '';
-  const m = chemin.match(/^\/(strategiste|designer|fiche)\/(index\.html)?$/);
-  if (!m) return '';
-  const cote = m[1] === 'fiche' ? 'right' : 'left';
-  const liens = [['/admin/', 'Tableau de bord'], ['/strategiste/', 'Stratégiste'], ['/designer/', 'Designer'], ['/fiche/', 'Fiche']];
-  return '<nav id="k-barre" style="position:fixed;' + cote + ':16px;bottom:16px;z-index:2147483000;display:flex;gap:4px;align-items:center;' +
-    'background:#1f1f1f;padding:5px;border-radius:999px;box-shadow:0 8px 28px rgba(0,0,0,.18);font:500 13.5px/1 Inter,-apple-system,Segoe UI,sans-serif">' +
-    '<style>#k-barre a{all:unset;cursor:pointer;color:#fff;padding:9px 14px;border-radius:999px;white-space:nowrap}' +
-    '#k-barre a:hover{background:#4d94ff}#k-barre .k-cur{background:rgba(255,255,255,.14)}' +
-    '@media print{#k-barre{display:none}}@media(max-width:600px){#k-barre .k-opt{display:none}}</style>' +
-    liens.map(([h, t], i) => '<a href="' + h + '" class="' + (i ? 'k-opt' : '') + (chemin.startsWith(h) ? ' k-cur' : '') + '">' + (i ? '' : '← ') + t + '</a>').join('') +
-    '</nav>';
+// ============================================================
+//  LA COQUILLE DE L'ÉQUIPE
+//  Toutes les pages de l'équipe (espaces stratégiste et designer,
+//  fiche créas, dossiers de production, briefs, visuels) reçoivent
+//  la même barre latérale et le même bandeau du haut que le portail :
+//  le Worker les ajoute autour de la page, sans toucher aux fichiers.
+//  Le style est dans ui/coquille.css, le reste (nom du projet,
+//  liens « Ce projet », recherche) dans ui/coquille.js.
+//  Le tableau de bord admin (/admin/) a sa propre coquille, identique.
+// ============================================================
+const IC = (() => {
+  const p = d => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + d + '</svg>';
+  return {
+    accueil: p('<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/>'),
+    dossier: p('<path d="M3 7a2 2 0 0 1 2-2h4l2 2.5h8a2 2 0 0 1 2 2V18a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/>'),
+    doc: p('<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z"/><path d="M14 3v5h5M9 13h6M9 17h4"/>'),
+    gens: p('<circle cx="9" cy="8" r="3.2"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16.5 5.2a3.2 3.2 0 0 1 0 5.6M18 20a6.4 6.4 0 0 0-2-4.6"/>'),
+    sac: p('<path d="M6 7h12l1 13H5Z"/><path d="M9 7a3 3 0 0 1 6 0"/>'),
+    calques: p('<path d="m12 3 9 5-9 5-9-5Z"/><path d="m3 13 9 5 9-5"/>'),
+    ampoule: p('<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.8.8 1 1.5 1 2.5h6c0-1 .2-1.7 1-2.5A6 6 0 0 0 12 3Z"/>'),
+    pinceau: p('<path d="M14 4l6 6-8 8H6v-6Z"/><path d="M4 20l2-2"/>'),
+    bouclier: p('<path d="M12 3 5 6v6c0 4.2 2.9 7.8 7 9 4.1-1.2 7-4.8 7-9V6Z"/>'),
+    fleche: p('<path d="M5 12h14M13 6l6 6-6 6"/>'),
+    chercher: p('<circle cx="11" cy="11" r="6.5"/><path d="m20 20-3.6-3.6"/>'),
+    points: p('<circle cx="12" cy="5" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="12" cy="19" r="1.2"/>'),
+    sortie: p('<path d="M15 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4M10 17l5-5-5-5M15 12H3"/>'),
+    menu: p('<path d="M4 6h16M4 12h16M4 18h16"/>'),
+    image: p('<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9.5" r="1.5"/><path d="m4 17 5-5 4 4 2.5-2.5L20 17"/>'),
+    telecharger: p('<path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5"/><path d="M4 17v2a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-2"/>'),
+    message: p('<path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.8 8.8 0 0 1-3.5-.7L3 21l1.9-5A8.4 8.4 0 1 1 21 11.5Z"/>')
+  };
+})();
+
+function typePage(chemin, url) {
+  let m;
+  const q = url.searchParams.get('projet') || '';
+  if (/^\/strategiste\/(index\.html)?$/.test(chemin)) return { type: 'strategiste' };
+  if (/^\/designer\/(index\.html)?$/.test(chemin)) return { type: 'designer' };
+  if (/^\/fiche\/(index\.html)?$/.test(chemin)) return { type: 'fiche', projet: q };
+  if (/^\/retours\/(index\.html)?$/.test(chemin)) return { type: 'retours', projet: q };
+  if ((m = chemin.match(/^\/([A-Za-z0-9_-]+)\/creas\/telecharger\.html$/))) return { type: 'telech', projet: m[1] };
+  if ((m = chemin.match(/^\/([A-Za-z0-9_-]+)\/creas\/(index\.html)?$/))) return { type: 'apercu', projet: m[1] };
+  if ((m = chemin.match(/^\/([A-Za-z0-9_-]+)\/(index\.html)?$/))) return { type: 'dossier', projet: m[1] };
+  return { type: 'autre' };
 }
 
-function reecrireHtml(rep, base, barreHtml) {
+function coquille(qui, chemin, req) {
+  if (!qui || !req) return null;
+  if (/^\/(admin|client)(\/|$)/.test(chemin)) return null;          // ont leur propre coquille
+  const url = new URL(req.url);
+  const pg = typePage(chemin, url);
+  const role = qui.role, en = role === 'designer';
+  const e = t => String(t == null ? '' : t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const lien = (href, icone, texte, on) => '<a class="kc-l' + (on ? ' on' : '') + '" href="' + e(href) + '">' + IC[icone] + '<span>' + e(texte) + '</span></a>';
+  const lab = t => '<div class="kc-lab">' + e(t) + '</div>';
+
+  // la barre latérale de chaque rôle
+  let nav = '', cta = '';
+  if (role === 'admin') {
+    cta = '<a class="kc-cta" href="/admin/#/clients/nouveau"><span>Nouveau client</span>' + IC.fleche + '</a>';
+    nav = lab('Espace') + '<div class="kc-nav">' + lien('/admin/#/', 'accueil', 'Vue d\'ensemble') + '</div>' +
+      lab('Commercial') + '<div class="kc-nav">' + lien('/admin/#/clients', 'gens', 'Clients') + lien('/admin/#/commandes', 'sac', 'Commandes') + '</div>' +
+      lab('Production') + '<div class="kc-nav">' + lien('/admin/#/projets', 'dossier', 'Projets') + lien('/admin/#/dossiers', 'calques', 'Tous les dossiers') +
+        lien('/fiche/', 'doc', 'Fiche créas', pg.type === 'fiche' && !pg.projet) +
+        lien('/strategiste/', 'ampoule', 'Espace stratégiste', pg.type === 'strategiste') +
+        lien('/designer/', 'pinceau', 'Designer space', pg.type === 'designer') + '</div>' +
+      lab('Équipe') + '<div class="kc-nav">' + lien('/admin/#/equipe', 'bouclier', 'Équipe') + '</div>';
+  } else if (role === 'strategiste') {
+    nav = lab('Espace') + '<div class="kc-nav">' + lien('/strategiste/', 'dossier', 'Mes projets', pg.type === 'strategiste') +
+      lien('/fiche/', 'doc', 'Fiche créas', pg.type === 'fiche' && !pg.projet) + '</div>';
+  } else {
+    nav = lab('Workspace') + '<div class="kc-nav">' + lien('/designer/', 'dossier', 'My projects', pg.type === 'designer') + '</div>';
+  }
+  // « Ce projet » : rempli par coquille.js (il lit le projet dans le dépôt)
+  if (pg.projet) nav += '<div id="kc-projet" hidden>' + lab(en ? 'This project' : 'Ce projet') + '<div class="kc-nav" id="kc-projet-l"></div></div>';
+
+  // le fil d'Ariane
+  const racine = role === 'admin' ? 'Production' : en ? 'Designer' : 'Stratégiste';
+  const noms = en
+    ? { designer: 'My projects', apercu: 'Preview', telech: 'Download', autre: 'Page' }
+    : { strategiste: role === 'admin' ? 'Espace stratégiste' : 'Mes projets', designer: 'Designer space', fiche: 'Fiche créas', retours: 'Brief du client',
+        dossier: 'Dossier de production', apercu: 'Visuels', telech: 'Téléchargement', autre: 'Page' };
+  const ariane = IC.dossier + '<span>' + e(racine) + '</span><i>/</i>' +
+    (pg.projet ? '<span id="kc-nom">' + e(pg.projet) + '</span><i>/</i>' : '') +
+    '<b id="kc-page">' + e(noms[pg.type] || 'Page') + '</b>';
+
+  const nom = qui.nom ? qui.nom.charAt(0).toUpperCase() + qui.nom.slice(1) : '';
+  const titre = role === 'admin' ? 'Fondateur · admin' : en ? 'Designer' : 'Stratégiste';
+  const conf = { role, langue: en ? 'en' : 'fr', type: pg.type, projet: pg.projet || '' };
+
+  const ouverture = '<div class="kc" id="kc"><div class="kc-side" id="kc-side">' +
+    '<a class="kc-logo" href="' + ACCUEILS[role] + '"><img src="/ui/logo-kreative-noir.png" alt="Kreative"></a>' + cta + nav +
+    '<div class="kc-foot"><span class="kc-av">' + e(nom.charAt(0) || '?') + '</span><div class="kc-qui"><b>' + e(nom) + '</b><small>' + e(titre) + '</small></div>' +
+    '<button class="kc-mb" id="kc-mb" type="button" aria-label="Menu">' + IC.points + '</button>' +
+    '<div class="kc-menu" id="kc-menu" hidden><a href="/_deconnexion">' + IC.sortie + '<span>' + (en ? 'Log out' : 'Se déconnecter') + '</span></a></div></div></div>' +
+    '<div class="kc-main"><div class="kc-panel"><div class="kc-top">' +
+    '<button class="kc-ib kc-burger" id="kc-burger" type="button" aria-label="Menu">' + IC.menu + '</button>' +
+    '<div class="kc-ariane">' + ariane + '</div>' +
+    '<div class="kc-search">' + IC.chercher + '<input id="kc-cherche" placeholder="' + (en ? 'Search a project…' : 'Rechercher un projet…') + '" autocomplete="off"><kbd>⌘K</kbd><div class="kc-res" id="kc-res" hidden></div></div>' +
+    '</div><div class="kc-scroll" id="kc-scroll">';
+  const fermeture = '</div></div></div></div>';
+  const tete = '<link rel="stylesheet" href="/ui/coquille.css"><script>window.KC=' + JSON.stringify(conf).replace(/</g, '\\u003c') + '</script><script src="/ui/coquille.js" defer></script>';
+  return { tete, ouverture, fermeture, classe: 'kc-on kc-' + pg.type };
+}
+
+function reecrireHtml(rep, base, coq) {
   const attrs = ['href', 'src', 'poster', 'action', 'data-src', 'content'];
   let rw = new HTMLRewriter();
   for (const at of attrs) {
@@ -252,7 +337,14 @@ function reecrireHtml(rep, base, barreHtml) {
     }
   }
   rw = rw.on('script', new ScriptInline(base));
-  if (barreHtml) rw = rw.on('body', { element(el) { el.append(barreHtml, { html: true }); } });
+  if (coq) {
+    rw = rw.on('head', { element(el) { el.append(coq.tete, { html: true }); } });
+    rw = rw.on('body', { element(el) {
+      el.setAttribute('class', ((el.getAttribute('class') || '') + ' ' + coq.classe).trim());
+      el.prepend(coq.ouverture, { html: true });
+      el.append(coq.fermeture, { html: true });
+    } });
+  }
   return rw.transform(rep);
 }
 

@@ -3,94 +3,70 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
 <title>Espace stratégiste · Kreative</title>
-<link rel="icon" type="image/png" sizes="32x32" href="../favicon-32.png">
-<link rel="stylesheet" href="../ui/kreative.css">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+<link rel="stylesheet" href="/ui/app.css">
 <style>
 /* ============================================================
    ESPACE STRATÉGISTE
-   Tous les projets du stratégiste au même endroit : les fiches à
-   remplir avec leur échéance, le dossier de production, les retours
-   du client et la fiche ; puis les projets partis en production.
-   La page lit les fichiers publics du dépôt (projets.json, et pour
-   chaque projet donnees.json, envois.json, livraison.json, retour.json).
+   Les fiches à remplir avec leur échéance (dossier de production,
+   brief du client, fiche), puis les fiches envoyées.
+   La page lit les fichiers du dépôt (projets.json, et pour chaque
+   projet donnees.json, envois.json, livraison.json, retour.json).
+   La barre latérale et le bandeau du haut viennent du Worker
+   (ui/coquille.css), comme sur toutes les pages de l'équipe.
    ============================================================ */
-.w{max-width:1060px;margin:0 auto;padding:0 24px 90px}
-.hero{margin:54px 0 30px}
-.hero h1{font:600 48px/1.02 var(--k-titre);letter-spacing:-.045em;margin:0}
-.hero h1 em{font-style:normal;color:var(--k-blue)}
-.hero p{margin:12px 0 0;color:var(--k-tx2);font-size:16px;max-width:620px}
-.titre{display:flex;align-items:center;gap:12px;margin:40px 0 16px}
-.titre h2{font:600 26px/1.1 var(--k-titre);letter-spacing:-.025em;margin:0}
-.titre .nb{min-width:28px;height:28px;padding:0 9px;border-radius:999px;background:var(--k-blue);color:#fff;
-  font:600 13px/28px var(--k-texte);text-align:center}
-.titre .nb.gris{background:var(--k-soft);color:var(--k-tx2)}
-.liste{display:flex;flex-direction:column;gap:14px}
-.p{background:var(--k-pan);border:1px solid var(--k-line);border-radius:var(--k-r);box-shadow:var(--k-ombre);padding:22px 24px}
-.p .l1{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
-.p .nom{font:600 23px/1.15 var(--k-titre);letter-spacing:-.025em;margin:0}
-.p .meta{color:var(--k-tx2);font-size:14.5px;margin-top:4px}
-.p .meta b{color:var(--k-ink);font-weight:600}
-.p .act{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
-.pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;letter-spacing:.02em;
-  padding:5px 11px;border-radius:999px;background:var(--k-blue-soft);color:var(--k-blue)}
-.pill.urgent{background:#1f1f1f;color:#fff}
-.pill.retard{background:#fde8e6;color:#b3261e}
-.pill.ok{background:var(--k-soft);color:var(--k-tx2)}
-.liv{display:none;margin-top:18px;padding:20px;border-radius:18px;background:var(--k-dark);color:#fff}
-.p.ouvert .liv{display:block}
-.liv p{margin:0 0 12px;color:rgba(255,255,255,.75);font-size:14px}
-.liv input,.liv textarea{display:block;width:100%;font:inherit;font-size:14.5px;padding:13px 16px;margin:0 0 10px;
-  border:1px solid rgba(255,255,255,.14);border-radius:14px;background:rgba(255,255,255,.06);color:#fff;outline:0}
-.liv input::placeholder,.liv textarea::placeholder{color:rgba(255,255,255,.45)}
-.liv input:focus,.liv textarea:focus{border-color:var(--k-blue)}
-.liv .etat{margin:10px 0 0;font-size:14px;color:rgba(255,255,255,.85);min-height:18px}
-.vide{padding:30px;text-align:center;color:var(--k-tx3);background:var(--k-pan);border:1px dashed var(--k-line2);border-radius:var(--k-r)}
-.charge{color:var(--k-tx3);padding:20px 0}
-.p.fait{padding:16px 22px}
-.p.fait .nom{font-size:18px}
-@media(max-width:720px){
-  .w{padding:0 16px 70px}
-  .hero h1{font-size:36px}
-  .p .act{margin-left:0;width:100%}
-}
+.projet .pa{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+.projet .pa .btn{margin-top:0}
+.projet .pa2{display:flex;gap:8px;flex-wrap:wrap}
+.projet .pa2 .btn{flex:1}
+.projet .tuile{width:42px;height:42px;border-radius:12px;font-size:14px;margin-bottom:8px}
+.projet .lab{margin-top:4px}
 </style>
 </head>
-<body class="k">
-<header class="k-top"><span class="k-top-t">Espace stratégiste</span><a class="k-btn2" href="/_deconnexion">Se déconnecter</a></header>
-<div class="w">
-  <div class="hero">
-    <h1>Tes <em>projets</em></h1>
-    <p>Les fiches à remplir, avec leur échéance. Pour chaque projet : le dossier de production, le brief du client quand il y en a (livraisons suivantes et abonnements), et la fiche.</p>
+<body>
+<div class="page">
+  <div class="ph">
+    <div><h1>Tes projets</h1><p>Les fiches à remplir, avec leur échéance. Pour chaque projet : le dossier de production, le brief du client et la fiche.</p></div>
+    <div class="act"><a class="btn btn-s" href="/fiche/" target="_blank" rel="noopener">Ouvrir la fiche créas</a></div>
   </div>
-  <div class="titre"><h2>À faire</h2><span class="nb" id="nbF">0</span></div>
-  <div class="liste" id="afaire"><div class="charge">Chargement de tes projets…</div></div>
-  <div class="titre"><h2>Envoyés</h2><span class="nb gris" id="nbL">0</span></div>
-  <div class="liste" id="faits"></div>
+  <div class="grid g4" id="kpis">
+    <div class="card kpi"><div class="lab">À faire</div><div class="v">·</div><div class="d">fiches à remplir</div></div>
+    <div class="card kpi"><div class="lab">En retard</div><div class="v">·</div><div class="d">à rendre en priorité</div></div>
+    <div class="card kpi"><div class="lab">Prochaine échéance</div><div class="v s">·</div><div class="d">&nbsp;</div></div>
+    <div class="card kpi"><div class="lab">Envoyées</div><div class="v">·</div><div class="d">sur les 30 derniers jours</div></div>
+  </div>
+  <div class="sec"><div><h2>À faire</h2><p>Classées par échéance, la plus proche en premier.</p></div></div>
+  <div id="afaire"><div class="card"><div class="chargement">Chargement de tes projets…</div></div></div>
+  <div class="sec"><div><h2>Envoyées</h2><p>Les fiches parties en production, et où en sont les visuels.</p></div></div>
+  <div id="faits"></div>
 </div>
 <script>
 const $ = id => document.getElementById(id);
-const esc = t => String(t == null ? '' : t).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const esc = t => String(t == null ? '' : t).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const lire = async u => { try { const r = await fetch(u + '?t=' + Date.now(), {cache: 'no-store'}); return r.ok ? await r.json() : null; } catch (e) { return null; } };
 const H = 3600000;
 const quand = ms => new Date(ms).toLocaleString('fr-FR', {weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Paris'});
-const jour = ms => new Date(ms).toLocaleDateString('fr-FR', {day: 'numeric', month: 'long', timeZone: 'Europe/Paris'});
+const jour = ms => new Date(ms).toLocaleDateString('fr-FR', {day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Europe/Paris'});
+const court = ms => new Date(ms).toLocaleDateString('fr-FR', {day: 'numeric', month: 'short', timeZone: 'Europe/Paris'});
+const TEINTES = ['#4d94ff', '#1f1f1f', '#e8834a', '#1e9e57', '#7c5cff', '#d6453d', '#c27a06', '#0f8b8d'];
+const teinte = t => { let h = 0; for (const c of String(t || '')) h = (h * 31 + c.charCodeAt(0)) >>> 0; return TEINTES[h % TEINTES.length]; };
+const initiales = t => String(t || '?').trim().split(/\s+/).slice(0, 2).map(x => x[0]).join('').toUpperCase() || '?';
+const fleche = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
 
-function badge(t){
-  if (!t) return '';
+function echeance(t){
+  if (!t) return {pill: '', texte: 'Pas d\'échéance'};
   const reste = t - Date.now();
-  if (reste < 0) return '<span class="pill retard">En retard</span>';
-  if (reste < 12 * H) return '<span class="pill urgent">Dans ' + Math.max(1, Math.round(reste / H)) + ' h</span>';
+  if (reste < 0) return {pill: '<span class="pill r"><i></i>En retard</span>', texte: 'En retard'};
+  if (reste < 12 * H) { const h = Math.max(1, Math.round(reste / H)); return {pill: '<span class="pill n">Dans ' + h + ' h</span>', texte: 'dans ' + h + ' h'}; }
   const j = Math.round(reste / 24 / H);
-  return '<span class="pill">Dans ' + j + ' jour' + (j > 1 ? 's' : '') + '</span>';
+  return {pill: '<span class="pill b"><i></i>Dans ' + j + ' jour' + (j > 1 ? 's' : '') + '</span>', texte: 'dans ' + j + ' jour' + (j > 1 ? 's' : '')};
 }
+const nom = x => x.d.brand_name || x.dossier;
+const partie = x => { const l = x.d.livraison; return l && l.sur > 1 ? 'Livraison ' + l.n + '/' + l.sur + ' · ' : ''; };
 
-function nomDe(x){
-  const l = x.d.livraison;
-  return esc(x.d.brand_name || x.dossier) + (l && l.sur > 1 ? ' <span style="color:var(--k-tx3);font-weight:500">· livraison ' + l.n + '/' + l.sur + '</span>' : '');
-}
-
-/* 15/10 : le nom du brief selon le type de projet :
+/* le nom du brief selon le type de projet :
    sur-mesure -> « Brief de la livraison 2/4 », abonnement -> « Brief de novembre » */
 function nomBrief(d){
   const M=["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
@@ -102,29 +78,33 @@ function nomBrief(d){
   if(l&&l.sur>1) return "Brief de la livraison "+l.n+"/"+l.sur;
   return "Brief du client";
 }
+
 function carte(x){
-  const d = x.d, dossierProd = (d.livraison && d.livraison.projet) || x.dossier;
-  return '<article class="p"><div class="l1"><div><h3 class="nom">' + nomDe(x) + '</h3>' +
-    '<div class="meta"><b>' + esc(d.nb_creas || '?') + ' créas</b>' + (x.strat ? ' · fiche avant ' + esc(quand(x.strat)) : '') + '</div></div>' +
-    badge(x.strat) +
-    '<div class="act"><a class="k-btn2" href="../' + esc(dossierProd) + '/" target="_blank" rel="noopener">Dossier</a>' +
-    (x.retour ? '<a class="k-btn2" href="../retours/?projet=' + encodeURIComponent(x.dossier) + '" target="_blank" rel="noopener">' + esc(nomBrief(x.d)) + '</a>' : '') +
-    '<a class="k-btn" href="../fiche/?projet=' + encodeURIComponent(x.dossier) + '" target="_blank" rel="noopener">Ouvrir la fiche</a></div></div></article>';
+  const d = x.d, dossierProd = (d.livraison && d.livraison.projet) || x.dossier, e = echeance(x.strat);
+  return '<div class="card projet"><div class="hd"><span class="tuile" style="background:' + teinte(nom(x)) + '">' + esc(initiales(nom(x))) + '</span>' + e.pill + '</div>' +
+    '<div class="lab">' + esc(partie(x)) + esc(d.nb_creas || '?') + ' créas</div>' +
+    '<h3>' + esc(nom(x)) + '</h3>' +
+    '<div class="pc">' + (x.strat ? 'Fiche à rendre avant ' + esc(quand(x.strat)) : 'Pas d\'échéance') + '</div>' +
+    '<div class="pa"><a class="btn btn-p btn-bloc" href="/fiche/?projet=' + encodeURIComponent(x.dossier) + '" target="_blank" rel="noopener">Ouvrir la fiche' + fleche + '</a>' +
+    '<div class="pa2"><a class="btn btn-s btn-sm" href="/' + esc(dossierProd) + '/" target="_blank" rel="noopener">Dossier</a>' +
+    (x.retour ? '<a class="btn btn-s btn-sm" href="/retours/?projet=' + encodeURIComponent(x.dossier) + '" target="_blank" rel="noopener">' + esc(nomBrief(d)) + '</a>' : '') +
+    '</div></div></div>';
 }
 
-function carteFaite(x){
-  const etat = x.livre ? 'Livré ✓' : 'En production';
-  return '<article class="p fait"><div class="l1"><div><h3 class="nom">' + nomDe(x) + '</h3>' +
-    '<div class="meta">' + esc(x.d.nb_creas || '?') + ' créas · fiche envoyée le ' + esc(jour(x.envoyeLe)) + '</div></div>' +
-    '<span class="pill ' + (x.livre ? 'ok' : '') + '">' + etat + '</span>' +
-    '<div class="act"><a class="k-btn2" href="../' + esc(x.dossier) + '/creas/" target="_blank" rel="noopener">Voir les visuels</a></div></div></article>';
+function ligne(x){
+  return '<tr><td><div class="nom"><span class="tuile" style="background:' + teinte(nom(x)) + '">' + esc(initiales(nom(x))) + '</span><div><b>' + esc(nom(x)) + '</b>' +
+    (partie(x) ? '<span class="sub">' + esc(partie(x).replace(/ · $/, '')) + '</span>' : '') + '</div></div></td>' +
+    '<td class="num">' + esc(x.d.nb_creas || '?') + '</td>' +
+    '<td>' + esc(jour(x.envoyeLe)) + '</td>' +
+    '<td>' + (x.livre ? '<span class="pill g"><i></i>Livré</span>' : '<span class="pill b"><i></i>En production</span>') + '</td>' +
+    '<td class="fin"><a class="btn btn-s btn-sm" href="/' + esc(x.dossier) + '/creas/" target="_blank" rel="noopener">Voir les visuels</a></td></tr>';
 }
 
 async function go(){
-  let projets = await lire('../projets.json');
+  let projets = await lire('/projets.json');
   if (!Array.isArray(projets)) projets = [];
   const tous = (await Promise.all(projets.filter(p => p && p.dossier && !/^TEST_/i.test(p.dossier)).map(async p => {
-    const [d, envois, liv, retour] = await Promise.all(['donnees', 'envois', 'livraison', 'retour'].map(f => lire('../' + p.dossier + '/' + f + '.json')));
+    const [d, envois, liv, retour] = await Promise.all(['donnees', 'envois', 'livraison', 'retour'].map(f => lire('/' + p.dossier + '/' + f + '.json')));
     if (!d) return null;
     const e = (envois && Array.isArray(envois.envois)) ? envois.envois : [];
     return {dossier: p.dossier, d, envoye: e.length > 0, envoyeLe: e.length ? Date.parse(e[e.length - 1]) : 0,
@@ -133,10 +113,22 @@ async function go(){
   }))).filter(Boolean);
 
   const afaire = tous.filter(x => !x.envoye).sort((a, b) => (a.strat || 9e15) - (b.strat || 9e15));
-  const faits = tous.filter(x => x.envoye).sort((a, b) => b.envoyeLe - a.envoyeLe).slice(0, 20);
-  $('nbF').textContent = afaire.length; $('nbL').textContent = faits.length;
-  $('afaire').innerHTML = afaire.length ? afaire.map(carte).join('') : '<div class="vide">Aucune fiche à remplir pour le moment. Les nouveaux projets apparaissent ici dès que leur dossier est prêt.</div>';
-  $('faits').innerHTML = faits.length ? faits.map(carteFaite).join('') : '<div class="vide">Aucune fiche envoyée pour le moment.</div>';
+  const faits = tous.filter(x => x.envoye).sort((a, b) => b.envoyeLe - a.envoyeLe).slice(0, 30);
+  const retard = afaire.filter(x => x.strat && x.strat < Date.now());
+  const prochain = afaire.find(x => x.strat && x.strat >= Date.now());
+  const mois = faits.filter(x => x.envoyeLe > Date.now() - 30 * 24 * H);
+
+  $('kpis').innerHTML =
+    '<div class="card kpi"><div class="lab">À faire</div><div class="v">' + afaire.length + '</div><div class="d">fiche' + (afaire.length > 1 ? 's' : '') + ' à remplir</div></div>' +
+    '<div class="card kpi"><div class="lab">En retard</div><div class="v"' + (retard.length ? ' style="color:var(--red)"' : '') + '>' + retard.length + '</div><div class="d">' + (retard.length ? 'à rendre en priorité' : 'tout est dans les temps') + '</div></div>' +
+    '<div class="card kpi"><div class="lab">Prochaine échéance</div><div class="v s">' + (prochain ? esc(court(prochain.strat)) : '·') + '</div><div class="d">' + (prochain ? esc(nom(prochain)) + ', ' + esc(echeance(prochain.strat).texte) : 'aucune fiche en attente') + '</div></div>' +
+    '<div class="card kpi"><div class="lab">Envoyées</div><div class="v">' + mois.length + '</div><div class="d">sur les 30 derniers jours</div></div>';
+
+  $('afaire').innerHTML = afaire.length ? '<div class="projets">' + afaire.map(carte).join('') + '</div>'
+    : '<div class="card"><div class="vide">Aucune fiche à remplir pour le moment. Les nouveaux projets apparaissent ici dès que leur dossier est prêt.</div></div>';
+  $('faits').innerHTML = faits.length
+    ? '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Projet</th><th class="num">Créas</th><th>Fiche envoyée le</th><th>Visuels</th><th></th></tr></thead><tbody>' + faits.map(ligne).join('') + '</tbody></table></div></div>'
+    : '<div class="card"><div class="vide">Aucune fiche envoyée pour le moment.</div></div>';
 }
 go();
 </script>

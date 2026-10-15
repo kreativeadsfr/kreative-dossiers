@@ -34,7 +34,6 @@ const LIENS = {
 const { i, esc } = K;
 let D = null;                 // les données du client
 let formule = 'mensuel';      // onglet de la page Commander
-const CFG = { nb: 30, formule: 'unique', options: [] };   // le configurateur Custom
 
 const params = new URLSearchParams(location.search);
 if (params.get('client')) K.suffixe = '?client=' + encodeURIComponent(params.get('client'));
@@ -57,7 +56,7 @@ function conf() {
       { id: 'brief', texte: 'Mon brief', icone: 'doc', href: '#/brief' },
       { id: 'factures', texte: 'Factures', icone: 'recu', href: '#/factures', nb: (D.factures || []).length || '' }
     ] }, { titre: 'Kreative', liens: [
-      { id: 'contact', texte: 'Nous contacter', icone: 'message', href: '#/contact' },
+      { id: 'contact', texte: 'Nous contacter', icone: 'whatsapp', href: '#/contact' },
       { id: 'avis', texte: 'Laisser un avis', icone: 'etoile', href: '#/avis' }
     ] }],
     qui: { nom: D.client.marque, role: D.client.contact || D.client.email || 'Client', tuile: true, photo: urlPhoto() },
@@ -88,30 +87,34 @@ function ecranAccueil() {
   else if (attente) h += '<div class="bandeau"><span class="ic">' + i.doc + '</span><div><b>Il reste une étape : votre brief</b>' +
     '<small>Comptez une quinzaine de minutes. Il lance la production de votre ' + esc(nom(attente)) + '.</small></div>' +
     '<a class="btn" href="#/brief/' + esc(attente.id) + '">Remplir mon brief</a></div>';
-  h += '<div class="ph"><div><h1>Bonjour, ' + esc(prenom()) + '</h1><p>Suivez l\'avancement de vos créatives Kreative.</p></div></div>';
+  h += '<div class="ph"><div><h1>Bonjour, ' + esc(prenom()) + '</h1><p>Suivez l\'avancement de vos projets chez Kreative.</p></div></div>';
 
   h += '<div class="sec" style="margin-top:0"><div><h2>Mes projets</h2><p>Cliquez sur un projet pour voir son avancement, votre brief et vos créatives.</p></div></div>';
   h += D.commandes.length ? '<div class="projets">' + D.commandes.slice(0, 3).map(carteProjet).join('') + '</div>'
     : '<div class="card"><div class="vide">' + i.dossier + 'Aucun projet pour l\'instant.<br><a class="btn btn-p btn-sm" style="margin-top:14px" href="#/commander">Commander mes premières créas</a></div></div>';
 
   if (principal) {
-    const livrees = D.commandes.filter(c => ['livre', 'revisions', 'valide'].includes(etat(c))).reduce((s, c) => s + (c.nb_creas || 0), 0);
-    const total = D.commandes.reduce((s, c) => s + (c.nb_creas || 0), 0);
-    const ce = coeur(principal);
-    h += '<div class="grid g4" style="margin-top:14px">' +
-      '<div class="card kpi"><div class="lab">Projet en cours</div><div class="v s">' + esc(nomPack(principal)) + '</div><div class="d">' + principal.progression + ' % · ' + ce.filter(e => e.fait).length + ' / ' + ce.length + ' étapes</div><div class="barre"><i style="width:' + principal.progression + '%"></i></div></div>' +
-      '<div class="card kpi"><div class="lab">Projets en cours</div><div class="v">' + cours.length + '</div><div class="d">' + D.commandes.length + ' projet' + (D.commandes.length > 1 ? 's' : '') + ' au total</div></div>' +
-      '<div class="card kpi"><div class="lab">Livraison prévue</div><div class="v s">' + (principal.deadline ? esc(K.date(principal.deadline, { year: undefined })) : 'Dès le brief') + '</div><div class="d">' +
-        (principal.deadline ? esc(K.jour(principal.deadline)) : 'Le délai démarre à la réception du brief') + '</div></div>' +
-      '<div class="card kpi"><div class="lab">Créatives livrées</div><div class="v">' + livrees + ' / ' + total + '</div><div class="d">Toutes vos commandes</div></div></div>';
-
-    h += '<div class="grid g2" style="margin-top:14px">' +
-      '<div class="card"><div class="card-h"><h3>Activité récente</h3></div><div class="card-b liste">' +
-      (D.activite.length ? D.activite.slice(0, 7).map(a => '<div class="li"><span class="ic">' + (ICONES_ACT[a.type] || i.coche) + '</span><span class="t">' + esc(a.texte) + '</span><small>' + esc(K.ilya(a.le)) + '</small></div>').join('')
-        : '<div class="vide">Rien pour l\'instant.</div>') + '</div></div>' +
-      '<div class="card"><div class="card-h"><h3>Étapes du projet</h3><span class="pill">' + esc(nomPack(principal)) + '</span></div><div class="card-b">' + K.etapes(principal.etapes) + '</div></div></div>';
+    const pas = prochaineEtape(principal), F = D.factures || [], derniere = F[0];
+    h += '<div class="grid g3" style="margin-top:14px">' +
+      '<a class="card kpi lien-kpi" href="#/projets/' + esc(principal.id) + '"><div class="lab">Prochaine étape</div><div class="v s">' + esc(pas.titre) + '</div><div class="d">' + esc(pas.texte) + '</div></a>' +
+      '<div class="card kpi"><div class="lab">Livraison prévue</div><div class="v s">' + (principal.deadline ? esc(K.jour(principal.deadline)) : 'Dès votre brief') + '</div><div class="d">' +
+        esc(principal.deadline ? nom(principal) : 'Le délai démarre à la réception du brief') + '</div></div>' +
+      '<a class="card kpi lien-kpi" href="#/factures"><div class="lab">Factures</div><div class="v s">' + (derniere ? K.euros(derniere.montant) : 'Aucune') + '</div><div class="d">' +
+        (derniere ? 'Dernière le ' + esc(K.date(derniere.emise_le, { year: undefined })) + ' · ' + F.length + ' au total' : 'Elles arrivent ici après chaque paiement') + '</div></a></div>';
+    h += '<div class="card" style="margin-top:14px"><div class="card-h"><h3>Activité récente</h3></div><div class="card-b liste">' +
+      (D.activite.length ? D.activite.slice(0, 6).map(a => '<div class="li"><span class="ic">' + (ICONES_ACT[a.type] || i.coche) + '</span><span class="t">' + esc(a.texte) + '</span><small>' + esc(K.ilya(a.le)) + '</small></div>').join('')
+        : '<div class="vide">Rien pour l\'instant.</div>') + '</div></div>';
   }
   return h;
+}
+// ce qui se passe maintenant sur un projet, en une phrase
+function prochaineEtape(c) {
+  const e = etat(c);
+  if (e === 'confirmee') return { titre: 'Votre brief', texte: 'À remplir pour lancer la production' };
+  if (e === 'production') { const x = c.etapes.find(y => y.cle === 'production'); return { titre: 'Production', texte: (x && x.detail) || 'On s\'occupe de tout' }; }
+  if (e === 'livre') return { titre: 'Votre validation', texte: 'Vos créatives sont prêtes' };
+  if (e === 'revisions') return { titre: 'Retouches', texte: 'En cours chez Kreative' };
+  return { titre: 'Projet terminé', texte: c.avis_le ? 'Merci pour votre avis' : 'Un avis nous aiderait beaucoup' };
 }
 const ICONES_ACT = { commande: i.sac, brief: i.doc, livre: i.image, revisions: i.crayon, valide: i.coche, production: i.pinceau, client: i.accueil, lien: i.lien,
   facture: i.recu, paiement: i.carte, avis: i.etoile, profil: i.utilisateur };
@@ -143,20 +146,24 @@ function ecranProjet(id) {
   if (!c) return '<a class="retour" href="#/projets">' + i.gauche + 'Mes projets</a><div class="card"><div class="vide">Projet introuvable.</div></div>';
   const e = etat(c), ce = coeur(c), fait = k => (c.etapes.find(x => x.cle === k) || {}).fait;
   let h = apercu() + '<a class="retour" href="#/projets">' + i.gauche + 'Retour à mes projets</a>' +
-    '<div class="ph"><div><h1 style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">' + esc(nom(c)) + ' ' + K.pillCommande(c) + '</h1>' +
+    '<div class="ph"><div><h1 class="avec-pill">' + esc(nom(c)) + ' ' + K.pillCommande(c) + '</h1>' +
     '<p>Commande #' + esc(c.ref) + ' du ' + esc(K.date(c.cree_le)) + ' · ' + c.nb_creas + ' créatives' + (c.deadline && !fait('livraison') ? ' · livraison prévue le ' + esc(K.jour(c.deadline)) : '') + '</p></div></div>';
-  h += '<div class="card pad"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px"><div><h3 style="font-size:16px">Avancement global</h3>' +
-    '<p class="muted" style="font-size:13px;margin-top:3px">' + ce.filter(x => x.fait).length + ' sur ' + ce.length + ' étapes terminées</p></div><b style="font:600 22px var(--titre)">' + c.progression + ' %</b></div>' +
-    '<div class="barre' + (c.progression === 100 ? ' g' : '') + '" style="margin-top:16px;height:7px"><i style="width:' + c.progression + '%"></i></div>' +
-    '<div class="coches">' + ce.map(x => '<div class="coche' + (x.fait ? ' fait' : '') + '"><span class="o">' + (x.fait ? i.coche : '') + '</span>' + esc(x.titre) + '</div>').join('') + '</div></div>';
+  // un seul suivi : fait, en cours, à venir
+  const iCours = ce.findIndex(x => !x.fait);
+  h += '<div class="card pad"><div class="suivi-h"><h3>Avancement</h3><span class="muted">' + ce.filter(x => x.fait).length + ' étapes sur ' + ce.length + ' · <b>' + c.progression + ' %</b></span></div>' +
+    '<div class="suivi">' + ce.map((x, n) => {
+      const st = x.fait ? 'fait' : n === iCours ? 'cours' : 'attente';
+      return '<div class="pas ' + st + '"><span class="o">' + (x.fait ? i.coche : n + 1) + '</span><b>' + esc(x.titre) + '</b>' +
+        '<small>' + (x.fait ? 'Terminé' : st === 'cours' ? esc(x.detail || 'En cours') : 'À venir') + '</small></div>';
+    }).join('') + '</div></div>';
 
-  h += '<div class="sec"><div><h2>Vos actions</h2><p>Ce qui vous attend sur ce projet.</p></div></div><div class="actions">';
+  h += '<div class="sec"><div><h2>Vos actions</h2><p>Ce qui dépend de vous sur ce projet.</p></div></div><div class="actions">';
   h += action(fait('brief') ? 'ok' : 'on', i.doc, 'Étape 2', 'Votre brief', 'Les informations sur votre marque qui lancent la production.',
     fait('brief') ? '<div class="etat ok">✓ Brief envoyé</div>' : '<a class="btn btn-p btn-sm" href="#/brief/' + esc(c.id) + '">Remplir mon brief</a>');
   h += action(fait('livraison') ? 'ok' : 'off', i.image, 'Étape 4', 'Vos créatives',
     c.nb_creas + ' créatives en 3 formats (1:1, 4:5, 9:16).',
     fait('livraison') ? '<a class="btn btn-s btn-sm" href="' + wa('Bonjour Kreative, je voudrais récupérer les créatives de mon projet ' + nom(c) + ' (#' + c.ref + ')') + '" target="_blank" rel="noopener">Recevoir mes créatives</a>'
-      : '<div class="etat">' + (c.deadline ? 'Prévu le ' + esc(K.date(c.deadline, { year: undefined })) : 'Après votre brief') + '</div>');
+      : '<div class="etat">' + (c.deadline ? 'Prévues le ' + esc(K.date(c.deadline, { year: undefined })) : 'Après votre brief') + '</div>');
   h += action(e === 'valide' ? 'ok' : ['livre', 'revisions'].includes(e) ? 'on' : 'off', i.coche, 'Étape 5', 'Validation',
     e === 'revisions' ? 'Vos retouches sont en cours. Validez quand tout vous convient.' : 'Vous validez la version finale, ou demandez une retouche avant.',
     e === 'valide' ? '<div class="etat ok">✓ Validé' + (c.valide_le ? ' le ' + esc(K.date(c.valide_le, { year: undefined })) : '') + '</div>'
@@ -168,10 +175,13 @@ function ecranProjet(id) {
   h += '</div>';
   const F = facturesDe(c);
   if (F.length) h += '<div class="sec"><div><h2>Factures</h2><p>Les factures de ce projet.</p></div></div><div class="card"><div class="tbl-wrap">' + tableFactures(F) + '</div></div>';
-  h += '<div class="grid g2" style="margin-top:22px"><div class="card"><div class="card-h"><h3>Étapes du projet</h3></div><div class="card-b">' + K.etapes(c.etapes) + '</div></div>' +
-    '<div class="card pad"><h3 style="font-size:15px">Une question sur ce projet ?</h3><p class="muted" style="margin:6px 0 16px;font-size:13.5px">On répond sur WhatsApp, en général dans l\'heure.</p>' +
-    '<a class="btn btn-s" href="' + wa('Bonjour Kreative, une question sur mon projet ' + nom(c) + ' (#' + c.ref + ') : ') + '" target="_blank" rel="noopener">' + i.message + 'Nous écrire</a></div></div>';
+  h += barreAide('Une question sur ce projet ?', 'Bonjour Kreative, une question sur mon projet ' + nom(c) + ' (#' + c.ref + ') : ');
   return h;
+}
+// la barre WhatsApp en bas des pages
+function barreAide(titre, message) {
+  return '<div class="card barre-aide"><span class="wa-rond">' + i.whatsapp + '</span><div><b>' + esc(titre) + '</b><small>On répond sur WhatsApp, en général dans l\'heure.</small></div>' +
+    '<a class="btn btn-wa" href="' + wa(message) + '" target="_blank" rel="noopener">' + i.whatsapp + 'Nous écrire</a></div>';
 }
 function action(etatCarte, icone, lab, titre, texte, pied) {
   return '<div class="card action ' + etatCarte + '"><span class="ic">' + icone + '</span><div class="lab">' + esc(lab) + '</div><h3>' + esc(titre) + '</h3><p>' + esc(texte) + '</p>' + pied + '</div>';
@@ -213,8 +223,7 @@ function ecranBrief(id) {
   if (etat(c) !== 'confirmee') {
     return h + '<div class="ph"><div><h1>Mon brief</h1><p>' + esc(nom(c)) + ' · commande #' + esc(c.ref) + '</p></div></div>' +
       '<div class="card pad" style="max-width:720px"><div style="display:flex;gap:14px;align-items:flex-start"><span class="tuile" style="background:var(--green)">' + i.coche.replace('<svg', '<svg width="18" height="18"') + '</span>' +
-      '<div><h3 style="font-size:17px">Brief bien reçu</h3><p class="muted" style="margin-top:5px;font-size:13.5px">' + (c.brief_le ? 'Reçu le ' + esc(K.dateHeure(c.brief_le)) + '. ' : '') +
-      'C\'est la base de tout ce que nous produisons pour vous.</p>' +
+      '<div><h3 style="font-size:17px">Brief bien reçu</h3>' + (c.brief_le ? '<p class="muted" style="margin-top:5px;font-size:13.5px">Le ' + esc(K.dateHeure(c.brief_le)) + '.</p>' : '') +
       '<div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap"><a class="btn btn-s btn-sm" href="' + wa('Bonjour Kreative, je voudrais modifier mon brief (' + nom(c) + ', #' + c.ref + ') : ') + '" target="_blank" rel="noopener">Demander une modification</a>' +
       '<a class="btn btn-g btn-sm" href="#/projets/' + esc(c.id) + '">Voir le projet</a></div></div></div></div>';
   }
@@ -242,7 +251,7 @@ function tableFactures(F) {
 }
 function ecranFactures() {
   const F = D.factures || [];
-  let h = apercu() + '<div class="ph"><div><h1>Factures</h1><p>Toutes vos factures Kreative, à télécharger quand vous voulez.</p></div></div>';
+  let h = apercu() + '<div class="ph"><div><h1>Factures</h1><p>Toutes vos factures Kreative, à télécharger quand vous le souhaitez.</p></div></div>';
   return h + (F.length ? '<div class="card"><div class="tbl-wrap">' + tableFactures(F) + '</div></div>'
     : '<div class="card"><div class="vide">' + i.recu + 'Vos factures apparaissent ici après chaque paiement.</div></div>');
 }
@@ -265,97 +274,135 @@ function ecranCommander() {
       '<div class="tete"><h3>Pack ' + esc(P.nom) + '</h3>' + (m ? '<span class="pill b">−15 %</span>' : '') + '</div>' +
       '<div class="prix">' + (m ? '<span class="barre-prix">' + P.unique + ' €</span>' : '') + '<span>' + prix + ' €</span>' + (m ? '<small>/ mois</small>' : '') + '</div>' +
       '<div class="unit">' + Math.round(prix / P.creas) + ' € la créative · ' + P.creas + ' créatives' + (m ? ' chaque mois' : '') + '</div>' +
-      '<button class="btn ' + (hot ? 'btn-p' : 'btn-d') + ' btn-bloc btn-lg" data-payer="' + k + '">Commander</button>' +
+      '<a class="btn ' + (hot ? 'btn-p' : 'btn-d') + ' btn-bloc btn-lg" href="#/commander/' + k + '">Voir les options</a>' +
       '<ul>' + AVANTAGES[k].map(a => '<li class="' + (a[1] ? '' : 'off') + '">' + i.coche + '<span>' + esc(a[0]) + '</span></li>').join('') + '</ul></div>';
   }).join('') +
-    '<div class="card offre offre-c"><div><h3>Pack Custom</h3><div class="prix" style="font-size:38px"><span>Sur mesure</span>' + (m ? '<small>/ mois</small>' : '') + '</div>' +
+    '<div class="card offre offre-c"><div><h3>Pack Custom</h3><div class="prix"><span>Sur mesure</span>' + (m ? '<small>/ mois</small>' : '') + '</div>' +
     '<div class="unit">À partir de ' + D.custom.min + ' créatives' + (m ? ' par mois' : '') + ', prix dégressif selon le volume.<br>Vous choisissez le volume et les options, le prix s\'affiche tout de suite.</div>' +
-    '<div class="acts"><a class="btn btn-p btn-lg" href="#/commander/custom">Configurer mon pack ' + i.fleche + '</a></div></div>' +
-    '<ul>' + ['Volume de créatives au choix', 'Tous les formats Meta', 'Révisions illimitées', 'Options : express, accroches, stratégie', 'Contact WhatsApp inclus',
+    '<div class="acts"><a class="btn btn-d btn-lg" href="#/commander/custom">Configurer mon pack ' + i.fleche + '</a></div></div>' +
+    '<ul>' + ['Volume de créatives au choix', 'Tous les formats Meta', 'Révisions illimitées', 'Options : express, A/B tests', 'Contact WhatsApp inclus',
       'Angles marketing variés', 'Support prioritaire', 'Stratégie personnalisée', 'Interlocuteur dédié', 'Cadence de livraison au choix'].map(a => '<li>' + i.coche + '<span>' + a + '</span></li>').join('') + '</ul></div></div>';
   h += '<p class="muted" style="text-align:center;margin-top:24px;font-size:12.5px">' + (m ? 'Les tarifs mensuels supposent un engagement de 3 mois, puis sans engagement.' : 'Paiement unique, sans engagement. Production lancée dès la réception de votre brief.') +
     ' Paiement sécurisé par Stripe, facture automatique.</p>';
   return h;
 }
-async function payer(corps, bouton) {
-  if (!D.paiement) { window.open(wa('Bonjour Kreative, je souhaite commander : ' + corps.texte), '_blank', 'noopener'); return; }
-  const avant = bouton.innerHTML; bouton.disabled = true; bouton.textContent = 'Redirection vers le paiement…';
-  try { const r = await K.api('/api/client/paiement', { methode: 'POST', corps }); location.href = r.url; }
-  catch (e) { K.toast(e.message); bouton.disabled = false; bouton.innerHTML = avant; }
-}
-// les packs fixes passent par leurs liens Stripe ; l'identifiant du client voyage avec
-// le paiement, qui arrive donc sur son espace même s'il paie avec un autre email
-function brancherCommander() {
-  document.querySelectorAll('[data-payer]').forEach(b => b.onclick = () => {
-    const k = b.dataset.payer, P = D.packs[k], lien = D.liens && D.liens[k] && D.liens[k][formule];
-    if (D.apercu) { K.toast('Aperçu : le paiement s\'ouvre seulement pour le client.'); return; }
-    if (lien) {
-      b.disabled = true; b.textContent = 'Redirection vers le paiement…';
-      location.href = lien + '?client_reference_id=' + encodeURIComponent(D.client.id) + (D.client.email ? '&prefilled_email=' + encodeURIComponent(D.client.email) : '') + '&locale=fr';
-      return;
-    }
-    payer({ pack: k, formule, texte: 'Pack ' + P.nom + ' (' + (formule === 'mensuel' ? 'mensuel' : 'commande unique') + ')' }, b);
-  });
-}
 
-// ---------- CONFIGURATEUR DU PACK CUSTOM ----------
+// ---------- LE PANIER : un pack, sa formule, ses options ----------
 // même calcul que le serveur (devis) ; le serveur recalcule de toute façon le prix
-function devis() {
-  const C = D.custom, m = CFG.formule === 'mensuel', nb = CFG.nb;
-  const unitaire = C.paliers.filter(x => nb >= x[0]).pop()[1];
-  const opts = C.options.filter(o => CFG.options.includes(o.id));
-  const lignes = [[nb + ' créatives × ' + unitaire + ' €', nb * unitaire]];
-  let base = nb * unitaire;
-  opts.filter(o => o.type === 'par_crea').forEach(o => { lignes.push([o.nom, nb * o.valeur]); base += nb * o.valeur; });
-  opts.filter(o => o.type === 'pct').forEach(o => { lignes.push([o.nom + ' (+' + o.valeur + ' %)', base * o.valeur / 100]); base += base * o.valeur / 100; });
-  if (m) { lignes.push(['Remise mensuelle −' + Math.round(C.remise_mensuel * 100) + ' %', -base * C.remise_mensuel]); base *= 1 - C.remise_mensuel; }
-  opts.filter(o => o.type === 'fixe').forEach(o => { lignes.push([o.nom, o.valeur]); base += o.valeur; });
-  return { lignes, total: Math.round(base), unitaire };
+const CFG = { pack: 'growth', nb: 30, formule: null, options: [] };
+function devis(o) {
+  o = o || CFG;
+  const m = o.formule === 'mensuel', r = D.custom.remise_mensuel, opts = D.options.filter(x => o.options.includes(x.id)), lignes = [];
+  let base, nb;
+  if (o.pack !== 'custom') {
+    const P = D.packs[o.pack]; nb = P.creas; base = m ? P.mensuel : P.unique;
+    lignes.push(['Pack ' + P.nom + ' · ' + nb + ' créatives', base]);
+    opts.filter(x => x.type === 'par_crea').forEach(x => { const v = nb * x.valeur * (m ? 1 - r : 1); lignes.push([x.nom + ' · ' + nb + ' créas', v]); base += v; });
+  } else {
+    nb = o.nb; const u = D.custom.paliers.filter(x => nb >= x[0]).pop()[1];
+    base = nb * u; lignes.push([nb + ' créatives × ' + u + ' €', base]);
+    opts.filter(x => x.type === 'par_crea').forEach(x => { const v = nb * x.valeur; lignes.push([x.nom + ' · ' + nb + ' × ' + x.valeur + ' €', v]); base += v; });
+    if (m) { lignes.push(['Remise mensuelle −' + Math.round(r * 100) + ' %', -base * r]); base *= 1 - r; }
+  }
+  opts.filter(x => x.type === 'pct').forEach(x => { const v = base * x.valeur / 100; lignes.push([x.nom + ' (+' + x.valeur + ' %)', v]); base += v; });
+  return { lignes, total: Math.round(base), nb };
 }
-function ecranConfig() {
-  const C = D.custom;
-  if (!CFG.vu) { CFG.formule = formule; CFG.vu = true; }   // reprend l'onglet choisi sur la page des offres
+const delaiDe = k => (D.packs[k] || {}).delai || 72;
+function detailOption(o) {
+  if (o.id === 'express') return 'Livrée en ' + Math.round(delaiDe(CFG.pack) / 2) + ' h au lieu de ' + delaiDe(CFG.pack) + ' h';
+  return o.detail;
+}
+function ecranPanier(pack) {
+  CFG.pack = D.packs[pack] ? pack : 'growth';
+  if (!CFG.formule) CFG.formule = formule;   // reprend l'onglet choisi sur la page des offres
+  const custom = CFG.pack === 'custom', P = D.packs[CFG.pack], C = D.custom, m = CFG.formule === 'mensuel';
   let h = apercu() + '<a class="retour" href="#/commander">' + i.gauche + 'Retour aux offres</a>' +
-    '<div class="ph"><div><h1>Votre pack sur mesure</h1><p>Choisissez le volume et les options : le prix se met à jour tout de suite, et vous payez en ligne.</p></div></div>';
-  h += '<div class="config"><div class="grid" style="gap:16px">' +
-    '<div class="card bloc"><h3>Nombre de créatives</h3><p class="aide">Chaque créative est livrée en 1:1, 4:5 et 9:16.</p>' +
-    '<div class="nb-creas"><b id="cf-nb">' + CFG.nb + '</b><span>créatives' + (CFG.formule === 'mensuel' ? ' par mois' : '') + '</span></div>' +
+    '<div class="ph"><div><h1>' + (custom ? 'Votre pack sur mesure' : 'Pack ' + esc(P.nom)) + '</h1><p>' +
+    (custom ? 'Choisissez le volume et les options : le prix se met à jour tout de suite.' : 'Choisissez la formule et ajoutez des options si vous en avez besoin.') + '</p></div></div>';
+  h += '<div class="config"><div class="grid" style="gap:16px">';
+  // le pack (on peut en changer ici)
+  h += '<div class="card bloc"><h3>Votre pack</h3><div class="choix-pack">' + ['starter', 'growth', 'scale', 'custom'].map(k =>
+    '<a class="' + (k === CFG.pack ? 'on' : '') + '" href="#/commander/' + k + '"><b>' + esc(D.packs[k].nom) + '</b><small>' +
+    (k === 'custom' ? 'dès ' + C.min + ' créas' : D.packs[k].creas + ' créas · ' + (m ? D.packs[k].mensuel : D.packs[k].unique) + ' €') + '</small></a>').join('') + '</div>';
+  if (custom) h += '<div class="nb-creas"><b id="cf-nb">' + CFG.nb + '</b><span>créatives' + (m ? ' par mois' : '') + '</span></div>' +
     '<input class="curseur" type="range" id="cf-range" min="' + C.min + '" max="' + C.max + '" step="' + C.pas + '" value="' + CFG.nb + '">' +
     '<div class="reperes"><span>' + C.min + '</span><span>' + C.max + '</span></div>' +
-    '<p class="aide" style="margin-top:14px">' + C.paliers.map((p, n) => (n === 0 ? p[1] + ' € la créative' : 'dès ' + p[0] + ' : ' + p[1] + ' €')).join(' · ') + '</p></div>' +
-    '<div class="card bloc"><h3>Formule</h3><div class="onglets" style="margin-top:14px"><button class="' + (CFG.formule === 'mensuel' ? 'on' : '') + '" data-cf-formule="mensuel">Mensuel · ' + Math.round(C.remise_mensuel * 100) + ' % de moins</button>' +
-    '<button class="' + (CFG.formule === 'unique' ? 'on' : '') + '" data-cf-formule="unique">Commande unique</button></div></div>' +
-    '<div class="card bloc"><h3>Options</h3><p class="aide">À ajouter si vous en avez besoin.</p><div class="opts">' +
-    C.options.map(o => '<div class="opt' + (CFG.options.includes(o.id) ? ' on' : '') + '" data-cf-opt="' + esc(o.id) + '" role="checkbox" tabindex="0"><span class="case">' + i.coche + '</span><div><b>' + esc(o.nom) + '</b><small>' + esc(o.detail) + '</small></div></div>').join('') +
-    '</div></div></div>' +
-    '<div class="card recap" id="cf-recap">' + recap() + '</div></div>';
+    '<p class="aide" style="margin-top:14px">' + C.paliers.map((p, n) => (n === 0 ? p[1] + ' € la créative' : 'dès ' + p[0] + ' : ' + p[1] + ' €')).join(' · ') + '</p>';
+  else h += '<ul class="inclus">' + AVANTAGES[CFG.pack].filter(a => a[1]).map(a => '<li>' + i.coche + '<span>' + esc(a[0]) + '</span></li>').join('') + '</ul>';
+  h += '</div>';
+  h += '<div class="card bloc"><h3>Formule</h3><div class="onglets" style="margin-top:14px"><button class="' + (m ? 'on' : '') + '" data-cf-formule="mensuel">Mensuel · ' + Math.round(C.remise_mensuel * 100) + ' % de moins</button>' +
+    '<button class="' + (!m ? 'on' : '') + '" data-cf-formule="unique">Commande unique</button></div>' +
+    '<p class="aide" style="margin-top:12px">' + (m ? 'Prélevé chaque mois, engagement 3 mois puis sans engagement.' : 'Payé en une fois, sans engagement.') + '</p></div>';
+  h += '<div class="card bloc"><h3>Options</h3><p class="aide">Pour aller plus loin sur ce pack.</p><div class="opts" id="cf-opts">' + listeOptions() + '</div></div>';
+  h += '</div><div class="card recap" id="cf-recap">' + recap() + '</div></div>';
   return h;
 }
+function listeOptions() {
+  const sans = devis({ ...CFG, options: CFG.options.filter(x => false) }).total;
+  return D.options.map(o => {
+    const plus = devis({ ...CFG, options: [o.id] }).total - sans;
+    return '<div class="opt' + (CFG.options.includes(o.id) ? ' on' : '') + '" data-cf-opt="' + esc(o.id) + '" role="checkbox" aria-checked="' + CFG.options.includes(o.id) + '" tabindex="0"><span class="case">' + i.coche + '</span>' +
+      '<div><b>' + esc(o.nom) + '</b><small>' + esc(detailOption(o)) + '</small></div><span class="px">+' + K.euros(plus) + (CFG.formule === 'mensuel' ? '<small>/ mois</small>' : '') + '</span></div>';
+  }).join('');
+}
 function recap() {
-  const d = devis(), m = CFG.formule === 'mensuel';
-  return '<div class="lab">Récapitulatif</div><h3 style="margin-top:8px">Pack Custom · ' + CFG.nb + ' créatives</h3>' +
+  const d = devis(), m = CFG.formule === 'mensuel', P = D.packs[CFG.pack];
+  return '<div class="lab">Récapitulatif</div><h3 style="margin-top:8px">Pack ' + esc(P.nom) + ' · ' + d.nb + ' créatives</h3>' +
+    '<p class="muted" style="font-size:13px;margin-top:3px">' + (m ? 'Abonnement mensuel' : 'Paiement en une fois') + '</p>' +
     '<div style="margin-top:14px">' + d.lignes.map(l => '<div class="ligne"><span>' + esc(l[0]) + '</span><b>' + (l[1] < 0 ? '−' : '') + K.euros(Math.abs(Math.round(l[1]))) + '</b></div>').join('') + '</div>' +
     '<div class="total"><span class="muted">Total' + (m ? ' par mois' : '') + '</span><b>' + K.euros(d.total) + '</b></div>' +
-    '<p class="muted" style="font-size:12.5px;margin-top:6px">Soit ' + K.euros(Math.round(d.total / CFG.nb)) + ' la créative' + (m ? ' · engagement 3 mois' : '') + '</p>' +
-    '<button class="btn btn-p btn-bloc btn-lg" id="cf-payer">' + (D.paiement ? 'Payer ' + K.euros(d.total) : 'Commander sur WhatsApp') + '</button>' +
+    '<p class="muted" style="font-size:12.5px;margin-top:6px">Soit ' + K.euros(Math.round(d.total / d.nb)) + ' la créative' + (m ? ' · engagement 3 mois' : '') + '</p>' +
+    '<button class="btn btn-d btn-bloc btn-lg" id="cf-payer">Commander</button>' +
     '<p class="muted" style="font-size:12px;margin-top:10px;text-align:center">' + i.bouclier.replace('<svg', '<svg width="13" height="13" style="vertical-align:-2px"') + ' Paiement sécurisé par Stripe · facture automatique</p>';
 }
-function brancherConfig() {
-  const maj = () => { document.getElementById('cf-recap').innerHTML = recap(); document.getElementById('cf-nb').textContent = CFG.nb; brancherPayer(); };
+function brancherPanier() {
+  const maj = () => { document.getElementById('cf-recap').innerHTML = recap(); document.getElementById('cf-opts').innerHTML = listeOptions(); const n = document.getElementById('cf-nb'); if (n) n.textContent = CFG.nb; brancherOpts(); brancherPayer(); };
   const r = document.getElementById('cf-range');
-  if (!r) return;
-  r.oninput = () => { CFG.nb = Number(r.value); maj(); };
-  document.querySelectorAll('[data-cf-formule]').forEach(b => b.onclick = () => { CFG.formule = b.dataset.cfFormule; K.rendre(); });
-  document.querySelectorAll('[data-cf-opt]').forEach(o => {
-    const basculer = () => { const id = o.dataset.cfOpt; CFG.options = CFG.options.includes(id) ? CFG.options.filter(x => x !== id) : CFG.options.concat(id); o.classList.toggle('on'); maj(); };
+  if (r) r.oninput = () => { CFG.nb = Number(r.value); maj(); };
+  document.querySelectorAll('[data-cf-formule]').forEach(b => b.onclick = () => { CFG.formule = b.dataset.cfFormule; formule = CFG.formule; K.rendre(); });
+  const brancherOpts = () => document.querySelectorAll('[data-cf-opt]').forEach(o => {
+    const basculer = () => { const id = o.dataset.cfOpt; CFG.options = CFG.options.includes(id) ? CFG.options.filter(x => x !== id) : CFG.options.concat(id); maj(); };
     o.onclick = basculer; o.onkeydown = e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); basculer(); } };
   });
   const brancherPayer = () => {
-    const b = document.getElementById('cf-payer');
-    b.onclick = () => payer({ pack: 'custom', formule: CFG.formule, nb_creas: CFG.nb, options: CFG.options,
-      texte: 'Pack Custom, ' + CFG.nb + ' créatives (' + (CFG.formule === 'mensuel' ? 'mensuel' : 'commande unique') + ')' + (CFG.options.length ? ', options : ' + CFG.options.join(', ') : '') }, b);
+    const b = document.getElementById('cf-payer'), P = D.packs[CFG.pack];
+    b.onclick = () => payer({ pack: CFG.pack, formule: CFG.formule, nb_creas: CFG.nb, options: CFG.options,
+      texte: 'Pack ' + P.nom + ', ' + devis().nb + ' créatives (' + (CFG.formule === 'mensuel' ? 'mensuel' : 'commande unique') + ')' + (CFG.options.length ? ' + ' + D.options.filter(o => CFG.options.includes(o.id)).map(o => o.nom).join(', ') : '') }, b);
   };
-  brancherPayer();
+  brancherOpts(); brancherPayer();
+}
+
+// ---------- LE PAIEMENT : dans le portail (Stripe intégré), sinon la page Stripe dans le même onglet ----------
+let PAIEMENT = null;
+async function payer(corps, bouton) {
+  if (D.apercu) { K.toast('Aperçu : le paiement s\'ouvre seulement pour le client.'); return; }
+  if (!D.paiement) { location.href = wa('Bonjour Kreative, je souhaite commander : ' + corps.texte); return; }
+  const avant = bouton.innerHTML; bouton.disabled = true; bouton.textContent = 'Préparation du paiement…';
+  try {
+    const r = await K.api('/api/client/paiement', { methode: 'POST', corps: { ...corps, integre: !!D.stripe_public } });
+    if (r.client_secret) { PAIEMENT = { secret: r.client_secret, total: r.total, texte: corps.texte }; K.aller('#/commander/paiement'); return; }
+    location.href = r.url;
+  } catch (e) { K.toast(e.message); bouton.disabled = false; bouton.innerHTML = avant; }
+}
+function ecranPaiement() {
+  if (!PAIEMENT) return '<a class="retour" href="#/commander">' + i.gauche + 'Retour aux offres</a><div class="card"><div class="vide">' + i.carte + 'Choisissez d\'abord votre pack.</div></div>';
+  return '<a class="retour" href="#/commander/' + esc(CFG.pack) + '">' + i.gauche + 'Modifier ma commande</a>' +
+    '<div class="ph"><div><h1>Paiement</h1><p>' + esc(PAIEMENT.texte) + ' · ' + K.euros(PAIEMENT.total) + '</p></div></div>' +
+    '<div class="card paiement"><div id="stripe-paiement"><div class="vide">Chargement du paiement sécurisé…</div></div></div>';
+}
+let stripeJs = null, paiementMonte = null;
+async function brancherPaiement() {
+  if (!PAIEMENT) return;
+  try {
+    if (!stripeJs) stripeJs = new Promise((ok, ko) => { const sc = document.createElement('script'); sc.src = 'https://js.stripe.com/v3/'; sc.onload = ok; sc.onerror = () => ko(new Error('Stripe ne répond pas')); document.head.appendChild(sc); });
+    await stripeJs;
+    if (paiementMonte) { try { paiementMonte.destroy(); } catch (e) {} }
+    const secret = PAIEMENT.secret;
+    paiementMonte = await window.Stripe(D.stripe_public).initEmbeddedCheckout({ fetchClientSecret: async () => secret });
+    const zone = document.getElementById('stripe-paiement');
+    if (!zone) return;
+    zone.innerHTML = ''; paiementMonte.mount('#stripe-paiement');
+  } catch (e) { const z = document.getElementById('stripe-paiement'); if (z) z.innerHTML = '<div class="vide">Le paiement n\'a pas pu s\'afficher. ' + esc(e.message) + '</div>'; }
 }
 
 // ---------- APRÈS LE PAIEMENT ----------
@@ -432,11 +479,11 @@ function brancherProfil() {
 function ecranContact() {
   return apercu() + '<div class="ph"><div><h1>Nous contacter</h1><p>Une question, une urgence, un ajustement : on répond sur WhatsApp, en général dans l\'heure.</p></div></div>' +
     '<div class="card" style="max-width:760px;overflow:hidden"><div style="background:linear-gradient(140deg,#25D366,#128C7E);padding:30px;color:#fff">' +
-    '<div style="width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,.2);display:grid;place-items:center">' + i.message.replace('<svg', '<svg width="24" height="24"') + '</div>' +
+    '<div class="wa-grand">' + i.whatsapp + '</div>' +
     '<h2 style="font-size:24px;margin-top:16px;color:#fff">WhatsApp</h2><p style="opacity:.92;margin-top:6px;max-width:420px">Le plus rapide. Votre message arrive directement à l\'équipe.</p></div>' +
     '<div style="padding:20px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">' +
     '<div style="display:flex;gap:28px;flex-wrap:wrap"><div><div class="lab">Numéro</div><b>07 56 92 10 42</b></div><div><div class="lab">Réponse moyenne</div><b>Moins d\'une heure</b></div></div>' +
-    '<a class="btn btn-lg" style="background:#25D366;color:#fff" href="' + wa('Bonjour Kreative, ') + '" target="_blank" rel="noopener">Nous écrire</a></div></div>';
+    '<a class="btn btn-lg btn-wa" href="' + wa('Bonjour Kreative, ') + '" target="_blank" rel="noopener">' + i.whatsapp + 'Nous écrire</a></div></div>';
 }
 function ecranAvis() {
   const etoile = '<svg viewBox="0 0 24 24"><path d="m12 2.5 2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.3 1.3-6.6-4.9-4.6 6.6-.8Z"/></svg>';
@@ -448,26 +495,31 @@ function ecranAvis() {
 }
 
 // ---------- RENDU ----------
+// [menu actif, icône, fil d'Ariane (fonction des paramètres), écran, branchement]
+const nomProjetDe = id => { const c = D.commandes.find(x => x.id === id); return c ? nom(c) : 'Projet'; };
 const ECRANS = {
-  '': ['accueil', 'Accueil', () => ecranAccueil()],
-  projets: ['projets', 'Mes projets', p => p[0] ? ecranProjet(p[0]) : ecranProjets(), brancherProjet],
-  brief: ['brief', 'Mon brief', p => ecranBrief(p[0])],
-  factures: ['factures', 'Factures', () => ecranFactures()],
-  commander: ['commander', 'Commander', p => p[0] === 'custom' ? ecranConfig() : ecranCommander(), p => p[0] === 'custom' ? brancherConfig() : brancherCommander()],
-  merci: ['projets', 'Paiement reçu', () => ecranMerci(), brancherMerci],
-  profil: ['profil', 'Mon profil', () => ecranProfil(), brancherProfil],
-  contact: ['contact', 'Nous contacter', () => ecranContact()],
-  avis: ['avis', 'Laisser un avis', () => ecranAvis()]
+  '': ['accueil', 'accueil', () => ['Accueil'], () => ecranAccueil()],
+  projets: ['projets', 'dossier', p => p[0] ? ['Mes projets', nomProjetDe(p[0])] : ['Mes projets'], p => p[0] ? ecranProjet(p[0]) : ecranProjets(), brancherProjet],
+  brief: ['brief', 'doc', () => ['Mon brief'], p => ecranBrief(p[0])],
+  factures: ['factures', 'recu', () => ['Factures'], () => ecranFactures()],
+  commander: ['commander', 'panier', p => p[0] === 'paiement' ? ['Commander des créas', 'Paiement'] : p[0] && D.packs[p[0]] ? ['Commander des créas', 'Pack ' + D.packs[p[0]].nom] : ['Commander des créas'],
+    p => p[0] === 'paiement' ? ecranPaiement() : p[0] ? ecranPanier(p[0]) : ecranCommander(), p => p[0] === 'paiement' ? brancherPaiement() : p[0] ? brancherPanier() : null],
+  merci: ['projets', 'panier', () => ['Commander des créas', 'Paiement reçu'], () => ecranMerci(), brancherMerci],
+  profil: ['profil', 'utilisateur', () => ['Mon profil'], () => ecranProfil(), brancherProfil],
+  contact: ['contact', 'whatsapp', () => ['Nous contacter'], () => ecranContact()],
+  avis: ['avis', 'etoile', () => ['Laisser un avis'], () => ecranAvis()]
 };
 K.rendre = () => {
   if (!D) return;
   const r = K.route(), e = ECRANS[r.ecran] || ECRANS[''];
-  const c = conf();
-  document.getElementById('racine').innerHTML = K.coquille(c, e[0], K.ariane('accueil', 'Espace client', e[1]), e[2](r.params), r.ecran === 'brief');
+  const c = conf(), fil = e[2](r.params);
+  document.getElementById('racine').innerHTML = K.coquille(c, e[0], K.ariane(e[1], ...fil), e[3](r.params), r.ecran === 'brief');
   K.brancherCoquille(c);
-  if (e[3]) e[3](r.params);
-  document.title = e[1] + ' · Kreative';
+  if (e[4]) e[4](r.params);
+  document.title = fil[fil.length - 1] + ' · Kreative';
 };
+// retour de Stripe (paiement intégré) : on arrive sur « Paiement reçu »
+if (params.get('paiement') === 'ok') history.replaceState(null, '', location.pathname + (K.suffixe || '') + '#/merci');
 (async () => {
   try {
     D = await K.api('/api/client/moi'); K.rendre();

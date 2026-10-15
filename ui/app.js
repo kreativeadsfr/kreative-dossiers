@@ -43,6 +43,7 @@
     accueil: p('<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/>'),
     dossier: p('<path d="M3 7a2 2 0 0 1 2-2h4l2 2.5h8a2 2 0 0 1 2 2V18a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/>'),
     doc: p('<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z"/><path d="M14 3v5h5M9 13h6M9 17h4"/>'),
+    whatsapp: '<span class="ico-wa" aria-hidden="true"></span>',   // le logo officiel (ui/whatsapp.svg, Simple Icons, CC0)
     panier: p('<path d="M3 4h2l2.4 11.2a2 2 0 0 0 2 1.6h7.6a2 2 0 0 0 2-1.5L21 8H6"/><circle cx="10" cy="20" r="1"/><circle cx="18" cy="20" r="1"/>'),
     message: p('<path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.8 8.8 0 0 1-3.5-.7L3 21l1.9-5A8.4 8.4 0 1 1 21 11.5Z"/>'),
     etoile: p('<path d="m12 4 2.5 5.2 5.5.8-4 3.9 1 5.6-5-2.7-5 2.7 1-5.6-4-3.9 5.5-.8Z"/>'),
@@ -255,7 +256,7 @@
     return '<div class="app" id="k-app">' +
       '<aside class="side"><div class="side-logo"><img src="/ui/logo-kreative-noir.png" alt="Kreative"></div>' +
       (conf.cta ? '<a class="side-cta" href="' + K.esc(conf.cta.href) + '">' + K.esc(conf.cta.texte) + K.i.fleche.replace('<svg', '<svg width="16" height="16"') + '</a>' : '') +
-      nav +
+      '<div class="side-nav">' + nav + '</div>' +
       // toute la zone du profil ouvre le menu du compte
       '<div class="side-foot"><div class="menu" id="k-menu" hidden>' + (conf.menu || []).join('') +
       (conf.sansTheme || conf.clair ? '' : '<button id="k-theme2">' + (sombre ? K.i.soleil : K.i.lune) + (sombre ? 'Thème clair' : 'Thème sombre') + '</button>') +

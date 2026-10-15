@@ -93,22 +93,15 @@ function conf() {
   return {
     cta: { texte: 'Nouveau client', href: '#/clients/nouveau' },
     sections: [
-      { titre: 'Espace', liens: [{ id: 'accueil', texte: 'Vue d\'ensemble', icone: 'accueil', href: '#/' }] },
+      { titre: '', liens: [{ id: 'accueil', texte: 'Vue d\'ensemble', icone: 'accueil', href: '#/' }] },
       { titre: 'Commercial', liens: [
         { id: 'clients', texte: 'Clients', icone: 'gens', href: '#/clients', nb: S.clients ? S.clients.length || '' : '' },
         { id: 'commandes', texte: 'Commandes', icone: 'sac', href: '#/commandes' },
         { id: 'factures', texte: 'Factures', icone: 'recu', href: '#/factures' }] },
       { titre: 'Production', liens: [
         { id: 'projets', texte: 'Projets', icone: 'colonnes', href: '#/projets', nb: enCours || '' },
-        { id: 'fiche', texte: 'Fiches créas', icone: 'doc', href: '#/fiche' },
-        { id: 'dossier', texte: 'Dossiers de production', icone: 'calques', href: '#/dossier' },
-        { id: 'brief', texte: 'Briefs clients', icone: 'message', href: '#/brief' },
-        { id: 'visuels', texte: 'Visuels', icone: 'image', href: '#/visuels' },
-        { id: 'dossiers', texte: 'Tous les dossiers', icone: 'dossier', href: '#/dossiers' }] },
-      { titre: 'Espaces de l\'équipe', liens: [
-        { id: 'strat', texte: 'Espace stratégiste', icone: 'ampoule', href: '/strategiste/' },
-        { id: 'desi', texte: 'Designer space', icone: 'pinceau', href: '/designer/' }] },
-      { titre: 'Équipe', liens: [{ id: 'equipe', texte: 'Équipe', icone: 'bouclier', href: '#/equipe' }] }
+        { id: 'production', texte: 'Fiches et dossiers', icone: 'calques', href: '#/fiche' }] },
+      { titre: '', liens: [{ id: 'equipe', texte: 'Équipe', icone: 'bouclier', href: '#/equipe' }] }
     ],
     qui: { nom: S.moi && S.moi.nom ? S.moi.nom.charAt(0).toUpperCase() + S.moi.nom.slice(1) : 'Admin', role: 'Fondateur · admin' },
     sortie: '/_deconnexion',
@@ -519,7 +512,8 @@ function brancherDossiers() {
 // ---------- ÉQUIPE ----------
 function ecranEquipe() {
   const E = S.equipe || [], R = { admin: ['Admin', 'n'], strategiste: ['Stratégiste', 'b'], designer: ['Designer', 'v'] };
-  return '<div class="ph"><div><h1>Équipe</h1><p>Les comptes qui ont accès aux espaces internes.</p></div></div>' +
+  return '<div class="ph"><div><h1>Équipe</h1><p>Les comptes qui ont accès aux espaces internes.</p></div>' +
+    '<div class="act"><a class="btn btn-s" href="/strategiste/">' + i.ampoule + 'Espace stratégiste</a><a class="btn btn-s" href="/designer/">' + i.pinceau + 'Designer space</a></div></div>' +
     '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Personne</th><th>Rôle</th><th>Arrive sur</th><th>Lien à lui envoyer</th></tr></thead><tbody>' +
     E.map(p => '<tr><td><div class="nom"><span class="av">' + esc(K.initiales(p.nom)) + '</span><b>' + esc(p.nom.charAt(0).toUpperCase() + p.nom.slice(1)) + '</b></div></td>' +
       '<td><span class="pill ' + (R[p.role] || ['', ''])[1] + '">' + esc((R[p.role] || [p.role])[0]) + '</span></td><td class="muted">' + esc(p.espace) + '</td>' +
@@ -536,15 +530,20 @@ const ECRANS = {
   projets: { id: 'projets', t: 'Projets', a: 'dossier', b: ['Production'], besoins: ['commandes', 'prod'], f: ecranProjets, large: true },
   clients: { id: 'clients', t: 'Clients', a: 'gens', b: ['Commercial'], besoins: ['clients', 'resume', 'dossiers'], f: p => p[0] === 'nouveau' ? (setTimeout(nouveauClient, 0), ecranClients()) : p[0] ? ecranClient(p[0]) : ecranClients(), ap: p => p[0] && p[0] !== 'nouveau' ? brancherClient() : brancherClients() },
   commandes: { id: 'commandes', t: 'Commandes', a: 'sac', b: ['Commercial'], besoins: ['commandes'], f: ecranCommandes },
-  dossiers: { id: 'dossiers', t: 'Tous les dossiers', a: 'calques', b: ['Production'], besoins: ['dossiers'], f: ecranDossiers, ap: brancherDossiers },
+  dossiers: { id: 'production', t: 'Tous les dossiers', a: 'calques', b: ['Production'], besoins: ['dossiers'], f: () => ongletsProd('dossiers') + ecranDossiers(), ap: brancherDossiers },
   equipe: { id: 'equipe', t: 'Équipe', a: 'bouclier', b: [], besoins: ['equipe'], f: ecranEquipe }
 };
 // les pages de production s'ouvrent dans l'admin (K.prod : liste des projets, ou la page en cadre)
 const TEXTES_PROD = { fiche: 'La fiche créas de chaque projet.', dossier: 'Le dossier de production de chaque projet.', brief: 'Les briefs des livraisons suivantes et des abonnements.', visuels: 'Les visuels générés, avant et après la livraison.', telechargement: 'Le dossier à télécharger de chaque projet.' };
 Object.keys(K.prod.sections).forEach(k => {
-  ECRANS[k] = { id: k === 'telechargement' ? 'visuels' : k, t: K.prod.sections[k].fr, a: K.prod.sections[k].icone, b: ['Production'], besoins: ['prod'], prod: true,
-    f: p => p[0] ? K.prod.vue(k, p[0], {}) : K.prod.liste_(k, { texte: TEXTES_PROD[k] }), ap: p => { if (p[0]) K.prod.brancher(k); } };
+  ECRANS[k] = { id: 'production', t: K.prod.sections[k].fr, a: K.prod.sections[k].icone, b: ['Production'], besoins: ['prod'], prod: true,
+    f: p => p[0] ? K.prod.vue(k, p[0], {}) : ongletsProd(k) + K.prod.liste_(k, { texte: TEXTES_PROD[k] }), ap: p => { if (p[0]) K.prod.brancher(k); } };
 });
+// les pages de production sont regroupées sous une seule entrée, avec des onglets
+function ongletsProd(actif) {
+  const O = [['fiche', 'Fiches créas'], ['dossier', 'Dossiers'], ['brief', 'Briefs clients'], ['visuels', 'Visuels'], ['dossiers', 'Tous les dossiers']];
+  return '<div class="onglets onglets-prod">' + O.map(([k, t]) => '<a href="#/' + k + '" class="' + (k === actif || (actif === 'telechargement' && k === 'visuels') ? 'on' : '') + '">' + esc(t) + '</a>').join('') + '</div>';
+}
 let rendu = 0;
 let derniereProd = '';
 K.rendre = async () => {

@@ -48,14 +48,16 @@ p{margin:0}
 /* ---------- coquille ---------- */
 .app{display:flex;height:100vh;overflow:hidden}
 .side{width:252px;flex:none;display:flex;flex-direction:column;padding:18px 12px 12px}
+.side-nav{flex:1;min-height:0;overflow-y:auto;margin:0 -6px;padding:0 6px 8px;scrollbar-width:thin}
 .side-logo{display:flex;align-items:center;gap:10px;padding:6px 10px 18px}
 .side-logo img{height:24px;display:block}
 :root[data-theme="dark"] .side-logo img{filter:invert(1)}
 .side-cta{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 2px 18px;padding:12px 16px;border-radius:12px;
   background:var(--blue);color:#fff;font-weight:600;font-size:14px;text-decoration:none;box-shadow:0 8px 20px -8px rgba(77,148,255,.7);transition:background .15s}
 .side-cta:hover{background:var(--blue-h)}
-.nav-lab{font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--tx3);padding:14px 12px 6px}
-.nav a{display:flex;align-items:center;gap:11px;height:38px;padding:0 12px;margin:1px 0;border-radius:10px;color:var(--tx2);
+.nav-lab{font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--tx3);padding:12px 12px 5px}
+.side-nav>.nav+.nav{margin-top:8px}
+.nav a{display:flex;align-items:center;gap:11px;height:36px;padding:0 12px;margin:1px 0;border-radius:10px;color:var(--tx2);
   text-decoration:none;font-size:14px;font-weight:500;border:1px solid transparent;transition:background .12s,color .12s}
 .nav a svg{width:17px;height:17px;flex:none;stroke-width:1.8}
 .nav a:hover{background:var(--soft);color:var(--ink)}
@@ -198,7 +200,7 @@ a.projet:hover{border-color:var(--line2);box-shadow:var(--ombre2)}
 .projet .btn{margin-top:14px}
 
 /* ---------- actions (validations) ---------- */
-.actions{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px}
+.actions{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px}
 .action{padding:20px;display:flex;flex-direction:column;gap:8px}
 .action .ic{width:40px;height:40px;border-radius:11px;display:grid;place-items:center;background:var(--soft);color:var(--tx2);margin-bottom:6px}
 .action .ic svg{width:19px;height:19px}
@@ -222,6 +224,7 @@ a.projet:hover{border-color:var(--line2);box-shadow:var(--ombre2)}
 
 /* ---------- tableaux ---------- */
 .tbl-wrap{overflow:auto}
+.card>.tbl-wrap{border-radius:calc(var(--r) - 1px)}
 table.tbl{width:100%;border-collapse:collapse;font-size:13.5px}
 .tbl th{text-align:left;font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--tx3);padding:12px 14px;
   border-bottom:1px solid var(--line);white-space:nowrap;background:var(--panel);position:sticky;top:0;z-index:1}
@@ -252,7 +255,10 @@ table.tbl{width:100%;border-collapse:collapse;font-size:13.5px}
 .onglets{display:inline-flex;gap:2px;padding:3px;border:1px solid var(--line);border-radius:11px;background:var(--soft)}
 .onglets button{height:32px;padding:0 14px;border-radius:8px;font-size:13px;font-weight:500;color:var(--tx2);display:inline-flex;align-items:center;gap:7px}
 .onglets button svg{width:15px;height:15px}
-.onglets button.on{background:var(--panel);color:var(--ink);box-shadow:var(--ombre)}
+.onglets button.on,.onglets a.on{background:var(--panel);color:var(--ink);box-shadow:var(--ombre)}
+.onglets a{height:32px;padding:0 14px;border-radius:8px;font-size:13px;font-weight:500;color:var(--tx2);display:inline-flex;align-items:center;gap:7px;text-decoration:none;white-space:nowrap}
+.onglets a:hover{color:var(--ink)}
+.onglets-prod{margin-bottom:22px;max-width:100%;overflow-x:auto}
 .champ-r{position:relative;max-width:300px;flex:1}
 .champ-r input{width:100%;height:36px;border:1px solid var(--line);border-radius:10px;background:var(--panel);padding:0 12px 0 34px;font:inherit;font-size:13.5px;color:var(--ink);outline:0}
 .champ-r input:focus{border-color:var(--blue)}
@@ -315,9 +321,11 @@ textarea.in{height:auto;min-height:90px;padding:11px 13px;resize:vertical}
 .offre.hot{border-color:var(--blue);box-shadow:0 0 0 1px var(--blue),0 22px 50px -26px rgba(77,148,255,.75)}
 .offre .badge-hot{position:absolute;top:-13px;left:50%;transform:translateX(-50%);background:var(--blue);color:#fff;font-size:12px;font-weight:700;
   padding:5px 14px;border-radius:999px;white-space:nowrap;box-shadow:0 6px 16px -6px rgba(77,148,255,.8)}
-.offre .tete{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.offre .tete{display:flex;justify-content:center;align-items:center;gap:10px}
+.offre:not(.offre-c) .tete,.offre:not(.offre-c) .unit{text-align:center}
 .offre h3{font-size:20px}
-.offre .prix{font:700 46px/1 var(--titre);letter-spacing:-.045em;margin-top:22px;display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 10px}
+.offre .prix{font:700 38px/1 var(--titre);letter-spacing:-.04em;margin-top:20px;display:flex;align-items:baseline;justify-content:center;flex-wrap:wrap;gap:4px 10px}
+.offre-c .prix{justify-content:flex-start;font-size:32px}
 .offre .prix small{font:500 15px var(--texte);color:var(--tx3);letter-spacing:0}
 .offre .barre-prix{text-decoration:line-through;color:var(--tx3);font:600 17px var(--texte);letter-spacing:0}
 .offre .unit{font-size:13.5px;color:var(--tx3);margin-top:12px;line-height:1.5}
@@ -448,3 +456,68 @@ input[type=range].curseur{width:100%;accent-color:var(--blue);height:24px;margin
 .vp-autres{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}
 .vp-cadre{flex:1;width:100%;min-height:0;border:0;display:block;background:#fff}
 @media(max-width:860px){.page.plein{height:calc(100dvh - 58px)}.vp-autres{margin-left:0}}
+
+/* ---------- les pastilles gardent leurs espaces, même dans un titre ---------- */
+.pill{letter-spacing:0;font-family:var(--texte);line-height:1}
+h1.avec-pill{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+
+/* ---------- le logo WhatsApp ---------- */
+.ico-wa{display:inline-block;width:18px;height:18px;flex:none;background:currentColor;
+  -webkit-mask:url(/ui/whatsapp.svg) center/contain no-repeat;mask:url(/ui/whatsapp.svg) center/contain no-repeat}
+.nav a .ico-wa{width:16px;height:16px}
+.ariane .ico-wa{width:15px;height:15px}
+.btn .ico-wa{width:17px;height:17px}
+.btn-wa{background:#25D366;color:#fff}.btn-wa:hover{background:#1fbe5b}
+.wa-rond{width:44px;height:44px;border-radius:12px;background:#25D366;color:#fff;display:grid;place-items:center;flex:none}
+.wa-rond .ico-wa{width:22px;height:22px}
+.wa-grand{width:54px;height:54px;border-radius:50%;background:rgba(255,255,255,.2);display:grid;place-items:center}
+.wa-grand .ico-wa{width:26px;height:26px}
+.barre-aide{display:flex;align-items:center;gap:16px;padding:18px 22px;margin-top:22px;flex-wrap:wrap}
+.barre-aide b{display:block;font-size:15px}
+.barre-aide small{display:block;font-size:13px;color:var(--tx3);margin-top:2px}
+.barre-aide .btn{margin-left:auto}
+
+/* ---------- le suivi d'un projet : une seule ligne d'étapes ---------- */
+.suivi-h{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+.suivi-h h3{font-size:16px}
+.suivi-h span{font-size:13px}
+.suivi-h b{color:var(--ink);font-weight:600}
+.suivi{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));margin-top:24px}
+.suivi .pas{position:relative;text-align:center;padding:0 8px}
+.suivi .pas+.pas::before{content:'';position:absolute;top:15px;right:50%;width:100%;height:2px;background:var(--line);z-index:0}
+.suivi .pas.fait::before,.suivi .pas.cours::before{background:var(--ink)}
+.suivi .o{width:32px;height:32px;border-radius:50%;margin:0 auto;display:grid;place-items:center;position:relative;z-index:1;
+  background:var(--soft2);color:var(--tx3);font-size:13px;font-weight:700}
+.suivi .o svg{width:15px;height:15px;stroke-width:3}
+.suivi .fait .o{background:var(--ink);color:var(--panel)}
+.suivi .cours .o{background:var(--blue);color:#fff;box-shadow:0 0 0 5px var(--blue-soft)}
+.suivi b{display:block;font-size:13.5px;font-weight:600;margin-top:12px;line-height:1.3}
+.suivi small{display:block;font-size:12px;color:var(--tx3);margin-top:3px;line-height:1.35}
+.suivi .cours small{color:var(--blue);font-weight:500}
+.suivi .attente b{color:var(--tx3);font-weight:500}
+@media(max-width:700px){
+  .suivi{grid-template-columns:1fr;gap:0}
+  .suivi .pas{display:grid;grid-template-columns:32px 1fr;column-gap:12px;text-align:left;padding:0 0 16px}
+  .suivi .pas+.pas::before{top:-16px;left:15px;right:auto;width:2px;height:16px}
+  .suivi .o{margin:0;grid-row:span 2}
+  .suivi b{margin-top:6px}
+}
+
+/* ---------- accueil : cartes chiffres cliquables ---------- */
+a.lien-kpi{color:inherit;text-decoration:none;transition:border-color .12s}
+a.lien-kpi:hover{border-color:var(--line2)}
+
+/* ---------- le panier ---------- */
+.choix-pack{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:14px}
+.choix-pack a{border:1px solid var(--line);border-radius:12px;padding:11px 12px;text-decoration:none;color:var(--ink);background:var(--panel);transition:border-color .12s}
+.choix-pack a:hover{border-color:var(--line2)}
+.choix-pack a.on{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink)}
+.choix-pack b{display:block;font-size:14px}
+.choix-pack small{display:block;font-size:12px;color:var(--tx3);margin-top:2px}
+.inclus{list-style:none;margin:18px 0 0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 18px;font-size:13.5px}
+.inclus li{display:flex;gap:9px;align-items:flex-start}
+.inclus svg{width:16px;height:16px;flex:none;color:var(--blue);stroke-width:2.6;margin-top:1px}
+.opt .px{margin-left:auto;font-weight:600;font-size:14px;white-space:nowrap;text-align:right}
+.opt .px small{display:block;font-weight:400;font-size:11.5px;color:var(--tx3)}
+.paiement{padding:10px;min-height:420px;max-width:760px}
+@media(max-width:700px){.choix-pack{grid-template-columns:repeat(2,minmax(0,1fr))}.inclus{grid-template-columns:1fr}}

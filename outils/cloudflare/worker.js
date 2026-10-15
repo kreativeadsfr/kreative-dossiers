@@ -27,7 +27,7 @@ const ANCIENS = [
 ];
 const COOKIE = 'k_espace';
 const DUREE_JOURS = 60;
-const PUBLICS = /^\/(ui\/kreative\.css|ui\/app\.(css|js)|ui\/logo-[a-z0-9-]+\.png|favicon-\d+\.png)$/;
+const PUBLICS = /^\/(ui\/kreative\.css|ui\/app\.(css|js)|ui\/logo-[a-z0-9-]+\.png|ui\/[a-z0-9-]+\.svg|favicon-\d+\.png)$/;
 const INTERDITS = /(^|\/)(\.git|\.github|outils)(\/|$)|\.\./;
 const LIMITE_REECRITURE = 3 * 1024 * 1024;   // au-delà, le texte passe tel quel
 const LIMITE_SCRIPT = 64 * 1024;              // scripts inline réécrits jusqu'à 64 ko
@@ -574,37 +574,45 @@ const LIENS_PAIEMENT = {
 };
 const packDuLien = id => { for (const [pack, f] of Object.entries(LIENS_PAIEMENT)) for (const [formule, [, pid]] of Object.entries(f)) if (pid === id) return { pack, formule }; return null; };
 
+// Les options (upsells), pour tous les packs. Le prix est TOUJOURS recalculé ici,
+// jamais pris dans ce qu'envoie le navigateur.
+const OPTIONS = [
+  { id: 'express', nom: 'Livraison express', detail: 'Délai divisé par deux', type: 'pct', valeur: 20 },
+  { id: 'ab_visuel', nom: 'A/B test visuel', detail: 'Même texte sur 2 visuels différents', type: 'par_crea', valeur: 20 },
+  { id: 'ab_texte', nom: 'A/B test texte', detail: 'Même visuel avec 2 textes différents', type: 'par_crea', valeur: 15 }
+];
 // Le pack Custom se configure dans l'espace client : nombre de créas et options.
-// Le prix est TOUJOURS recalculé ici, jamais pris dans ce qu'envoie le navigateur.
 const CUSTOM = {
   min: 30, max: 100, pas: 5,
   paliers: [[30, 35], [50, 32], [75, 29]],          // à partir de N créas : prix par créa
   remise_mensuel: 0.15,
-  options: [
-    { id: 'express', nom: 'Livraison express 24 h', detail: '+20 % sur le total', type: 'pct', valeur: 20 },
-    { id: 'hooks', nom: '3 accroches par visuel', detail: '+8 € par créa', type: 'par_crea', valeur: 8 },
-    { id: 'ab', nom: 'A/B test', detail: '2 versions par créa : même texte sur 2 visuels, ou même visuel avec 2 textes · +12 € par créa', type: 'par_crea', valeur: 12 }
-  ]
+  options: OPTIONS
 };
+// prix d'un pack (fixe ou Custom) avec ses options. Mensuel : abonnement, remise de 15 %
+// (déjà comprise dans le prix mensuel des packs fixes, appliquée aussi aux options).
 function devis(pack, formule, nbDemande, optionsDemandees) {
   const m = formule === 'mensuel';
+  const options = OPTIONS.filter(o => (optionsDemandees || []).includes(o.id));
+  let nb, unitaire, base;
   if (pack !== 'custom') {
-    const P = PACKS[pack] || PACKS.growth;
-    return { pack: PACKS[pack] ? pack : 'growth', formule: m ? 'mensuel' : 'unique', nb: P.creas, options: [], total: m ? P.mensuel : P.unique,
-      libelle: 'Pack ' + P.nom + ' · ' + P.creas + ' créatives' + (m ? ' par mois' : '') };
+    pack = PACKS[pack] ? pack : 'growth';
+    const P = PACKS[pack];
+    nb = P.creas; base = m ? P.mensuel : P.unique; unitaire = Math.round(base / nb);
+    for (const o of options) if (o.type === 'par_crea') base += nb * o.valeur * (m ? 1 - CUSTOM.remise_mensuel : 1);
+  } else {
+    nb = Math.round(Number(nbDemande) || CUSTOM.min);
+    nb = Math.min(CUSTOM.max, Math.max(CUSTOM.min, Math.round(nb / CUSTOM.pas) * CUSTOM.pas));
+    unitaire = CUSTOM.paliers.filter(x => nb >= x[0]).pop()[1];
+    base = nb * unitaire;
+    for (const o of options) if (o.type === 'par_crea') base += nb * o.valeur;
+    if (m) base = base * (1 - CUSTOM.remise_mensuel);
   }
-  let nb = Math.round(Number(nbDemande) || CUSTOM.min);
-  nb = Math.min(CUSTOM.max, Math.max(CUSTOM.min, Math.round(nb / CUSTOM.pas) * CUSTOM.pas));
-  const unitaire = CUSTOM.paliers.filter(x => nb >= x[0]).pop()[1];
-  const options = CUSTOM.options.filter(o => (optionsDemandees || []).includes(o.id));
-  let base = nb * unitaire;
-  for (const o of options) if (o.type === 'par_crea') base += nb * o.valeur;
   for (const o of options) if (o.type === 'pct') base += base * o.valeur / 100;
-  if (m) base = base * (1 - CUSTOM.remise_mensuel);
-  const fixe = options.filter(o => o.type === 'fixe').reduce((t, o) => t + o.valeur, 0);
-  const total = Math.round(base + fixe);
-  return { pack: 'custom', formule: m ? 'mensuel' : 'unique', nb, options: options.map(o => o.id), unitaire, total,
-    libelle: 'Pack Custom · ' + nb + ' créatives' + (m ? ' par mois' : '') + (options.length ? ' · ' + options.map(o => o.nom).join(', ') : '') };
+  const total = Math.round(base);
+  const P = PACKS[pack];
+  return { pack, formule: m ? 'mensuel' : 'unique', nb, options: options.map(o => o.id), unitaire, total,
+    libelle: 'Pack ' + P.nom + (m ? ' · abonnement mensuel' : ' · paiement en une fois') + ' · ' + nb + ' créatives' + (m ? ' par mois' : '') +
+      (options.length ? ' · ' + options.map(o => o.nom).join(', ') : '') };
 }
 
 // brief = commande confirmée, le brief n'est pas encore arrivé
@@ -637,6 +645,8 @@ async function base(env) {
       try { await env.DB.prepare('ALTER TABLE clients ADD COLUMN ' + col).run(); } catch (e) {}
     }
     try { await env.DB.prepare('CREATE UNIQUE INDEX IF NOT EXISTS i_cmd_session ON commandes(stripe_session)').run(); } catch (e) {}
+    // numéros de commande lisibles : 1001, 1002… (les anciens « K-101 » deviennent 1001)
+    try { await env.DB.prepare("UPDATE commandes SET ref = CAST(CAST(substr(ref, 3) AS INTEGER) + 900 AS TEXT) WHERE ref LIKE 'K-%'").run(); } catch (e) {}
     BASE_PRETE = true;
   }
   return env.DB;
@@ -800,7 +810,8 @@ async function avancement(env, cmd) {
   const faites = coeur.filter(x => x.fait).length;
   const enCours = coeur.find(x => !x.fait) || (cmd.avis_le ? null : etapes[5]);
   const P = PACKS[cmd.pack] || PACKS.growth;
-  const deadline = cmd.deadline || (d && Date.parse(d.deadline)) || (cmd.brief_le ? cmd.brief_le + P.delai * 36e5 : null);
+  const duDossier = d && Date.parse(d.deadline);
+  const deadline = cmd.deadline || (duDossier && duDossier > (cmd.cree_le || 0) ? duDossier : null) || (cmd.brief_le ? cmd.brief_le + P.delai * 36e5 : null);
   return { etat, etapes, progression: Math.round(faites * 100 / coeur.length), en_cours: enCours ? enCours.cle : null,
     deadline: deadline || null, marque_dossier: d && d.brand_name };
 }
@@ -831,7 +842,7 @@ async function apiClient(req, env, ctx, url, chemin, methode, cl, apercu) {
       db.prepare("SELECT * FROM factures WHERE client_id = ? AND statut != 'brouillon' ORDER BY emise_le DESC").bind(cl.id).all()]);
     if (!apercu) ctx.waitUntil(db.prepare('UPDATE clients SET vu_le = ? WHERE id = ?').bind(maintenant(), cl.id).run());
     return json({ apercu, client: { id: cl.id, marque: cl.marque, contact: cl.contact, email: cl.email, telephone: cl.telephone, site: cl.site, cree_le: cl.cree_le, photo_le: cl.photo ? cl.photo_le || 1 : null },
-      commandes, activite, factures: factures.map(FACTURE_PUBLIQUE), packs: PACKS, custom: CUSTOM, paiement: !!env.STRIPE_SECRET,
+      commandes, activite, factures: factures.map(FACTURE_PUBLIQUE), packs: PACKS, custom: CUSTOM, options: OPTIONS, paiement: !!env.STRIPE_SECRET, stripe_public: env.STRIPE_SECRET && env.STRIPE_PUBLIC ? env.STRIPE_PUBLIC : null,
       liens: Object.fromEntries(Object.entries(LIENS_PAIEMENT).map(([k, f]) => [k, { unique: f.unique[0], mensuel: f.mensuel[0] }])) });
   }
   if (chemin === '/photo' && methode === 'GET') return imagePhoto(cl.photo);
@@ -875,10 +886,14 @@ async function apiClient(req, env, ctx, url, chemin, methode, cl, apercu) {
       mode: m ? 'subscription' : 'payment', locale: 'fr', client_reference_id: cl.id, metadata: meta,
       success_url: url.origin + '/client/#/merci', cancel_url: url.origin + '/client/#/commander',
       allow_promotion_codes: 'true', billing_address_collection: 'required', tax_id_collection: { enabled: 'true' },
+      consent_collection: { terms_of_service: 'required' },   // comme les liens de paiement : les CGV à accepter
       line_items: [{ quantity: 1, price_data: { currency: 'eur', unit_amount: String(Math.round(d.total * 100)),
         product_data: { name: d.libelle, description: 'Kreative · créatives publicitaires Meta, livrées en 1:1, 4:5 et 9:16' },
         recurring: m ? { interval: 'month' } : undefined } }]
     };
+    // paiement dans la page du portail (Stripe intégré) quand la clé publique est là
+    const integre = !!(b.integre && env.STRIPE_PUBLIC);
+    if (integre) { p.ui_mode = 'embedded'; p.return_url = url.origin + '/client/?paiement=ok'; delete p.success_url; delete p.cancel_url; }
     if (cl.stripe_client) p.customer = cl.stripe_client; else p.customer_email = cl.email || undefined;
     if (m) p.subscription_data = { metadata: meta };
     else {
@@ -889,7 +904,7 @@ async function apiClient(req, env, ctx, url, chemin, methode, cl, apercu) {
     try {
       const s = await appelStripe(env, 'checkout/sessions', p);
       await noter(db, cl.id, null, 'paiement', 'Paiement ouvert · ' + d.libelle + ' · ' + d.total + ' €');
-      return json({ url: s.url, total: d.total });
+      return json({ url: s.url || null, client_secret: integre ? s.client_secret : null, total: d.total });
     } catch (e) { return json({ erreur: 'Stripe : ' + e.message }, 502); }
   }
 
@@ -985,8 +1000,8 @@ async function creerCommande(db, o) {
   let ref = '';
   // le numéro suit le dernier ; si deux commandes partent à la même seconde, on réessaie
   for (let essai = 0; essai < 5; essai++) {
-    const max = await db.prepare('SELECT MAX(CAST(substr(ref, 3) AS INTEGER)) AS n FROM commandes').first();
-    ref = 'K-' + String(Math.max(100, (max && max.n) || 100) + 1 + essai);
+    const max = await db.prepare("SELECT MAX(CAST(ref AS INTEGER)) AS n FROM commandes WHERE ref NOT LIKE 'DEMO%'").first();
+    ref = String(Math.max(1000, (max && max.n) || 1000) + 1 + essai);
     try {
       await db.prepare(`INSERT INTO commandes (id, ref, client_id, pack, formule, nb_creas, prix, dossier, statut, cree_le, brief_le, options, stripe_session, stripe_abo, stripe_facture)
         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`)
@@ -1195,10 +1210,13 @@ async function apiAdmin(req, env, ctx, url, chemin, methode) {
 //  Son code de signature va dans le secret STRIPE_WEBHOOK_SECRET.
 //  La clé restreinte (Checkout Sessions en écriture) va dans STRIPE_SECRET :
 //  elle sert seulement à créer les paiements depuis l'espace client.
+//  La clé publiable (pk_live_…) va dans la variable STRIPE_PUBLIC : avec elle,
+//  le paiement s'affiche DANS le portail ; sans elle, le client passe par la
+//  page Stripe dans le même onglet puis revient sur son espace.
 //  Un paiement réussi crée la commande (et l'espace client si besoin) ;
 //  chaque mois d'abonnement payé crée la commande du mois suivant.
 //  La facture est rattachée au client par son email, et à une commande
-//  si la facture porte la métadonnée « commande » (ex. K-104).
+//  si la facture porte la métadonnée « commande » (ex. 1004).
 // ============================================================
 // un paiement Stripe réussi : la commande se crée seule (et l'espace client
 // aussi si c'est un nouveau client, avec son lien d'accès par email)
@@ -1290,7 +1308,9 @@ async function enregistrerFacture(env, inv) {
   let cl = meta.kreative_client ? await db.prepare('SELECT id FROM clients WHERE id = ?').bind(String(meta.kreative_client)).first() : null;
   if (!cl && inv.customer) cl = await db.prepare('SELECT id FROM clients WHERE stripe_client = ?').bind(String(inv.customer)).first();
   if (!cl && email) cl = await db.prepare('SELECT id FROM clients WHERE lower(email) = ?').bind(email).first();
-  let k = meta.commande ? await db.prepare('SELECT id, client_id FROM commandes WHERE ref = ?').bind(String(meta.commande)).first() : null;
+  // « 1004 », « #1004 » ou l'ancien format « K-104 »
+  const refMeta = String(meta.commande || '').trim().replace(/^#/, ''), ancien = refMeta.match(/^K-(\d+)$/i);
+  let k = refMeta ? await db.prepare('SELECT id, client_id FROM commandes WHERE ref = ?').bind(ancien ? String(Number(ancien[1]) + 900) : refMeta).first() : null;
   if (!k) k = await db.prepare('SELECT id, client_id FROM commandes WHERE stripe_facture = ?').bind(inv.id).first();
   if (!k && abo) {
     const derniere = await db.prepare('SELECT * FROM commandes WHERE stripe_abo = ? ORDER BY cree_le DESC LIMIT 1').bind(abo).first();

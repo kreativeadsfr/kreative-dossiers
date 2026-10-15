@@ -144,7 +144,7 @@ function ecranAccueil() {
   const aReviewer = D.commandes.find(c => c.a_reviewer), aValider = aReviewer || D.commandes.find(c => etat(c) === 'livre');
   let h = apercu();
   if (aValider) h += '<div class="bandeau"><span class="ic">' + i.image + '</span><div><b>Vos créatives sont prêtes</b>' +
-    '<small>' + esc(nom(aValider)) + ' : regardez chaque créative, commentez ce qui doit bouger, approuvez le reste.</small></div>' +
+    '<small>' + esc(nom(aValider)) + '</small></div>' +
     '<a class="btn" href="#/projets/' + esc(aValider.id) + (aValider.creatives ? '/creatives' : '') + '">Voir mes créatives</a></div>';
   else if (attente) h += '<div class="bandeau"><span class="ic">' + i.doc + '</span><div><b>Il reste une étape : votre brief</b>' +
     '<small>Comptez une quinzaine de minutes. Il lance la production de votre ' + esc(nom(attente)) + '.</small></div>' +

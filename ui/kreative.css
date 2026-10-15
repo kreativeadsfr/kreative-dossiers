@@ -25,6 +25,8 @@
 body.k *,body.k *::before,body.k *::after{box-sizing:border-box}
 html body.k{margin:0;background:var(--k-bg);color:var(--k-ink);font-family:var(--k-texte);
   -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+/* 15/10 : pas de curseur de texte qui clignote en cliquant sur un titre ; la sélection reste possible */
+html{caret-color:transparent}input,textarea,select,[contenteditable],[contenteditable] *{caret-color:auto}
 body.k ::selection{background:var(--k-blue);color:#fff}
 body.k h1,body.k h2,body.k h3{font-family:var(--k-titre);letter-spacing:-.02em;color:var(--k-ink)}
 body.k a{color:inherit}

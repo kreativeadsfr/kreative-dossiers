@@ -216,7 +216,7 @@ function ecranProjet(id) {
   const iCours = ce.findIndex(x => !x.fait), cours = ce[iCours];
   h += '<div class="card pad"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px"><div><h3 style="font-size:16px">Avancement</h3>' +
     '<p class="muted" style="font-size:13px;margin-top:3px">' + ce.filter(x => x.fait).length + ' étapes sur ' + ce.length + (cours ? ' · en cours : ' + esc(cours.titre) + (cours.detail ? ', ' + esc(cours.detail.charAt(0).toLowerCase() + cours.detail.slice(1)) : '') : ' · projet terminé') + '</p></div>' +
-    '<b style="font:600 22px var(--titre)">' + c.progression + ' %</b></div>' +
+    '<b style="font:600 22px var(--titre);white-space:nowrap;flex:none">' + c.progression + '\u00a0%</b></div>' +
     '<div class="barre' + (c.progression === 100 ? ' g' : '') + '" style="margin-top:16px;height:7px"><i style="width:' + c.progression + '%"></i></div>' +
     '<div class="coches">' + ce.map((x, n) => '<div class="coche' + (x.fait ? ' fait' : n === iCours ? ' cours' : '') + '"><span class="o">' + (x.fait ? i.coche : '') + '</span>' + esc(x.titre) + (n === iCours ? '<span class="pill b" style="margin-left:4px">En cours</span>' : '') + '</div>').join('') + '</div></div>';
 

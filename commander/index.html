@@ -9,7 +9,9 @@
 <!-- Le panier des pages kreativeads.fr/commander-<pack> : affiché dans Framer par un bloc Embed (type URL)
      https://app.kreativeads.fr/commander/starter, /growth, /scale, /custom.
      Après le paiement Stripe : kreativeads.fr/merci-<pack>, et l'espace client est créé tout seul. -->
-<style>html,body{margin:0;background:#f8f6f3}</style>
+<style>html,body{margin:0;background:#f9f6f4}
+/* affiché dans un bloc Embed de Framer : pas de barre de défilement visible */
+html{scrollbar-width:none}html::-webkit-scrollbar{display:none}</style>
 </head>
 <body>
 <section class="kc" data-pack="growth">
@@ -17,7 +19,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&display=swap">
 <style>
-.kc{--b:#4d94ff;--bd:#eaf2ff;--bt:#2b6fd6;--n:#000;--g:#6f6f6f;--g2:#a3a3a3;--l:#ece7e1;--f:#f8f6f3;--v:#1e9e57;
+.kc{--b:#4d94ff;--bd:#eaf2ff;--bt:#2b6fd6;--n:#000;--g:#6f6f6f;--g2:#a3a3a3;--l:#ece7e1;--f:#f9f6f4;--v:#1e9e57;
   font-family:'Inter','Inter Placeholder',system-ui,-apple-system,'Segoe UI',sans-serif;font-optical-sizing:auto;color:var(--n);background:var(--f);padding:64px 20px 90px;-webkit-font-smoothing:antialiased}
 .kc *{box-sizing:border-box;margin:0;padding:0}
 .kc h1,.kc h2,.kc h3,.kc-prix b,.kc-nb b,.kc-total b,.kc-go{font-variation-settings:'opsz' 32}
@@ -86,7 +88,8 @@
 .kc-sur .bleu{color:var(--b);font-weight:500}
 .kc-pulse{animation:kc-pulse .35s ease-out}
 @keyframes kc-pulse{40%{transform:scale(1.04)}}
-@media (max-width:900px){.kc-grille{grid-template-columns:1fr}.kc-recap{position:static}.kc-inclus{grid-template-columns:1fr}.kc{padding:44px 16px 70px}.kc-carte,.kc-recap{padding:22px}}
+@media (max-width:1000px){.kc{padding:44px 20px 60px}.kc-carte,.kc-recap{padding:22px}.kc-inclus{grid-template-columns:1fr}.kc-grille{gap:18px}}
+@media (max-width:760px){.kc-grille{grid-template-columns:1fr}.kc-recap{position:static}.kc{padding:36px 16px 50px}}
 @media (max-width:520px){.kc-opt{flex-wrap:wrap}.kc-opt .kc-qte{margin-left:36px}.kc-opt .kc-px{margin-left:auto}}
 @media (prefers-reduced-motion:reduce){.kc *{animation:none!important;transition:none!important}}
 </style>

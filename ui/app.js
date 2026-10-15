@@ -290,7 +290,7 @@
         (l.nb ? '<span class="nb">' + l.nb + '</span>' : '') + (l.ext ? K.i.externe.replace('<svg', '<svg class="ext"') : '') + '</a>').join('') + '</nav>').join('');
     const sombre = document.documentElement.dataset.theme === 'dark';
     return '<div class="app" id="k-app">' +
-      '<aside class="side"><div class="side-logo"><img src="/ui/logo-kreative-noir.png" alt="Kreative"></div>' +
+      '<div class="side-voile" id="k-voile" aria-hidden="true"></div><aside class="side"><div class="side-logo"><img src="/ui/logo-kreative-noir.png" alt="Kreative"></div>' +
       (conf.cta ? '<a class="side-cta" href="' + K.esc(conf.cta.href) + '">' + K.esc(conf.cta.texte) + K.i.fleche.replace('<svg', '<svg width="16" height="16"') + '</a>' : '') +
       '<div class="side-nav">' + nav + '</div>' +
       // toute la zone du profil ouvre le menu du compte
@@ -311,9 +311,16 @@
     const b = id => document.getElementById(id);
     if (b('k-theme')) b('k-theme').onclick = K.basculerTheme;
     if (b('k-theme2')) b('k-theme2').onclick = K.basculerTheme;
-    if (b('k-burger')) b('k-burger').onclick = () => b('k-app').classList.toggle('menu-ouvert');
+    // menu mobile : le voile à côté le referme toujours, comme un lien du menu (même vers la page déjà ouverte)
+    if (b('k-burger')) b('k-burger').onclick = e => { e.stopPropagation(); b('k-app').classList.toggle('menu-ouvert'); };
+    if (b('k-voile')) b('k-voile').onclick = e => { e.stopPropagation(); K.fermerMenu(); };
+    document.querySelectorAll('.side a').forEach(a => a.addEventListener('click', () => setTimeout(K.fermerMenu, 0)));
     if (b('k-menu-btn')) b('k-menu-btn').onclick = e => { e.stopPropagation(); b('k-menu').hidden = !b('k-menu').hidden; b('k-menu-btn').setAttribute('aria-expanded', String(!b('k-menu').hidden)); };
-    document.addEventListener('click', K.fermerMenu, { once: true });
+    if (!K.ecouteMenu) {   // une seule fois : un clic ailleurs referme le menu du compte
+      K.ecouteMenu = true;
+      document.addEventListener('click', e => { const m = document.getElementById('k-menu'); if (m && !m.hidden && !e.target.closest('#k-menu')) { m.hidden = true; const mb = document.getElementById('k-menu-btn'); if (mb) mb.setAttribute('aria-expanded', 'false'); } });
+      document.addEventListener('keydown', e => { if (e.key === 'Escape') K.fermerMenu(); });
+    }
     if (conf.recherche && b('k-cherche')) {
       const champ = b('k-cherche'), res = b('k-res'); let sel = 0, items = [];
       const montrer = () => {

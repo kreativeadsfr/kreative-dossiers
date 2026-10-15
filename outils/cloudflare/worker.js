@@ -211,42 +211,24 @@ function remplacer(t, base) {
   return t.replace(/https:\/\/kreativeadsfr\.github\.io\/kreative-dossiers(?=["'\s<)])/g, base.replace(/\/$/, ''));
 }
 
-// la petite barre en bas à gauche de chaque page : revenir en arrière,
-// retourner à son espace (et, pour l'admin, aller partout)
+// 15/10 : la barre noire n'apparaît que pour l'admin, sur les trois espaces
+// qu'il ouvre depuis le tableau de bord dans le même onglet (stratégiste,
+// designer, fiche), pour y revenir. Statique : en bas à gauche, à droite sur
+// la fiche (à gauche, il y a les boutons de la fiche). Partout ailleurs, les
+// pages s'ouvrent dans un nouvel onglet : pas de barre.
 function barre(qui, chemin) {
-  if (!qui) return '';
-  const accueil = ACCUEILS[qui.role];
-  if (chemin === accueil || chemin === accueil + 'index.html') return '';
-  const en = qui.role === 'designer';
-  const liens = qui.role === 'admin'
-    ? [['/admin/', 'Tableau de bord'], ['/strategiste/', 'Stratégiste'], ['/designer/', 'Designer'], ['/fiche/', 'Fiche']]
-    : [[accueil, en ? 'My projects' : 'Mes projets']];
-  // en bas à droite par défaut ; se déplace en l'attrapant (hors des boutons),
-  // la place est gardée sur l'ordinateur ; double-clic dessus (hors des boutons) : retour à droite
-  return '<nav id="k-barre" style="position:fixed;right:16px;bottom:16px;z-index:2147483000;display:flex;gap:4px;align-items:center;' +
-    'background:#1f1f1f;padding:5px;border-radius:999px;box-shadow:0 8px 28px rgba(0,0,0,.18);font:500 13.5px/1 Inter,-apple-system,Segoe UI,sans-serif;cursor:grab;touch-action:none;user-select:none">' +
-    '<style>#k-barre a,#k-barre button{all:unset;cursor:pointer;color:#fff;padding:9px 14px;border-radius:999px;white-space:nowrap}' +
-    '#k-barre a:hover,#k-barre button:hover{background:#4d94ff}#k-barre .k-cur{background:rgba(255,255,255,.14)}' +
-    '#k-barre .k-grip{color:rgba(255,255,255,.45);padding:0 4px 0 8px;font-size:15px;letter-spacing:-2px;cursor:grab}' +
-    '#k-barre.k-tient,#k-barre.k-tient .k-grip{cursor:grabbing}' +
+  if (!qui || qui.role !== 'admin') return '';
+  const m = chemin.match(/^\/(strategiste|designer|fiche)\/(index\.html)?$/);
+  if (!m) return '';
+  const cote = m[1] === 'fiche' ? 'right' : 'left';
+  const liens = [['/admin/', 'Tableau de bord'], ['/strategiste/', 'Stratégiste'], ['/designer/', 'Designer'], ['/fiche/', 'Fiche']];
+  return '<nav id="k-barre" style="position:fixed;' + cote + ':16px;bottom:16px;z-index:2147483000;display:flex;gap:4px;align-items:center;' +
+    'background:#1f1f1f;padding:5px;border-radius:999px;box-shadow:0 8px 28px rgba(0,0,0,.18);font:500 13.5px/1 Inter,-apple-system,Segoe UI,sans-serif">' +
+    '<style>#k-barre a{all:unset;cursor:pointer;color:#fff;padding:9px 14px;border-radius:999px;white-space:nowrap}' +
+    '#k-barre a:hover{background:#4d94ff}#k-barre .k-cur{background:rgba(255,255,255,.14)}' +
     '@media print{#k-barre{display:none}}@media(max-width:600px){#k-barre .k-opt{display:none}}</style>' +
-    '<span class="k-grip" title="' + (en ? 'Drag to move' : 'Glisser pour déplacer') + '">⋮⋮</span>' +
-    '<button type="button" onclick="history.length>1?history.back():location.assign(\'' + accueil + '\')" title="' + (en ? 'Back' : 'Retour') + '">← ' + (en ? 'Back' : 'Retour') + '</button>' +
-    liens.map(([h, t], i) => '<a href="' + h + '"' + (i > 0 ? ' class="k-opt' + (chemin.startsWith(h) ? ' k-cur' : '') + '"' : (chemin.startsWith(h) ? ' class="k-cur"' : '')) + '>' + t + '</a>').join('') +
-    '</nav>' +
-    '<script>(function(){var b=document.getElementById("k-barre");if(!b)return;var K="k-barre-place";' +
-    'function placer(x,y){x=Math.max(8,Math.min(x,innerWidth-b.offsetWidth-8));y=Math.max(8,Math.min(y,innerHeight-b.offsetHeight-8));' +
-    'b.style.left=x+"px";b.style.top=y+"px";b.style.right="auto";b.style.bottom="auto";}' +
-    'try{var p=JSON.parse(localStorage.getItem(K)||"null");if(p)placer(p.x,p.y);}catch(e){}' +
-    'b.addEventListener("pointerdown",function(e){if(e.button||e.target.closest("a,button"))return;e.preventDefault();' +
-    'var r=b.getBoundingClientRect(),dx=e.clientX-r.left,dy=e.clientY-r.top;b.setPointerCapture(e.pointerId);b.classList.add("k-tient");' +
-    'function bouge(v){placer(v.clientX-dx,v.clientY-dy);}' +
-    'function lache(){b.removeEventListener("pointermove",bouge);b.removeEventListener("pointerup",lache);b.classList.remove("k-tient");' +
-    'try{localStorage.setItem(K,JSON.stringify({x:b.offsetLeft,y:b.offsetTop}));}catch(e){}}' +
-    'b.addEventListener("pointermove",bouge);b.addEventListener("pointerup",lache);});' +
-    'b.addEventListener("dblclick",function(e){if(e.target.closest("a,button"))return;try{localStorage.removeItem(K);}catch(e){}' +
-    'b.style.left="";b.style.top="";b.style.right="16px";b.style.bottom="16px";});' +
-    'addEventListener("resize",function(){if(b.style.left)placer(b.offsetLeft,b.offsetTop);});})();</script>';
+    liens.map(([h, t], i) => '<a href="' + h + '" class="' + (i ? 'k-opt' : '') + (chemin.startsWith(h) ? ' k-cur' : '') + '">' + (i ? '' : '← ') + t + '</a>').join('') +
+    '</nav>';
 }
 
 function reecrireHtml(rep, base, barreHtml) {

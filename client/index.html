@@ -440,7 +440,7 @@ function ecranCommander() {
     return '<div class="card offre' + (hot ? ' hot' : '') + '">' + (hot ? '<span class="badge-hot">Le plus populaire</span>' : '') +
       '<div class="tete"><h3>Pack ' + esc(P.nom) + '</h3>' + (m ? '<span class="pill b">−15 %</span>' : '') + '</div>' +
       '<div class="prix">' + (m ? '<span class="barre-prix">' + P.unique + ' €</span>' : '') + '<span>' + prix + ' €</span>' + (m ? '<small>/ mois</small>' : '') + '</div>' +
-      '<div class="unit">' + Math.round(prix / P.creas) + ' € la créative · ' + P.creas + ' créatives' + (m ? ' chaque mois' : '') + '</div>' +
+      '<div class="unit">' + Math.floor(prix / P.creas) + ' € la créative · ' + P.creas + ' créatives' + (m ? ' chaque mois' : '') + '</div>' +
       '<a class="btn ' + (hot ? 'btn-p' : 'btn-d') + ' btn-bloc btn-lg" href="#/commander/' + k + '">Voir les options</a>' +
       '<ul>' + AVANTAGES[k].map(a => '<li class="' + (a[1] ? '' : 'off') + '">' + i.coche + '<span>' + esc(a[0]) + '</span></li>').join('') + '</ul></div>';
   }).join('') +

@@ -40,7 +40,7 @@
     const opts = d.options.filter(x => c.options.includes(x.id));
     let base, nb, u;
     if (c.pack !== 'custom') {
-      const P = d.packs[c.pack]; nb = P.creas; base = m ? P.mensuel : P.unique; u = Math.round(base / nb);
+      const P = d.packs[c.pack]; nb = P.creas; base = m ? P.mensuel : P.unique; u = Math.floor(base / nb);
       lignes.push([nb + ' créatives', base]);
     } else {
       nb = c.nb; u = d.custom.paliers.filter(x => nb >= x[0]).pop()[1];
@@ -105,7 +105,7 @@
       '<p class="muted" style="font-size:13px;margin-top:3px">' + (m ? 'Abonnement mensuel' : 'Commande unique') + '</p>' +
       '<div style="margin-top:14px">' + d.lignes.map(l => '<div class="ligne"><span>' + esc(l[0]) + '</span><b>' + (l[1] < 0 ? '−' : '') + K.euros(Math.abs(Math.round(l[1]))) + '</b></div>').join('') + '</div>' +
       '<div class="total"><span class="muted">Total' + (m ? ' par mois' : '') + '</span><b>' + K.euros(d.total) + '</b></div>' +
-      '<div class="unitaire">' + K.euros(Math.round(d.total / d.nb)) + ' <span>la créative</span></div>' +
+      '<div class="unitaire">' + K.euros(Math.floor(d.total / d.nb)) + ' <span>la créative</span></div>' +
       '<div class="delai">' + i.horloge + 'Livrée en ' + esc(PN.delai()) + ' après votre brief</div>' +
       '<a class="btn btn-d btn-bloc btn-lg" id="cf-payer" href="#" target="_blank" rel="noopener">' + esc((o.bouton && o.bouton.texte) || 'Commander') + '</a>' +
       '<p class="confiance petit"><span>' + i.cadenas + 'Paiement sécurisé par Stripe</span></p>';

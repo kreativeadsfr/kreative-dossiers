@@ -626,7 +626,7 @@ function devis(pack, formule, nbDemande, optionsDemandees) {
   let nb, unitaire, base;
   if (pack !== 'custom') {
     pack = PACKS[pack] ? pack : 'growth';
-    nb = PACKS[pack].creas; base = m ? PACKS[pack].mensuel : PACKS[pack].unique; unitaire = Math.round(base / nb);
+    nb = PACKS[pack].creas; base = m ? PACKS[pack].mensuel : PACKS[pack].unique; unitaire = Math.floor(base / nb);   // comme le site : 280 / 6 = 46 €
   } else {
     nb = Math.round(Number(nbDemande) || CUSTOM.min);
     nb = Math.min(CUSTOM.max, Math.max(CUSTOM.min, Math.round(nb / CUSTOM.pas) * CUSTOM.pas));

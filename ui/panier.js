@@ -20,7 +20,14 @@
   const C = () => PN.cfg, D = () => PN.d;
   PN.prixOpt = (o, pack) => (o.par_pack && o.par_pack[pack] != null) ? o.par_pack[pack] : o.valeur;
   PN.nb = () => C().pack === 'custom' ? C().nb : D().packs[C().pack].creas;
-  PN.qte = id => Math.min(PN.nb(), Math.max(1, Math.round(C().qte[id] || 1)));
+  // les A/B tests ensemble ne dépassent jamais le nombre de créas (12 sur un Growth : 7 + 5, par exemple)
+  const parCrea = () => D().options.filter(o => o.type === 'par_crea' && C().options.includes(o.id)).map(o => o.id);
+  PN.normaliser = () => {
+    const c = C(), ids = parCrea(); let reste = PN.nb();
+    ids.forEach((id, k) => { const max = Math.max(1, reste - (ids.length - k - 1)); c.qte[id] = Math.min(max, Math.max(1, Math.round(c.qte[id] || 1))); reste -= c.qte[id]; });
+  };
+  PN.qte = id => { PN.normaliser(); return C().qte[id] || 1; };
+  PN.max = id => { PN.normaliser(); return PN.nb() - parCrea().filter(x => x !== id).reduce((n, x) => n + (C().qte[x] || 1), 0); };
   PN.choisir = (pack, formule) => {
     const c = C();
     if (c.pack !== pack) { c.pack = pack; c.options = []; c.qte = {}; }
@@ -82,13 +89,13 @@
   PN.options = () => {
     const c = C(), nb = PN.nb();
     return D().options.map(o => {
-      const on = c.options.includes(o.id), parCrea = o.type === 'par_crea', q = PN.qte(o.id);
-      const px = o.type === 'pct' ? '+' + o.valeur + ' %' : o.type === 'fixe' ? '+' + K.euros(PN.prixOpt(o, c.pack)) : on ? '+' + K.euros(q * o.valeur) : '+' + o.valeur + ' €<small>par créa</small>';
+      const on = c.options.includes(o.id), parCrea = o.type === 'par_crea', q = PN.qte(o.id), max = PN.max(o.id);
+      const px = o.type === 'pct' ? '+' + o.valeur + ' %' : o.type === 'fixe' ? '+' + K.euros(PN.prixOpt(o, c.pack)) : '+' + o.valeur + ' €<small>par créa</small>';
       return '<div class="opt' + (on ? ' on' : '') + (on && parCrea ? ' avec-qte' : '') + '" data-cf-opt="' + esc(o.id) + '" role="checkbox" aria-checked="' + on + '" tabindex="0"><span class="case">' + i.coche + '</span>' +
         '<div class="opt-t"><b>' + esc(o.nom) + '</b><small>' + esc(o.detail) + '</small></div>' +
         (on && parCrea ? '<div class="qte" data-qte="' + esc(o.id) + '"><button type="button" data-moins aria-label="Une créa de moins"' + (q <= 1 ? ' disabled' : '') + '>−</button>' +
-          '<span><b>' + q + '</b><small>sur ' + nb + '</small></span><button type="button" data-plus aria-label="Une créa de plus"' + (q >= nb ? ' disabled' : '') + '>+</button></div>' : '') +
-        '<span class="px">' + px + (on && parCrea ? '<small>' + o.valeur + ' € × ' + q + '</small>' : '') + '</span></div>';
+          '<span><b>' + q + '</b></span><button type="button" data-plus aria-label="Une créa de plus"' + (q >= max ? ' disabled' : '') + '>+</button></div>' : '') +
+        '<span class="px">' + px + '</span></div>';
     }).join('');
   };
   PN.recap = o => {
@@ -122,7 +129,7 @@
       el.onkeydown = e => { if (e.target.closest('.qte')) return; if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); basculer(); } };
       const qz = el.querySelector('.qte');
       if (qz) {
-        const changer = n => { C().qte[id] = Math.min(PN.nb(), Math.max(1, PN.qte(id) + n)); maj(); const b = document.querySelector('[data-qte="' + id + '"] [data-' + (n > 0 ? 'plus' : 'moins') + ']'); if (b && !b.disabled) b.focus({ preventScroll: true }); };
+        const changer = n => { C().qte[id] = Math.min(PN.max(id), Math.max(1, PN.qte(id) + n)); maj(); const b = document.querySelector('[data-qte="' + id + '"] [data-' + (n > 0 ? 'plus' : 'moins') + ']'); if (b && !b.disabled) b.focus({ preventScroll: true }); };
         qz.querySelector('[data-moins]').onclick = e => { e.stopPropagation(); changer(-1); };
         qz.querySelector('[data-plus]').onclick = e => { e.stopPropagation(); changer(1); };
       }

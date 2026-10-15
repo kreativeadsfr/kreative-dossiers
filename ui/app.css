@@ -546,8 +546,8 @@ a.lien-kpi:hover{border-color:var(--line2)}
 .qte button:hover:not(:disabled){background:var(--soft)}
 .qte button:active:not(:disabled){transform:scale(.9)}
 .qte button:disabled{color:var(--line2);cursor:default}
-.qte span{min-width:44px;text-align:center;line-height:1.05}
-.qte span b{display:block;font-size:15px;font-weight:700;font-variant-numeric:tabular-nums}
+.qte span{min-width:34px;text-align:center;line-height:1.05}
+.qte span b{display:block;font-size:14.5px;font-weight:700;font-variant-numeric:tabular-nums}
 .qte span small{display:block;font-size:10.5px;color:var(--tx3)}
 .opt.avec-qte .px{margin-left:14px;min-width:62px}
 @keyframes qte-in{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:none}}

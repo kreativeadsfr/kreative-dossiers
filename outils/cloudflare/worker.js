@@ -633,8 +633,14 @@ function devis(pack, formule, nbDemande, optionsDemandees) {
     unitaire = CUSTOM.paliers.filter(x => nb >= x[0]).pop()[1];
     base = nb * unitaire;
   }
-  const options = OPTIONS.filter(o => o.id in demandes).map(o => ({ ...o,
-    qte: o.type === 'par_crea' ? Math.min(nb, Math.max(1, Math.round(demandes[o.id] == null || !isFinite(demandes[o.id]) ? nb : demandes[o.id]))) : 1 }));
+  // les A/B tests ensemble ne dépassent jamais le nombre de créas (dans l'ordre : visuel, puis texte)
+  const options = OPTIONS.filter(o => o.id in demandes).map(o => ({ ...o, qte: 1 }));
+  const pc = options.filter(o => o.type === 'par_crea');
+  let reste = nb;
+  pc.forEach((o, k) => {
+    const voulu = demandes[o.id] == null || !isFinite(demandes[o.id]) ? nb : demandes[o.id];
+    o.qte = Math.min(Math.max(1, reste - (pc.length - k - 1)), Math.max(1, Math.round(voulu))); reste -= o.qte;
+  });
   for (const o of options) if (o.type === 'par_crea') base += o.qte * o.valeur;
   if (pack === 'custom' && m) base = base * (1 - CUSTOM.remise_mensuel);
   for (const o of options) if (o.type === 'pct') base += base * o.valeur / 100;

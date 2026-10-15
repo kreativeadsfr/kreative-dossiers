@@ -42,5 +42,77 @@
     "pack": "growth",
     "date": "2026-09-27",
     "url": "https://kreativeadsfr.github.io/kreative-dossiers/LABORATOIREKOT_09_c6ac/"
+  },
+  {
+    "dossier": "TEST_DEMO_LUMEN",
+    "brand_name": "Maison Lumen",
+    "nb_creas": 12,
+    "pack": "growth",
+    "date": "2026-10-14",
+    "url": "https://kreativeadsfr.github.io/kreative-dossiers/TEST_DEMO_LUMEN/",
+    "demo": true
+  },
+  {
+    "dossier": "TEST_DEMO_SABLE",
+    "brand_name": "Atelier Sable",
+    "nb_creas": 6,
+    "pack": "starter",
+    "date": "2026-10-12",
+    "url": "https://kreativeadsfr.github.io/kreative-dossiers/TEST_DEMO_SABLE/",
+    "demo": true
+  },
+  {
+    "dossier": "TEST_DEMO_NORDIK",
+    "brand_name": "Nordik Café",
+    "nb_creas": 20,
+    "pack": "custom",
+    "date": "2026-10-05",
+    "url": "https://kreativeadsfr.github.io/kreative-dossiers/TEST_DEMO_NORDIK/",
+    "demo": true
+  },
+  {
+    "dossier": "TEST_DEMO_NORDIK_L2",
+    "brand_name": "Nordik Café",
+    "nb_creas": 20,
+    "pack": "custom",
+    "date": "2026-10-14",
+    "url": "https://kreativeadsfr.github.io/kreative-dossiers/TEST_DEMO_NORDIK/",
+    "demo": true
+  },
+  {
+    "dossier": "TEST_DEMO_VELVO",
+    "brand_name": "Velvo",
+    "nb_creas": 24,
+    "pack": "scale",
+    "date": "2026-10-10",
+    "url": "https://kreativeadsfr.github.io/kreative-dossiers/TEST_DEMO_VELVO/",
+    "demo": true
+  },
+  {
+    "dossier": "TEST_DEMO_ORIA",
+    "brand_name": "Oria Skin",
+    "nb_creas": 12,
+    "pack": "growth",
+    "date": "2026-10-09",
+    "url": "https://kreativeadsfr.github.io/kreative-dossiers/TEST_DEMO_ORIA/",
+    "demo": true
+  },
+  {
+    "dossier": "TEST_DEMO_PULSE",
+    "brand_name": "Pulse Studio",
+    "nb_creas": 12,
+    "pack": "growth",
+    "date": "2026-10-06",
+    "url": "https://kreativeadsfr.github.io/kreative-dossiers/TEST_DEMO_PULSE/",
+    "demo": true
+  },
+  {
+    "dossier": "TEST_DEMO_KORA",
+    "brand_name": "Kora Food",
+    "nb_creas": 12,
+    "pack": "growth",
+    "date": "2026-10-14",
+    "url": "https://kreativeadsfr.github.io/kreative-dossiers/TEST_DEMO_KORA/",
+    "demo": true
   }
 ]

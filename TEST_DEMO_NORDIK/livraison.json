@@ -1,0 +1,11 @@
+{
+  "dossier": "TEST_DEMO_NORDIK",
+  "livre": true,
+  "livraisons": [
+    {
+      "le": "2026-10-10T05:12:38.000Z",
+      "lien": "https://example.com/demo-livraison",
+      "note": "Livraison de démonstration."
+    }
+  ]
+}

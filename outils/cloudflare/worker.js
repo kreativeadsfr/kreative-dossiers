@@ -677,6 +677,8 @@ async function corpsJson(req) {
 const lienAcces = (url, jeton) => url.origin + '/acces/' + jeton;
 
 async function envoyerEmail(env, donnees) {
+  // les clients de démonstration (@example.com) ne reçoivent jamais rien
+  if (/@example\.(com|org|net)$/i.test(String(donnees && donnees.a || ''))) return { ok: true, demo: true, message: 'Client de démonstration : aucun email envoyé.' };
   if (!env.N8N_EMAIL) return { ok: false, message: 'Envoi d\'email pas encore branché (secret N8N_EMAIL manquant).' };
   try {
     const r = await fetch(env.N8N_EMAIL, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Kreative-Cle': env.CLE || '' },
@@ -863,6 +865,7 @@ async function apiClient(req, env, ctx, url, chemin, methode, cl, apercu) {
 
   // payer une commande : Stripe Checkout, au montant calculé ici
   if (chemin === '/paiement' && methode === 'POST') {
+    if (/^c_demo_/.test(cl.id)) return json({ erreur: 'Client de démonstration : le paiement est désactivé.' }, 403);
     if (!env.STRIPE_SECRET) return json({ erreur: 'Le paiement en ligne arrive bientôt. Écrivez-nous sur WhatsApp pour commander.' }, 503);
     const b = await corpsJson(req);
     const d = devis(String(b.pack || ''), b.formule, b.nb_creas, Array.isArray(b.options) ? b.options.map(String) : []);
@@ -891,7 +894,7 @@ async function apiClient(req, env, ctx, url, chemin, methode, cl, apercu) {
   }
 
   // valider la livraison, puis l'avis Trustpilot
-  if ((m = chemin.match(/^\/commandes\/(k_[A-Za-z0-9]+)\/(valider|avis)$/)) && methode === 'POST') {
+  if ((m = chemin.match(/^\/commandes\/(k_[A-Za-z0-9_]+)\/(valider|avis)$/)) && methode === 'POST') {
     const k = await db.prepare('SELECT * FROM commandes WHERE id = ? AND client_id = ?').bind(m[1], cl.id).first();
     if (!k) return json({ erreur: 'Commande introuvable' }, 404);
     if (m[2] === 'valider') {
@@ -908,6 +911,63 @@ async function apiClient(req, env, ctx, url, chemin, methode, cl, apercu) {
     return json({ ok: true });
   }
   return json({ erreur: 'Introuvable' }, 404);
+}
+
+// ============================================================
+//  DÉMONSTRATION
+//  Des clients fictifs (emails @example.com) à chaque étape du parcours,
+//  reliés aux dossiers TEST_DEMO_* du dépôt. Ils se repèrent à leur
+//  identifiant (c_demo_, k_demo_, f_demo_) et partent d'un clic.
+//  Rien n'est envoyé : ni email, ni Stripe, ni Telegram.
+// ============================================================
+async function creerDemo(db) {
+  await retirerDemo(db);
+  const J = 864e5, now = maintenant();
+  const C = [
+    ['lina', 'Lina Mode', 'Lina Moreau', [['starter', 'unique', 6, 280, null, 'brief', 1, null]], 'Commande payée, brief pas encore envoyé'],
+    ['lumen', 'Maison Lumen', 'Hugo Lambert', [['growth', 'unique', 12, 490, 'TEST_DEMO_LUMEN', 'production', 2, null]], 'Brief reçu, fiche à remplir'],
+    ['sable', 'Atelier Sable', 'Clara Petit', [['starter', 'unique', 6, 280, 'TEST_DEMO_SABLE', 'production', 4, null]], 'Fiche en retard'],
+    ['nordik', 'Nordik Café', 'Erik Dahl', [['custom', 'unique', 40, 1360, 'TEST_DEMO_NORDIK', 'production', 6, null]], 'Sur-mesure en 2 livraisons, brief de la livraison 2 reçu'],
+    ['velvo', 'Velvo', 'Sami Benali', [['scale', 'unique', 24, 890, 'TEST_DEMO_VELVO', 'production', 5, null]], 'Chez la designer, en retard'],
+    ['oria', 'Oria Skin', 'Inès Garcia', [['growth', 'mensuel', 12, 420, 'TEST_DEMO_ORIA', 'production', 3, null]], 'Livré par la designer, à envoyer au client'],
+    ['pulse', 'Pulse Studio', 'Noah Martin', [['growth', 'unique', 12, 490, 'TEST_DEMO_PULSE', 'livre', 8, null]], 'Livré, le client doit valider'],
+    ['brume', 'Brume Paris', 'Léa Roux', [['scale', 'unique', 24, 890, null, 'revisions', 10, null]], 'Retouches en cours'],
+    ['kora', 'Kora Food', 'Yanis Haddad', [['growth', 'mensuel', 12, 420, null, 'valide', 34, 'avis'], ['growth', 'mensuel', 12, 420, 'TEST_DEMO_KORA', 'production', 3, null]], 'Abonnement : mois précédent validé, brief du mois reçu']
+  ];
+  let n = 0, nb = 0;
+  for (const [slug, marque, contact, cmds, note] of C) {
+    const id = 'c_demo_' + slug;
+    await db.prepare('INSERT INTO clients (id, marque, contact, email, site, jeton, notes, cree_le, vu_le) VALUES (?,?,?,?,?,?,?,?,?)')
+      .bind(id, marque + ' (démo)', contact, 'demo-' + slug + '@example.com', 'https://example.com', aleatoire(32), 'Client de démonstration : ' + note, now - 40 * J, now - J).run();
+    await db.prepare('INSERT INTO activite (client_id, type, texte, le) VALUES (?,?,?,?)').bind(id, 'client', 'Espace client créé', now - 40 * J).run();
+    for (const [pack, formule, creas, prix, dossier, statut, ilya, extra] of cmds) {
+      n++;
+      const k = 'k_demo_' + slug + '_' + n, cree = now - ilya * J, brief = statut === 'brief' ? null : cree + J;
+      const livre = ['livre', 'revisions', 'valide'].includes(statut) ? cree + 3 * J : null;
+      await db.prepare(`INSERT INTO commandes (id, ref, client_id, pack, formule, nb_creas, prix, dossier, statut, cree_le, brief_le, livre_le, valide_le, avis_le)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).bind(k, 'DEMO-' + n, id, pack, formule, creas, prix, dossier, statut, cree, brief, livre,
+          statut === 'valide' ? cree + 5 * J : null, extra === 'avis' ? cree + 5 * J : null).run();
+      const act = [['commande', 'Paiement reçu, commande confirmée', cree]];
+      if (brief) act.push(['brief', 'Brief reçu, production lancée', brief]);
+      if (livre) act.push(['livre', 'Vos créatives sont livrées', livre]);
+      if (statut === 'revisions') act.push(['revisions', 'Retouches en cours', livre + J]);
+      if (statut === 'valide') act.push(['valide', 'Créatives validées · projet terminé', cree + 5 * J]);
+      for (const [type, texte, le] of act) await db.prepare('INSERT INTO activite (client_id, commande_id, type, texte, le) VALUES (?,?,?,?,?)').bind(id, k, type, texte, le).run();
+      nb++;
+      await db.prepare('INSERT INTO factures (id, client_id, commande_id, numero, montant, montant_ht, statut, emise_le, payee_le, source, cree_le) VALUES (?,?,?,?,?,?,?,?,?,?,?)')
+        .bind('f_demo_' + n, id, k, 'DEMO-2026-' + String(nb).padStart(3, '0'), prix, prix, slug === 'velvo' ? 'ouverte' : 'payee', cree, slug === 'velvo' ? null : cree, 'demo', now).run();
+    }
+  }
+  return { ok: true, clients: C.length, commandes: n };
+}
+async function retirerDemo(db) {
+  const r = await db.prepare("SELECT COUNT(*) AS n FROM clients WHERE id LIKE 'c_demo_%'").first();
+  await db.batch([
+    db.prepare("DELETE FROM activite WHERE client_id LIKE 'c_demo_%'"),
+    db.prepare("DELETE FROM factures WHERE id LIKE 'f_demo_%' OR client_id LIKE 'c_demo_%'"),
+    db.prepare("DELETE FROM commandes WHERE id LIKE 'k_demo_%' OR client_id LIKE 'c_demo_%'"),
+    db.prepare("DELETE FROM clients WHERE id LIKE 'c_demo_%'")]);
+  return { ok: true, retires: (r && r.n) || 0 };
 }
 
 // la photo de profil d'un client, stockée en data URL dans la base
@@ -974,11 +1034,11 @@ async function apiAdmin(req, env, ctx, url, chemin, methode) {
     await noter(db, id, null, 'client', 'Espace client créé');
     return json({ id, lien: lienAcces(url, jeton) });
   }
-  if ((m = chemin.match(/^\/clients\/(c_[A-Za-z0-9]+)\/photo$/)) && methode === 'GET') {
+  if ((m = chemin.match(/^\/clients\/(c_[A-Za-z0-9_]+)\/photo$/)) && methode === 'GET') {
     const cl = await db.prepare('SELECT photo FROM clients WHERE id = ?').bind(m[1]).first();
     return imagePhoto(cl && cl.photo);
   }
-  if ((m = chemin.match(/^\/clients\/(c_[A-Za-z0-9]+)$/))) {
+  if ((m = chemin.match(/^\/clients\/(c_[A-Za-z0-9_]+)$/))) {
     const cl = await db.prepare('SELECT * FROM clients WHERE id = ?').bind(m[1]).first();
     if (!cl) return json({ erreur: 'Client introuvable' }, 404);
     if (methode === 'GET') {
@@ -1006,7 +1066,7 @@ async function apiAdmin(req, env, ctx, url, chemin, methode) {
       return json({ ok: true });
     }
   }
-  if ((m = chemin.match(/^\/clients\/(c_[A-Za-z0-9]+)\/(nouveau-lien|envoyer-lien)$/)) && methode === 'POST') {
+  if ((m = chemin.match(/^\/clients\/(c_[A-Za-z0-9_]+)\/(nouveau-lien|envoyer-lien)$/)) && methode === 'POST') {
     const cl = await db.prepare('SELECT * FROM clients WHERE id = ?').bind(m[1]).first();
     if (!cl) return json({ erreur: 'Client introuvable' }, 404);
     if (m[2] === 'nouveau-lien') {
@@ -1034,7 +1094,7 @@ async function apiAdmin(req, env, ctx, url, chemin, methode) {
     const { nb, prix } = prixPack(pack, formule, b);
     return json(await creerCommande(db, { client_id: cl.id, pack, formule, nb, prix, dossier: propre(b.dossier, 60) || null }));
   }
-  if ((m = chemin.match(/^\/commandes\/(k_[A-Za-z0-9]+)$/))) {
+  if ((m = chemin.match(/^\/commandes\/(k_[A-Za-z0-9_]+)$/))) {
     const k = await db.prepare('SELECT * FROM commandes WHERE id = ?').bind(m[1]).first();
     if (!k) return json({ erreur: 'Commande introuvable' }, 404);
     if (methode === 'PATCH') {
@@ -1087,7 +1147,7 @@ async function apiAdmin(req, env, ctx, url, chemin, methode) {
     await noter(db, cl.id, k ? k.id : null, 'facture', 'Facture ' + (propre(b.numero, 40) || '') + ' disponible');
     return json({ id });
   }
-  if ((m = chemin.match(/^\/factures\/(f_[A-Za-z0-9]+)$/))) {
+  if ((m = chemin.match(/^\/factures\/(f_[A-Za-z0-9_]+)$/))) {
     const f = await db.prepare('SELECT * FROM factures WHERE id = ?').bind(m[1]).first();
     if (!f) return json({ erreur: 'Facture introuvable' }, 404);
     if (methode === 'PATCH') {
@@ -1106,6 +1166,10 @@ async function apiAdmin(req, env, ctx, url, chemin, methode) {
     }
   }
 
+  // ---- données de démonstration : un client à chaque étape, pour tout voir ----
+  if (chemin === '/demo' && methode === 'POST') return json(await creerDemo(db));
+  if (chemin === '/demo' && methode === 'DELETE') return json(await retirerDemo(db));
+
   if (chemin === '/equipe' && methode === 'GET') {
     return json(personnes(env).map(x => ({ nom: x.nom, role: x.role, espace: ACCUEILS[x.role] })));
   }
@@ -1116,7 +1180,8 @@ async function apiAdmin(req, env, ctx, url, chemin, methode) {
       (SELECT COUNT(*) FROM commandes WHERE formule = 'mensuel' AND statut != 'annule') AS mensuels,
       (SELECT COALESCE(SUM(prix),0) FROM commandes WHERE statut != 'annule' AND cree_le > ?) AS ca_30j,
       (SELECT COALESCE(SUM(montant),0) FROM factures WHERE statut = 'payee' AND emise_le > ?) AS encaisse_30j,
-      (SELECT COUNT(*) FROM factures WHERE statut IN ('ouverte','impayee')) AS impayees`).bind(maintenant() - 30 * 864e5, maintenant() - 30 * 864e5).first();
+      (SELECT COUNT(*) FROM factures WHERE statut IN ('ouverte','impayee')) AS impayees,
+      (SELECT COUNT(*) FROM clients WHERE id LIKE 'c_demo_%') AS demo`).bind(maintenant() - 30 * 864e5, maintenant() - 30 * 864e5).first();
     return json({ ...r, packs: PACKS, custom: CUSTOM, stripe: !!env.STRIPE_WEBHOOK_SECRET, paiement: !!env.STRIPE_SECRET });
   }
   return json({ erreur: 'Introuvable' }, 404);
@@ -1142,7 +1207,7 @@ async function paiementRecu(env, ctx, url, s) {
   if (await db.prepare('SELECT id FROM commandes WHERE stripe_session = ?').bind(s.id).first()) return;     // déjà traité
   const meta = s.metadata || {};
   const email = String((s.customer_details && s.customer_details.email) || s.customer_email || '').toLowerCase();
-  const idClient = meta.kreative_client || (/^c_[A-Za-z0-9]+$/.test(String(s.client_reference_id || '')) ? s.client_reference_id : null);
+  const idClient = meta.kreative_client || (/^c_[A-Za-z0-9_]+$/.test(String(s.client_reference_id || '')) ? s.client_reference_id : null);
   let cl = idClient ? await db.prepare('SELECT * FROM clients WHERE id = ?').bind(String(idClient)).first() : null;
   if (!cl && s.customer) cl = await db.prepare('SELECT * FROM clients WHERE stripe_client = ?').bind(String(s.customer)).first();
   if (!cl && email) cl = await db.prepare('SELECT * FROM clients WHERE lower(email) = ?').bind(email).first();

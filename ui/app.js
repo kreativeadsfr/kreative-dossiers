@@ -6,6 +6,27 @@
 (function () {
   const K = window.K = {};
 
+  // ---------- démonstration : rien ne part vers n8n (ni Telegram, ni email, ni production) ----------
+  // Un envoi vers l'extérieur qui concerne un projet TEST_DEMO_* reçoit une fausse réponse « ok ».
+  (function () {
+    const f = window.fetch;
+    if (!f || f.kDemo) return;
+    const g = function (entree, init) {
+      try {
+        const u = new URL(typeof entree === 'string' ? entree : entree.url, location.href);
+        const meth = String((init && init.method) || (entree && entree.method) || 'GET').toUpperCase();
+        const corps = init && typeof init.body === 'string' ? init.body : '';
+        if (u.origin !== location.origin && meth !== 'GET' &&
+          (/TEST_DEMO_/.test(corps) || /TEST_DEMO_/.test(location.pathname + location.search) || /\.invalid$/.test(u.hostname)))
+          return Promise.resolve(new Response(JSON.stringify({ ok: true, demo: true, message: /^en/.test(document.documentElement.lang) ? 'Demo project: nothing was sent, nobody was notified.' : 'Démo : rien n\'a été envoyé, personne n\'est prévenu.' }), { status: 200, headers: { 'Content-Type': 'application/json' } }));
+      } catch (e) {}
+      return f.apply(this, arguments);
+    };
+    g.kDemo = true;
+    window.fetch = g;
+  })();
+  K.estDemo = d => /^TEST_DEMO_/.test(String(d || ''));
+
   // ---------- thème (clair par défaut, sombre au choix, retenu) ----------
   // les espaces de l'équipe restent en clair (les pages de production le sont) : <html data-clair>
   try { if (localStorage.getItem('k-theme') === 'dark' && !document.documentElement.hasAttribute('data-clair')) document.documentElement.dataset.theme = 'dark'; } catch (e) {}
@@ -86,7 +107,7 @@
     if (s < 86400) return 'il y a ' + Math.floor(s / 3600) + ' h'; if (s < 86400 * 30) return 'il y a ' + Math.floor(s / 86400) + ' j';
     return K.date(ms);
   };
-  K.initiales = t => String(t || '?').trim().split(/\s+/).slice(0, 2).map(x => x[0]).join('').toUpperCase() || '?';
+  K.initiales = t => String(t || '?').replace(/\([^)]*\)/g, ' ').trim().split(/\s+/).slice(0, 2).map(x => x[0]).join('').toUpperCase() || '?';
   const TEINTES = ['#4d94ff', '#1f1f1f', '#e8834a', '#1e9e57', '#7c5cff', '#d6453d', '#c27a06', '#0f8b8d'];
   K.teinte = t => { let h = 0; for (const c of String(t || '')) h = (h * 31 + c.charCodeAt(0)) >>> 0; return TEINTES[h % TEINTES.length]; };
   K.tuile = (t, lg) => '<span class="tuile' + (lg ? ' lg' : '') + '" style="background:' + K.teinte(t) + '">' + K.esc(K.initiales(t)) + '</span>';
@@ -301,14 +322,14 @@
     if (P.liste && !force) return P.liste;
     let projets = await K.lireJson('/projets.json');
     if (!Array.isArray(projets)) projets = [];
-    P.liste = (await Promise.all(projets.filter(x => x && x.dossier && !/^TEST_/i.test(x.dossier)).map(async x => {
+    P.liste = (await Promise.all(projets.filter(x => x && x.dossier && !/^TEST_(?!DEMO_)/i.test(x.dossier)).map(async x => {
       const [d, envois, liv, retour] = await Promise.all(['donnees', 'envois', 'livraison', 'retour'].map(f => K.lireJson('/' + x.dossier + '/' + f + '.json')));
       if (!d) return null;
       const ev = (envois && Array.isArray(envois.envois)) ? envois.envois : [];
       const dernier = ev[ev.length - 1];
       const livs = (liv && liv.livraisons) || [], der = livs[livs.length - 1] || {};
       const l = d.livraison;
-      return { dossier: x.dossier, d, prod: (l && l.projet) || x.dossier, marque: d.brand_name || x.dossier,
+      return { dossier: x.dossier, demo: K.estDemo(x.dossier), d, prod: (l && l.projet) || x.dossier, marque: d.brand_name || x.dossier,
         nom: (d.brand_name || x.dossier) + (l && l.sur > 1 ? ' · livraison ' + l.n + '/' + l.sur : ''),
         nb: d.nb_creas || x.nb_creas || 0, pack: d.pack || x.pack || '', retour: !!(retour && retour.dossier === x.dossier),
         envoye: ev.length > 0, envoyeLe: Date.parse(typeof dernier === 'string' ? dernier : (dernier || {}).le || '') || 0,
@@ -373,7 +394,7 @@
     return h + '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>' + (en ? 'Project' : 'Projet') + '</th><th class="num">' + (en ? 'Creatives' : 'Créas') + '</th><th>' + (en ? 'Status' : 'Statut') + '</th><th>' + (en ? 'Deadline' : 'Échéance') + '</th><th></th></tr></thead><tbody>' +
       l.map(x => {
         const ech = !x.envoye ? x.strat : !x.livre ? x.desi : x.client;
-        return '<tr class="clic" onclick="location.hash=\'#/' + sec + '/' + K.esc(x.dossier) + '\'"><td><div class="nom">' + K.tuile(x.marque) + '<div><b>' + K.esc(x.nom) + '</b><span class="sub">' + K.esc(x.dossier) + '</span></div></div></td>' +
+        return '<tr class="clic" onclick="location.hash=\'#/' + sec + '/' + K.esc(x.dossier) + '\'"><td><div class="nom">' + K.tuile(x.marque) + '<div><b>' + K.esc(x.nom) + (x.demo ? ' <span class="pill demo">' + (en ? 'Demo' : 'Démo') + '</span>' : '') + '</b><span class="sub">' + K.esc(x.dossier) + '</span></div></div></td>' +
           '<td class="num">' + K.esc(x.nb || '?') + '</td><td>' + P.pill(x, en) + '</td><td>' + (ech ? K.esc(K.dateHeure(ech)) : '·') + '</td>' +
           '<td class="fin"><span class="btn btn-s btn-sm">' + (en ? 'Open' : 'Ouvrir') + ' ' + K.i.fleche.replace('<svg', '<svg width="14" height="14"') + '</span></td></tr>';
       }).join('') + '</tbody></table></div></div>';

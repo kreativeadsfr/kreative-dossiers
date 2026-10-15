@@ -139,6 +139,8 @@ function ecranAccueil() {
   const aLivrer = etats.filter(y => y.e.cle === 'livrer');
   let h = '<div class="ph"><div><h1>Vue d\'ensemble</h1><p>' + esc(K.date(Date.now(), { weekday: 'long', year: undefined })) + ' · tout ce qui se passe chez Kreative.</p></div>' +
     '<div class="act"><a class="btn btn-s" href="#/clients/nouveau">' + i.plus + 'Nouveau client</a><a class="btn btn-p" href="#/projets">' + i.dossier + 'Voir la production</a></div></div>';
+  if (R.demo) h += '<div class="bandeau-demo">' + i.etoile + '<span><b>Démo active</b> · ' + R.demo + ' clients fictifs et ' + (P.filter(x => x.demo).length) + ' projets TEST_DEMO à chaque étape. Aucun email, paiement ni Telegram ne part pour eux.</span>' +
+    '<button class="btn btn-s btn-sm" onclick="demo(false)">Retirer les données de démo</button></div>';
   h += '<div class="grid g4">' +
     kpi('Clients', R.clients != null ? R.clients : '·', (S.clients || []).filter(c => c.nb_commandes > 0).length + ' avec au moins une commande') +
     kpi('Commandes en cours', R.en_cours != null ? R.en_cours : '·', briefs.length + ' en attente de brief') +
@@ -160,7 +162,18 @@ function ecranAccueil() {
     '<div class="card"><div class="card-h"><h3>Derniers clients</h3><a class="btn btn-g btn-sm" href="#/clients">Tous</a></div><div class="card-b liste">' +
     ((S.clients || []).length ? S.clients.slice(0, 6).map(c => '<a class="li" style="text-decoration:none" href="#/clients/' + esc(c.id) + '">' + tuileClient(c) + '<span class="t"><b style="font-weight:600">' + esc(c.marque) + '</b><span class="muted" style="display:block;font-size:12.5px">' + esc(c.contact || c.email || '') + '</span></span><small>' + (c.nb_commandes ? c.nb_commandes + ' commande' + (c.nb_commandes > 1 ? 's' : '') : 'aucune commande') + '</small></a>').join('')
       : '<div class="vide">' + i.gens + 'Aucun client. <a href="#/clients/nouveau">Créer le premier</a></div>') + '</div></div></div>';
+  if (!R.demo && R.clients != null) h += '<div class="bandeau-demo" style="margin:18px 0 0">' + i.etoile + '<span>Voir le portail rempli à chaque étape : des clients fictifs (emails @example.com), reliés aux projets TEST_DEMO du dépôt.</span>' +
+    '<button class="btn btn-s btn-sm" onclick="demo(true)">Ajouter les données de démo</button></div>';
   return h;
+}
+// les données de démonstration (clients, commandes, factures fictifs) : un clic pour les mettre, un clic pour les retirer
+async function demo(ajouter) {
+  if (!ajouter && !await K.confirmer('Retirer la démo ?', 'Les clients, commandes et factures de démonstration sont effacés. Les vrais clients ne sont pas touchés.', 'Retirer', true)) return;
+  try {
+    const r = await K.api('/api/admin/demo', { methode: ajouter ? 'POST' : 'DELETE' });
+    K.toast(ajouter ? r.clients + ' clients de démo ajoutés' : 'Données de démo retirées');
+    rafraichir('clients', 'commandes', 'resume', 'factures', 'prod');
+  } catch (e) { K.toast(e.message); }
 }
 const kpi = (l, v, d, st) => '<div class="card kpi"><div class="lab">' + esc(l) + '</div><div class="v"' + (st ? ' style="' + st + '"' : '') + '>' + esc(v) + '</div><div class="d">' + esc(d) + '</div></div>';
 

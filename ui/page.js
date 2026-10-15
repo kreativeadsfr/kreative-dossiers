@@ -12,6 +12,27 @@
 (function () {
   var integre = document.body.classList.contains('kc-integre');
 
+  // ---------- 0. démonstration : un projet TEST_DEMO_* ne prévient jamais personne ----------
+  // (fiche envoyée, visuel signalé, livraison : fausse réponse « ok », rien ne part vers n8n)
+  (function () {
+    var f = window.fetch;
+    if (!f || f.kDemo) return;
+    var g = function (entree, init) {
+      try {
+        var u = new URL(typeof entree === 'string' ? entree : entree.url, location.href);
+        var meth = String((init && init.method) || (entree && entree.method) || 'GET').toUpperCase();
+        var corps = init && typeof init.body === 'string' ? init.body : '';
+        if (u.origin !== location.origin && meth !== 'GET' &&
+          (/TEST_DEMO_/.test(corps) || /TEST_DEMO_/.test(location.pathname + location.search) || /\.invalid$/.test(u.hostname))) {
+          return Promise.resolve(new Response(JSON.stringify({ ok: true, demo: true, message: /^en/.test(document.documentElement.lang) ? 'Demo project: nothing was sent, nobody was notified.' : 'Démo : rien n\'a été envoyé, personne n\'est prévenu.' }), { status: 200, headers: { 'Content-Type': 'application/json' } }));
+        }
+      } catch (e) {}
+      return f.apply(this, arguments);
+    };
+    g.kDemo = true;
+    window.fetch = g;
+  })();
+
   // ---------- 1. les liens internes restent dans le portail ----------
   function estPageInterne(u) {
     if (u.origin !== location.origin) return false;

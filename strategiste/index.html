@@ -56,7 +56,7 @@ function boutons(x, principal) {
   if (x.envoye) b.push('<a class="btn ' + (principal === 'visuels' ? 'btn-p' : 'btn-s') + ' btn-sm" href="#/visuels/' + esc(x.dossier) + '">' + i.image + 'Visuels</a>');
   return '<div style="display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap">' + b.join('') + '</div>';
 }
-const ligneNom = x => '<div class="nom">' + K.tuile(x.marque) + '<div><b>' + esc(x.nom) + '</b><span class="sub">' + esc(x.dossier) + '</span></div></div>';
+const ligneNom = x => '<div class="nom">' + K.tuile(x.marque) + '<div><b>' + esc(x.nom) + (x.demo ? ' <span class="pill demo">Démo</span>' : '') + '</b><span class="sub">' + esc(x.dossier) + '</span></div></div>';
 
 // ---------- VUE D'ENSEMBLE ----------
 function ecranAccueil() {

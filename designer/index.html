@@ -53,7 +53,7 @@ function rechercher(q) {
     .map(x => ({ texte: x.nom, type: 'Preview', icone: 'image', href: '#/visuels/' + x.dossier }));
 }
 const nomEn = x => x.nom.replace(' · livraison ', ' · part ');
-const ligneNom = x => '<div class="nom">' + K.tuile(x.marque) + '<div><b>' + esc(nomEn(x)) + '</b><span class="sub">' + esc(x.dossier) + '</span></div></div>';
+const ligneNom = x => '<div class="nom">' + K.tuile(x.marque) + '<div><b>' + esc(nomEn(x)) + (x.demo ? ' <span class="pill demo">Demo</span>' : '') + '</b><span class="sub">' + esc(x.dossier) + '</span></div></div>';
 function boutons(x) {
   return '<div style="display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap">' +
     '<a class="btn btn-s btn-sm" href="#/visuels/' + esc(x.dossier) + '">' + i.image + 'Preview</a>' +

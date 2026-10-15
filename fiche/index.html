@@ -1431,6 +1431,8 @@ async function envoie(code){
     "Trop de fichiers pour un seul envoi. Non joints : "+trop.join(", ")+
     ". Allege ou retire quelques pieces et renvoie.");
 
+  /* projet de démonstration (TEST_DEMO_*) : rien ne part vers n8n, personne n est prevenu */
+  if(/^TEST_DEMO_/.test(charge.dossier||""))return {ok:true,demo:true};
   const r=await fetch(WEBHOOK,{
     method:"POST",
     headers:{"Content-Type":"application/json"},
@@ -1458,8 +1460,9 @@ $("send").onclick=async()=>{
   const n=nc();let miss=[];
   for(let i=1;i<=n;i++)if(!full(i))miss.push(String(i).padStart(2,"0"));
   if(miss.length&&!confirm("Crea "+miss.join(", ")+" incomplete(s).\nEnvoyer quand meme ?"))return;
-  const code=TEST?"":codeKreative();
-  if(!TEST&&!code)return say("Il faut le code Kreative pour envoyer la fiche.","ko");
+  const DEMO=/^TEST_DEMO_/.test(PRJ.dossier||"");
+  const code=TEST||DEMO?"":codeKreative();
+  if(!TEST&&!DEMO&&!code)return say("Il faut le code Kreative pour envoyer la fiche.","ko");
   $("send").disabled=true;say("Envoi en cours...");
   try{
     const rep=await envoie(code);
@@ -1470,6 +1473,7 @@ $("send").onclick=async()=>{
     saveNb();
     $("donef").textContent=(PRJ.brand_name||PRJ.dossier)+" · "+n+" créas";
     $("done").hidden=false;
+    if(DEMO)say("Démo : la fiche n'est partie nulle part, personne n'est prévenu.","ok");
     accueil();
     menu();
   }catch(e){

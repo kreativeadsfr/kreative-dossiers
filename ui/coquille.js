@@ -74,7 +74,7 @@
   function chargerProjets() {
     if (PROJETS) return Promise.resolve(PROJETS);
     return lire('/projets.json').then(function (l) {
-      PROJETS = (Array.isArray(l) ? l : []).filter(function (x) { return x && x.dossier && !/^TEST_/i.test(x.dossier); });
+      PROJETS = (Array.isArray(l) ? l : []).filter(function (x) { return x && x.dossier && !/^TEST_(?!DEMO_)/i.test(x.dossier); });
       return PROJETS;
     });
   }

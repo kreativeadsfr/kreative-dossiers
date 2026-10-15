@@ -65,10 +65,12 @@
       if (!motifs.length && !commentaire) { r.hidden = false; r.textContent = 'Tick at least one box or describe the problem.'; return; }
       var e = f.querySelector('.sig-e');
       e.disabled = true; e.textContent = 'Sending…';
-      fetch(WEBHOOK, {
+      // projet de démonstration : rien ne part, personne n'est prévenu
+      var envoi = /^TEST_DEMO_/.test(String(DOSSIER || '')) ? Promise.resolve(new Response(JSON.stringify({ message: 'Demo project: nothing was sent, nobody was notified.' }), { status: 200 })) : fetch(WEBHOOK, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ dossier: DOSSIER, crea: crea, motifs: motifs, commentaire: commentaire })
-      }).then(function (rep) {
+      });
+      envoi.then(function (rep) {
         return rep.json().catch(function () { return {}; }).then(function (j) {
           return (j && j.message) ? j.message : (rep.ok ? 'Request sent to Kreative. You will get an answer on Telegram.' : ERREUR);
         });

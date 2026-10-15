@@ -769,7 +769,7 @@ function tableFactures(F, avecClient) {
         '<td class="num">' + K.euros(f.montant) + '</td><td>' + esc(K.date(f.emise_le)) + '</td>' +
         '<td class="fin"><div style="display:flex;gap:6px;justify-content:flex-end">' +
         '<button class="btn btn-s btn-sm" data-fdl="' + esc(f.id) + '">' + i.telecharger + 'Télécharger</button>' +
-        (f.source !== 'stripe' ? '<button class="btn btn-g btn-sm" data-fsuppr="' + esc(f.id) + '" title="Supprimer">' + i.poubelle + '</button>' : '') + '</div></td></tr>';
+        (f.source !== 'stripe' || !f.marque ? '<button class="btn btn-g btn-sm" data-fsuppr="' + esc(f.id) + '" data-stripe="' + (f.source === 'stripe' ? 1 : '') + '" title="Supprimer">' + i.poubelle + '</button>' : '') + '</div></td></tr>';
     }).join('') + '</tbody></table>';
 }
 // le bouton Télécharger de chaque facture (admin, fiche client)
@@ -830,7 +830,7 @@ function brancherFactures() {
 }
 function brancherSupprFactures() {
   document.querySelectorAll('[data-fsuppr]').forEach(x => x.onclick = async () => {
-    if (!await K.confirmer('Supprimer cette facture ?', 'Elle disparaît du portail. Rien n\'est changé dans votre comptabilité.', 'Supprimer', true)) return;
+    if (!await K.confirmer('Supprimer cette facture ?', x.dataset.stripe ? 'Elle disparaît du portail. Elle reste dans Stripe, rien n\'est changé dans votre comptabilité.' : 'Elle disparaît du portail. Rien n\'est changé dans votre comptabilité.', 'Supprimer', true)) return;
     try { await K.api('/api/admin/factures/' + x.dataset.fsuppr, { methode: 'DELETE' }); K.toast('Facture supprimée'); FICHE = null; rafraichir('factures'); } catch (e) { K.toast(e.message); }
   });
 }

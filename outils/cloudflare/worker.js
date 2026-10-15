@@ -1336,7 +1336,9 @@ async function apiAdmin(req, env, ctx, url, chemin, methode) {
       return json({ ok: true });
     }
     if (methode === 'DELETE') {
-      if (f.source === 'stripe') return json({ erreur: 'Une facture Stripe se gère dans Stripe.' }, 409);
+      // une facture Stripe rattachée à un client reste ; une facture Stripe orpheline (test, client supprimé) peut quitter le portail
+      const orpheline = !f.client_id || !(await db.prepare('SELECT 1 AS ok FROM clients WHERE id = ?').bind(f.client_id).first());
+      if (f.source === 'stripe' && !orpheline) return json({ erreur: 'Une facture Stripe rattachée à un client se gère dans Stripe.' }, 409);
       await db.prepare('DELETE FROM factures WHERE id = ?').bind(f.id).run();
       return json({ ok: true });
     }

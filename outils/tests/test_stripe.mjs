@@ -212,4 +212,12 @@ for (const [pk, q] of [['starter', 'options=express,ab_visuel:2'], ['growth', ''
 r = await api('/api/client/paiement', CK, 'POST', { pack: 'custom', formule: 'unique', nb_creas: 55 });   // ce client a déjà payé : il est connu de Stripe
 const avecClient = lignesBrutes().map(l => Object.fromEntries(new URLSearchParams(l))).filter(x => x.customer);
 t('client Stripe connu : nom et adresse mis à jour par Stripe (sinon refus « Tax ID collection requires… »)', avecClient.length > 0 && avecClient.every(x => x['customer_update[name]'] === 'auto' && x['customer_update[address]'] === 'auto'), avecClient.length);
+// une facture Stripe orpheline (paiement test d'un email sans compte) peut quitter le portail ; une facture rattachée, non
+await webhook({ type: 'invoice.paid', data: { object: { id: 'in_orph', status: 'paid', number: 'TEST-0024', total: 0, customer: 'cus_inconnu', customer_email: 'personne@nulle-part.fr', created: 5, status_transitions: { paid_at: 5 } } } });
+let FF = (await api('/api/admin/factures', A)).d.factures;
+const orph = FF.find(f => f.stripe_id === 'in_orph'), ratt = FF.find(f => f.source === 'stripe' && f.client_id);
+r = await api('/api/admin/factures/' + orph.id, A, 'DELETE');
+t('facture Stripe orpheline : retirée du portail', r.s === 200 && !(await api('/api/admin/factures', A)).d.factures.some(f => f.stripe_id === 'in_orph'), r.s);
+r = await api('/api/admin/factures/' + ratt.id, A, 'DELETE');
+t('facture Stripe rattachée à un client : protégée', r.s === 409, r.s);
 console.log('\n' + ok + ' OK, ' + ko + ' en échec');

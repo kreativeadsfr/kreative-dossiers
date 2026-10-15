@@ -28,6 +28,8 @@ const STATUTS = { brief: ['Confirmée · brief attendu', 'a'], production: ['En 
 const FACT = { payee: ['Payée', 'g'], ouverte: ['En attente', 'a'], impayee: ['Impayée', 'r'], annulee: ['Annulée', ''] };
 const FORMULES = { unique: 'Commande unique', mensuel: 'Abonnement mensuel' };
 const H = 36e5;
+// la tuile d'un client : sa photo s'il en a mis une, sinon ses initiales
+const tuileClient = (c, lg) => c && c.photo_le ? '<span class="tuile img' + (lg ? ' lg' : '') + '"><img src="/api/admin/clients/' + esc(c.id) + '/photo?v=' + c.photo_le + '" alt=""></span>' : K.tuile(c.marque, lg);
 
 // ---------- chargements ----------
 async function charger(quoi, force) {
@@ -163,7 +165,7 @@ function ecranAccueil() {
     (todo.length ? todo.slice(0, 8).map(t => '<a class="li" style="text-decoration:none" href="' + esc(t.href) + '"' + (t.ext ? ' target="_blank" rel="noopener"' : '') + '><span class="ic">' + i[t.ic] + '</span><span class="t"><b style="font-weight:600">' + esc(t.t) + '</b><span class="sub muted" style="display:block;font-size:12.5px">' + esc(t.s) + '</span></span>' + i.fleche.replace('<svg', '<svg width="15" height="15" style="opacity:.35"') + '</a>').join('')
       : '<div class="vide">' + i.coche + 'Rien d\'urgent. Tout roule.</div>') + '</div></div>' +
     '<div class="card"><div class="card-h"><h3>Derniers clients</h3><a class="btn btn-g btn-sm" href="#/clients">Tous</a></div><div class="card-b liste">' +
-    ((S.clients || []).length ? S.clients.slice(0, 6).map(c => '<a class="li" style="text-decoration:none" href="#/clients/' + esc(c.id) + '">' + K.tuile(c.marque) + '<span class="t"><b style="font-weight:600">' + esc(c.marque) + '</b><span class="muted" style="display:block;font-size:12.5px">' + esc(c.contact || c.email || '') + '</span></span><small>' + (c.nb_commandes ? c.nb_commandes + ' commande' + (c.nb_commandes > 1 ? 's' : '') : 'aucune commande') + '</small></a>').join('')
+    ((S.clients || []).length ? S.clients.slice(0, 6).map(c => '<a class="li" style="text-decoration:none" href="#/clients/' + esc(c.id) + '">' + tuileClient(c) + '<span class="t"><b style="font-weight:600">' + esc(c.marque) + '</b><span class="muted" style="display:block;font-size:12.5px">' + esc(c.contact || c.email || '') + '</span></span><small>' + (c.nb_commandes ? c.nb_commandes + ' commande' + (c.nb_commandes > 1 ? 's' : '') : 'aucune commande') + '</small></a>').join('')
       : '<div class="vide">' + i.gens + 'Aucun client. <a href="#/clients/nouveau">Créer le premier</a></div>') + '</div></div></div>';
   return h;
 }
@@ -232,7 +234,7 @@ function ecranClients() {
     '<div class="champ-r" style="margin-left:auto">' + i.chercher + '<input id="ch-clients" placeholder="Rechercher un client…" value="' + esc(S.chClients) + '"></div></div>';
   if (!C.length) return h + '<div class="card"><div class="vide">' + i.gens + 'Aucun client pour l\'instant.<br><a class="btn btn-p btn-sm" style="margin-top:14px" href="#/clients/nouveau">Ajouter le premier client</a></div></div>';
   h += '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Client</th><th>Contact</th><th class="num">Commandes</th><th class="num">Total</th><th>Dernière commande</th><th>Dernière connexion</th><th>Statut</th><th></th></tr></thead><tbody>' +
-    (liste.map(c => '<tr class="clic" onclick="location.hash=\'#/clients/' + esc(c.id) + '\'"><td><div class="nom">' + K.tuile(c.marque) + '<div><b>' + esc(c.marque) + '</b><span class="sub">' + esc(c.email || 'pas d\'email') + '</span></div></div></td>' +
+    (liste.map(c => '<tr class="clic" onclick="location.hash=\'#/clients/' + esc(c.id) + '\'"><td><div class="nom">' + tuileClient(c) + '<div><b>' + esc(c.marque) + '</b><span class="sub">' + esc(c.email || 'pas d\'email') + '</span></div></div></td>' +
       '<td>' + esc(c.contact || '·') + '<span class="sub">' + esc(c.telephone || '') + '</span></td><td class="num">' + c.nb_commandes + '</td><td class="num">' + K.euros(c.total) + '</td>' +
       '<td>' + (c.derniere_commande ? esc(K.date(c.derniere_commande)) : '<span class="muted">·</span>') + '</td><td>' + (c.vu_le ? esc(K.ilya(c.vu_le)) : '<span class="muted">jamais</span>') + '</td>' +
       '<td>' + (c.statut === 'bloque' ? '<span class="pill r">Bloqué</span>' : relancer(c) ? '<span class="pill a"><i></i>À relancer</span>' : c.nb_commandes ? '<span class="pill g"><i></i>Client</span>' : '<span class="pill">Nouveau</span>') + '</td>' +
@@ -280,7 +282,7 @@ async function ecranClient(id) {
   }
   const c = FICHE.client, cmds = FICHE.commandes;
   let h = '<a class="retour" href="#/clients">' + i.gauche + 'Retour aux clients</a>';
-  h += '<div class="ph"><div style="display:flex;align-items:center;gap:16px">' + K.tuile(c.marque, true) + '<div><h1>' + esc(c.marque) + '</h1><p>' +
+  h += '<div class="ph"><div style="display:flex;align-items:center;gap:16px">' + tuileClient(c, true) + '<div><h1>' + esc(c.marque) + '</h1><p>' +
     [c.contact, c.email, c.telephone].filter(Boolean).map(esc).join(' · ') + (c.site ? ' · <a href="' + esc(c.site) + '" target="_blank" rel="noopener">' + esc(c.site.replace(/^https?:\/\//, '')) + '</a>' : '') + '</p></div></div>' +
     '<div class="act"><a class="btn btn-s" href="/client/?client=' + esc(c.id) + '" target="_blank" rel="noopener">' + i.oeil + 'Voir son espace</a>' +
     '<button class="btn btn-s" id="b-modif">' + i.crayon + 'Modifier</button><button class="btn btn-p" id="b-cmd">' + i.plus + 'Nouvelle commande</button></div></div>';

@@ -195,8 +195,10 @@
     return (c.formule === 'mensuel' ? 'Abonnement ' : 'Pack ') + (NOMS_PACKS[c.pack] || c.pack) + ' · ' + MOIS[d.getMonth()] + ' ' + d.getFullYear();
   };
   // le statut vu par le client et par l'admin, à partir de l'état calculé par le serveur
+  // l'état vient du serveur ; à défaut (ancienne version du Worker), il se déduit du statut
+  K.etatCle = c => c.etat || ({ brief: 'confirmee', production: 'production' }[c.statut] || c.statut || 'production');
   K.etatCommande = c => {
-    const e = c.etat || ({ brief: 'confirmee', production: 'production' }[c.statut] || c.statut);
+    const e = K.etatCle(c);
     return ({ confirmee: ['Commande confirmée', 'a'], production: ['En production', 'b'], livre: ['Livré · à valider', 'g'], revisions: ['Retouches en cours', 'v'],
       valide: ['Validé', 'g'], annule: ['Annulée', ''] })[e] || ['En cours', 'b'];
   };
@@ -231,7 +233,7 @@
       '<aside class="side"><div class="side-logo"><img src="/ui/logo-kreative-noir.png" alt="Kreative"></div>' +
       (conf.cta ? '<a class="side-cta" href="' + K.esc(conf.cta.href) + '">' + K.esc(conf.cta.texte) + K.i.fleche.replace('<svg', '<svg width="16" height="16"') + '</a>' : '') +
       nav +
-      '<div class="side-foot">' + (conf.qui.tuile ? K.tuile(conf.qui.nom) : '<span class="av">' + K.esc(K.initiales(conf.qui.nom)) + '</span>') +
+      '<div class="side-foot">' + (conf.qui.photo ? '<img class="av-img" src="' + K.esc(conf.qui.photo) + '" alt="">' : conf.qui.tuile ? K.tuile(conf.qui.nom) : '<span class="av">' + K.esc(K.initiales(conf.qui.nom)) + '</span>') +
       '<div class="qui"><b>' + K.esc(conf.qui.nom) + '</b><small>' + K.esc(conf.qui.role) + '</small></div>' +
       '<button class="menu-btn" id="k-menu-btn" aria-label="Menu">' + K.i.points + '</button>' +
       '<div class="menu" id="k-menu" hidden>' + (conf.menu || []).join('') +

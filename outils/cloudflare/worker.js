@@ -544,7 +544,7 @@ const CUSTOM = {
   options: [
     { id: 'express', nom: 'Livraison express 24 h', detail: '+20 % sur le total', type: 'pct', valeur: 20 },
     { id: 'hooks', nom: '3 accroches par visuel', detail: '+8 € par créa', type: 'par_crea', valeur: 8 },
-    { id: 'appel', nom: 'Stratégie et appel de lancement', detail: '+150 €, une seule fois', type: 'fixe', valeur: 150 }
+    { id: 'ab', nom: 'A/B test', detail: '2 versions par créa : même texte sur 2 visuels, ou même visuel avec 2 textes · +12 € par créa', type: 'par_crea', valeur: 12 }
   ]
 };
 function devis(pack, formule, nbDemande, optionsDemandees) {
@@ -594,7 +594,9 @@ async function base(env) {
     for (const col of ['avis_le INTEGER', 'avis_ignore_le INTEGER', 'valide_le INTEGER', 'stripe_session TEXT', 'stripe_abo TEXT', 'stripe_facture TEXT', 'options TEXT']) {
       try { await env.DB.prepare('ALTER TABLE commandes ADD COLUMN ' + col).run(); } catch (e) {}
     }
-    try { await env.DB.prepare('ALTER TABLE clients ADD COLUMN stripe_client TEXT').run(); } catch (e) {}
+    for (const col of ['stripe_client TEXT', 'photo TEXT', 'photo_le INTEGER']) {
+      try { await env.DB.prepare('ALTER TABLE clients ADD COLUMN ' + col).run(); } catch (e) {}
+    }
     try { await env.DB.prepare('CREATE UNIQUE INDEX IF NOT EXISTS i_cmd_session ON commandes(stripe_session)').run(); } catch (e) {}
     BASE_PRETE = true;
   }
@@ -787,15 +789,24 @@ async function apiClient(req, env, ctx, url, chemin, methode, cl, apercu) {
       db.prepare('SELECT type, texte, le FROM activite WHERE client_id = ? ORDER BY le DESC LIMIT 12').bind(cl.id).all(),
       db.prepare("SELECT * FROM factures WHERE client_id = ? AND statut != 'brouillon' ORDER BY emise_le DESC").bind(cl.id).all()]);
     if (!apercu) ctx.waitUntil(db.prepare('UPDATE clients SET vu_le = ? WHERE id = ?').bind(maintenant(), cl.id).run());
-    return json({ apercu, client: { id: cl.id, marque: cl.marque, contact: cl.contact, email: cl.email, telephone: cl.telephone, site: cl.site, cree_le: cl.cree_le },
+    return json({ apercu, client: { id: cl.id, marque: cl.marque, contact: cl.contact, email: cl.email, telephone: cl.telephone, site: cl.site, cree_le: cl.cree_le, photo_le: cl.photo ? cl.photo_le || 1 : null },
       commandes, activite, factures: factures.map(FACTURE_PUBLIQUE), packs: PACKS, custom: CUSTOM, paiement: !!env.STRIPE_SECRET });
   }
+  if (chemin === '/photo' && methode === 'GET') return imagePhoto(cl.photo);
   // en aperçu, l'admin voit tout mais ne change rien à la place du client
   if (methode !== 'GET' && apercu) return json({ erreur: 'Aperçu : rien n\'est enregistré à la place du client.' }, 403);
 
   // son profil
   if (chemin === '/moi' && methode === 'PATCH') {
     const b = await corpsJson(req);
+    if ('photo' in b) {
+      // une petite image carrée, réduite dans le navigateur (256 px) ; vide = retirer la photo
+      const ph = String(b.photo || '');
+      if (ph && !/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(ph)) return json({ erreur: 'Image non reconnue (JPG, PNG ou WebP).' }, 400);
+      if (ph.length > 400000) return json({ erreur: 'Image trop lourde.' }, 413);
+      await db.prepare('UPDATE clients SET photo = ?, photo_le = ? WHERE id = ?').bind(ph || null, ph ? maintenant() : null, cl.id).run();
+      if (!Object.keys(b).some(k => k !== 'photo')) return json({ ok: true });
+    }
     const champs = ['marque', 'contact', 'email', 'telephone', 'site'].filter(k => k in b);
     if ('marque' in b && !propre(b.marque, 80)) return json({ erreur: 'Le nom de la marque est obligatoire.' }, 400);
     if ('email' in b) {
@@ -859,6 +870,15 @@ async function apiClient(req, env, ctx, url, chemin, methode, cl, apercu) {
   return json({ erreur: 'Introuvable' }, 404);
 }
 
+// la photo de profil d'un client, stockée en data URL dans la base
+function imagePhoto(ph) {
+  const m = ph && String(ph).match(/^data:(image\/(?:jpeg|png|webp));base64,(.+)$/);
+  if (!m) return new Response('Pas de photo', { status: 404, headers: { 'Cache-Control': 'no-store' } });
+  const bin = atob(m[2]), o = new Uint8Array(bin.length);
+  for (let n = 0; n < bin.length; n++) o[n] = bin.charCodeAt(n);
+  return new Response(o, { headers: { 'Content-Type': m[1], 'Cache-Control': 'private, max-age=86400' } });
+}
+
 // ---------- créer une commande (admin, paiement Stripe, renouvellement mensuel) ----------
 async function creerCommande(db, o) {
   const id = 'k_' + aleatoire(10);
@@ -901,7 +921,7 @@ async function apiAdmin(req, env, ctx, url, chemin, methode) {
       MAX(k.cree_le) AS derniere_commande, SUM(CASE WHEN k.statut IN ('brief','production','livre','revisions') THEN 1 ELSE 0 END) AS en_cours
       FROM clients c LEFT JOIN commandes k ON k.client_id = c.id AND k.statut != 'annule'
       GROUP BY c.id ORDER BY c.cree_le DESC`).all();
-    return json(results.map(c => ({ ...c, lien: lienAcces(url, c.jeton) })));
+    return json(results.map(({ photo, ...c }) => ({ ...c, lien: lienAcces(url, c.jeton) })));
   }
   if (chemin === '/clients' && methode === 'POST') {
     const marque = propre(b.marque, 80), email = propre(b.email, 160).toLowerCase();
@@ -914,6 +934,10 @@ async function apiAdmin(req, env, ctx, url, chemin, methode) {
     await noter(db, id, null, 'client', 'Espace client créé');
     return json({ id, lien: lienAcces(url, jeton) });
   }
+  if ((m = chemin.match(/^\/clients\/(c_[A-Za-z0-9]+)\/photo$/)) && methode === 'GET') {
+    const cl = await db.prepare('SELECT photo FROM clients WHERE id = ?').bind(m[1]).first();
+    return imagePhoto(cl && cl.photo);
+  }
   if ((m = chemin.match(/^\/clients\/(c_[A-Za-z0-9]+)$/))) {
     const cl = await db.prepare('SELECT * FROM clients WHERE id = ?').bind(m[1]).first();
     if (!cl) return json({ erreur: 'Client introuvable' }, 404);
@@ -922,7 +946,8 @@ async function apiAdmin(req, env, ctx, url, chemin, methode) {
       const [{ results: activite }, { results: factures }] = await Promise.all([
         db.prepare('SELECT type, texte, le FROM activite WHERE client_id = ? ORDER BY le DESC LIMIT 30').bind(cl.id).all(),
         db.prepare('SELECT * FROM factures WHERE client_id = ? ORDER BY emise_le DESC').bind(cl.id).all()]);
-      return json({ client: { ...cl, lien: lienAcces(url, cl.jeton) }, commandes, activite, factures });
+      const { photo, ...sansPhoto } = cl;
+      return json({ client: { ...sansPhoto, lien: lienAcces(url, cl.jeton) }, commandes, activite, factures });
     }
     if (methode === 'PATCH') {
       const champs = ['marque', 'contact', 'email', 'telephone', 'site', 'statut', 'notes'].filter(k => k in b);

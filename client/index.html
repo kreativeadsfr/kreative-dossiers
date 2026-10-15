@@ -44,7 +44,7 @@ const wa = texte => LIENS.whatsapp + '&text=' + encodeURIComponent(texte);
 const nomPack = c => 'Pack ' + ((D.packs[c.pack] || {}).nom || c.pack);
 const nom = c => K.nomCommande(c);
 const coeur = c => c.etapes.filter(e => !e.option);
-const etat = c => c.etat || 'production';
+const etat = c => K.etatCle(c);
 const enCours = () => D.commandes.filter(c => !['valide', 'annule'].includes(etat(c)));
 const prenom = () => (D.client.contact || '').trim().split(/\s+/)[0] || D.client.marque;
 const facturesDe = c => (D.factures || []).filter(f => f.commande_id === c.id);
@@ -61,7 +61,7 @@ function conf() {
       { id: 'contact', texte: 'Nous contacter', icone: 'message', href: '#/contact' },
       { id: 'avis', texte: 'Laisser un avis', icone: 'etoile', href: '#/avis' }
     ] }],
-    qui: { nom: D.client.marque, role: D.client.contact || D.client.email || 'Client', tuile: true },
+    qui: { nom: D.client.marque, role: D.client.contact || D.client.email || 'Client', tuile: true, photo: urlPhoto() },
     menu: ['<a href="#/profil">' + i.utilisateur + 'Mon profil</a>'],
     sansTheme: true,
     sortie: D.apercu ? '/admin/#/clients/' + D.client.id : '/client/sortie'
@@ -73,6 +73,7 @@ function apercu() {
     '<small>Vous voyez exactement ce que voit votre client. Rien de ce que vous faites ici ne lui est envoyé.</small></div>' +
     '<a class="btn btn-sm" href="/admin/#/clients/' + esc(D.client.id) + '">Retour à l\'admin</a></div>' : '';
 }
+const urlPhoto = () => D.client.photo_le ? '/api/client/photo' + (K.suffixe ? K.suffixe + '&' : '?') + 'v=' + D.client.photo_le : '';
 async function recharger() { D = await K.api('/api/client/moi'); K.rendre(); }
 
 // ---------- ACCUEIL ----------
@@ -373,6 +374,11 @@ function ecranProfil() {
   const ch = (id, l, v, t, ph, aide) => '<div class="champ"><label for="' + id + '">' + l + '</label><input class="in" id="' + id + '" type="' + (t || 'text') + '" value="' + esc(v || '') + '" placeholder="' + esc(ph || '') + '">' + (aide ? '<div class="aide">' + aide + '</div>' : '') + '</div>';
   return apercu() + '<div class="ph"><div><h1>Mon profil</h1><p>Les informations de votre compte Kreative.</p></div></div>' +
     '<div class="profil grid" style="gap:14px"><div class="card"><h3 style="font-size:16px;margin-bottom:18px">Vos informations</h3>' +
+    '<div class="photo-l"><span class="rond" style="background:' + K.teinte(c.marque) + '">' + (urlPhoto() ? '<img src="' + esc(urlPhoto()) + '" alt="">' : esc(K.initiales(c.marque))) + '</span>' +
+    '<div><b style="font-size:14px">Photo de profil</b><div class="muted" style="font-size:12.5px">Votre logo ou votre photo, au format carré de préférence.</div>' +
+    '<div class="bts"><button class="btn btn-s btn-sm" id="p-photo">' + i.image + (urlPhoto() ? 'Changer' : 'Ajouter une photo') + '</button>' +
+    (urlPhoto() ? '<button class="btn btn-g btn-sm" id="p-photo-x">Retirer</button>' : '') + '</div>' +
+    '<input type="file" id="p-fichier" accept="image/*" hidden></div></div>' +
     ch('p-marque', 'Marque', c.marque, 'text', 'Le nom de votre marque') +
     '<div class="grid g2" style="gap:12px">' + ch('p-contact', 'Votre nom', c.contact, 'text', 'Prénom et nom') + ch('p-tel', 'Téléphone', c.telephone, 'tel', '06…') + '</div>' +
     ch('p-email', 'Email', c.email, 'email', 'vous@marque.fr', 'C\'est aussi l\'adresse où vous recevez votre lien d\'accès et vos factures.') +
@@ -382,7 +388,29 @@ function ecranProfil() {
     '<p class="muted" style="font-size:13px;margin-top:4px">Votre lien d\'accès reste valable : il vous reconnecte quand vous voulez.</p></div>' +
     '<a class="btn btn-s" href="' + (D.apercu ? '/admin/#/clients/' + esc(c.id) : '/client/sortie') + '">' + i.sortie + 'Se déconnecter</a></div></div>';
 }
+// la photo est recadrée en carré et réduite à 256 px dans le navigateur avant l'envoi
+function reduirePhoto(fichier) {
+  return new Promise((ok, ko) => {
+    const img = new Image(), u = URL.createObjectURL(fichier);
+    img.onload = () => {
+      const c = document.createElement('canvas'), t = 256, cote = Math.min(img.width, img.height);
+      c.width = c.height = t;
+      c.getContext('2d').drawImage(img, (img.width - cote) / 2, (img.height - cote) / 2, cote, cote, 0, 0, t, t);
+      URL.revokeObjectURL(u); ok(c.toDataURL('image/jpeg', 0.86));
+    };
+    img.onerror = () => { URL.revokeObjectURL(u); ko(new Error('Cette image ne peut pas être lue.')); };
+    img.src = u;
+  });
+}
 function brancherProfil() {
+  const f = document.getElementById('p-fichier'), bp = document.getElementById('p-photo'), bx = document.getElementById('p-photo-x');
+  if (bp) bp.onclick = () => f.click();
+  if (f) f.onchange = async () => {
+    if (!f.files[0]) return;
+    try { const photo = await reduirePhoto(f.files[0]); await K.api('/api/client/moi', { methode: 'PATCH', corps: { photo } }); K.toast('Photo enregistrée'); await recharger(); }
+    catch (e) { K.toast(e.message); }
+  };
+  if (bx) bx.onclick = async () => { try { await K.api('/api/client/moi', { methode: 'PATCH', corps: { photo: '' } }); K.toast('Photo retirée'); await recharger(); } catch (e) { K.toast(e.message); } };
   const b = document.getElementById('p-ok');
   if (!b) return;
   b.onclick = async () => {

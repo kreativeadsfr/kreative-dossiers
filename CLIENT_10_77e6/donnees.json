@@ -1,0 +1,134 @@
+{
+  "dossier": "CLIENT_10_77e6",
+  "brand_name": "Client",
+  "website": "",
+  "secteur": "",
+  "pack": "growth",
+  "nb_creas": 12,
+  "deadline": "2026-10-17T10:07:39.128Z",
+  "deadline_heures": 48,
+  "deadline_strategiste": "2026-10-16T02:07:39.128Z",
+  "deadline_designer": "2026-10-17T02:07:39.128Z",
+  "nb_ugly": 0,
+  "date": "2026-10-15",
+  "couleurs": [],
+  "couleurs_client": [],
+  "couleurs_site": [],
+  "polices": [],
+  "polices_client": [],
+  "polices_site": [],
+  "captures": [],
+  "da_site": "",
+  "da_source": "code du site",
+  "brand_kit": {
+    "fonts": [],
+    "colors": [],
+    "note": ""
+  },
+  "ton": "",
+  "adresse": "",
+  "ambiance": "",
+  "consignes": "",
+  "promo": "",
+  "interdits": "",
+  "preuves": "",
+  "offre": "",
+  "differenciation": "",
+  "client_ideal": "",
+  "freins": "",
+  "objectif": "",
+  "assets": [],
+  "assets_site": [],
+  "pubs_client": [
+    {
+      "id": "AD01",
+      "url": "https://scontent.fsac1-2.fna.fbcdn.net/v/t39.35426-6/843845451_1055244634227369_8261038183767547807_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=107&_nc_map=urlgen_bucketless&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=68ZTeALuCT0Q7kNvwG4j3Uw&_nc_oc=AdpauVGGxAxjDuDUbiwuBAOqM0e3oM-vMbC1Vm5iYyuSI4tTtE_yhQCrYLYm2G5GZoQ&_nc_zt=14&_nc_ht=scontent.fsac1-2.fna&_nc_gid=NNNRU5dAWvBnK1XQNZFnTg&_nc_ss=78289&oh=00_AQNY67jUEFdxlZfEEI_6P0VK_lshr7BNZLbnwFAAV_Aupw&oe=6AD691A8",
+      "texte": "Activa el MODO ON · Contrata el Modo Estable y ten la tranquilidad de saber que tendrás la misma cuota de luz todos los meses, según tu consumo y con regularización anual. · Enciende la tranquilidad de tu hogar con el Mo"
+    },
+    {
+      "id": "AD02",
+      "url": "https://scontent.fsac1-2.fna.fbcdn.net/v/t39.35426-6/840621907_1626086072317700_3832517105460171698_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=107&_nc_map=urlgen_bucketless&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=fVNcZp5XPsQQ7kNvwGLpFrx&_nc_oc=AdrfdooChBMvzdsfvrHj9fS340PURP4FVuWtO2NcrSBDaEnUgv8bFnw-olNbpUajiY0&_nc_zt=14&_nc_ht=scontent.fsac1-2.fna&_nc_gid=NNNRU5dAWvBnK1XQNZFnTg&_nc_ss=78289&oh=00_AQN1AOpfPbVjMKNoYSyf8vs6oxMRZFTJnwUUtLKLjQU8zg&oe=6AD678A5",
+      "texte": "Activa el MODO ON · Contrata el Modo Estable y ten la tranquilidad de saber que tendrás la misma cuota de luz todos los meses, según tu consumo y con regularización anual. · Enciende la tranquilidad de tu hogar con el Mo"
+    },
+    {
+      "id": "AD03",
+      "url": "https://scontent.fsac1-2.fna.fbcdn.net/v/t39.35426-6/842366324_1630104481857591_875131444113795520_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=111&_nc_map=urlgen_bucketless&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=pn0g1Khgz9EQ7kNvwGgas_J&_nc_oc=Adp9IqvhF4RnoNLLTK_m0vHzfkCDxAimSSR-4nUXK163SLfKT1iWQZ5blSfTtmqtyHA&_nc_zt=14&_nc_ht=scontent.fsac1-2.fna&_nc_gid=NNNRU5dAWvBnK1XQNZFnTg&_nc_ss=78289&oh=00_AQP8RBfiDqNYxLN8cUr61uKXg3TVqa_9KMaPuceISQs3wg&oe=6AD66D01",
+      "texte": "Descubre tu cuota personalizada · Contrata el Modo Estable y ten la tranquilidad de saber que tendrás la misma cuota de luz todos los meses, según tu consumo y con regularización anual. · Enciende la tranquilidad de tu h"
+    },
+    {
+      "id": "AD04",
+      "url": "https://scontent-sjc6-1.xx.fbcdn.net/v/t39.35426-6/840621907_1626086072317700_3832517105460171698_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=107&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=fVNcZp5XPsQQ7kNvwEgC_ki&_nc_oc=AdrWGXs0ndl0BF3QuBZrkdA2fPhz5hazbSoeMo6i4TKS2uGkf7ITIL7KNiv4YyJTLkU&_nc_zt=14&_nc_ht=scontent-sjc6-1.xx&_nc_gid=CZy91MyDYCTjJT31X60rDQ&_nc_ss=78289&oh=00_AQM5_rJjZyulcqNjsBJxfBhLKaOmfOguObIxseTt3Le75Q&oe=6AD678A5",
+      "texte": "Activa el MODO ON · Contrata el Modo Estable y ten la tranquilidad de saber que tendrás la misma cuota de luz todos los meses, según tu consumo y con regularización anual. · Enciende la tranquilidad de tu hogar con el Mo"
+    },
+    {
+      "id": "AD05",
+      "url": "https://scontent.fsac1-2.fna.fbcdn.net/v/t39.35426-6/831771042_1588588452722726_8644226533511783088_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=108&_nc_map=urlgen_bucketless&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=Z_Vc6XsaMBoQ7kNvwHjDzz0&_nc_oc=AdrKbq56L7-k5iOTvfq7cH5OJfPExgMeACVnRGTpstRoKNWGccpjc8B3rg2DxtQfAy8&_nc_zt=14&_nc_ht=scontent.fsac1-2.fna&_nc_gid=NNNRU5dAWvBnK1XQNZFnTg&_nc_ss=78289&oh=00_AQPXL0GmsX5_3WYfVQIOQY5NoaiQHsxeeAW6JPz00iVtbQ&oe=6AD6883E",
+      "texte": "Dicen que el primer amor nunca se olvida... 💭 · iberdrola.es"
+    },
+    {
+      "id": "AD06",
+      "url": "https://scontent-lga3-2.xx.fbcdn.net/v/t39.35426-6/825268294_1585237546965993_2489694721905656497_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=105&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=dSBcnXeWxyUQ7kNvwEYSWhp&_nc_oc=AdryRr4K9zrAIelDCr-AjJ8YzxUhBjYCyzW4mAwn8sO8U9hAM2I3bF6dAoXxAjRcdIk&_nc_zt=14&_nc_ht=scontent-lga3-2.xx&_nc_gid=Rt-gcguypjsZ6jO6W_OXhw&_nc_ss=78289&oh=00_AQMLcUlr1lhsaiy01F-rIy_OzdsUCf6TVCFJj90Pq6hHGg&oe=6AD68EA2",
+      "texte": "JOIN CLIENTEARTH >> · The future of our planet is under threat, but we still have time to save it. Now is the moment for action. Using the power of the law, we can protect people and planet. · ⚠️🔥 You don’t have to be a"
+    },
+    {
+      "id": "AD07",
+      "url": "https://scontent-lga3-3.xx.fbcdn.net/v/t39.35426-6/825268427_973193455820467_1924269811777072896_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=106&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=8Q5dFpT2I5MQ7kNvwGDB7qo&_nc_oc=Adpw8K27Q9LHlqfEKgw_CwKwZogv40ZU5kGw0EDkF4egB43UaLY_o34dcANUsomCxB8&_nc_zt=14&_nc_ht=scontent-lga3-3.xx&_nc_gid=Rt-gcguypjsZ6jO6W_OXhw&_nc_ss=78289&oh=00_AQOQz09FFaplyeiIrbNeNNHzTZHwoUlBYO35tfRefm9YNw&oe=6AD68B22",
+      "texte": "JOIN CLIENTEARTH >> · The future of our planet is under threat, but we still have time to save it. Now is the moment for action. Using the power of the law, we can protect people and planet. · ⚠️🔥 You don’t have to be a"
+    },
+    {
+      "id": "AD08",
+      "url": "https://scontent.fsac1-2.fna.fbcdn.net/v/t39.35426-6/818510471_1072029381861358_2677497995931229673_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=108&_nc_map=urlgen_bucketless&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=U0YBasgdk30Q7kNvwEHUd79&_nc_oc=AdqrnGiTvTfQduJpSt7FxgY1TdpB9zyOj2Rgy3n019eBl5Gc9TdC9cWtS7JkQW0RLmk&_nc_zt=14&_nc_ht=scontent.fsac1-2.fna&_nc_gid=NNNRU5dAWvBnK1XQNZFnTg&_nc_ss=78289&oh=00_AQNQEdCXXaDAbmbq_DwB5_BaFkuUq9VNgiN7NgMchK2psw&oe=6AD693D8",
+      "texte": "Dicen que el primer amor nunca se olvida... 💭 · El verdadero amor es no pagar de más. Descubre el Plan Online de Iberdrola. · ad.doubleclick.net"
+    }
+  ],
+  "pubs_concurrents": [
+    {
+      "id": "CC01",
+      "annonceur": "Qonto",
+      "url": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/818233290_1444242040806049_4511848493419376967_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=101&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=yKzib_bl_DUQ7kNvwF2v6nh&_nc_oc=AdqxUEEjp3UFgTMiP9e-EOCz6uMmK5wmRSCp8ageHwp4ioGmyzVBhA7YMrNgdDHG7EA&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=KszOVPXR-aZRq0nz6OWrog&_nc_ss=78289&oh=00_AQMITanPO-UzX3XkapQl5f863aDIoBybizcQxDsrlPBsBQ&oe=6AD6761C",
+      "texte": "Créez votre entreprise gratuitement · 0 € pour créer votre entreprise. Qonto gère les démarches, de A à Z. Lancez-vous. · qonto.com"
+    },
+    {
+      "id": "CC02",
+      "annonceur": "Qonto",
+      "url": "https://scontent-lga3-2.xx.fbcdn.net/v/t39.35426-6/801885760_1469820111652269_4755438021452268162_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=105&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=bHlb-_70__oQ7kNvwH3-cUg&_nc_oc=Ado4VtiZc8MRCIJ5y6CdO1h_I1soCq_MTNxCGBb3S2nov49a7zv44AQcokrTp5GIkUo&_nc_zt=14&_nc_ht=scontent-lga3-2.xx&_nc_gid=kyG0hTYp8xvSGzl992LZ3w&_nc_ss=78289&oh=00_AQNlFjf5D7G1vQpB6XLFeSnrBBoY_MpZxB4xXdC06uQhUQ&oe=6AD66DA5",
+      "texte": "30 Tage kostenlos testen · Geschäftskonto eröffnen · Qonto: Smartes Geschäftskonto für Ihre Agentur · qonto.com"
+    },
+    {
+      "id": "CC03",
+      "annonceur": "Qonto",
+      "url": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/788601190_1993915397991559_27774488319755397_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=106&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=hq0aGh4YJhMQ7kNvwFjOS6v&_nc_oc=AdoULUyXwgxHUfaOYUNFGzfh3c7Rg9b_pNbh8ZU2Ta2EhuSpXD-NkFqmjBXDuoDPKug&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=KszOVPXR-aZRq0nz6OWrog&_nc_ss=78289&oh=00_AQOkKfIv09mAtgGJmk6tbBRZ1ywmFtI74TizVewU2s5j8Q&oe=6AD664D1",
+      "texte": "Accélérez la création de votre société · Pour tout abonnement à un compte pro Qonto · Qonto vous aide à lancer votre entreprise, de la génération des statuts à l’immatriculation de votre société. · qonto.com"
+    },
+    {
+      "id": "CC04",
+      "annonceur": "Qonto",
+      "url": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/797024561_1465210298749927_2180000515999884508_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=110&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=cR4qv3gI2yUQ7kNvwEhOuTL&_nc_oc=Ado3StrV6M05h7NcUcv1wAvTkEeW9kE6Cp-6qhJ2siV8ue2QgYUmGKLIwRJP_4f5fg8&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=KszOVPXR-aZRq0nz6OWrog&_nc_ss=78289&oh=00_AQNQTBlsO74_1Lk_2uMdLj_Dstp1Tw4ZfoRGr_M2vlSBeQ&oe=6AD688C4",
+      "texte": "Téléchargez le guide · Choix du statut juridique, rédaction des statuts, dépôt du capital social… Entrepreneur(e), franchissez ces étapes en toute sérénité grâce à notre guide complet. · fb.me"
+    },
+    {
+      "id": "CC05",
+      "annonceur": "Finom",
+      "url": "https://scontent-phl2-1.xx.fbcdn.net/v/t39.35426-6/807909841_984674144646882_482402061957641323_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=109&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=phYQkTPMrPIQ7kNvwGC3jvC&_nc_oc=Adr039MmseSjbw7Nhn1CLFIIRONqHndIfuMbe2ev-Sxv29G5f0JdM93W2uBguTQ-0Ek&_nc_zt=14&_nc_ht=scontent-phl2-1.xx&_nc_gid=1KqTYc_K2vHvjghBgpqyUQ&_nc_ss=78289&oh=00_AQNCa-y9zgJoCKhQecFJ2-SdBz6GQa22U6oaxLKzmzgCMw&oe=6AD6790D",
+      "texte": "Des outils financiers au service de tous types d'entreprises · Des comptes professionnels abordables pour les entreprises françaises · apps.apple.com"
+    },
+    {
+      "id": "CC06",
+      "annonceur": "Finom",
+      "url": "https://scontent-phl2-1.xx.fbcdn.net/v/t39.35426-6/798744711_1049409784387292_695506874670728254_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=101&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=Pw5KZHXk5Y0Q7kNvwHZ5nGW&_nc_oc=AdoTsX1TeGzJmJ6jFHY98yqILgMelxQsV9CL-XvZqJR7tI-vdOJzLxUeGVoIvMRTGHg&_nc_zt=14&_nc_ht=scontent-phl2-1.xx&_nc_gid=1KqTYc_K2vHvjghBgpqyUQ&_nc_ss=78289&oh=00_AQPL-qqCCxZMxPO_WkzS5r1RU8g5qilH7f-gs8f4dS0trw&oe=6AD6807D",
+      "texte": "Des outils financiers au service de tous types d'entreprises · Des comptes professionnels abordables pour les entreprises françaises · apps.apple.com"
+    },
+    {
+      "id": "CC07",
+      "annonceur": "Finom",
+      "url": "https://scontent-phl2-1.xx.fbcdn.net/v/t39.35426-6/791003580_929415279685999_8299634945147048381_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=102&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=-vAdRv9jNUUQ7kNvwGRfvfy&_nc_oc=AdqmysZ0myGDW1-r8370o_rgpx6xdtj2Yg67Nj2yrKAgA8Bq2Tk7Iqc5MLMlCcw_1ak&_nc_zt=14&_nc_ht=scontent-phl2-1.xx&_nc_gid=1KqTYc_K2vHvjghBgpqyUQ&_nc_ss=78289&oh=00_AQPDvNTV_2IoXTpz28GoC3R4Z2y6D6E4EXuTFaOr6VcMhA&oe=6AD65DE6",
+      "texte": "Vous payez des frais mensuels pour votre compte pro ? Finom est accessible dés 0€ par mois 💳 · Compte pro pour freelances et entreprises. Ouverture en 24h avec cashback sur vos dépenses pro 🚀 · finom.co"
+    },
+    {
+      "id": "CC08",
+      "annonceur": "Finom",
+      "url": "https://scontent-phl2-1.xx.fbcdn.net/v/t39.35426-6/849040861_3116499935222942_4763339626967115333_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=101&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=ds5Ht6fwa5wQ7kNvwEjcHpj&_nc_oc=AdqT5M3g1ghVa83eilJplb32mZFiTBHcjXJRA5_0-2U-HFbi7B_M5hGPq2FEdbw8wqY&_nc_zt=14&_nc_ht=scontent-phl2-1.xx&_nc_gid=1KqTYc_K2vHvjghBgpqyUQ&_nc_ss=78289&oh=00_AQODpMrnBM-cujI3DZieBHo1lWX-oQyO_-6qNOmCmDmAaQ&oe=6AD68083",
+      "texte": "Conto aziendale Finom – Fatture in pochi secondi · Apri il conto gratis · Apri un conto aziendale Finom gratis e crea fatture in pochi secondi, con solleciti automatici a chi non ti paga. · finom.co"
+    }
+  ]
+}

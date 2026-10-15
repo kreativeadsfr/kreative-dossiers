@@ -2052,17 +2052,24 @@ async function paiementRecu(env, ctx, url, s) {
   if (!cl && s.customer) cl = await db.prepare('SELECT * FROM clients WHERE stripe_client = ?').bind(String(s.customer)).first();
   if (!cl && email) cl = await db.prepare('SELECT * FROM clients WHERE lower(email) = ?').bind(email).first();
   let nouveau = false;
+  const det = s.customer_details || {};
+  // les questions du paiement (« Nom de votre marque », « Site web ou Instagram »), aussi celles ajoutées à un lien Stripe
+  const champ = re => { const f = (s.custom_fields || []).find(x => re.test(String(x.key || '') + ' ' + String((x.label && x.label.custom) || ''))); return f ? String((f.text && f.text.value) || (f.dropdown && f.dropdown.value) || '').trim() : ''; };
+  const repMarque = champ(/marque|brand|entreprise|soci/i), repSite = champ(/site|insta|web/i);
   if (!cl) {
     if (!emailValide(email)) return;
-    const det = s.customer_details || {};
     const id = 'c_' + aleatoire(10), jeton = aleatoire(32);
     const info = s.collected_information || {};
-    const marque = propre((info.business_name || det.business_name || det.name || info.individual_name || email.split('@')[0]), 80);
-    await db.prepare('INSERT INTO clients (id, marque, contact, email, telephone, jeton, cree_le) VALUES (?,?,?,?,?,?,?)')
-      .bind(id, marque, propre(det.name || info.individual_name, 80), email, propre(det.phone, 40), jeton, maintenant()).run();
+    const marque = propre((repMarque || info.business_name || det.business_name || det.name || info.individual_name || email.split('@')[0]), 80);
+    await db.prepare('INSERT INTO clients (id, marque, contact, email, telephone, site, jeton, cree_le) VALUES (?,?,?,?,?,?,?,?)')
+      .bind(id, marque, propre(det.name || info.individual_name, 80), email, propre(det.phone, 40), propre(repSite, 200) || null, jeton, maintenant()).run();
     await noter(db, id, null, 'client', 'Espace client créé');
     cl = { id, marque, contact: det.name || info.individual_name || '', email, jeton };
     nouveau = true;
+  } else if (det.phone || repSite) {
+    // un client déjà connu : on complète seulement ce qui manque
+    await db.prepare("UPDATE clients SET telephone = CASE WHEN COALESCE(telephone,'') = '' THEN ? ELSE telephone END, site = CASE WHEN COALESCE(site,'') = '' THEN ? ELSE site END WHERE id = ?")
+      .bind(propre(det.phone, 40) || null, propre(repSite, 200) || null, cl.id).run();
   }
   if (s.customer && !cl.stripe_client) await db.prepare('UPDATE clients SET stripe_client = ? WHERE id = ?').bind(String(s.customer), cl.id).run();
   // le pack : dans les métadonnées (portail), sinon déduit du montant (liens du site)
@@ -2102,6 +2109,13 @@ function sessionStripe(d, o) {
       product_data: { name: d.nom, description: d.description }, recurring: m ? { interval: 'month' } : undefined } }]
   };
   if (cl) { p.client_reference_id = cl.id; if (cl.stripe_client) p.customer = cl.stripe_client; else if (cl.email) p.customer_email = cl.email; }
+  else {
+    // depuis le site : un nouveau client, on demande une seule fois ce qu'il faut pour créer son espace
+    p.phone_number_collection = { enabled: 'true' };
+    p.custom_fields = [
+      { key: 'marque', type: 'text', label: { type: 'custom', custom: 'Nom de votre marque' }, text: { maximum_length: '80' } },
+      { key: 'site', type: 'text', optional: 'true', label: { type: 'custom', custom: 'Site web ou Instagram' }, text: { maximum_length: '200' } }];
+  }
   if (m) p.subscription_data = { metadata: meta };
   else {
     p.invoice_creation = { enabled: 'true', invoice_data: { metadata: meta } };

@@ -118,7 +118,8 @@ const lire = async u => { try { const r = await fetch(u + (u.includes('?') ? '&'
 const H = 36e5;
 const quand = ms => new Intl.DateTimeFormat('fr-FR', {weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Paris'}).format(new Date(ms));
 const jour = ms => new Intl.DateTimeFormat('fr-FR', {day: 'numeric', month: 'short', timeZone: 'Europe/Paris'}).format(new Date(ms));
-const lien = (h, t, cls, ext) => '<a class="' + (cls || 'k-btn2') + '" href="' + esc(h) + '"' + (ext ? ' target="_blank" rel="noopener"' : '') + '>' + t + '</a>';
+// 15/10 : chaque lien de projet s'ouvre dans un nouvel onglet
+const lien = (h, t, cls) => '<a class="' + (cls || 'k-btn2') + '" href="' + esc(h) + '" target="_blank" rel="noopener">' + t + '</a>';
 const MOIS = {'01':'janv.','02':'févr.','03':'mars','04':'avr.','05':'mai','06':'juin','07':'juil.','08':'août','09':'sept.','10':'oct.','11':'nov.','12':'déc.'};
 
 function etat(x) {
@@ -147,7 +148,7 @@ function liens(x) {
   b.push(lien('../fiche/?projet=' + encodeURIComponent(x.dossier), 'Fiche'));
   if (x.retour) b.push(lien('../retours/?projet=' + encodeURIComponent(x.dossier), 'Retours du client'));
   if (x.envoye) { b.push(lien('../' + x.dossier + '/creas/', 'Aperçu designer')); b.push(lien('../' + x.dossier + '/creas/telecharger.html', 'Téléchargement')); }
-  if (x.zip) b.push(lien(x.zip, 'Créas livrées', 'k-btn', true));
+  if (x.zip) b.push(lien(x.zip, 'Créas livrées', 'k-btn'));
   return '<div class="liens">' + b.join('') + '</div>';
 }
 
@@ -175,7 +176,7 @@ let TOUS = [], MONTRER = 15;
 function ligneDossier(c) {
   const m = c.match(/^([A-Z0-9]+?)_(\d{2})_/), test = /^TEST|^REDO/.test(c);
   return '<div class="ligne"><b>' + esc(c) + '</b>' + (m && MOIS[m[2]] ? '<span class="test">' + MOIS[m[2]] + '</span>' : '') + (test ? '<span class="test">test</span>' : '') +
-    '<span class="lk"><a href="../' + c + '/">Dossier</a><a href="../fiche/?projet=' + c + '">Fiche</a><a href="../' + c + '/creas/">Aperçu</a></span></div>';
+    '<span class="lk"><a href="../' + c + '/" target="_blank" rel="noopener">Dossier</a><a href="../fiche/?projet=' + c + '" target="_blank" rel="noopener">Fiche</a><a href="../' + c + '/creas/" target="_blank" rel="noopener">Aperçu</a></span></div>';
 }
 function afficherTous() {
   const q = $('q').value.trim().toUpperCase().replace(/\s+/g, '');

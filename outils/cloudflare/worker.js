@@ -79,7 +79,7 @@ async function traiter(req, env, ctx) {
   if (/^\/commander\/(starter|growth|scale|custom)\/?$/.test(chemin)) return servir('commander/index.html', env, ctx, { brut: false, origine: url.origin, req });
   if (chemin === '/commander' || chemin === '/commander/') return redirection('/commander/growth' + url.search);
   if (chemin === '/api/offres' && req.method === 'GET')
-    return new Response(JSON.stringify({ packs: PACKS, custom: CUSTOM, options: OPTIONS, paiement: !!env.STRIPE_SECRET }), { headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'public, max-age=300' } });
+    return new Response(JSON.stringify({ packs: PACKS, custom: CUSTOM, options: OPTIONS, paiement: !!env.STRIPE_SECRET }), { headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'public, max-age=300', 'Access-Control-Allow-Origin': '*' } });
   const pay = chemin.match(/^\/payer\/(starter|growth|scale|custom)\/?$/);
   if (pay && req.method === 'GET') {
     if (!env.STRIPE_SECRET) return redirection('https://kreativeads.fr/');

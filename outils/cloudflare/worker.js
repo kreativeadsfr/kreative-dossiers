@@ -69,8 +69,13 @@ async function traiter(req, env, ctx) {
 
   // ---------- connexion ----------
   if (chemin === '/_connexion') return connexion(req, env, url);
-  if (chemin === '/_deconnexion') return new Response(null, { status: 303, headers: {
-    'Location': '/_connexion', 'Set-Cookie': COOKIE + '=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax' } });
+  // déconnexion : retour à la page de connexion de son espace (en anglais pour un designer)
+  if (chemin === '/_deconnexion') {
+    const avant = await session(req, env);
+    const lieu = avant ? '/_connexion?suite=' + encodeURIComponent(ACCUEILS[avant.role]) : '/_connexion';
+    return new Response(null, { status: 303, headers: {
+      'Location': lieu, 'Cache-Control': 'no-store', 'Set-Cookie': COOKIE + '=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax' } });
+  }
 
   if (req.method !== 'GET' && req.method !== 'HEAD') return texte('Méthode non autorisée', 405);
 

@@ -55,7 +55,7 @@
       '<div class="rv-actions">' + (opt.actions || '') + (F.length ? '<button class="btn btn-s" data-rv-zip>' + I.telecharger + T('Tout télécharger') + '</button>' : '') + '</div></div>';
     if (!F.length) return h + '<div class="card"><div class="vide">' + T('Aucun fichier pour l\'instant.') + '</div></div></div>';
     RV.formats(l).forEach(fmt => {
-      const liste = F.filter(f => f.format === fmt), cle = l.id + fmt, ouvert = ouverts[cle] !== false;
+      const liste = F.filter(f => f.format === fmt), cle = l.id + fmt, ouvert = ouverts[cle] === true;   // fermés au départ : on ouvre celui qu'on veut
       h += '<div class="rv-dossier' + (ouvert ? ' ouvert' : '') + '"><button class="rv-dh" data-rv-plier="' + esc(cle) + '"><span class="chev">' + I.fleche + '</span>' + I.dossier + '<b>' + esc(NOMS_FORMATS[fmt]) + '</b><span class="nb">' + liste.length + ' ' + T('fichier') + (liste.length > 1 ? 's' : '') + '</span></button>' +
         (ouvert ? '<div class="rv-grille">' + liste.map(f => {
           const coms = f.commentaires.filter(c => opt.mode !== 'client' || !c.interne).length, video = /^video\//.test(f.type);
@@ -70,7 +70,7 @@
     return h + '</div>';
   };
   RV.brancher = (l, opt) => {
-    document.querySelectorAll('[data-rv-plier]').forEach(b => b.onclick = () => { ouverts[b.dataset.rvPlier] = ouverts[b.dataset.rvPlier] === false; opt.rendre(); });
+    document.querySelectorAll('[data-rv-plier]').forEach(b => b.onclick = () => { ouverts[b.dataset.rvPlier] = !ouverts[b.dataset.rvPlier]; opt.rendre(); });
     document.querySelectorAll('[data-rv-stop]').forEach(a => a.addEventListener('click', e => e.stopPropagation()));
     document.querySelectorAll('[data-rv-voir]').forEach(c => c.onclick = e => { if (e.target.closest('[data-rv-suppr]')) return; RV.voir(l, c.dataset.rvVoir, opt); });
     document.querySelectorAll('[data-rv-zip]').forEach(b => b.onclick = () => RV.zip(l, opt.nomZip || 'creatives', b));

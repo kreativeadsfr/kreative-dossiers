@@ -1,64 +1,183 @@
 <!DOCTYPE html>
-<html lang="fr" data-clair>
+<html lang="fr">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Votre pack · Kreative</title>
-<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png"><link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png"><link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png"><link rel="apple-touch-icon" href="/apple-touch-icon.png">
-<link rel="stylesheet" href="/ui/app.css">
-<script src="/ui/app.js"></script>
-<script src="/ui/panier.js"></script>
-<style>
-/* Le panier public de la landing : on choisit ses options, puis le paiement Stripe s'ouvre.
-   Après le paiement : la page /merci-<pack>, et l'espace client est créé tout seul. */
-body{background:var(--bg)}
-.pub{max-width:1180px;margin:0 auto;padding:0 22px 60px}
-.pub-tete{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:22px 0 30px}
-.pub-tete img{height:28px;display:block}
-.pub-tete a.site{font-size:13.5px;color:var(--tx2);text-decoration:none;display:inline-flex;align-items:center;gap:7px;padding:9px 14px;border:1px solid var(--line);border-radius:999px;background:var(--panel)}
-.pub-tete a.site:hover{color:var(--ink);border-color:var(--line2)}
-.pub-tete a.site svg{width:15px;height:15px}
-.pub .ph{animation:pub-monte .45s ease-out both}
-.pub .config{animation:pub-monte .5s ease-out .06s both}
-.pub-pied{display:flex;justify-content:center;gap:8px 22px;flex-wrap:wrap;margin-top:30px;font-size:13px;color:var(--tx3)}
-.pub-pied span{display:inline-flex;align-items:center;gap:7px}
-.pub-pied svg{width:15px;height:15px;color:var(--green)}
-@keyframes pub-monte{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-@media(max-width:860px){.pub .config{grid-template-columns:1fr}.pub .recap{position:static}}
-</style>
+<title>Commander · Kreative</title>
+<meta name="robots" content="noindex">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png"><link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png">
+<!-- Le panier des pages kreativeads.fr/commander-<pack> : affiché dans Framer par un bloc Embed (type URL)
+     https://app.kreativeads.fr/commander/starter, /growth, /scale, /custom.
+     Après le paiement Stripe : kreativeads.fr/merci-<pack>, et l'espace client est créé tout seul. -->
+<style>html,body{margin:0;background:#f8f6f3}</style>
 </head>
 <body>
-<main class="pub">
-  <header class="pub-tete"><a href="https://kreativeads.fr/"><img src="/ui/logo-kreative-noir.png" alt="Kreative"></a>
-    <a class="site" href="https://kreativeads.fr/#offres" id="retour-site"></a></header>
-  <div id="panier"><div class="chargement">Chargement…</div></div>
-  <div class="pub-pied" id="pied"></div>
-</main>
+<section class="kc" data-pack="growth">
+<script>document.currentScript.parentNode.setAttribute('data-pack', (location.pathname.match(/\/(starter|growth|scale|custom)\/?$/) || [])[1] || 'growth');</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&display=swap">
+<style>
+.kc{--b:#4d94ff;--bd:#eaf2ff;--bt:#2b6fd6;--n:#000;--g:#6f6f6f;--g2:#a3a3a3;--l:#ece7e1;--f:#f8f6f3;--v:#1e9e57;
+  font-family:'Inter','Inter Placeholder',system-ui,-apple-system,'Segoe UI',sans-serif;font-optical-sizing:auto;color:var(--n);background:var(--f);padding:64px 20px 90px;-webkit-font-smoothing:antialiased}
+.kc *{box-sizing:border-box;margin:0;padding:0}
+.kc h1,.kc h2,.kc h3,.kc-prix b,.kc-nb b,.kc-total b,.kc-go{font-variation-settings:'opsz' 32}
+.kc button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+.kc-in{max-width:1120px;margin:0 auto}
+.kc-retour{display:inline-flex;align-items:center;gap:8px;font-size:15px;color:var(--g);text-decoration:none;margin-bottom:28px}
+.kc-retour:hover{color:var(--n)}
+.kc-retour svg{width:16px;height:16px}
+.kc-tete h1{font-size:clamp(40px,5.4vw,64px);line-height:1.02;letter-spacing:-.045em;font-weight:600}
+.kc-tete h1 em{font-style:normal;color:var(--b)}
+.kc-tete p{font-size:18px;color:var(--g);margin-top:16px;letter-spacing:-.01em;max-width:560px;line-height:1.5}
+.kc-grille{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:28px;margin-top:44px;align-items:start}
+.kc-carte{background:#fff;border:1px solid var(--l);border-radius:20px;padding:28px}
+.kc-carte+.kc-carte{margin-top:18px}
+.kc-carte h2{font-size:21px;font-weight:500;letter-spacing:-.03em}
+.kc-carte .kc-aide{font-size:14.5px;color:var(--g);margin-top:6px}
+.kc-prix{display:flex;align-items:baseline;gap:10px;margin-top:8px}
+.kc-prix b{font-size:52px;line-height:1;font-weight:500;letter-spacing:-.045em}
+.kc-prix span{font-size:14px;color:var(--g)}
+.kc-inclus{list-style:none;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 22px;margin-top:24px;padding-top:22px;border-top:1px solid var(--l)}
+.kc-inclus li{display:flex;gap:10px;align-items:flex-start;font-size:15px;line-height:1.4}
+.kc-inclus svg{width:17px;height:17px;flex:none;color:var(--b);margin-top:2px}
+.kc-nb{display:flex;align-items:baseline;gap:12px;margin:22px 0 10px}
+.kc-nb b{font-size:64px;line-height:1;font-weight:500;letter-spacing:-.05em;font-variant-numeric:tabular-nums}
+.kc-nb span{font-size:16px;color:var(--g)}
+.kc input[type=range]{width:100%;accent-color:var(--b);height:26px}
+.kc-reperes{display:flex;justify-content:space-between;font-size:13px;color:var(--g2)}
+.kc-opts{display:flex;flex-direction:column;gap:10px;margin-top:20px}
+.kc-opt{display:flex;align-items:center;gap:14px;padding:16px 18px;border:1px solid var(--l);border-radius:16px;cursor:pointer;transition:border-color .15s,background .15s;user-select:none}
+.kc-opt:hover{border-color:#d9d1c8}
+.kc-opt.on{border-color:var(--b);background:#f5f9ff}
+.kc-case{width:22px;height:22px;border-radius:7px;border:1.5px solid #d9d1c8;display:grid;place-items:center;flex:none;background:#fff;transition:all .15s}
+.kc-opt.on .kc-case{background:var(--b);border-color:var(--b);color:#fff}
+.kc-case svg{width:13px;height:13px;opacity:0}
+.kc-opt.on .kc-case svg{opacity:1}
+.kc-opt-t{flex:1;min-width:0}
+.kc-opt-t b{display:block;font-size:16px;font-weight:500}
+.kc-opt-t small{display:block;font-size:13.5px;color:var(--g);margin-top:2px}
+.kc-qte{display:inline-flex;align-items:center;background:#fff;border:1px solid var(--l);border-radius:999px;padding:3px;box-shadow:0 2px 8px -4px rgba(0,0,0,.15)}
+.kc-qte button{width:32px;height:32px;border-radius:50%;font-size:19px;line-height:1;display:grid;place-items:center;transition:background .12s,transform .12s}
+.kc-qte button:hover:not(:disabled){background:var(--f)}
+.kc-qte button:active:not(:disabled){transform:scale(.9)}
+.kc-qte button:disabled{color:#d9d1c8;cursor:default}
+.kc-qte b{min-width:34px;text-align:center;font-size:15px;font-variant-numeric:tabular-nums}
+.kc-px{text-align:right;white-space:nowrap;font-size:16px;font-weight:500;min-width:64px}
+.kc-px small{display:block;font-size:12px;color:var(--g2);font-weight:400}
+.kc-recap{position:sticky;top:110px;background:#fff;border:1px solid var(--b);border-radius:20px;padding:28px;box-shadow:0 24px 50px -30px rgba(77,148,255,.55)}
+.kc-recap h3{font-size:22px;font-weight:500;letter-spacing:-.03em}
+.kc-recap .kc-sous{font-size:14px;color:var(--g);margin-top:4px}
+.kc-lignes{margin-top:18px;display:flex;flex-direction:column;gap:9px}
+.kc-ligne{display:flex;justify-content:space-between;gap:12px;font-size:14.5px;color:var(--g)}
+.kc-ligne b{color:var(--n);font-weight:500;white-space:nowrap}
+.kc-total{display:flex;justify-content:space-between;align-items:baseline;border-top:1px solid var(--l);margin-top:16px;padding-top:18px}
+.kc-total span{font-size:15px;color:var(--g)}
+.kc-total b{font-size:46px;line-height:1;font-weight:500;letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+.kc-unit{font-size:14px;color:var(--g);margin-top:8px;text-align:right}
+.kc-delai{display:flex;align-items:center;gap:9px;margin-top:18px;padding:12px 14px;border-radius:12px;background:var(--f);font-size:14px;color:#444}
+.kc-delai svg{width:16px;height:16px;flex:none}
+.kc-go{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:18px;height:56px;border-radius:999px;background:var(--b);color:#fff;font-size:17px;font-weight:600;letter-spacing:-.02em;text-decoration:none;transition:background .15s,transform .15s}
+.kc-go:hover{background:#3584fb}
+.kc-go:active{transform:scale(.98)}
+.kc-go svg{width:18px;height:18px}
+.kc-sur{display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:14px;font-size:13px;color:var(--g)}
+.kc-sur span{display:inline-flex;align-items:center;gap:6px}
+.kc-sur svg{width:14px;height:14px;color:var(--v)}
+.kc-sur .bleu{color:var(--b);font-weight:500}
+.kc-pulse{animation:kc-pulse .35s ease-out}
+@keyframes kc-pulse{40%{transform:scale(1.04)}}
+@media (max-width:900px){.kc-grille{grid-template-columns:1fr}.kc-recap{position:static}.kc-inclus{grid-template-columns:1fr}.kc{padding:44px 16px 70px}.kc-carte,.kc-recap{padding:22px}}
+@media (max-width:520px){.kc-opt{flex-wrap:wrap}.kc-opt .kc-qte{margin-left:36px}.kc-opt .kc-px{margin-left:auto}}
+@media (prefers-reduced-motion:reduce){.kc *{animation:none!important;transition:none!important}}
+</style>
+<div class="kc-in">
+  <a class="kc-retour" href="https://kreativeads.fr/#offres" target="_top"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5m0 0 6-6m-6 6 6 6"/></svg>Retour aux offres</a>
+  <div class="kc-tete"><h1 data-kc="titre"></h1><p data-kc="intro"></p></div>
+  <div class="kc-grille">
+    <div><div class="kc-carte" data-kc="pack"></div><div class="kc-carte"><h2>Options</h2><p class="kc-aide">Pour aller plus loin sur ce pack.</p><div class="kc-opts" data-kc="opts"></div></div></div>
+    <aside class="kc-recap" data-kc="recap"></aside>
+  </div>
+</div>
 <script>
-(async () => {
-  const PN = K.panier, i = K.i;
-  const pack = (location.pathname.match(/\/commander\/(starter|growth|scale|custom)/) || [])[1] || 'growth';
-  document.getElementById('retour-site').innerHTML = i.gauche + 'Retour au site';
-  try { PN.d = await (await fetch('/api/offres')).json(); }
-  catch (e) { document.getElementById('panier').innerHTML = '<div class="card"><div class="vide">Les offres ne se chargent pas. Réessayez dans un instant.</div></div>'; return; }
-  PN.choisir(pack, 'unique');   // sur le site : paiement en une fois
-  const q = new URLSearchParams(location.search);
-  if (q.get('creas')) PN.cfg.nb = Math.min(PN.d.custom.max, Math.max(PN.d.custom.min, Number(q.get('creas')) || PN.d.custom.min));
-  const rendre = () => {
-    document.getElementById('panier').innerHTML = PN.html({ formules: false, bouton: { texte: 'Commander' } });
-    document.title = (pack === 'custom' ? 'Votre pack Custom' : 'Pack ' + PN.d.packs[pack].nom) + ' · Kreative';
-    PN.brancher({
-      // le bouton mène directement à la page de paiement Stripe, au montant exact
-      surChange: (corps, lien) => {
-        lien.removeAttribute('target');
-        lien.href = '/payer/' + corps.pack + '?' + new URLSearchParams(Object.assign({}, corps.pack === 'custom' ? { creas: corps.nb_creas } : {}, corps.options.length ? { options: corps.options.join(',') } : {})).toString();
-      },
-      surClic: (corps, lien) => { lien.classList.add('envoi'); lien.textContent = 'Ouverture du paiement…'; }
+(function () {
+  var racine = document.currentScript && document.currentScript.closest('.kc'); if (!racine) return;
+  var APP = 'https://app.kreativeads.fr', pack = racine.getAttribute('data-pack') || 'growth';
+  // les prix du portail (gardés ici aussi, au cas où le portail ne répond pas)
+  var D = { packs: { starter: { nom: 'Starter', creas: 6, unique: 280, delai: 48 }, growth: { nom: 'Growth', creas: 12, unique: 490, delai: 48 }, scale: { nom: 'Scale', creas: 24, unique: 890, delai: 72 }, custom: { nom: 'Custom', creas: 30, delai: 72 } },
+    custom: { min: 30, max: 100, pas: 5, delais: [[30, 72], [50, 96], [70, 120], [100, 168]], paliers: [[30, 35], [50, 32], [75, 29]] },
+    options: [{ id: 'express', nom: 'Livraison express', detail: 'Livrée 2 fois plus vite', type: 'fixe', valeur: 390, par_pack: { starter: 90, growth: 190, scale: 290, custom: 390 } },
+      { id: 'ab_visuel', nom: 'A/B test visuel', detail: 'Même texte sur 2 visuels différents', type: 'par_crea', valeur: 20 },
+      { id: 'ab_texte', nom: 'A/B test texte', detail: 'Même visuel avec 2 textes différents', type: 'par_crea', valeur: 15 }] };
+  var INCLUS = { starter: ['6 visuels Ads', 'Tous les formats Meta', '2 cycles de révisions', 'Livraison en 48 h', 'Contact WhatsApp inclus'],
+    growth: ['12 visuels Ads', 'Tous les formats Meta', 'Révisions illimitées', 'Livraison en 48 h', 'Contact WhatsApp inclus', 'Angles marketing variés'],
+    scale: ['24 visuels Ads', 'Tous les formats Meta', 'Révisions illimitées', 'Livraison en 72 h', 'Contact WhatsApp inclus', 'Angles marketing variés', 'Support prioritaire', 'Stratégie personnalisée'],
+    custom: ['Tous les formats Meta', 'Révisions illimitées', 'Contact WhatsApp inclus', 'Angles marketing variés', 'Support prioritaire', 'Stratégie personnalisée', 'Interlocuteur dédié'] };
+  var C = { nb: 30, options: [], qte: {} }, dernierTotal = null;
+  var COCHE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+  var eur = function (n) { return new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 }).format(n).replace(/[\u202f\u00a0 ]/g, '\u00a0') + '€'; };
+  var q = function (k) { return racine.querySelector('[data-kc="' + k + '"]'); };
+  var nb = function () { return pack === 'custom' ? C.nb : D.packs[pack].creas; };
+  var parCrea = function () { return D.options.filter(function (o) { return o.type === 'par_crea' && C.options.indexOf(o.id) >= 0; }).map(function (o) { return o.id; }); };
+  // les A/B tests ensemble ne dépassent jamais le nombre de créas
+  function normaliser() { var ids = parCrea(), reste = nb(); ids.forEach(function (id, k) { var max = Math.max(1, reste - (ids.length - k - 1)); C.qte[id] = Math.min(max, Math.max(1, Math.round(C.qte[id] || 1))); reste -= C.qte[id]; }); }
+  function maxDe(id) { normaliser(); return nb() - parCrea().filter(function (x) { return x !== id; }).reduce(function (n, x) { return n + C.qte[x]; }, 0); }
+  function devis() {
+    normaliser();
+    var P = D.packs[pack], n = nb(), u, base, lignes = [];
+    if (pack === 'custom') { u = D.custom.paliers.filter(function (x) { return n >= x[0]; }).pop()[1]; base = n * u; lignes.push([n + ' créatives × ' + u + '€', base]); }
+    else { base = P.unique; u = Math.round(base / n); lignes.push([n + ' créatives', base]); }
+    D.options.forEach(function (o) {
+      if (C.options.indexOf(o.id) < 0) return;
+      var v = o.type === 'par_crea' ? C.qte[o.id] * o.valeur : (o.par_pack && o.par_pack[pack] != null ? o.par_pack[pack] : o.valeur);
+      lignes.push([o.nom + (o.type === 'par_crea' ? ' · ' + C.qte[o.id] + ' × ' + o.valeur + '€' : ''), v]); base += v;
     });
-  };
+    return { lignes: lignes, total: Math.round(base), n: n };
+  }
+  function delai() { var h = pack === 'custom' ? (D.custom.delais.filter(function (x) { return C.nb <= x[0]; })[0] || D.custom.delais[D.custom.delais.length - 1])[1] : D.packs[pack].delai; if (C.options.indexOf('express') >= 0) h = Math.round(h / 2); return h <= 72 ? h + ' h' : Math.round(h / 24) + ' jours'; }
+  function lien() {
+    var p = [], opts = C.options.map(function (id) { return parCrea().indexOf(id) >= 0 ? id + ':' + C.qte[id] : id; });
+    if (pack === 'custom') p.push('creas=' + C.nb);
+    if (opts.length) p.push('options=' + encodeURIComponent(opts.join(',')));
+    return APP + '/payer/' + pack + (p.length ? '?' + p.join('&') : '');
+  }
+  function rendre() {
+    var P = D.packs[pack];
+    q('titre').innerHTML = 'Pack <em>' + P.nom + '</em>';
+    q('intro').textContent = pack === 'custom' ? 'Choisissez le volume et les options : le prix s\'affiche tout de suite.' : 'Ajoutez les options que vous souhaitez, puis passez commande.';
+    q('pack').innerHTML = (pack === 'custom'
+      ? '<h2>Nombre de créatives</h2><p class="kc-aide">Chaque créative est livrée en 1:1, 4:5 et 9:16. Plus vous en prenez, moins chacune coûte.</p><div class="kc-nb"><b>' + C.nb + '</b><span>créatives</span></div><input type="range" min="' + D.custom.min + '" max="' + D.custom.max + '" step="' + D.custom.pas + '" value="' + C.nb + '" aria-label="Nombre de créatives"><div class="kc-reperes"><span>' + D.custom.min + '</span><span>' + D.custom.max + '</span></div>'
+      : '<h2>Ce qui est inclus</h2><div class="kc-prix"><b>' + eur(P.unique) + '</b><span>' + Math.round(P.unique / P.creas) + '€ / créative</span></div>') +
+      '<ul class="kc-inclus">' + INCLUS[pack].map(function (t) { return '<li>' + COCHE + '<span>' + t + '</span></li>'; }).join('') + '</ul>';
+    rendreChoix();
+  }
+  // tout ce qui bouge avec les choix (le curseur, lui, n'est jamais reconstruit : on peut le glisser)
+  function rendreChoix() {
+    var P = D.packs[pack], d = devis(), n = racine.querySelector('.kc-nb b'); if (n) n.textContent = C.nb;
+    q('opts').innerHTML = D.options.map(function (o) {
+      var on = C.options.indexOf(o.id) >= 0, pc = o.type === 'par_crea', px = pc ? '+' + o.valeur + '€<small>par créa</small>' : '+' + eur(o.par_pack && o.par_pack[pack] != null ? o.par_pack[pack] : o.valeur);
+      return '<div class="kc-opt' + (on ? ' on' : '') + '" data-opt="' + o.id + '" role="checkbox" aria-checked="' + on + '" tabindex="0"><span class="kc-case">' + COCHE + '</span><div class="kc-opt-t"><b>' + o.nom + '</b><small>' + o.detail + '</small></div>' +
+        (on && pc ? '<div class="kc-qte"><button type="button" data-m aria-label="Une créa de moins"' + (C.qte[o.id] <= 1 ? ' disabled' : '') + '>−</button><b>' + C.qte[o.id] + '</b><button type="button" data-p aria-label="Une créa de plus"' + (C.qte[o.id] >= maxDe(o.id) ? ' disabled' : '') + '>+</button></div>' : '') +
+        '<span class="kc-px">' + px + '</span></div>';
+    }).join('');
+    q('recap').innerHTML = '<h3>Pack ' + P.nom + '</h3><p class="kc-sous">Paiement unique, sans engagement</p><div class="kc-lignes">' + d.lignes.map(function (l) { return '<div class="kc-ligne"><span>' + l[0] + '</span><b>' + eur(l[1]) + '</b></div>'; }).join('') + '</div>' +
+      '<div class="kc-total"><span>Total</span><b' + (dernierTotal !== null && dernierTotal !== d.total ? ' class="kc-pulse"' : '') + '>' + eur(d.total) + '</b></div><div class="kc-unit">' + eur(Math.round(d.total / d.n)) + ' la créative</div>' +
+      '<div class="kc-delai"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Livrée en ' + delai() + ' après votre brief</div>' +
+      '<a class="kc-go" href="' + lien() + '" target="_blank" rel="noopener">Commander<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>' +
+      '<div class="kc-sur"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="4.5" y="10.5" width="15" height="10" rx="2.5"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></svg>Paiement sécurisé par Stripe</span><span class="bleu">100 % satisfait ou remboursé</span></div>';
+    dernierTotal = d.total;
+  }
+  racine.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-m],[data-p]'), o = e.target.closest('[data-opt]');
+    if (b && o) { var id = o.getAttribute('data-opt'); C.qte[id] = Math.min(maxDe(id), Math.max(1, C.qte[id] + (b.hasAttribute('data-p') ? 1 : -1))); rendreChoix(); return; }
+    if (o) { var i = o.getAttribute('data-opt'), k = C.options.indexOf(i); if (k >= 0) C.options.splice(k, 1); else C.options.push(i); rendreChoix(); var r = racine.querySelector('[data-opt="' + i + '"]'); if (r) r.focus({ preventScroll: true }); }
+  });
+  racine.addEventListener('keydown', function (e) { var o = e.target.closest && e.target.closest('[data-opt]'); if (o && e.target === o && (e.key === ' ' || e.key === 'Enter')) { e.preventDefault(); o.click(); } });
+  racine.addEventListener('input', function (e) { if (e.target.type === 'range') { C.nb = Number(e.target.value); rendreChoix(); } });
   rendre();
-  document.getElementById('pied').innerHTML = '<span>Paiement unique, sans engagement.</span><span>' + i.coche + 'Satisfait ou remboursé</span>';
+  fetch(APP + '/api/offres').then(function (r) { return r.json(); }).then(function (o) { if (o && o.packs) { D.packs = o.packs; D.custom = o.custom; D.options = o.options; rendre(); } }).catch(function () {});
 })();
 </script>
+</section>
+
 </body>
 </html>

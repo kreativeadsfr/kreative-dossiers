@@ -109,5 +109,14 @@ r = await get('/fichiers/fi_demo_pulse1_1x11', { headers: { Cookie: accesPulse }
 r = await api('/api/admin/demo', A, 'DELETE');
 r = await api('/api/equipe/livraisons', A); t('démo retirée : plus de livraisons de démo', !r.d.some(l => /^l_demo_/.test(l.id)), r.d.length);
 
+// supprimer une version de test (ex. REDO2_52P94H) : réservé à l'admin, fichiers et commentaires compris
+{
+  const L = (await api('/api/equipe/livraisons', A)).d, cible = L.find(l => l.nb > 0) || L[0];
+  r = await api('/api/equipe/livraisons/' + cible.id, DE, 'DELETE'); t('la designer ne peut pas supprimer une livraison', r.s === 403, r.s);
+  r = await api('/api/equipe/livraisons/' + cible.id, A, 'DELETE');
+  const apres = (await api('/api/equipe/livraisons', A)).d;
+  t('l\'admin supprime une version : elle disparaît de la liste', r.s === 200 && !apres.some(l => l.id === cible.id), r.s + ' ' + JSON.stringify(r.d).slice(0, 120));
+  r = await api('/api/equipe/livraisons/' + cible.id, A, 'DELETE'); t('… une deuxième fois : introuvable', r.s === 404, r.s);
+}
 console.log('\n' + ok + ' ok, ' + ko + ' en échec');
 process.exit(ko ? 1 : 0);

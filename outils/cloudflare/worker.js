@@ -1721,6 +1721,17 @@ async function apiEquipe(req, env, ctx, url, chemin, methode, qui) {
     await db.prepare('DELETE FROM fichiers WHERE id = ?').bind(f.id).run();
     return json({ ok: true });
   }
+  // l'admin supprime une version (un test, une erreur) : ses fichiers, leurs commentaires et le stockage
+  if ((m = chemin.match(/^\/livraisons\/(l_[A-Za-z0-9_]+)$/)) && methode === 'DELETE') {
+    if (!admin) return json({ erreur: 'Accès refusé' }, 403);
+    const l = await db.prepare('SELECT * FROM livraisons WHERE id = ?').bind(m[1]).first();
+    if (!l) return json({ erreur: 'Livraison introuvable' }, 404);
+    const { results: fs } = await db.prepare('SELECT cle, mini FROM fichiers WHERE livraison_id = ?').bind(l.id).all();
+    if (env.FICHIERS) for (const f of fs) { for (const k of [f.cle, f.mini]) if (k) { try { await env.FICHIERS.delete(k); } catch (e) {} } }
+    await db.batch([db.prepare('DELETE FROM commentaires WHERE livraison_id = ? OR fichier_id IN (SELECT id FROM fichiers WHERE livraison_id = ?)').bind(l.id, l.id),
+      db.prepare('DELETE FROM fichiers WHERE livraison_id = ?').bind(l.id), db.prepare('DELETE FROM livraisons WHERE id = ?').bind(l.id)]);
+    return json({ ok: true, message: 'Version ' + l.version + ' de ' + l.dossier + ' supprimée.' });
+  }
   // la designer envoie sa version à Kreative
   if ((m = chemin.match(/^\/livraisons\/(l_[A-Za-z0-9_]+)\/envoyer$/)) && methode === 'POST') {
     const b = await corpsJson(req);

@@ -908,7 +908,8 @@ function ecranLivraison(d) {
       '<div class="onglets"><button class="' + (r === 'strategiste' ? 'on' : '') + '" data-router="strategiste">' + i.doc + 'Stratégiste · textes</button><button class="' + (r === 'designer' ? 'on' : '') + '" data-router="designer">' + i.pinceau + 'Designer · visuels</button></div></div>';
   }
   return h + K.rv.grille(l, { mode: 'admin', titre: nomLiv(d) + ' · version ' + l.version, sousTitre: l.fichiers.length + ' fichiers · ' + (STATUTS_LIV[l.statut] || [''])[0],
-    actions: l.statut === 'a_verifier' ? '<button class="btn btn-s" data-corriger>' + i.crayon + 'Renvoyer pour correction</button><button class="btn btn-d" data-envoyer-client>' + i.envoi + 'Envoyer au client</button>' : '' });
+    actions: '<button class="btn btn-g" data-suppr-liv title="Supprimer cette version">' + i.poubelle + '</button>' +
+      (l.statut === 'a_verifier' ? '<button class="btn btn-s" data-corriger>' + i.crayon + 'Renvoyer pour correction</button><button class="btn btn-d" data-envoyer-client>' + i.envoi + 'Envoyer au client</button>' : '') });
 }
 function brancherLivraison() {
   const V = (LIV.donnees && LIV.donnees.versions) || [], l = V.find(v => v.id === LIV.choix);
@@ -918,6 +919,12 @@ function brancherLivraison() {
     peutCommenter: () => true, peutApprouver: () => false,
     api: { commenter: (f, texte, forme, couleur) => K.api('/api/equipe/commentaires', { methode: 'POST', corps: { fichier_id: f.id, texte, forme, couleur } }),
       supprimer: id => K.api('/api/equipe/commentaires/' + id, { methode: 'DELETE' }) } });
+  const sup = document.querySelector('[data-suppr-liv]');
+  if (sup) sup.onclick = async () => {
+    if (!await K.confirmer('Supprimer la version ' + l.version + ' ?', 'Ses ' + l.fichiers.length + ' fichiers et leurs commentaires sont effacés, pour tout le monde (client compris). C\'est définitif.', 'Supprimer', true)) return;
+    try { const r = await K.api('/api/equipe/livraisons/' + l.id, { methode: 'DELETE' }); K.toast(r.message); S.livraisons = null; LIV.dossier = null; await K.prod.chargerEtats(); location.hash = '#/livraisons'; }
+    catch (e) { K.toast(e.message); }
+  };
   const env = document.querySelector('[data-envoyer-client]');
   if (env) env.onclick = async () => {
     if (!await K.confirmer('Envoyer au client ?', 'Le client reçoit un email et voit les ' + l.fichiers.length + ' fichiers dans son espace, pour sa review.', 'Envoyer au client')) return;

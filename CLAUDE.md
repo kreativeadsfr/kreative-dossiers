@@ -31,7 +31,7 @@ Ce fichier est lu automatiquement par Claude quand il ouvre ce dépôt. Il conti
 - **Site vitrine** : kreativeads.fr sur **Framer** (Claude n'y a pas accès : Dario fait les manipulations).
 - **Portail** : app.kreativeads.fr = un **Cloudflare Worker** (`outils/cloudflare/worker.js`) qui sert les pages de ce dépôt (lues via l'API GitHub, cache ~20 s) et l'API.
   - Pages : `admin/`, `client/`, `strategiste/`, `designer/`, `commander/` (panier public), `merci/`, `fiche/`, `ui/` (app.js, app.css, review.js, panier.js, logos).
-  - Une modification de page poussée sur `main` est en ligne en ~20 s. **Une modification de `worker.js` ne l'est pas** : copier le fichier pour Dario sous le nom « Worker Kreative vNN (a coller dans Cloudflare).js » ; il le colle dans Cloudflare puis Deploy. Dernière version donnée : **v35**. Toujours lui rappeler que la nouvelle version contient les précédentes.
+  - Une modification de page poussée sur `main` est en ligne en ~20 s. **Une modification de `worker.js` ne l'est pas** : copier le fichier pour Dario sous le nom « Worker Kreative vNN (a coller dans Cloudflare).js » ; il le colle dans Cloudflare puis Deploy. Dernière version donnée : **v36**. Toujours lui rappeler que la nouvelle version contient les précédentes.
   - Base **D1** : clients, commandes, livraisons, fichiers, commentaires, factures, retours, prod_etapes, push_abos, notifications, reglages, activite.
   - Fichiers livrés : **R2** (binding `FICHIERS`).
   - Secrets Cloudflare (jamais dans le code) : `ACCES` (équipe, `prenom=motdepasse:role`, rôles admin / strategiste / designer, séparés par des virgules), `CLE` (clé n8n), `GITHUB_TOKEN`, `STRIPE_SECRET`, `STRIPE_WEBHOOK_SECRET`, `N8N_EMAIL`.
@@ -105,6 +105,7 @@ Ce fichier est lu automatiquement par Claude quand il ouvre ce dépôt. Il conti
 - Framer « Embed » = iframe à hauteur fixe → contenu coupé ou défilement coincé sur téléphone. Solution retenue : composant de code PanierKreative à hauteur automatique.
 - Menu mobile : il se ferme par un voile cliquable, pas par un écouteur « une seule fois ».
 - Un paiement test avec un email déjà client va dans ce compte et n'envoie pas d'email d'accès.
+- Synchronisation : admin, stratégiste et designer lisent la même liste (`projets.json` + `/api/equipe/etats`, `K.prod`), relue toutes les 20 s, nouveaux projets compris ; l'espace client relit `/api/client/moi` toutes les 30 s. Une version de livraison de test se supprime dans l'admin (corbeille sur la page de la livraison).
 
 ## 11. Ouvert / à décider
 

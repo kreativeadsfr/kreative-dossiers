@@ -366,6 +366,7 @@
     if (P.liste && !force) return P.liste;
     let projets = await K.lireJson('/projets.json');
     if (!Array.isArray(projets)) projets = [];
+    P.sigListe = projets.map(x => x && x.dossier).filter(Boolean).sort().join(',');
     P.liste = (await Promise.all(projets.filter(x => x && x.dossier && !/^TEST_(?!DEMO_)/i.test(x.dossier)).map(async x => {
       const [d, envois, liv, retour] = await Promise.all(['donnees', 'envois', 'livraison', 'retour'].map(f => K.lireJson('/' + x.dossier + '/' + f + '.json')));
       const aRetour = !!(retour && retour.dossier === x.dossier);
@@ -410,6 +411,11 @@
       if (document.visibilityState !== 'visible' || !P.liste) return;
       const a = document.activeElement;
       if (a && (a.tagName === 'TEXTAREA' || (a.tagName === 'INPUT' && a.type !== 'checkbox')) || document.querySelector('#k-fen, .rv-v, .kdrag, .kplace, .cal, .vp-cadre, .envoi-l:not(.fini), .envoye-anim, .toast')) return;
+      // un nouveau projet (ou un projet archivé) : la liste est relue pour tout le monde, sans recharger la page
+      const pj = await K.lireJson('/projets.json');
+      const liste = Array.isArray(pj) ? pj.map(x => x && x.dossier).filter(Boolean).sort().join(',') : null;
+      if (liste !== null && P.sigListe !== undefined && liste !== P.sigListe) { P.sigListe = liste; await P.charger(true); signature = JSON.stringify({ etats: (P.etats || {}).etats, commandes: (P.etats || {}).commandes }); rendre(); return; }
+      if (liste !== null) P.sigListe = liste;
       let r; try { r = await K.api('/api/equipe/etats'); } catch (e) { return; }
       const sig = JSON.stringify({ etats: r.etats, commandes: r.commandes });
       if (sig === signature) return;

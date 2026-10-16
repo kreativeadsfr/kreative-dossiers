@@ -661,11 +661,28 @@ K.rendre = () => {
   if (e[4]) e[4](r.params);
   document.title = 'Espace client · Kreative';
 };
+// l'espace suit le projet en direct : relu toutes les 30 s (et au retour sur l'onglet), redessiné seulement
+// si quelque chose a changé, jamais pendant une saisie, une fenêtre ou la visionneuse
+function suivreEnDirect() {
+  const sig = d => JSON.stringify([d.commandes, d.factures, d.livraisons]);
+  let derniere = sig(D);
+  const verifier = async () => {
+    if (document.visibilityState !== 'visible' || !D) return;
+    const a = document.activeElement;
+    if (a && (a.tagName === 'TEXTAREA' || (a.tagName === 'INPUT' && a.type !== 'checkbox' && a.type !== 'range')) || document.querySelector('#k-fen, .rv-v, .toast, .app.menu-ouvert')) return;
+    let d; try { d = await K.api('/api/client/moi'); } catch (e) { return; }
+    const s = sig(d); if (s === derniere) return;
+    derniere = s; D = d; const y = window.scrollY; K.rendre(); window.scrollTo(0, y);
+  };
+  setInterval(verifier, 30000);
+  document.addEventListener('visibilitychange', verifier);
+}
 // retour de Stripe (paiement intégré) : on arrive sur « Paiement reçu »
 if (params.get('paiement') === 'ok') history.replaceState(null, '', location.pathname + (K.suffixe || '') + '#/merci');
 (async () => {
   try {
     D = await K.api('/api/client/moi'); K.rendre();
+    suivreEnDirect();
     // ouverte depuis l'écran d'accueil : l'app est installée (Kreative le voit dans l'admin)
     if (APP.installee() && !D.apercu) K.api('/api/client/app', { methode: 'POST' }).catch(() => {});
     // un projet validé sans avis : la fenêtre Trustpilot revient une fois par visite

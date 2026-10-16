@@ -188,15 +188,22 @@ html{scrollbar-width:none;overscroll-behavior:auto}html::-webkit-scrollbar{displ
 // et sur téléphone le doigt fait défiler la page entière (pas de défilement coincé dans le bloc).
 (function () {
   var r = document.documentElement;
-  var kc = document.querySelector('.kc'), dernier = 0;
+  var kc = document.querySelector('.kc');
   function ajuster() {
     r.style.overflow = r.scrollHeight <= window.innerHeight + 2 ? 'hidden' : '';
-    // le composant Framer « PanierKreative » prend exactement cette hauteur : jamais de défilement dans le bloc
+    // le composant Framer « PanierKreative » prend exactement cette hauteur : jamais de défilement dans le bloc.
+    // Toujours renvoyée (pas seulement quand elle change) : Framer peut afficher la page avant que le
+    // composant n'écoute, et un seul envoi trop tôt laisserait le bloc à 800 px (Custom coupé).
     var h = Math.ceil(kc ? kc.getBoundingClientRect().height : document.body.scrollHeight);
-    if (h && h !== dernier && window.parent !== window) { dernier = h; window.parent.postMessage({ kreativeHauteur: h }, '*'); }
+    if (h && window.parent !== window) window.parent.postMessage({ kreativeHauteur: h }, '*');
   }
   if (window.ResizeObserver) new ResizeObserver(ajuster).observe(document.body);
   window.addEventListener('resize', ajuster); window.addEventListener('load', ajuster); ajuster();
+  // au chargement, plusieurs envois espacés (le temps que le composant Framer soit prêt), puis toutes les 2 s
+  [200, 600, 1200, 2500, 5000].forEach(function (t) { setTimeout(ajuster, t); });
+  setInterval(ajuster, 2000);
+  // si le composant demande la hauteur, on répond
+  window.addEventListener('message', function (e) { if (e.data && e.data.kreativeDemandeHauteur) ajuster(); });
 })();
 </script>
 </body>

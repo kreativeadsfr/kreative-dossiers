@@ -36,4 +36,23 @@ r = await n8n('retour', { dossier: 'SPLIT_10_mois_L1', client: cid, commande: m2
 moi = (await api('/api/client/moi', CK)).d; const km2b = moi.commandes.find(x => x.id === m2.id);
 t('brief du mois reçu : commande du mois en production, brief relisible', km2b.statut === 'production' && km2b.dossier === 'SPLIT_10_mois_L2' && /Plus de vidéos/.test(km2b.brief_json), km2b.statut + ' ' + km2b.dossier);
 r = await n8n('retour', { dossier: 'SPLIT_10_mois_L1', client: 'c_autre', commande: m2.ref, questions: [] }); t('retour avec la commande d\'un autre client : pas de liaison', true);
+// ---- Custom en abonnement, livré en 4 fois (n8n relie la commande au dossier de base, sans _L) : un formulaire de retour avant chaque livraison après la 1re, puis chaque mois ----
+r = await api('/api/admin/clients', A, 'POST', { marque: 'Quadco', email: 'quad@co.fr' }); const qid = r.d.id; const QK = cookie(await get(new URL(r.d.lien).pathname));
+r = await api('/api/admin/commandes', A, 'POST', { client_id: qid, pack: 'custom', formule: 'mensuel', nb_creas: 80 }); const q1 = r.d;
+await n8n('brief', { dossier: 'QUAD_10_bbbb', commande: q1.ref, client: qid, questions: [{ name: 'Votre marque', value: 'Quadco' }] });
+const livrer = async d => { const v = (await api('/api/equipe/livraisons', DE, 'POST', { dossier: d })).d; await deposer(v.id, d + '.png', '1x1'); await api('/api/equipe/livraisons/' + v.id + '/envoyer', DE, 'POST', {}); await api('/api/equipe/livraisons/' + v.id + '/decision', A, 'POST', { action: 'envoyer' }); };
+const etatQ = async () => (await api('/api/client/moi', QK)).d.commandes.find(x => x.id === q1.id);
+let qk = await etatQ(); t('4 livraisons : rien à remplir avant la livraison 1', !qk.brief_suivant, JSON.stringify(qk.brief_suivant));
+for (let n = 1; n <= 3; n++) {
+  await livrer('QUAD_10_bbbb_L' + n); qk = await etatQ();
+  t('livraison ' + n + '/4 chez le client : formulaire de retour pour la livraison ' + (n + 1), qk.brief_suivant && qk.brief_suivant.n === n + 1 && qk.brief_suivant.sur === 4 && qk.brief_suivant.dossier === 'QUAD_10_bbbb_L' + n, JSON.stringify(qk.brief_suivant));
+  r = await n8n('retour', { dossier: 'QUAD_10_bbbb_L' + n, client: qid, questions: [{ name: 'Pour la suite', value: 'Retour ' + n }] });
+  qk = await etatQ(); t('… retour ' + n + ' reçu : plus rien à remplir jusqu\'à la livraison suivante', r.ok === true && !qk.brief_suivant, JSON.stringify(r));
+}
+await livrer('QUAD_10_bbbb_L4'); qk = await etatQ();
+t('livraison 4/4 : plus de formulaire de retour pour ce mois', !qk.brief_suivant && qk.retours.length === 3, JSON.stringify(qk.brief_suivant) + ' ' + qk.retours.length);
+await new Promise(z => setTimeout(z, 20));
+r = await api('/api/admin/commandes', A, 'POST', { client_id: qid, pack: 'custom', formule: 'mensuel', nb_creas: 80 }); const q2 = r.d;
+const km = (await api('/api/client/moi', QK)).d.commandes.find(x => x.id === q2.id);
+t('mois suivant : formulaire de retour du mois (pas le brief complet)', !!(km && km.brief_mois && km.brief_mois.dossier), JSON.stringify(km && km.brief_mois));
 console.log('\n' + ok + ' ok, ' + ko + ' en échec');

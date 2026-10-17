@@ -14,8 +14,12 @@ http.createServer((req, res) => {
     const id = decodeURIComponent(u.pathname.split('/').pop()), q = Object.fromEntries(new URLSearchParams(b));
     fs.appendFileSync('stripe_abo.log', JSON.stringify({ id, ...q }) + '\n');
     if (id === 'sub_inconnu') { res.writeHead(404,{'content-type':'application/json'}); return res.end('{"error":{"message":"No such subscription"}}'); }
-    const fin = Math.floor(Date.now() / 1000) + 20 * 86400, oui = q.cancel_at_period_end === 'true';
-    res.writeHead(200,{'content-type':'application/json'}); res.end(JSON.stringify({ id, object: 'subscription', status: 'active', cancel_at_period_end: oui, cancel_at: oui ? fin : null, canceled_at: oui ? Math.floor(Date.now() / 1000) : null, items: { data: [{ current_period_end: fin }] } })); }); return; }
+    // l'état de chaque abonnement est gardé, comme chez Stripe
+    const fin = Math.floor(Date.now() / 1000) + 20 * 86400, E = (globalThis.ABOS = globalThis.ABOS || {})[id] = globalThis.ABOS[id] || { cape: false, cancel_at: null };
+    if ('cancel_at_period_end' in q) { E.cape = q.cancel_at_period_end === 'true'; E.cancel_at = E.cape ? fin : (E.cape_avant ? null : E.cancel_at); E.cape_avant = E.cape; }
+    if ('cancel_at' in q) { if (E.cape && q.cancel_at) { res.writeHead(400,{'content-type':'application/json'}); return res.end('{"error":{"message":"cancel_at and cancel_at_period_end cannot both be set"}}'); } E.cancel_at = q.cancel_at ? Number(q.cancel_at) : null; E.cape = false; E.cape_avant = false; }
+    const prog = E.cape || !!E.cancel_at;
+    res.writeHead(200,{'content-type':'application/json'}); res.end(JSON.stringify({ id, object: 'subscription', status: 'active', billing_cycle_anchor: Number(globalThis.ANCRE || 0) || undefined, cancel_at_period_end: E.cape, cancel_at: E.cancel_at, canceled_at: prog ? Math.floor(Date.now() / 1000) : null, items: { data: [{ current_period_end: fin }] } })); }); return; }
   if (req.headers.authorization !== 'Bearer ' + JETON) { res.writeHead(401); return res.end('{"message":"Bad credentials"}'); }
   compteur.n++;
   const m = u.pathname.match(/^\/repos\/kreativeadsfr\/kreative-dossiers\/contents\/(.*)$/);

@@ -694,6 +694,7 @@ async function base(env) {
     for (const col of ['avis_le INTEGER', 'avis_ignore_le INTEGER', 'valide_le INTEGER', 'stripe_session TEXT', 'stripe_abo TEXT', 'stripe_facture TEXT', 'options TEXT', 'brief_json TEXT']) {
       try { await env.DB.prepare('ALTER TABLE commandes ADD COLUMN ' + col).run(); } catch (e) {}
     }
+    try { await env.DB.prepare('ALTER TABLE abonnements ADD COLUMN stripe_le INTEGER').run(); } catch (e) {}
     for (const col of ['stripe_client TEXT', 'photo TEXT', 'photo_le INTEGER', 'app_le INTEGER']) {
       try { await env.DB.prepare('ALTER TABLE clients ADD COLUMN ' + col).run(); } catch (e) {}
     }
@@ -985,7 +986,11 @@ async function apiClient(req, env, ctx, url, chemin, methode, cl, apercu) {
     if (!resilier && A.statut !== 'resiliation') return json({ erreur: 'Cet abonnement n\'est pas en cours de résiliation.' }, 409);
     if (!env.STRIPE_SECRET) return json({ erreur: 'Le paiement n\'est pas encore branché : écrivez-nous sur WhatsApp.' }, 503);
     let s;
-    try { s = await appelStripe(env, 'subscriptions/' + encodeURIComponent(A.id), { cancel_at_period_end: resilier ? 'true' : 'false' }); }
+    try {
+      s = await appelStripe(env, 'subscriptions/' + encodeURIComponent(A.id), { cancel_at_period_end: resilier ? 'true' : 'false' });
+      // une fin programmée par date (cancel_at, posée par Stripe ou par le portail) s'efface à part
+      if (!resilier && s.cancel_at) s = await appelStripe(env, 'subscriptions/' + encodeURIComponent(A.id), { cancel_at: '' });
+    }
     catch (e) { return json({ erreur: 'Stripe n\'a pas pu enregistrer la demande (' + e.message + '). Écrivez-nous sur WhatsApp.' }, 502); }
     const e = await majAbonnement(db, cl.id, s);
     await noter(db, cl.id, null, 'abonnement', resilier ? 'Abonnement Pack ' + A.nom + ' résilié : il s\'arrête le ' + dateFr(e.fin_le) + ', sans autre prélèvement'
@@ -2160,7 +2165,11 @@ function sessionStripe(d, o) {
     // depuis le site : les champs natifs de Stripe « Nom de l'entreprise » (le nom de son espace) et « Nom » (le contact)
     p.name_collection = { business: { enabled: 'true', optional: 'false' }, individual: { enabled: 'true', optional: 'false' } };
   }
-  if (m) p.subscription_data = { metadata: meta };
+  if (m) {
+    p.subscription_data = { metadata: Object.assign({ engagement_mois: String(ENGAGEMENT_MOIS) }, meta) };
+    // l'engagement, écrit sur la page de paiement Stripe, juste au-dessus du bouton
+    p.custom_text = { submit: { message: 'Abonnement mensuel avec engagement de ' + ENGAGEMENT_MOIS + ' mois. Une fois le ' + ENGAGEMENT_MOIS + 'e mois payé, résiliable depuis votre espace client, avec effet à la fin du mois en cours.' } };
+  }
   else {
     p.invoice_creation = { enabled: 'true', invoice_data: { metadata: meta, description: d.description } };   // le détail (créas, formats, options) sur la facture
     p.payment_intent_data = { metadata: meta };
@@ -2211,14 +2220,21 @@ async function stripeWebhook(req, env, ctx, url) {
   if (ev.type === 'checkout.session.completed' || ev.type === 'checkout.session.async_payment_succeeded') {
     if (o.payment_status === 'paid' || o.payment_status === 'no_payment_required') await paiementRecu(env, ctx, url, o);
   } else if (/^invoice\./.test(ev.type || '')) await enregistrerFacture(env, o);
-  else if (ev.type === 'customer.subscription.updated' || ev.type === 'customer.subscription.deleted') await abonnementChange(env, o);
+  else if (ev.type === 'customer.subscription.updated' || ev.type === 'customer.subscription.deleted') await abonnementChange(env, o, ev.created || Math.floor(Date.now() / 1000));
   return json({ recu: true });
 }
 // ---------- abonnements : engagement de 3 mois, puis résiliable à tout moment depuis l'espace client ----------
 // Un abonnement = les commandes mensuelles d'un même abonnement Stripe (une par mois payé).
-// Résiliable dès que le 3e mois est payé ; la résiliation prend effet à la fin du mois en cours, déjà payé
-// (Stripe : cancel_at_period_end), donc le client paie toujours ses 3 mois, jamais un mois de plus.
+// Engagement de 3 mois, tous les packs : le bouton s'active une fois le 3e mois débité, et la résiliation
+// prend effet à la fin du mois en cours, déjà payé (Stripe : cancel_at_period_end). Le client paie donc ses 3 mois,
+// jamais un 4e. Côté Stripe aussi : une résiliation programmée avant la fin du 3e mois (tableau de bord, autre outil)
+// est repoussée automatiquement à cette date (voir abonnementChange).
 const ENGAGEMENT_MOIS = 3;
+// ajoute n mois comme Stripe (le 31 janvier + 1 mois = le 28 ou 29 février), à partir de la date d'ancrage
+const moisStripe = (sec, n) => { const d = new Date(sec * 1000), jour = d.getUTCDate(); d.setUTCDate(1); d.setUTCMonth(d.getUTCMonth() + n);
+  d.setUTCDate(Math.min(jour, new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0)).getUTCDate())); return Math.floor(d.getTime() / 1000); };
+// la première date à laquelle l'abonnement peut s'arrêter : la fin du 3e mois
+const finMinimale = s => { const a = s.billing_cycle_anchor || s.start_date || s.created; return a ? moisStripe(a, ENGAGEMENT_MOIS) : null; };
 const ajouterMois = (ms, n) => { const d = new Date(ms); d.setUTCMonth(d.getUTCMonth() + n); return d.getTime(); };
 const dateFr = ms => ms ? new Date(ms).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Paris' }) : 'Pas de date';
 async function abonnementsDuClient(db, clientId) {
@@ -2235,25 +2251,45 @@ async function abonnementsDuClient(db, clientId) {
   }).sort((a, b) => (a.statut === 'termine') - (b.statut === 'termine') || b.debut - a.debut);
 }
 // l'état d'un abonnement Stripe, rangé dans la base : actif, resiliation (s'arrête à fin_le), termine
-async function majAbonnement(db, clientId, s) {
+async function majAbonnement(db, clientId, s, quand) {
+  quand = quand || Math.floor(Date.now() / 1000);
   const fin = s.current_period_end || (s.items && s.items.data && s.items.data[0] && s.items.data[0].current_period_end) || null;
   const statut = s.status === 'canceled' ? 'termine' : (s.cancel_at_period_end || s.cancel_at) ? 'resiliation' : 'actif';
   const fin_le = statut === 'termine' ? ((s.ended_at || s.canceled_at || 0) * 1000 || maintenant()) : statut === 'resiliation' ? ((s.cancel_at || fin || 0) * 1000 || null) : null;
   const avant = await db.prepare('SELECT * FROM abonnements WHERE stripe_abo = ?').bind(s.id).first();
+  // Stripe peut envoyer ses événements dans le désordre : un état plus ancien que celui déjà rangé est ignoré
+  if (avant && avant.stripe_le && quand < avant.stripe_le) return { statut: avant.statut, fin_le: avant.fin_le, avant: avant.statut, perime: true };
   const resilie_le = statut === 'actif' ? null : (avant && avant.resilie_le) || ((s.canceled_at || 0) * 1000) || maintenant();
-  await db.prepare(`INSERT INTO abonnements (stripe_abo, client_id, statut, resilie_le, fin_le, maj_le) VALUES (?,?,?,?,?,?)
-    ON CONFLICT(stripe_abo) DO UPDATE SET statut = excluded.statut, resilie_le = excluded.resilie_le, fin_le = excluded.fin_le, maj_le = excluded.maj_le`)
-    .bind(s.id, clientId, statut, resilie_le, fin_le, maintenant()).run();
+  await db.prepare(`INSERT INTO abonnements (stripe_abo, client_id, statut, resilie_le, fin_le, maj_le, stripe_le) VALUES (?,?,?,?,?,?,?)
+    ON CONFLICT(stripe_abo) DO UPDATE SET statut = excluded.statut, resilie_le = excluded.resilie_le, fin_le = excluded.fin_le, maj_le = excluded.maj_le, stripe_le = excluded.stripe_le`)
+    .bind(s.id, clientId, statut, resilie_le, fin_le, maintenant(), quand).run();
   return { statut, fin_le, avant: avant ? avant.statut : 'actif' };
 }
 // Stripe prévient quand un abonnement change (résilié depuis le tableau de bord Stripe, ou arrivé à son terme)
-async function abonnementChange(env, s) {
+async function abonnementChange(env, s, quand) {
   if (!s.id) return;
   const db = await base(env);
   const k = await db.prepare('SELECT client_id FROM commandes WHERE stripe_abo = ? LIMIT 1').bind(s.id).first();
   if (!k) return;
-  const e = await majAbonnement(db, k.client_id, s);
-  if (e.statut === e.avant) return;
+  // l'engagement, appliqué dans Stripe : une résiliation programmée avant la fin du 3e mois est repoussée à cette date.
+  // (Une annulation immédiate faite à la main dans Stripe reste possible : c'est un choix de Kreative.)
+  const fin = s.cancel_at || (s.cancel_at_period_end ? (s.current_period_end || (s.items && s.items.data && s.items.data[0] && s.items.data[0].current_period_end)) : null);
+  const mini = finMinimale(s);
+  const avant = await db.prepare('SELECT stripe_le FROM abonnements WHERE stripe_abo = ?').bind(s.id).first();
+  let repousse = false;
+  if (s.status !== 'canceled' && fin && mini && fin < mini - 86400 && !(avant && avant.stripe_le && quand < avant.stripe_le) && env.STRIPE_SECRET) {
+    try {
+      const chemin = 'subscriptions/' + encodeURIComponent(s.id);
+      if (s.cancel_at_period_end) await appelStripe(env, chemin, { cancel_at_period_end: 'false' });
+      s = await appelStripe(env, chemin, { cancel_at: String(mini), proration_behavior: 'none', metadata: { engagement_mois: String(ENGAGEMENT_MOIS) } });
+      quand = Math.floor(Date.now() / 1000); repousse = true;
+      await noter(db, k.client_id, null, 'abonnement', 'Résiliation demandée pendant l\'engagement : repoussée au ' + dateFr(mini * 1000) + ' (fin du ' + ENGAGEMENT_MOIS + 'e mois)');
+    } catch (err) {
+      await noter(db, k.client_id, null, 'abonnement', 'Résiliation demandée pendant l\'engagement : à vérifier dans Stripe (' + String(err.message).slice(0, 120) + ')');
+    }
+  }
+  const e = await majAbonnement(db, k.client_id, s, quand);
+  if (repousse || e.perime || e.statut === e.avant) return;
   await noter(db, k.client_id, null, 'abonnement', e.statut === 'termine' ? 'Abonnement terminé le ' + dateFr(e.fin_le)
     : e.statut === 'resiliation' ? 'Abonnement résilié : il s\'arrête le ' + dateFr(e.fin_le) : 'Abonnement réactivé');
 }

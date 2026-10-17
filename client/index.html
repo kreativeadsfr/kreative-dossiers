@@ -595,14 +595,14 @@ async function fenetreResilier(a) {
   try { offre = (await K.api('/api/client/abonnement/offre?abo=' + encodeURIComponent(a.id))).offre; } catch (e) {}
   const v = K.fenetre('<div class="fen-h retenir-h"><h2>Êtes-vous sûr de vouloir résilier ?</h2><p>Avec votre Pack ' + esc(a.nom) + ', vous recevez ' + a.nb_creas +
     ' nouvelles créatives chaque mois pour garder vos publicités fraîches. Si vous résiliez, votre abonnement s\'arrêtera le ' + dateLongue(finDuMois(a)) + '.</p></div>' +
-    (offre ? '<div class="offre-rester"><span class="offre-etiquette">Offre pour rester</span><div class="offre-remise">' + esc(offre.remise) + '</div>' +
+    (offre ? '<div class="offre-rester"><span class="offre-etiquette">Offre exclusive</span><div class="offre-remise">' + esc(offre.remise) + '</div>' +
       '<div class="offre-texte">' + esc(offre.duree.charAt(0).toUpperCase() + offre.duree.slice(1)) + ', si vous gardez votre abonnement. Appliqué automatiquement, rien d\'autre ne change.</div></div>' : '') +
     '<div class="retenir-b"><button class="btn btn-p btn-lg btn-bloc" data-garder>' + (offre ? 'Garder mon abonnement avec ' + esc(offre.remise) : 'Garder mon abonnement') + '</button>' +
     '<button class="lien-resilier" data-resilier>Résilier quand même</button></div>');
   v.querySelector('[data-garder]').onclick = async e => {
-    if (!offre) { K.fermer(); return K.toast('Votre abonnement continue, merci !'); }
+    if (!offre) { K.fermer(); return K.toast('Votre abonnement continue.'); }
     e.target.disabled = true;
-    try { await K.api('/api/client/abonnement/garder', { methode: 'POST', corps: { abo: a.id } }); K.fermer(); K.toast('C\'est noté : ' + offre.texte + '. Merci de rester !'); await recharger(); }
+    try { await K.api('/api/client/abonnement/garder', { methode: 'POST', corps: { abo: a.id } }); K.fermer(); K.toast('Votre remise de ' + offre.texte + ' est prise en compte.'); await recharger(); }
     catch (err) { K.toast(err.message); e.target.disabled = false; }
   };
   v.querySelector('[data-resilier]').onclick = async e => {
@@ -618,7 +618,7 @@ document.addEventListener('click', async e => {
   const a = (D.abonnements || []).find(x => x.id === id); if (!a) return;
   if (resilier) return fenetreResilier(a);
   b.disabled = true;
-  try { await K.api('/api/client/abonnement/reprendre', { methode: 'POST', corps: { abo: id } }); K.toast('Résiliation annulée : votre abonnement continue normalement'); await recharger(); }
+  try { await K.api('/api/client/abonnement/reprendre', { methode: 'POST', corps: { abo: id } }); K.toast('Résiliation annulée : votre abonnement continue.'); await recharger(); }
   catch (err) { K.toast(err.message); b.disabled = false; }
 });
 

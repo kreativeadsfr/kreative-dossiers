@@ -44,6 +44,8 @@ const TYPES = {
 const TEXTES = /^(text\/|application\/json|image\/svg)/;
 
 export default {
+  // toutes les 15 min (déclencheur Cron de Cloudflare) : les briefs des livraisons suivantes arrivés à leur date
+  async scheduled(ev, env, ctx) { ctx.waitUntil(rappelsDus(env).catch(() => {})); },
   async fetch(req, env, ctx) {
     try { return await traiter(req, env, ctx); }
     catch (e) { return new Response('Erreur : ' + (e && e.message || e), { status: 500, headers: { 'Content-Type': 'text/plain; charset=utf-8' } }); }
@@ -686,6 +688,8 @@ async function base(env) {
         email TEXT, source TEXT, stripe_id TEXT UNIQUE, cree_le INTEGER)`),
       env.DB.prepare(`CREATE TABLE IF NOT EXISTS abonnements (stripe_abo TEXT PRIMARY KEY, client_id TEXT, statut TEXT, resilie_le INTEGER,
         fin_le INTEGER, maj_le INTEGER)`),
+      env.DB.prepare(`CREATE TABLE IF NOT EXISTS rappels (cle TEXT PRIMARY KEY, client_id TEXT, commande_id TEXT, type TEXT, n INTEGER, sur INTEGER,
+        dossier TEXT, le INTEGER, envoye_le INTEGER)`),
       env.DB.prepare(`CREATE INDEX IF NOT EXISTS i_cmd_client ON commandes(client_id)`),
       env.DB.prepare(`CREATE INDEX IF NOT EXISTS i_act_client ON activite(client_id, le)`),
       env.DB.prepare(`CREATE INDEX IF NOT EXISTS i_fac_client ON factures(client_id)`)
@@ -938,7 +942,7 @@ async function apiClient(req, env, ctx, url, chemin, methode, cl, apercu) {
     try {
       const dossiers = commandes.map(c => c.dossier).filter(Boolean);
       if (dossiers.length) {
-        const { results: L } = await (await baseLiv(env)).prepare("SELECT dossier, statut FROM livraisons WHERE statut IN ('envoyee','review_terminee','approuvee') AND (" +
+        const { results: L } = await (await baseLiv(env)).prepare("SELECT dossier, statut, envoye_le FROM livraisons WHERE statut IN ('envoyee','review_terminee','approuvee') AND (" +
           dossiers.map(() => 'dossier = ? OR dossier LIKE ?').join(' OR ') + ')').bind(...dossiers.flatMap(d => [d, d + '_L%'])).all();
         for (const c of commandes) { const x = L.filter(l => c.dossier && baseDossier(l.dossier) === baseDossier(c.dossier)); c.creatives = x.length; c.a_reviewer = x.some(l => l.statut === 'envoyee'); }
         await briefsSuivants(env, cl, commandes, L);
@@ -1321,6 +1325,7 @@ async function apiAdmin(req, env, ctx, url, chemin, methode) {
       if ('statut' in b && !STATUTS.includes(b.statut)) return json({ erreur: 'Statut inconnu' }, 400);
       const maj = {};
       for (const x of ['dossier', 'statut', 'deadline', 'notes']) if (x in b) maj[x] = x === 'deadline' ? (b[x] === '' || b[x] == null ? null : Number(b[x])) : (propre(b[x], 2000) || null);
+      if (env.PUSH_TEST && 'cree_le' in b) maj.cree_le = Number(b.cree_le);   // banc de test seulement : remonter le temps
       if ('pack' in b || 'formule' in b || 'nb_creas' in b || 'prix' in b) {
         const pack = PACKS[b.pack] ? b.pack : k.pack, formule = ['unique', 'mensuel'].includes(b.formule) ? b.formule : k.formule;
         const p = prixPack(pack, formule, { nb_creas: 'nb_creas' in b ? b.nb_creas : k.nb_creas, prix: 'prix' in b ? b.prix : k.prix });
@@ -1505,18 +1510,34 @@ async function envoyerAuClient(env, ctx, url, db, l) {
   // une partie (1/2…) renvoyée après retouches : la commande repart en production
   if (!finale && k.statut === 'revisions') await db.prepare("UPDATE commandes SET statut = 'production' WHERE id = ?").bind(k.id).run();
   await noter(db, k.client_id, k.id, 'livre', l.version > 1 ? 'Nouvelle version de vos créatives (version ' + l.version + ')' : 'Vos créatives sont livrées');
-  // une partie d'un projet livré en plusieurs fois : le même message dit aussi de remplir le brief de la suite (pas de 2e notification)
-  const suite = !finale && l.version <= 1;
-  const notif = notifier(env, k.client_id, { titre: l.version > 1 ? 'La nouvelle version est prête' : 'Vos créatives sont prêtes', texte: k.marque + ' · ' + (l.version > 1 ? 'version ' + l.version + ', avec vos retouches.' : suite ? 'regardez-les, puis remplissez le brief de la livraison suivante.' : 'regardez-les et dites-nous ce que vous en pensez.'), url: '/client/#/projets/' + k.id + '/creatives' });
+  // une partie d'un projet livré en plusieurs fois : « Livraison 1 sur 4 disponible », et le brief de la suivante est
+  // programmé à sa date (voir briefSuivantLe) : il partira seul, au bon moment
+  // Si ce brief est déjà dû (rythme chaque semaine), le message de la livraison le dit, plutôt que deux notifications d'affilée.
+  const partie = await partieDe(env, l.dossier), v2 = l.version > 1;
+  let briefOuvert = false;
+  if (partie && !v2 && partie.n < partie.sur) {
+    const le = briefSuivantLe(k, partie.n + 1, partie.sur, now);
+    briefOuvert = le <= now;
+    const ch = await db.prepare(`INSERT OR IGNORE INTO rappels (cle, client_id, commande_id, type, n, sur, dossier, le, envoye_le) VALUES (?,?,?,?,?,?,?,?,?)`)
+      .bind('brief:' + l.dossier, k.client_id, k.id, 'brief_suivant', partie.n + 1, partie.sur, l.dossier, le, briefOuvert ? now : null).run();
+    if (!ch.meta || ch.meta.changes !== 1) briefOuvert = false;
+  }
+  const titre = v2 ? 'Vos créatives modifiées sont prêtes' : partie ? 'Livraison ' + partie.n + ' sur ' + partie.sur + ' disponible' : 'Vos créatives sont prêtes';
+  const texte = v2 ? 'Les retouches demandées ont été appliquées. La nouvelle version est disponible dans votre espace.'
+    : partie ? (briefOuvert ? 'Vos créatives sont disponibles, ainsi que le brief de la livraison ' + (partie.n + 1) + '.' : 'Les créatives de votre livraison ' + partie.n + ' sont disponibles dans votre espace Kreative.')
+    : 'Vos nouvelles créatives sont disponibles dans votre espace Kreative.';
+  const notif = notifier(env, k.client_id, { titre, texte, url: '/client/#/projets/' + k.id + '/creatives' });
   if (ctx && ctx.waitUntil) ctx.waitUntil(notif); else await notif;
   if (k.email && k.jeton && !/^TEST_DEMO_/.test(l.dossier)) {
     const prenom = String(k.contact || '').trim().split(/\s+/)[0], lien = lienAcces(url, k.jeton);
-    const envoi = envoyerEmail(env, { type: 'creatives', a: k.email, marque: k.marque, contact: k.contact || '', lien,
-      sujet: k.marque + (l.version > 1 ? ' · la nouvelle version de vos créatives' : ' · vos créatives sont prêtes'),
+    const envoi = envoyerEmail(env, { type: 'creatives', a: k.email, marque: k.marque, contact: k.contact || '', lien, sujet: k.marque + ' · ' + titre,
       html: emailHtml(url.origin, { titre: 'Bonjour' + (prenom ? ' ' + prenom : '') + ',',
-        paragraphes: [l.version > 1 ? 'La nouvelle version de vos créatives est prête, avec les retouches demandées.' : 'Vos créatives sont prêtes. Regardez-les format par format, commentez ce qui doit bouger, et approuvez ce qui vous plaît.']
-          .concat(suite ? ['Ensuite, remplissez le brief de la livraison suivante depuis votre espace (rubrique « Mon brief ») : il lance la suite de votre projet.'] : []),
-        bouton: ['Voir mes créatives', lien] }) });
+        paragraphes: v2 ? ['Les retouches demandées ont été appliquées : la nouvelle version de vos créatives est disponible dans votre espace Kreative.',
+            'Si d\'autres ajustements sont nécessaires, indiquez-les directement en commentaire sur les créatives concernées.']
+          : [(partie ? 'Les créatives de votre livraison ' + partie.n + ' sur ' + partie.sur + ' sont disponibles' : 'Vos nouvelles créatives sont disponibles') + ' dans votre espace Kreative, aux formats 1:1, 4:5 et 9:16.',
+            'Si des ajustements sont nécessaires, indiquez-les directement en commentaire sur les créatives concernées : nous nous en chargeons.']
+            .concat(briefOuvert ? ['Le brief de la livraison ' + (partie.n + 1) + ' est également disponible dans votre espace. Dites-nous-en davantage sur ce qui a fonctionné, et sur ce que vous souhaitez garder ou changer : la production de la livraison suivante démarre dès réception de votre brief.'] : []),
+        bouton: [v2 ? 'Voir la nouvelle version' : 'Voir mes créatives', lien] }) });
     if (ctx && ctx.waitUntil) ctx.waitUntil(envoi); else await envoi;
   }
   return true;
@@ -2014,6 +2035,21 @@ function briefPropre(questions) {
 }
 // Le « brief suivant » (formulaire de retour) : après la livraison 1 d'un projet en plusieurs fois
 // (pour préparer la 2), et pour un abonnement, sur la commande du mois suivant.
+// Le rythme d'un Custom livré en plusieurs fois : la livraison n est prévue à commande + (n - 1) × intervalle
+// (tous les 15 jours en 2 fois, chaque semaine en 4 fois). Son brief est demandé assez tôt pour tenir ce rythme
+// (date prévue moins le délai d'une livraison), jamais avant que la livraison précédente soit chez le client.
+// Un brief rempli en retard ne décale pas les suivants : le rythme reste calé sur la date de commande.
+const intervalleJours = sur => sur >= 4 ? 7 : 15;
+function briefSuivantLe(k, n, sur, livreLe) {
+  const prevu = (k.cree_le || 0) + (n - 1) * intervalleJours(sur) * 864e5 - delaiHeures(k.pack, k.nb_creas, k.options) * 36e5;
+  return Math.max(livreLe || 0, prevu);
+}
+// la partie (n sur sur) d'un dossier livré en plusieurs fois
+async function partieDe(env, dossier) {
+  let d = await lireJsonDepot(env, dossier + '/donnees.json'), l = d && d.livraison;
+  if (!(l && l.sur > 1) && !/_L\d+$/.test(dossier)) { d = await lireJsonDepot(env, dossier + '_L1/donnees.json'); l = d && d.livraison; }
+  return l && l.sur > 1 ? { n: Number(l.n) || 1, sur: Number(l.sur) } : null;
+}
 async function briefsSuivants(env, cl, commandes, L) {
   const db = await baseLiv(env);
   const { results: R } = await db.prepare('SELECT * FROM retours WHERE client_id = ? ORDER BY recu_le').bind(cl.id).all();
@@ -2031,7 +2067,13 @@ async function briefsSuivants(env, cl, commandes, L) {
       for (let n = 1; n < l.sur; n++) {
         const partie = [base + '_L' + n, n === 1 ? base : null].find(x => x && envoyes.has(x));
         if (!partie) break;
-        if (!faits.has(partie)) { c.brief_suivant = { dossier: partie, n: n + 1, sur: l.sur }; break; }
+        if (!faits.has(partie)) {
+          const livre = Math.min(...L.filter(x => x.dossier === partie).map(x => x.envoye_le || Infinity));
+          const le = briefSuivantLe(c, n + 1, l.sur, isFinite(livre) ? livre : 0);
+          if (maintenant() >= le) c.brief_suivant = { dossier: partie, n: n + 1, sur: l.sur };
+          else c.brief_prochain = { n: n + 1, sur: l.sur, le };
+          break;
+        }
       }
     }
   }
@@ -2045,6 +2087,11 @@ async function briefsSuivants(env, cl, commandes, L) {
 async function apiN8n(req, env, ctx, url, chemin, methode) {
   if (!env.CLE || !egal(req.headers.get('X-Kreative-Cle') || '', env.CLE)) return json({ erreur: 'Accès refusé' }, 403);
   const db = await base(env);
+  // envoyer les briefs arrivés à leur date (le déclencheur Cron le fait seul ; ceci sert de secours et au banc de test)
+  if (chemin === '/rappels' && methode === 'POST') {
+    const b = await corpsJson(req);
+    return json({ envoyes: await rappelsDus(env, url, env.PUSH_TEST && b.a ? Number(b.a) : null) });
+  }
   if (chemin === '/brief' && methode === 'POST') {
     const b = await corpsJson(req);
     const dossier = propre(b.dossier, 80);
@@ -2341,6 +2388,30 @@ async function abonnementChange(env, s, quand) {
   await noter(db, k.client_id, null, 'abonnement', e.statut === 'termine' ? 'Abonnement terminé le ' + dateFr(e.fin_le)
     : e.statut === 'resiliation' ? 'Abonnement résilié : il s\'arrête le ' + dateFr(e.fin_le) : 'Abonnement réactivé');
 }
+// les briefs des livraisons suivantes arrivés à leur date : notification + email, une seule fois chacun
+async function rappelsDus(env, url, a) {
+  const db = await base(env), now = a || maintenant();
+  url = url || new URL(env.ORIGINE || 'https://app.kreativeads.fr');
+  const { results } = await db.prepare('SELECT r.*, c.marque, c.contact, c.email, c.jeton, k.statut AS k_statut FROM rappels r JOIN clients c ON c.id = r.client_id LEFT JOIN commandes k ON k.id = r.commande_id WHERE r.envoye_le IS NULL AND r.le <= ? LIMIT 50').bind(now).all();
+  let envoyes = 0;
+  for (const r of results) {
+    const ch = await db.prepare('UPDATE rappels SET envoye_le = ? WHERE cle = ? AND envoye_le IS NULL').bind(maintenant(), r.cle).run();
+    if (!ch.meta || ch.meta.changes !== 1) continue;
+    const fait = await (await baseLiv(env)).prepare('SELECT 1 AS ok FROM retours WHERE apres = ? LIMIT 1').bind(r.dossier).first();
+    if (fait || ['annule', 'valide'].includes(r.k_statut)) continue;
+    await notifier(env, r.client_id, { titre: 'Votre brief pour la livraison ' + r.n, texte: 'Faites-nous part de vos retours sur la livraison précédente pour lancer la suivante.', url: '/client/#/brief' });
+    if (r.email && r.jeton) {
+      const prenom = String(r.contact || '').trim().split(/\s+/)[0];
+      await envoyerEmail(env, { type: 'brief_suivant', a: r.email, marque: r.marque, contact: r.contact || '', lien: lienAcces(url, r.jeton), sujet: r.marque + ' · Votre brief pour la livraison ' + r.n,
+        html: emailHtml(url.origin, { titre: 'Bonjour' + (prenom ? ' ' + prenom : '') + ',',
+          paragraphes: ['La livraison ' + r.n + ' sur ' + r.sur + ' de votre projet se prépare.',
+            'Dites-nous-en davantage sur ce qui a fonctionné dans la livraison précédente, et sur ce que vous souhaitez garder ou changer pour la suivante. La production démarre dès réception de votre brief.'],
+          bouton: ['Remplir mon brief', lienAcces(url, r.jeton)] }) });
+    }
+    envoyes++;
+  }
+  return envoyes;
+}
 // un nouveau mois d'abonnement commence : la production attend son brief, le client est prévenu (notification + email)
 const MOIS_FR = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
 async function prevenirBriefDuMois(env, url, clientId) {
@@ -2350,12 +2421,12 @@ async function prevenirBriefDuMois(env, url, clientId) {
     if (!cl) return;
     const m = MOIS_FR[Number(new Date().toLocaleString('en-US', { month: 'numeric', timeZone: 'Europe/Paris' })) - 1];
     const deMois = (/^[ao]/.test(m) ? 'd\'' : 'de ') + m;
-    await notifier(env, clientId, { titre: 'Votre brief ' + deMois, texte: cl.marque + ' · votre nouveau mois commence : dites-nous ce que vous souhaitez ce mois-ci.', url: '/client/#/brief' });
+    await notifier(env, clientId, { titre: 'Votre brief ' + deMois, texte: 'Votre nouveau mois commence. Faites-nous part de vos retours pour lancer la production.', url: '/client/#/brief' });
     if (cl.email && cl.jeton && url) {
       const prenom = String(cl.contact || '').trim().split(/\s+/)[0], lien = lienAcces(url, cl.jeton);
-      await envoyerEmail(env, { type: 'brief_mois', a: cl.email, marque: cl.marque, contact: cl.contact || '', lien, sujet: cl.marque + ' · votre brief ' + deMois,
+      await envoyerEmail(env, { type: 'brief_mois', a: cl.email, marque: cl.marque, contact: cl.contact || '', lien, sujet: cl.marque + ' · Votre brief ' + deMois,
         html: emailHtml(url.origin, { titre: 'Bonjour' + (prenom ? ' ' + prenom : '') + ',',
-          paragraphes: ['Votre nouveau mois d\'abonnement commence. Dites-nous en deux minutes ce qui a marché le mois dernier et ce que vous souhaitez ce mois-ci : la production démarre dès que votre brief est reçu.'],
+          paragraphes: ['Votre nouveau mois d\'abonnement commence.', 'Dites-nous-en davantage sur ce qui a fonctionné le mois dernier, et sur ce que vous souhaitez garder ou changer ce mois-ci. La production démarre dès réception de votre brief.'],
           bouton: ['Remplir mon brief', lien] }) });
     }
   } catch (e) {}

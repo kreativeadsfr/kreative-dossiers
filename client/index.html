@@ -173,6 +173,7 @@ function ecranAccueil() {
 function prochaineEtape(c) {
   const e = etat(c);
   if (c.brief_suivant) return { titre: 'Brief de la livraison ' + c.brief_suivant.n, texte: 'À remplir pour lancer la suite' };
+  if (c.brief_prochain && e !== 'livre') return { titre: 'Livraison ' + c.brief_prochain.n + ' sur ' + c.brief_prochain.sur, texte: 'Son brief vous sera demandé le ' + K.date(c.brief_prochain.le, { month: 'long' }) };
   if (e === 'confirmee') return { titre: 'Votre brief', texte: 'À remplir pour lancer la production' };
   if (e === 'production') { const x = c.etapes.find(y => y.cle === 'production'); return { titre: 'Production', texte: (x && x.detail) || 'On s\'occupe de tout' }; }
   if (e === 'livre') return { titre: 'Votre validation', texte: 'Vos créatives sont prêtes' };
@@ -341,10 +342,10 @@ const MOIS_B = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet'
 function briefAFaire(c) {
   const p = (base, extra) => base + '?' + new URLSearchParams(Object.assign({ commande: c.ref, client: D.client.id }, D.client.email ? { email: D.client.email } : {}, { marque: D.client.marque }, extra || {})).toString();
   if (etat(c) === 'confirmee' && c.brief_mois) { const m = MOIS_B[new Date(c.cree_le || Date.now()).getMonth()];
-    return { cle: c.id, titre: 'Brief ' + (/^[ao]/.test(m) ? 'd\'' : 'de ') + m, texte: 'Dites-nous ce qui a marché le mois dernier et ce que vous souhaitez ce mois-ci.', lien: p(LIENS.fillout.suivant, { dossier: c.brief_mois.dossier }) }; }
+    return { cle: c.id, titre: 'Brief ' + (/^[ao]/.test(m) ? 'd\'' : 'de ') + m, texte: 'Dites-nous-en davantage sur ce qui a fonctionné le mois dernier, et sur ce que vous souhaitez garder ou changer ce mois-ci.', lien: p(LIENS.fillout.suivant, { dossier: c.brief_mois.dossier }) }; }
   // Custom : le nombre de créas commandé part dans le lien (champ caché « creas » du formulaire), lu par n8n
   if (etat(c) === 'confirmee') return { cle: c.id, titre: 'Votre brief', texte: 'Votre brief lance la production de votre ' + nom(c) + '. Comptez une quinzaine de minutes.', lien: p(LIENS.fillout[c.pack] || LIENS.fillout.custom, c.pack === 'custom' && c.nb_creas ? { creas: c.nb_creas } : null) };
-  if (c.brief_suivant) return { cle: c.id, titre: 'Brief de la livraison ' + c.brief_suivant.n + '/' + c.brief_suivant.sur, texte: 'Dites-nous ce qui a marché sur la livraison ' + (c.brief_suivant.n - 1) + ' et ce que vous souhaitez pour la suite.', lien: p(LIENS.fillout.suivant, { dossier: c.brief_suivant.dossier }) };
+  if (c.brief_suivant) return { cle: c.id, titre: 'Brief de la livraison ' + c.brief_suivant.n + '/' + c.brief_suivant.sur, texte: 'Dites-nous-en davantage sur ce qui a fonctionné dans la livraison ' + (c.brief_suivant.n - 1) + ', et sur ce que vous souhaitez garder ou changer pour la suivante.', lien: p(LIENS.fillout.suivant, { dossier: c.brief_suivant.dossier }) };
   return null;
 }
 const briefsAFaire = () => D.commandes.map(c => ({ c, b: briefAFaire(c) })).filter(x => x.b);
@@ -367,6 +368,9 @@ function ecranBrief(id) {
   }
   // les briefs déjà envoyés, à relire
   const c = choisi || D.commandes.find(x => x.brief_json) || D.commandes[0];
+  // le prochain brief d'un Custom livré en plusieurs fois : demandé à sa date, pour tenir le rythme des livraisons
+  const pro = D.commandes.find(x => x.brief_prochain);
+  if (pro) h += '<div class="card pad" style="margin-bottom:14px;display:flex;gap:12px;align-items:center"><span class="pill b"><i></i>À venir</span><p style="font-size:14px;margin:0">Le brief de la livraison ' + pro.brief_prochain.n + ' sur ' + pro.brief_prochain.sur + ' (' + esc(nom(pro)) + ') vous sera demandé le <b>' + esc(K.date(pro.brief_prochain.le, { month: 'long' })) + '</b>.</p></div>';
   let rep = []; try { rep = c.brief_json ? JSON.parse(c.brief_json) : []; } catch (e) { rep = []; }
   h += '<div class="ph"><div><h1>Mon brief</h1><p>' + esc(nom(c)) + ' · commande #' + esc(c.ref) + '</p></div></div>';
   if (D.commandes.length > 1) h += '<div class="filtres">' + D.commandes.map(x => '<a class="chip' + (x.id === c.id ? ' on' : '') + '" href="#/brief/' + esc(x.id) + '">' + esc(nom(x)) + '</a>').join('') + '</div>';

@@ -59,6 +59,12 @@
     if (c.options.includes('express')) h = Math.round(h / 2);
     return h <= 72 ? h + ' h' : Math.round(h / 24) + ' jours';
   };
+  // le Custom est livré en plusieurs fois au-delà de 30 créas (comme n8n le découpe) : le délai vaut pour chaque livraison
+  PN.texteDelai = nb => {
+    const lots = C().pack !== 'custom' || nb <= 30 ? 1 : nb <= 60 ? 2 : 4;
+    return lots === 1 ? 'Livrée en ' + PN.delai() + ' après votre brief'
+      : 'Livrée en ' + lots + ' fois, ' + (lots === 2 ? 'à 15 jours d\'intervalle' : 'une par semaine') + ' : chaque livraison en ' + PN.delai();
+  };
   PN.corps = () => {
     const c = C(), P = D().packs[c.pack], noms = D().options.filter(o => c.options.includes(o.id)).map(o => o.nom + (o.type === 'par_crea' ? ' × ' + PN.qte(o.id) : ''));
     return { pack: c.pack, formule: c.formule, nb_creas: c.nb, options: PN.liste(),
@@ -106,7 +112,7 @@
       '<div style="margin-top:14px">' + d.lignes.map(l => '<div class="ligne"><span>' + esc(l[0]) + '</span><b>' + (l[1] < 0 ? '−' : '') + K.euros(Math.abs(Math.round(l[1]))) + '</b></div>').join('') + '</div>' +
       '<div class="total"><span class="muted">Total' + (m ? ' par mois' : '') + '</span><b>' + K.euros(d.total) + '</b></div>' +
       '<div class="unitaire">' + K.euros(Math.floor(d.total / d.nb)) + ' <span>la créative</span></div>' +
-      '<div class="delai">' + i.horloge + 'Livrée en ' + esc(PN.delai()) + ' après votre brief</div>' +
+      '<div class="delai">' + i.horloge + esc(PN.texteDelai(d.nb)) + '</div>' +
       '<a class="btn btn-d btn-bloc btn-lg" id="cf-payer" href="#" target="_blank" rel="noopener">' + esc((o.bouton && o.bouton.texte) || 'Commander') + '</a>' +
       '<p class="confiance petit"><span>' + i.cadenas + 'Paiement sécurisé par Stripe</span></p>';
   };

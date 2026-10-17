@@ -138,6 +138,8 @@ html{scrollbar-width:none;overscroll-behavior:auto}html::-webkit-scrollbar{displ
     return { lignes: lignes, total: Math.round(base), n: n };
   }
   function delai() { var h = pack === 'custom' ? (D.custom.delais.filter(function (x) { return C.nb <= x[0]; })[0] || D.custom.delais[D.custom.delais.length - 1])[1] : D.packs[pack].delai; if (C.options.indexOf('express') >= 0) h = Math.round(h / 2); return h <= 72 ? h + ' h' : Math.round(h / 24) + ' jours'; }
+  // le Custom est livré en plusieurs fois au-delà de 30 créas : le délai vaut pour chaque livraison
+  function texteDelai(n) { var lots = pack !== 'custom' || n <= 30 ? 1 : n <= 60 ? 2 : 4; return lots === 1 ? 'Livrée en ' + delai() + ' après votre brief' : 'Livrée en ' + lots + ' fois, ' + (lots === 2 ? 'à 15 jours d\'intervalle' : 'une par semaine') + ' : chaque livraison en ' + delai(); }
   function lien() {
     var p = [], opts = C.options.map(function (id) { return parCrea().indexOf(id) >= 0 ? id + ':' + C.qte[id] : id; });
     if (pack === 'custom') p.push('creas=' + C.nb);
@@ -165,7 +167,7 @@ html{scrollbar-width:none;overscroll-behavior:auto}html::-webkit-scrollbar{displ
     }).join('');
     q('recap').innerHTML = '<h3>Pack ' + P.nom + '</h3><p class="kc-sous">Paiement unique, sans engagement</p><div class="kc-lignes">' + d.lignes.map(function (l) { return '<div class="kc-ligne"><span>' + l[0] + '</span><b>' + eur(l[1]) + '</b></div>'; }).join('') + '</div>' +
       '<div class="kc-total"><span>Total</span><b' + (dernierTotal !== null && dernierTotal !== d.total ? ' class="kc-pulse"' : '') + '>' + eur(d.total) + '</b></div><div class="kc-unit">' + eur(Math.floor(d.total / d.n)) + ' la créative</div>' +
-      '<div class="kc-delai"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Livrée en ' + delai() + ' après votre brief</div>' +
+      '<div class="kc-delai"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>' + texteDelai(d.n) + '</div>' +
       '<a class="kc-go" href="' + lien() + '" target="_blank" rel="noopener">Commander<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>' +
       '<div class="kc-sur"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="4.5" y="10.5" width="15" height="10" rx="2.5"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></svg>Paiement sécurisé par Stripe</span><span class="bleu">100 % satisfait ou remboursé</span></div>';
     dernierTotal = d.total;

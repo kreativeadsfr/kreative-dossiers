@@ -62,13 +62,13 @@ const TEXTE = `
     </ul>
   </li>
 </ul>
-<p>Pour le Pack Custom : livraison sous 72 h jusqu'à 30 ads, sous 4 jours jusqu'à 50 ads, sous 5 jours jusqu'à 70 ads et sous 7 jours jusqu'à 100 ads. Au-delà de 100 ads, ou pour un volume, un rythme ou un délai particulier, la prestation fait l'objet d'un devis.</p>
+<p>Pour le Pack Custom, les ads sont livrées en plusieurs fois selon le volume commandé : en une seule livraison jusqu'à 30 ads, en 2 livraisons à 15 jours d'intervalle de 31 à 60 ads, et en 4 livraisons, une par semaine, de 61 à 100 ads. Chaque livraison intervient sous 72 h jusqu'à 30 ads commandées, sous 4 jours jusqu'à 50 ads, sous 5 jours jusqu'à 70 ads et sous 7 jours jusqu'à 100 ads. Au-delà de 100 ads, ou pour un volume, un rythme ou un délai particulier, la prestation fait l'objet d'un devis.</p>
 <p>Chaque ad est livrée aux formats 1:1, 4:5 et 9:16.</p>
 
 <h3>2.2 - Les options</h3>
 <p>Le Client peut ajouter à sa commande les options suivantes :</p>
 <ul>
-  <li>Livraison express : le délai de livraison du pack est divisé par deux. 90 € pour le Pack Starter, 190 € pour le Pack Growth, 290 € pour le Pack Scale et 390 € pour le Pack Custom.</li>
+  <li>Livraison express : le délai de livraison du pack (de chaque livraison pour le Pack Custom) est divisé par deux. 90 € pour le Pack Starter, 190 € pour le Pack Growth, 290 € pour le Pack Scale et 390 € pour le Pack Custom.</li>
   <li>A/B test visuel : un même texte décliné sur 2 visuels différents. 20 € par ad concernée.</li>
   <li>A/B test texte : un même visuel décliné avec 2 textes différents. 15 € par ad concernée.</li>
 </ul>

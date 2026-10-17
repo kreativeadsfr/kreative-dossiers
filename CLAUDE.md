@@ -52,7 +52,7 @@ Ce fichier est lu automatiquement par Claude quand il ouvre ce dépôt. Il conti
 ## 5. Prix (dans `worker.js` : PACKS, CUSTOM, OPTIONS ; `/api/offres` les expose)
 
 - Starter 6 créas 280 € (48 h, 2 rounds de révision), Growth 12 créas 490 € (48 h), Scale 24 créas 890 € (72 h). Mensuel : 240 / 420 / 760 €.
-- Custom : 30 à 100 créas par pas de 5 ; 35 € dès 30, 32 € dès 50, 29 € dès 75. Mensuel -15 %. Délais du panier : 72 h jusqu'à 30, 96 h jusqu'à 50, 120 h jusqu'à 70, 168 h jusqu'à 100.
+- Custom : 30 à 100 créas par pas de 5 ; 35 € dès 30, 32 € dès 50, 29 € dès 75. Mensuel -15 %. Livré en plusieurs fois (comme n8n) : 1 livraison jusqu'à 30, 2 à 15 jours d'intervalle de 31 à 60, 4 (une par semaine) de 61 à 100. Le délai vaut pour **chaque** livraison : 72 h jusqu'à 30, 96 h jusqu'à 50, 120 h jusqu'à 70, 168 h jusqu'à 100 (panier, CGV 2.1 et composant Framer `outils/framer/CGVKreative.tsx` alignés le 17/10/2026).
 - Options : express (délai divisé par 2) 90 / 190 / 290 / 390 € selon le pack ; A/B test visuel 20 €/créa ; A/B test texte 15 €/créa.
 - Abonnement : engagement 3 mois. Bouton « Résilier l'abonnement » dans l'espace client (Mon profil seulement), actif dès que le 3e mois est débité (tous les packs) ; Stripe `cancel_at_period_end` : s'arrête à la fin du mois payé, jamais de 4e prélèvement forcé ; le client peut « Annuler ma résiliation » jusque-là (par défaut, l'abonnement continue tout seul). Verrou Stripe : une résiliation programmée avant la fin du 3e mois (tableau de bord Stripe…) est repoussée par le webhook à cette date (`cancel_at`) ; une annulation immédiate faite par Kreative reste possible. Avant de résilier : fenêtre « Êtes-vous sûr ? » avec l'offre pour rester = coupon Stripe d'ID `FIDELITE` créé par Dario (valeur et durée lues dans Stripe, appliqué sur l'abonnement via `discounts`, une seule fois par abonnement, `abonnements.offre_le`) ; sans ce coupon, la fenêtre s'affiche sans offre. La page de paiement Stripe affiche l'engagement (`custom_text.submit`). Pas de portail client Stripe configuré : ne pas en activer avec la résiliation. Table D1 `abonnements`. Le webhook Stripe doit aussi envoyer customer.subscription.updated et customer.subscription.deleted.
 - CGV mises à jour le 17/10/2026 (prix, résiliation depuis l'espace client, article 3.2).
@@ -109,7 +109,4 @@ Ce fichier est lu automatiquement par Claude quand il ouvre ce dépôt. Il conti
 
 ## 11. Ouvert / à décider
 
-- **Délais du Custom incohérents** : le panier et les CGV promettent 72 h à 7 jours selon le volume, alors que n8n découpe en 2 livraisons espacées de 15 jours (31-60 créas) ou 4 hebdomadaires (61-100). Dario doit choisir ; aligner ensuite le panier, les CGV et n8n.
-- Ajouter le champ caché `creas` dans le formulaire Fillout Custom (sinon n8n compte 30 créas).
 - Test complet avec l'IA (brief → fiche → visuels) : MOTEUR, VISUELS et les briefs sont « Available in MCP ».
-- Comptes de test Podmax et Attar à supprimer dans l'admin si ce n'est pas fait.

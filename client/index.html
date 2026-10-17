@@ -341,10 +341,10 @@ const MOIS_B = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet'
 function briefAFaire(c) {
   const p = (base, extra) => base + '?' + new URLSearchParams(Object.assign({ commande: c.ref, client: D.client.id }, D.client.email ? { email: D.client.email } : {}, { marque: D.client.marque }, extra || {})).toString();
   if (etat(c) === 'confirmee' && c.brief_mois) { const m = MOIS_B[new Date(c.cree_le || Date.now()).getMonth()];
-    return { cle: c.id, titre: 'Brief ' + (/^[ao]/.test(m) ? 'd\'' : 'de ') + m, texte: 'Dites-nous ce qui a marché le mois dernier et ce que vous voulez ce mois-ci.', lien: p(LIENS.fillout.suivant, { dossier: c.brief_mois.dossier }) }; }
+    return { cle: c.id, titre: 'Brief ' + (/^[ao]/.test(m) ? 'd\'' : 'de ') + m, texte: 'Dites-nous ce qui a marché le mois dernier et ce que vous souhaitez ce mois-ci.', lien: p(LIENS.fillout.suivant, { dossier: c.brief_mois.dossier }) }; }
   // Custom : le nombre de créas commandé part dans le lien (champ caché « creas » du formulaire), lu par n8n
   if (etat(c) === 'confirmee') return { cle: c.id, titre: 'Votre brief', texte: 'Votre brief lance la production de votre ' + nom(c) + '. Comptez une quinzaine de minutes.', lien: p(LIENS.fillout[c.pack] || LIENS.fillout.custom, c.pack === 'custom' && c.nb_creas ? { creas: c.nb_creas } : null) };
-  if (c.brief_suivant) return { cle: c.id, titre: 'Brief de la livraison ' + c.brief_suivant.n + '/' + c.brief_suivant.sur, texte: 'Dites-nous ce qui a marché sur la livraison ' + (c.brief_suivant.n - 1) + ' et ce que vous voulez pour la suite.', lien: p(LIENS.fillout.suivant, { dossier: c.brief_suivant.dossier }) };
+  if (c.brief_suivant) return { cle: c.id, titre: 'Brief de la livraison ' + c.brief_suivant.n + '/' + c.brief_suivant.sur, texte: 'Dites-nous ce qui a marché sur la livraison ' + (c.brief_suivant.n - 1) + ' et ce que vous souhaitez pour la suite.', lien: p(LIENS.fillout.suivant, { dossier: c.brief_suivant.dossier }) };
   return null;
 }
 const briefsAFaire = () => D.commandes.map(c => ({ c, b: briefAFaire(c) })).filter(x => x.b);

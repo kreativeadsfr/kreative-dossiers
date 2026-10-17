@@ -2350,12 +2350,12 @@ async function prevenirBriefDuMois(env, url, clientId) {
     if (!cl) return;
     const m = MOIS_FR[Number(new Date().toLocaleString('en-US', { month: 'numeric', timeZone: 'Europe/Paris' })) - 1];
     const deMois = (/^[ao]/.test(m) ? 'd\'' : 'de ') + m;
-    await notifier(env, clientId, { titre: 'Votre brief ' + deMois, texte: cl.marque + ' · votre nouveau mois commence : dites-nous ce que vous voulez ce mois-ci.', url: '/client/#/brief' });
+    await notifier(env, clientId, { titre: 'Votre brief ' + deMois, texte: cl.marque + ' · votre nouveau mois commence : dites-nous ce que vous souhaitez ce mois-ci.', url: '/client/#/brief' });
     if (cl.email && cl.jeton && url) {
       const prenom = String(cl.contact || '').trim().split(/\s+/)[0], lien = lienAcces(url, cl.jeton);
       await envoyerEmail(env, { type: 'brief_mois', a: cl.email, marque: cl.marque, contact: cl.contact || '', lien, sujet: cl.marque + ' · votre brief ' + deMois,
         html: emailHtml(url.origin, { titre: 'Bonjour' + (prenom ? ' ' + prenom : '') + ',',
-          paragraphes: ['Votre nouveau mois d\'abonnement commence. Dites-nous en deux minutes ce qui a marché le mois dernier et ce que vous voulez ce mois-ci : la production démarre dès que votre brief est reçu.'],
+          paragraphes: ['Votre nouveau mois d\'abonnement commence. Dites-nous en deux minutes ce qui a marché le mois dernier et ce que vous souhaitez ce mois-ci : la production démarre dès que votre brief est reçu.'],
           bouton: ['Remplir mon brief', lien] }) });
     }
   } catch (e) {}

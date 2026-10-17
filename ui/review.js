@@ -35,7 +35,9 @@
   };
   RV.taille = n => !n ? '' : n > 1e6 ? (n / 1e6).toFixed(1).replace('.', ',') + ' Mo' : Math.max(1, Math.round(n / 1e3)) + ' Ko';
   RV.formats = l => ORDRE.filter(f => l.fichiers.some(x => x.format === f));
-  const quand = t => { const d = (Date.now() - t) / 6e4; return d < 1 ? 'à l\'instant' : d < 60 ? 'il y a ' + Math.round(d) + ' min' : d < 1440 ? 'il y a ' + Math.round(d / 60) + ' h' : K.date(t, { year: undefined }); };
+  const quand = t => { const d = (Date.now() - t) / 6e4, en = enCours === 'en';
+    if (en) return d < 1 ? 'just now' : d < 60 ? Math.round(d) + ' min ago' : d < 1440 ? Math.round(d / 60) + ' h ago' : new Date(t).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'Europe/Paris' });
+    return d < 1 ? 'à l\'instant' : d < 60 ? 'il y a ' + Math.round(d) + ' min' : d < 1440 ? 'il y a ' + Math.round(d / 60) + ' h' : K.date(t, { year: undefined }); };
   const ouverts = {};   // les dossiers repliés ou non, par livraison
   // la designer lit l'anglais
   const EN = { 'Tout télécharger': 'Download all', 'fichier': 'file', ' à reviewer': ' to review', 'approuvé': 'approved', 'commentaire': 'comment', 'Aucun fichier pour l\'instant.': 'No file yet.',

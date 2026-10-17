@@ -54,7 +54,7 @@ function rechercher(q) {
     .map(x => ({ texte: x.nom, type: 'Preview', icone: 'image', href: '#/visuels/' + x.dossier }));
 }
 const nomEn = x => x.nom.replace(' · livraison ', ' · part ');
-const ligneNom = x => '<div class="nom">' + K.tuile(x.marque) + '<div><b>' + esc(nomEn(x)) + (x.demo ? ' <span class="pill demo">Demo</span>' : '') + '</b><span class="sub">' + esc(x.dossier) + '</span></div></div>';
+const ligneNom = x => '<div class="nom">' + K.tuile(x.marque) + '<div><b>' + esc(nomEn(x)) + (x.demo ? ' <span class="pill demo">Demo</span>' : '') + '</b><span class="sub">' + esc(x.dossier) + '</span>' + K.prod.celluleOptions(x, true) + '</div></div>';
 function boutons(x) {
   return '<div style="display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap">' +
     '<a class="btn btn-s btn-sm" href="#/visuels/' + esc(x.dossier) + '">' + i.image + 'Preview</a>' +
@@ -76,12 +76,12 @@ function ecranAccueil() {
     kpi('Delivered', faits.filter(x => x.livreLe > now - 30 * 864e5).length, 'in the last 30 days') + '</div>';
   h += '<div class="sec"><div><h2>To deliver</h2><p>Sorted by deadline, the closest first.</p></div></div>';
   h += afaire.length ? '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Project</th><th class="num">Creatives</th><th>Deadline</th><th>Due (Paris time)</th><th></th></tr></thead><tbody>' +
-    afaire.map(x => '<tr><td>' + ligneNom(x) + '</td><td class="num">' + esc(x.nb || '?') + '</td><td>' + (K.prod.echeance(x.desi, true).pill || '<span class="muted">No date</span>') + '</td>' +
+    afaire.map(x => '<tr><td>' + ligneNom(x) + '</td><td class="num">' + esc(K.prod.total(x) || '?') + '</td><td>' + (K.prod.echeance(x.desi, true).pill || '<span class="muted">No date</span>') + '</td>' +
       '<td>' + (x.desi ? esc(quand(x.desi)) : '<span class="muted">No date</span>') + '</td><td class="fin">' + boutons(x) + '</td></tr>').join('') + '</tbody></table></div></div>'
     : '<div class="card"><div class="vide">' + i.coche + 'Nothing to deliver right now. New projects appear here as soon as they are ready.</div></div>';
   h += '<div class="sec"><div><h2>Delivered</h2><p>What you already sent to Kreative.</p></div><a class="btn btn-g btn-sm" href="#/projets">All projects</a></div>';
   h += faits.length ? '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Project</th><th class="num">Creatives</th><th>Delivered on</th><th>Status</th><th></th></tr></thead><tbody>' +
-    faits.slice(0, 8).map(x => '<tr><td>' + ligneNom(x) + '</td><td class="num">' + esc(x.nb || '?') + '</td><td>' + (x.livreLe ? esc(jour(x.livreLe)) : '') + '</td><td><span class="pill g"><i></i>Delivered</span></td><td class="fin">' + boutons(x) + '</td></tr>').join('') +
+    faits.slice(0, 8).map(x => '<tr><td>' + ligneNom(x) + '</td><td class="num">' + esc(K.prod.total(x) || '?') + '</td><td>' + (x.livreLe ? esc(jour(x.livreLe)) : '') + '</td><td><span class="pill g"><i></i>Delivered</span></td><td class="fin">' + boutons(x) + '</td></tr>').join('') +
     '</tbody></table></div></div>' : '<div class="card"><div class="vide">No delivered project yet.</div></div>';
   return h;
 }
@@ -95,7 +95,7 @@ function ecranProjets() {
   return '<div class="ph"><div><h1>Projects</h1><p>All your projects, and each of their pages in one click.</p></div></div>' +
     '<div class="filtres">' + chip('todo', 'To deliver', 'var(--blue)') + chip('late', 'Late', 'var(--red)') + chip('done', 'Delivered', 'var(--green)') + chip('all', 'All') + '</div>' +
     (l.length ? '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Project</th><th class="num">Creatives</th><th>Status</th><th>Due</th><th></th></tr></thead><tbody>' +
-      l.map(x => '<tr><td>' + ligneNom(x) + '</td><td class="num">' + esc(x.nb || '?') + '</td><td>' + K.prod.pill(x, true) + '</td><td>' + (x.desi ? esc(quand(x.desi)) : '<span class="muted">No date</span>') + '</td><td class="fin">' + boutons(x) + '</td></tr>').join('') +
+      l.map(x => '<tr><td>' + ligneNom(x) + '</td><td class="num">' + esc(K.prod.total(x) || '?') + '</td><td>' + K.prod.pill(x, true) + '</td><td>' + (x.desi ? esc(quand(x.desi)) : '<span class="muted">No date</span>') + '</td><td class="fin">' + boutons(x) + '</td></tr>').join('') +
       '</tbody></table></div></div>' : '<div class="card"><div class="vide">No project here.</div></div>');
 }
 
@@ -121,7 +121,7 @@ function ecranLivrer(id) {
   if (!id) {
     return '<div class="ph"><div><h1>Deliver</h1><p>Pick the project you finished, then upload your files right here.</p></div></div>' +
       (aLivrer.length ? '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Project</th><th class="num">Creatives</th><th>Status</th><th></th></tr></thead><tbody>' +
-        aLivrer.map(x => '<tr class="clic" onclick="location.hash=\'#/livrer/' + esc(x.dossier) + '\'"><td>' + ligneNom(x) + '</td><td class="num">' + esc(x.nb || '?') + '</td><td>' + (x.aCorriger ? '<span class="pill r"><i></i>To fix</span>' : K.prod.echeance(x.desi, true).pill || '<span class="muted">No date</span>') + '</td>' +
+        aLivrer.map(x => '<tr class="clic" onclick="location.hash=\'#/livrer/' + esc(x.dossier) + '\'"><td>' + ligneNom(x) + '</td><td class="num">' + esc(K.prod.total(x) || '?') + '</td><td>' + (x.aCorriger ? '<span class="pill r"><i></i>To fix</span>' : K.prod.echeance(x.desi, true).pill || '<span class="muted">No date</span>') + '</td>' +
           '<td class="fin"><span class="btn btn-p btn-sm">' + i.envoi + 'Deliver</span></td></tr>').join('') + '</tbody></table></div></div>'
         : '<div class="card"><div class="vide">' + i.coche + 'Nothing to deliver right now.</div></div>');
   }
@@ -130,7 +130,7 @@ function ecranLivrer(id) {
   if (DL.dossier !== id) { DL.dossier = id; DL.donnees = null; setTimeout(() => chargerDl(id), 0); }
   const V = (DL.donnees && DL.donnees.versions) || [], der = V[0], choix = L.filter(y => aFaire(y) || y === x);
   let h = '<a class="retour" href="#/livrer">' + i.gauche + 'Deliver</a>' +
-    '<div class="ph"><div><h1>' + esc(nomEn(x)) + '</h1><p>' + esc(x.nb || '?') + ' creatives in 1:1, 4:5 and 9:16' + (x.desi ? ' · due ' + esc(quand(x.desi)) + ' (Paris time)' : '') + '</p></div>' +
+    '<div class="ph"><div><h1>' + esc(nomEn(x)) + '</h1><p>' + esc(K.prod.total(x) || '?') + ' files per format (1:1, 4:5 and 9:16)' + (x.desi ? ' · due ' + esc(quand(x.desi)) + ' (Paris time)' : '') + '</p>' + K.prod.celluleOptions(x, true) + '</div>' +
     '<div class="act" style="align-items:center">' + (der ? pillEn(der.statut) : K.prod.echeance(x.desi, true).pill) +
     '<div style="width:300px"><select class="in" id="lv-projet">' + choix.map(y => '<option value="' + esc(y.dossier) + '"' + (y === x ? ' selected' : '') + '>' + esc(nomEn(y)) + '</option>').join('') + '</select></div></div></div>';
   if (!DL.donnees) return h + '<div class="card"><div class="vide">Loading…</div></div>';
@@ -144,7 +144,7 @@ function ecranLivrer(id) {
   if (peutDeposer) {
     gauche += '<div class="depot" id="lv-depot" style="margin-top:14px">' + i.telecharger + '<b>Drop your PNG files here, or click to choose</b><small>PNG only. The format (1:1, 4:5, 9:16) is detected from the size.</small><input type="file" id="lv-fichiers" multiple accept="image/png,.png" hidden></div>' +
       '<div class="envois" id="lv-envois">' + DL.envois.map(e => '<div class="envoi-l fini"><span>' + esc(e.nom) + '</span><div class="barre' + (e.ok ? ' g' : '') + '"><i style="width:' + e.pc + '%"></i></div><small class="muted">' + esc(e.etat) + '</small></div>').join('') + '</div>';
-    const attendu = Number(x.nb) || 0;
+    const attendu = K.prod.total(x);
     gauche += '<div class="compte-formats">' + ['1x1', '4x5', '9x16'].map(f => { const n = F.filter(y => y.format === f).length; return '<span class="pill ' + (attendu && n >= attendu ? 'g' : n ? 'a' : '') + '">' + NOMS_F[f] + ' · ' + n + (attendu ? ' / ' + attendu : '') + '</span>'; }).join('') +
       (F.some(y => y.format === 'autre') ? '<span class="pill r">Other sizes · ' + F.filter(y => y.format === 'autre').length + '</span>' : '') + '</div>' +
       '<div class="champ" style="margin-top:16px"><label for="lv-note">Note for Kreative (optional)</label><textarea class="in" id="lv-note" rows="3" placeholder="Anything we should know">' + esc(DL.note || '') + '</textarea></div>' +
@@ -263,7 +263,7 @@ function brancherLivrer(id) {
   if (b) b.onclick = async () => {
     const etat = document.getElementById('lv-etat'), travail = V[0];
     if (!travail || travail.statut !== 'brouillon') return;
-    const attendu = Number(x.nb) || 0, manque = attendu ? ['1x1', '4x5', '9x16'].filter(f => travail.fichiers.filter(y => y.format === f).length < attendu) : [];
+    const attendu = K.prod.total(x), manque = attendu ? ['1x1', '4x5', '9x16'].filter(f => travail.fichiers.filter(y => y.format === f).length < attendu) : [];
     if (manque.length && !await K.confirmer('Some formats are incomplete', 'Missing files in ' + manque.map(f => NOMS_F[f]).join(', ') + '. Send anyway?', 'Send anyway')) return;
     b.disabled = true; etat.textContent = 'Sending…';
     try {

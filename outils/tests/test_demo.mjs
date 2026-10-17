@@ -17,6 +17,8 @@ const emails0 = lignes('emails.log'), stripe0 = lignes('stripe.log');
 r = await api('/api/admin/demo', ST, 'POST'); t('démo refusée au stratégiste', r.s === 403, r.s);
 r = await api('/api/admin/demo', DE, 'POST'); t('démo refusée à la designer', r.s === 403, r.s);
 r = await api('/api/admin/demo', A, 'POST'); t('ajouter la démo : 9 clients, 10 commandes', r.s === 200 && r.d.clients === 9 && r.d.commandes === 10, JSON.stringify(r.d));
+r = await api('/api/equipe/etats', ST);
+t('les options du client (A/B tests, express) arrivent chez le stratégiste et la designer', r.s === 200 && r.d.options && r.d.options.TEST_DEMO_LUMEN === 'ab_visuel:2,ab_texte:3' && r.d.options.TEST_DEMO_VELVO === 'express,ab_texte:4' && (await api('/api/equipe/etats', DE)).d.options.TEST_DEMO_LUMEN === 'ab_visuel:2,ab_texte:3', JSON.stringify(r.d && r.d.options));
 r = await api('/api/admin/demo', A, 'POST'); t('rajouter la démo ne double rien', r.d.clients === 9, JSON.stringify(r.d));
 r = await api('/api/admin/clients', A); const demos = r.d.filter(c => c.id.startsWith('c_demo_'));
 t('9 clients de démo + le vrai client', demos.length === 9 && r.d.some(c => c.id === vrai), r.d.length);

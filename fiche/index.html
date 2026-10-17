@@ -291,6 +291,9 @@ body.envoyee .deja{display:block}
 .grp+.grp{padding-top:16px;border-top:1px solid var(--line)}
 .defaut{font-size:12.5px;color:var(--tx3)}
 /* les retours du client sur la livraison precedente */
+.options{margin:0 0 14px;padding:14px 16px;border:1px solid #cfe1ff;border-radius:16px;background:#f3f8ff;font-size:13.5px;line-height:1.5;color:var(--tx2)}
+.options .ot{font-size:11.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#2b6fd6;margin-bottom:6px}
+.options p{margin:4px 0 0}.options b{color:var(--tx);font-weight:600}
 .retour{margin:0 0 18px;border:1px solid #cfe1ff;border-radius:16px;background:#f3f8ff;overflow:hidden}
 .retour summary{cursor:pointer;padding:11px 16px;font-size:14px;font-weight:600;list-style:none;display:flex;gap:8px;align-items:baseline}
 .retour summary::-webkit-details-marker{display:none}
@@ -438,7 +441,8 @@ button.p:hover:not(:disabled){background:var(--blue-h);border-color:var(--blue-h
 <main>
   <section class="pane left">
     <div class="lin">
-      <div class="htitle"><b id="ctitle">Crea 01</b><span id="cst">en cours</span></div>
+      <div class="htitle"><b id="ctitle">Créa 01</b><span id="cst">en cours</span></div>
+      <div class="options" id="options" hidden></div>
       <details class="retour" id="retour" hidden></details>
       <div class="deja" id="deja"></div>
       <div class="mode" id="mode" role="tablist" aria-label="Façon de remplir la créa">
@@ -448,13 +452,13 @@ button.p:hover:not(:disabled){background:var(--blue-h);border-color:var(--blue-h
       <div class="form">
         <div id="zone" class="form"></div>
         <div class="fld">
-          <label for="idee" id="ideelab">Idee du visuel</label>
+          <label for="idee" id="ideelab">Idée du visuel</label>
           <textarea id="idee" rows="4"></textarea>
         </div>
         <div class="fld">
-          <label>Assets de cette crea</label>
+          <label>Assets de cette créa</label>
           <div class="drop" id="drop" tabindex="0">
-            <b id="dropt">Glisse ici les assets de la Crea 01</b>
+            <b id="dropt">Glisse ici les assets de la créa 01</b>
             <span>Seulement ce qui sert a ce visuel : photo produit, logo, capture d avis</span>
           </div>
           <input type="file" id="file" multiple accept="image/*,.pdf,.svg" style="display:none">
@@ -463,7 +467,7 @@ button.p:hover:not(:disabled){background:var(--blue-h);border-color:var(--blue-h
       </div>
       <div class="nav">
         <button id="effacer">Effacer cette créa</button>
-        <button id="prev">Precedente</button>
+        <button id="prev">Précédente</button>
         <button class="p" id="next">Suivante</button>
         <button class="p" id="send" style="display:none">Envoyer la fiche</button>
       </div>
@@ -481,7 +485,7 @@ button.p:hover:not(:disabled){background:var(--blue-h);border-color:var(--blue-h
 
 <div class="foot">
   <button id="reset">Vider tout le projet</button>
-  <button id="dl">Telecharger la fiche</button>
+  <button id="dl">Télécharger la fiche</button>
   <span class="msg" id="msg"></span>
 </div>
 
@@ -612,6 +616,7 @@ const placeDe = i => { let avant = 0; for (let j = 1; j < i; j++) avant += versi
 function accueil(){
   PRJ=null; data={}; AS=[]; cur=1;
   $("retour").hidden=true; $("retour").innerHTML="";
+  $("options").hidden=true; $("options").innerHTML="";
   document.body.classList.remove("envoyee");
   $("projet").value="";
   majLabel(); fermeSel();
@@ -904,8 +909,13 @@ async function ouvre(dossier){
     if(r.ok){const d=await r.json();if(d&&d.nb_creas)n=d.nb_creas;
       if(d&&d.brand_name)PRJ.brand_name=d.brand_name}
   }catch(e){/* donnees.json absent : on garde ce que dit projets.json */}
-  PRJ.nb_creas=n||0;
+  /* 17/10 : les options payees par le client (A/B test visuel, A/B test texte,
+     express), lues dans le portail. Les A/B tests ajoutent des creas a la fiche. */
+  const o=await optionsClient(dossier);
+  PRJ.opts=o;
+  PRJ.nb_creas=n?n+o.abv+o.abt:0;
   if(!n)$("custom").value="";
+  montreOptions();
   await chargeRetour(dossier);
   majEtat();
   const all=await dbAll();
@@ -919,6 +929,30 @@ async function ouvre(dossier){
     say("Projet "+(PRJ.brand_name||dossier)+" ouvert.","ok");
 }
 
+/* 17/10 : les options du client. Un Custom livre en plusieurs fois les
+   repartit entre ses livraisons (comme l espace strategiste). */
+async function optionsClient(dossier){
+  const o={abv:0,abt:0,express:false};
+  let r=null,d=null;
+  try{const x=await fetch("/api/equipe/etats",{cache:"no-store",credentials:"same-origin"});if(x.ok)r=await x.json()}catch(e){r=null}
+  if(!r||!r.options)return o;
+  try{const y=await fetch(urlDonnees(dossier),{cache:"no-store"});if(y.ok)d=await y.json()}catch(e){d=null}
+  const l=d&&d.livraison, base=(l&&l.projet)||dossier.replace(/_L\d+$/,"");
+  const s=r.options[dossier]||r.options[base]||"";
+  const part=t=>!(l&&l.sur>1)?t:Math.floor(t/l.sur)+((l.n||1)<=t%l.sur?1:0);
+  s.split(",").forEach(x=>{const [id,q]=x.split(":");
+    if(id==="express")o.express=true;else if(id==="ab_visuel")o.abv=part(+q||0);else if(id==="ab_texte")o.abt=part(+q||0);});
+  return o;
+}
+function montreOptions(){
+  const b=$("options"), o=(PRJ&&PRJ.opts)||{};
+  const t=[];
+  if(o.abt)t.push("<b>A/B test texte sur "+o.abt+" créa"+(o.abt>1?"s":"")+"</b> : "+(o.abt>1?"choisis "+o.abt+" créas":"choisis une créa")+", puis dans « Déclinaisons de texte », clique sur « 2 textes » et écris le texte B (même visuel, autre texte).");
+  if(o.abv)t.push("<b>A/B test visuel sur "+o.abv+" créa"+(o.abv>1?"s":"")+"</b> : "+o.abv+" créa"+(o.abv>1?"s":"")+" en plus, qui reprennent les textes d'une autre (« Reprendre les textes ») avec une autre inspiration.");
+  if(o.express)t.push("<b>Express</b> : le client a payé une livraison deux fois plus rapide.");
+  b.hidden=!t.length;
+  b.innerHTML=t.length?"<div class=\"ot\">Options du client · "+PRJ.nb_creas+" créas à remplir</div>"+t.map(x=>"<p>"+x+"</p>").join(""):"";
+}
 /* 15/10 : le nom du brief selon le type de projet :
    sur-mesure -> « Brief de la livraison 2/4 », abonnement -> « Brief de novembre » */
 function nomBrief(d){
@@ -1097,7 +1131,7 @@ function form(){
   if (dej) $("deja").textContent = "Fiche déjà reçue le " + jourFr(ENVOYEES[PRJ.dossier]) +
     ". Tu peux la relire et la modifier. Si tu la renvoies, elle repart en production une deuxième fois.";
   $("send").textContent = dej ? "Renvoyer la fiche" : "Envoyer la fiche";
-  $("ctitle").textContent = "Crea " + String(cur).padStart(2, "0");
+  $("ctitle").textContent = "Créa " + String(cur).padStart(2, "0");
   $("cst").textContent = full(cur) ? "remplie" : "en cours";
   $("cst").className = full(cur) ? "ok" : "";
   const libre = d.mode === "libre";
@@ -1107,11 +1141,11 @@ function form(){
   $("zone").innerHTML = libre ? zoneLibre(d) : zoneInspi(d);
   const im = $("zone").querySelector(".pinbox img");
   if (im) im.onerror = () => { if (im.dataset.mini && im.src !== im.dataset.mini) im.src = im.dataset.mini; };
-  $("ideelab").textContent = libre ? "Idée du visuel, et la place de chaque texte" : "Idee du visuel";
+  $("ideelab").textContent = libre ? "Idée du visuel, et la place de chaque texte" : "Idée du visuel";
   $("idee").placeholder = libre ? "Ce qu'on voit, où va chaque texte, l'ambiance"
-                                : "Reprends la structure de la ref choisie et dis ce qu on met dedans pour ce client";
+                                : "Reprends la structure de l'inspiration choisie et dis ce qu'on met dedans pour ce client";
   $("idee").value = d.idee || "";
-  $("dropt").textContent = "Glisse ici les assets de la Crea " + String(cur).padStart(2, "0");
+  $("dropt").textContent = "Glisse ici les assets de la créa " + String(cur).padStart(2, "0");
   $("assets").innerHTML = asOf(cur).map(a => {
     const e = (a.name.split(".").pop() || "?").toUpperCase().slice(0, 4);
     return '<div class="af"><div class="tn">' + (a.prev ? '<img src="' + a.prev + '" alt="">' : esc(e)) +
@@ -1459,7 +1493,7 @@ $("send").onclick=async()=>{
               "\n\nC'est le seul renvoi possible : après, seule Kreative pourra la débloquer.\n\nContinuer ?"))return;
   const n=nc();let miss=[];
   for(let i=1;i<=n;i++)if(!full(i))miss.push(String(i).padStart(2,"0"));
-  if(miss.length&&!confirm("Crea "+miss.join(", ")+" incomplete(s).\nEnvoyer quand meme ?"))return;
+  if(miss.length&&!confirm("Créa "+miss.join(", ")+" incomplète(s).\nEnvoyer quand même ?"))return;
   const DEMO=/^TEST_DEMO_/.test(PRJ.dossier||"");
   const code=TEST||DEMO?"":codeKreative();
   if(!TEST&&!DEMO&&!code)return say("Il faut le code Kreative pour envoyer la fiche.","ko");
@@ -1499,15 +1533,15 @@ async function buildFiche(){
     const files=[];
     for(const a of as)files.push({name:a.name,size:a.size,src:a.blob?await b64(a.blob):a.prev});
     cards+='<article class="c'+(full(i)?"":" inc")+'">'+
-      '<header><span class="num">Crea '+String(i).padStart(2,"0")+'</span>'+
+      '<header><span class="num">Créa '+String(i).padStart(2,"0")+'</span>'+
       (bk?'<span class="tag">'+esc(FAMS[bk.fam])+' &middot; '+esc(bk.fmt.replace(/^\d+ - /,""))+'</span>'
          :'<span class="tag warn">sans reference</span>')+
       '</header><div class="body"><div class="txt">'+
       (c.mode==='libre'?'<h3>Nouvelle idée · inspirations '+esc(c.moods.join(', '))+'</h3>':'')+
       (versionsDe(i)>1?[...Array(versionsDe(i)).keys()].map(v=>'<h3>Version '+LETTRES[v]+'</h3>'+textesPourEnvoi(c,v).filter(t=>t.texte).map(t=>'<p><b>'+t.n+' · '+esc(t.role)+'</b> : '+esc(t.texte)+'</p>').join('')).join(''):
       (tx.length?tx.map(t=>'<p><b>'+t.n+' · '+esc(t.role)+'</b> : '+esc(t.texte)+'</p>').join(''):'<p><i>aucun texte</i></p>'))+
-      '<h3>Idee du visuel</h3><p>'+(c.idee?esc(c.idee):"<i>a definir</i>")+'</p>'+
-      '<h3>Assets de cette crea</h3>'+
+      '<h3>Idée du visuel</h3><p>'+(c.idee?esc(c.idee):"<i>à définir</i>")+'</p>'+
+      '<h3>Assets de cette créa</h3>'+
       (files.length?'<div class="as">'+files.map(f=>'<figure>'+
         (f.src&&/^data:image/.test(f.src)?'<img src="'+f.src+'" alt="'+esc(f.name)+'">'
           :'<div class="nf">'+esc((f.name.split(".").pop()||"?").toUpperCase())+'</div>')+

@@ -385,6 +385,26 @@
     await P.chargerEtats();
     return P.liste;
   };
+  // Les options payées par le client. A/B test visuel : n créas en plus, même texte sur un autre visuel.
+  // A/B test texte : n versions B en plus, un 2e texte sur le même visuel. Un Custom livré en plusieurs fois
+  // les répartit entre ses livraisons (la 1re prend le reste). Express : délais divisés par deux.
+  P.part = (total, l) => !(l && l.sur > 1) ? total : Math.floor(total / l.sur) + ((l.n || 1) <= total % l.sur ? 1 : 0);
+  P.lireOptions = (s, l) => {
+    const o = { abv: 0, abt: 0, express: false };
+    String(s || '').split(',').forEach(x => { const [id, q] = x.split(':'); if (id === 'express') o.express = true;
+      else if (id === 'ab_visuel') o.abv = P.part(Number(q) || 0, l); else if (id === 'ab_texte') o.abt = P.part(Number(q) || 0, l); });
+    return o;
+  };
+  // le nombre de créatives à produire : celles du pack, plus les A/B tests
+  P.total = x => (Number(x.nb) || 0) + ((x.opts || {}).abv || 0) + ((x.opts || {}).abt || 0);
+  P.optionsTexte = (x, en) => {
+    const o = x.opts || {}, t = [];
+    if (o.abv) t.push(en ? 'A/B visual test on ' + o.abv + ' creative' + (o.abv > 1 ? 's' : '') : 'A/B visuel sur ' + o.abv + ' créa' + (o.abv > 1 ? 's' : ''));
+    if (o.abt) t.push(en ? 'A/B copy test on ' + o.abt + ' creative' + (o.abt > 1 ? 's' : '') : 'A/B texte sur ' + o.abt + ' créa' + (o.abt > 1 ? 's' : ''));
+    if (o.express) t.push('Express');
+    return t.join(' · ');
+  };
+  P.celluleOptions = (x, en) => { const t = P.optionsTexte(x, en); return t ? '<span class="sub" style="color:var(--blue-tx)">' + K.esc(t) + '</span>' : ''; };
   // l'état de production, calculé de la même façon pour l'admin, le stratégiste et la designer :
   // la dernière version déposée dans le portail, un déplacement fait dans le Kanban, la commande du client
   P.chargerEtats = async donnees => {
@@ -396,6 +416,7 @@
       x.v = e.v || null; x.o = e.o || null;
       const l = x.d.livraison, base = (l && l.projet) || x.dossier;
       x.k = (r.commandes || {})[x.dossier] || ((!l || !(l.sur > 1) || l.n >= l.sur) ? (r.commandes || {})[base] : null) || null;
+      x.opts = P.lireOptions((r.options || {})[x.dossier] || (r.options || {})[base] || '', l);
       if (x.livreDepot === undefined) x.livreDepot = x.livre;
       x.etape = P.etape(x);
       x.livre = ['livrer', 'client'].includes(x.etape.cle);
@@ -483,7 +504,9 @@
     return { t: en ? 'One-off order' : 'Commande unique', s: 'Pack ' + ((x.pack || '').charAt(0).toUpperCase() + (x.pack || '').slice(1)) };
   };
   P.celluleType = (x, en) => { const t = P.type(x, en); return '<b style="font-weight:500">' + K.esc(t.t) + '</b><span class="sub">' + K.esc(t.s) + '</span>'; };
-  P.celluleCreas = (x, en) => { const l = (x.d || {}).livraison; return '<b style="font-weight:500">' + K.esc(x.nb || '?') + '</b>' + (l && l.sur > 1 && l.total_creas ? '<span class="sub">' + (en ? 'of ' : 'sur ') + l.total_creas + (en ? ' in total' : ' au total') + '</span>' : ''); };
+  P.celluleCreas = (x, en) => { const l = (x.d || {}).livraison, tot = P.total(x), plus = tot - (Number(x.nb) || 0);
+    return '<b style="font-weight:500">' + K.esc(tot || '?') + '</b>' + (plus ? '<span class="sub">' + x.nb + (en ? ' + ' + plus + ' A/B' : ' + ' + plus + ' A/B') + '</span>' : '') +
+      (l && l.sur > 1 && l.total_creas ? '<span class="sub">' + (en ? 'of ' : 'sur ') + l.total_creas + (en ? ' in total' : ' au total') + '</span>' : ''); };
 
   // les sections et la page qu'elles ouvrent
   P.sections = {

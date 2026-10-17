@@ -1095,10 +1095,10 @@ async function creerDemo(db, env) {
   const J = 864e5, now = maintenant();
   const C = [
     ['lina', 'Lina Mode', 'Lina Moreau', [['starter', 'unique', 6, 280, null, 'brief', 1, null]], 'Commande payée, brief pas encore envoyé'],
-    ['lumen', 'Maison Lumen', 'Hugo Lambert', [['growth', 'unique', 12, 490, 'TEST_DEMO_LUMEN', 'production', 2, null]], 'Brief reçu, fiche à remplir'],
+    ['lumen', 'Maison Lumen', 'Hugo Lambert', [['growth', 'unique', 12, 490, 'TEST_DEMO_LUMEN', 'production', 2, null, 'ab_visuel:2,ab_texte:3']], 'Brief reçu, fiche à remplir (avec A/B tests)'],
     ['sable', 'Atelier Sable', 'Clara Petit', [['starter', 'unique', 6, 280, 'TEST_DEMO_SABLE', 'production', 4, null]], 'Fiche en retard'],
     ['nordik', 'Nordik Café', 'Erik Dahl', [['custom', 'unique', 40, 1360, 'TEST_DEMO_NORDIK', 'production', 6, null]], 'Sur-mesure en 2 livraisons, brief de la livraison 2 reçu'],
-    ['velvo', 'Velvo', 'Sami Benali', [['scale', 'unique', 24, 890, 'TEST_DEMO_VELVO', 'production', 5, null]], 'Chez la designer, en retard'],
+    ['velvo', 'Velvo', 'Sami Benali', [['scale', 'unique', 24, 890, 'TEST_DEMO_VELVO', 'production', 5, null, 'express,ab_texte:4']], 'Chez la designer, en retard (express, A/B texte)'],
     ['oria', 'Oria Skin', 'Inès Garcia', [['growth', 'mensuel', 12, 420, 'TEST_DEMO_ORIA', 'production', 3, null]], 'Livré par la designer, à envoyer au client'],
     ['pulse', 'Pulse Studio', 'Noah Martin', [['growth', 'unique', 12, 490, 'TEST_DEMO_PULSE', 'livre', 8, null]], 'Livré, le client doit valider'],
     ['brume', 'Brume Paris', 'Léa Roux', [['scale', 'unique', 24, 890, 'TEST_DEMO_BRUME', 'revisions', 10, null]], 'Retouches en cours'],
@@ -1110,13 +1110,13 @@ async function creerDemo(db, env) {
     await db.prepare('INSERT INTO clients (id, marque, contact, email, site, jeton, notes, cree_le, vu_le) VALUES (?,?,?,?,?,?,?,?,?)')
       .bind(id, marque + ' (démo)', contact, 'demo-' + slug + '@example.com', 'https://example.com', aleatoire(32), 'Client de démonstration : ' + note, now - 40 * J, now - J).run();
     await db.prepare('INSERT INTO activite (client_id, type, texte, le) VALUES (?,?,?,?)').bind(id, 'client', 'Espace client créé', now - 40 * J).run();
-    for (const [pack, formule, creas, prix, dossier, statut, ilya, extra] of cmds) {
+    for (const [pack, formule, creas, prix, dossier, statut, ilya, extra, options] of cmds) {
       n++;
       const k = 'k_demo_' + slug + '_' + n, cree = now - ilya * J, brief = statut === 'brief' ? null : cree + J;
       const livre = ['livre', 'revisions', 'valide'].includes(statut) ? cree + 3 * J : null;
-      await db.prepare(`INSERT INTO commandes (id, ref, client_id, pack, formule, nb_creas, prix, dossier, statut, cree_le, brief_le, livre_le, valide_le, avis_le)
-        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).bind(k, 'DEMO-' + n, id, pack, formule, creas, prix, dossier, statut, cree, brief, livre,
-          statut === 'valide' ? cree + 5 * J : null, extra === 'avis' ? cree + 5 * J : null).run();
+      await db.prepare(`INSERT INTO commandes (id, ref, client_id, pack, formule, nb_creas, prix, dossier, statut, cree_le, brief_le, livre_le, valide_le, avis_le, options)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).bind(k, 'DEMO-' + n, id, pack, formule, creas, prix, dossier, statut, cree, brief, livre,
+          statut === 'valide' ? cree + 5 * J : null, extra === 'avis' ? cree + 5 * J : null, options || null).run();
       const act = [['commande', 'Paiement reçu, commande confirmée', cree]];
       if (brief) act.push(['brief', 'Brief reçu, production lancée', brief]);
       if (livre) act.push(['livre', 'Vos créatives sont livrées', livre]);
@@ -1560,14 +1560,15 @@ async function etatsProduction(db) {
     db.prepare(`SELECT l.dossier, l.id, l.version, l.statut, l.retouche, l.depose_le, l.verifie_le, l.envoye_le, l.review_le, l.retouche_le, l.cree_le FROM livraisons l
       WHERE l.version = (SELECT MAX(x.version) FROM livraisons x WHERE x.dossier = l.dossier)`).all(),
     db.prepare('SELECT * FROM prod_etapes').all(),
-    db.prepare("SELECT dossier, statut FROM commandes WHERE dossier IS NOT NULL ORDER BY cree_le").all()]);
+    db.prepare("SELECT dossier, statut, options FROM commandes WHERE dossier IS NOT NULL ORDER BY cree_le").all()]);
   const etats = {}, de = d => (etats[d] = etats[d] || {});
   for (const l of L) de(l.dossier).v = { id: l.id, version: l.version, statut: l.statut, retouche: ['a_corriger', 'review_terminee'].includes(l.statut) ? (l.retouche || 'designer') : null,
     le: Math.max(l.cree_le || 0, l.depose_le || 0, l.verifie_le || 0, l.envoye_le || 0, l.review_le || 0, l.retouche_le || 0) };
   for (const o of O) de(o.dossier).o = { etape: o.etape, le: o.le, par: o.par };
-  const commandes = {};
-  for (const k of K2) commandes[k.dossier] = k.statut;
-  return { etats, commandes, le: maintenant() };
+  // les options payées par le client (A/B test visuel, A/B test texte, express) : visibles par le stratégiste et la designer
+  const commandes = {}, options = {};
+  for (const k of K2) { commandes[k.dossier] = k.statut; if (k.options) options[k.dossier] = k.options; }
+  return { etats, commandes, options, le: maintenant() };
 }
 // glisser un projet dans une autre colonne du Kanban : une vraie action quand il y en a une, sinon l'étape est notée
 async function deplacerProjet(env, ctx, url, db, dossier, vers, qui, confirme) {

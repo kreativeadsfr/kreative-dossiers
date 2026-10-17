@@ -459,6 +459,9 @@ input[type=range].curseur{width:100%;accent-color:var(--blue);height:24px;margin
 
 /* ---------- profil ---------- */
 .profil{max-width:680px}
+.abo-l+.abo-l{border-top:1px solid var(--line);margin-top:16px;padding-top:16px}
+.abo-t{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px}
+.abo-carte .btn[disabled]{opacity:.55;cursor:not-allowed}
 .av-img{width:34px;height:34px;border-radius:10px;object-fit:cover;flex:none;display:block;background:var(--soft)}
 .photo-l{display:flex;align-items:center;gap:18px;margin-bottom:22px}
 .photo-l .rond{width:76px;height:76px;border-radius:20px;flex:none;display:grid;place-items:center;overflow:hidden;color:#fff;font:700 28px var(--titre)}

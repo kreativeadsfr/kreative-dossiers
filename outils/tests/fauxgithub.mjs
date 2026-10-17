@@ -9,6 +9,13 @@ http.createServer((req, res) => {
   if (u.pathname === '/v1/checkout/sessions') { let b=''; req.on('data', c => b += c); req.on('end', () => {
     if (req.headers.authorization !== 'Bearer sk_test_faux') { res.writeHead(401,{'content-type':'application/json'}); return res.end('{"error":{"message":"Invalid API Key"}}'); }
     fs.appendFileSync('stripe.log', b + '\n'); res.writeHead(200,{'content-type':'application/json'}); const emb = /ui_mode=embedded/.test(b); res.end(JSON.stringify({ id: 'cs_test_' + Date.now(), url: emb ? null : 'https://checkout.stripe.com/c/pay/cs_test_faux', client_secret: emb ? 'cs_test_faux_secret_123' : null })); }); return; }
+  if (u.pathname.startsWith('/v1/subscriptions/')) { let b=''; req.on('data', c => b += c); req.on('end', () => {
+    if (req.headers.authorization !== 'Bearer sk_test_faux') { res.writeHead(401,{'content-type':'application/json'}); return res.end('{"error":{"message":"Invalid API Key"}}'); }
+    const id = decodeURIComponent(u.pathname.split('/').pop()), q = Object.fromEntries(new URLSearchParams(b));
+    fs.appendFileSync('stripe_abo.log', JSON.stringify({ id, ...q }) + '\n');
+    if (id === 'sub_inconnu') { res.writeHead(404,{'content-type':'application/json'}); return res.end('{"error":{"message":"No such subscription"}}'); }
+    const fin = Math.floor(Date.now() / 1000) + 20 * 86400, oui = q.cancel_at_period_end === 'true';
+    res.writeHead(200,{'content-type':'application/json'}); res.end(JSON.stringify({ id, object: 'subscription', status: 'active', cancel_at_period_end: oui, cancel_at: oui ? fin : null, canceled_at: oui ? Math.floor(Date.now() / 1000) : null, items: { data: [{ current_period_end: fin }] } })); }); return; }
   if (req.headers.authorization !== 'Bearer ' + JETON) { res.writeHead(401); return res.end('{"message":"Bad credentials"}'); }
   compteur.n++;
   const m = u.pathname.match(/^\/repos\/kreativeadsfr\/kreative-dossiers\/contents\/(.*)$/);

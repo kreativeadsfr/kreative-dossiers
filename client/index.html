@@ -424,6 +424,7 @@ document.addEventListener('click', e => {
 function ecranFactures() {
   const F = payees(D.factures);
   let h = apercu() + '<div class="ph"><div><h1>Factures</h1><p>Toutes vos factures Kreative, à télécharger quand vous le souhaitez.</p></div></div>';
+  if ((D.abonnements || []).length) h += '<div style="margin-bottom:14px">' + carteAbonnement() + '</div>';
   return h + (F.length ? '<div class="card"><div class="tbl-wrap">' + tableFactures(F) + '</div></div>'
     : '<div class="card"><div class="vide">' + i.recu + 'Vos factures apparaissent ici après chaque paiement.</div></div>');
 }
@@ -562,6 +563,48 @@ function brancherMerci() {
   }, 2500);
 }
 
+// ---------- ABONNEMENT ----------
+// engagement de 3 mois, puis résiliable à tout moment : la résiliation prend effet à la fin du mois déjà payé
+const dateLongue = ms => K.date(ms, { month: 'long' });
+const finDuMois = a => { const d = new Date(a.debut); d.setUTCMonth(d.getUTCMonth() + a.mois_payes); return d.getTime(); };
+function carteAbonnement() {
+  const L = D.abonnements || [];
+  if (!L.length) return '';
+  return '<div class="card abo-carte"><h3 style="font-size:16px;margin-bottom:6px">' + (L.length > 1 ? 'Mes abonnements' : 'Mon abonnement') + '</h3>' + L.map(a => {
+    const [etat, couleur] = { actif: ['Actif', 'g'], resiliation: ['Résilié', 'a'], termine: ['Terminé', ''] }[a.statut] || ['Actif', 'g'];
+    let texte, bouton = '';
+    if (a.statut === 'termine') texte = 'Abonnement terminé le ' + dateLongue(a.fin_le) + '. Vous pouvez reprendre un pack quand vous le souhaitez.';
+    else if (a.statut === 'resiliation') {
+      texte = 'Résiliation enregistrée. Votre abonnement s\'arrête le <b>' + dateLongue(a.fin_le) + '</b> : vous recevez encore les créatives de ce mois, puis plus aucun prélèvement.';
+      bouton = '<button class="btn btn-s" data-abo-reprendre="' + esc(a.id) + '">Garder mon abonnement</button>';
+    } else if (a.resiliable) {
+      texte = 'Engagement de ' + a.engagement + ' mois terminé : résiliable à tout moment. La résiliation prend effet à la fin du mois en cours, déjà payé.';
+      bouton = '<button class="btn btn-r" data-abo-resilier="' + esc(a.id) + '">Résilier l\'abonnement</button>';
+    } else {
+      texte = 'Engagement de ' + a.engagement + ' mois en cours (' + a.mois_payes + ' sur ' + a.engagement + '). Vous pourrez résilier à partir du <b>' + dateLongue(a.resiliable_des) + '</b>.';
+      bouton = '<button class="btn btn-s" disabled title="Disponible à partir du ' + esc(dateLongue(a.resiliable_des)) + '">Résilier l\'abonnement</button>';
+    }
+    return '<div class="abo-l"><div class="abo-t"><b>Pack ' + esc(a.nom) + '</b><span class="pill ' + couleur + '"><i></i>' + etat + '</span></div>' +
+      '<div class="muted" style="font-size:13px;margin-top:4px">' + a.nb_creas + ' créatives par mois, ' + K.euros(a.prix) + ' par mois. Depuis le ' + dateLongue(a.debut) + ', ' + a.mois_payes + ' mois payé' + (a.mois_payes > 1 ? 's' : '') + '.</div>' +
+      '<p style="font-size:13.5px;line-height:1.55;margin-top:10px">' + texte + '</p>' + (bouton ? '<div style="margin-top:12px">' + bouton + '</div>' : '') + '</div>';
+  }).join('') + '</div>';
+}
+document.addEventListener('click', async e => {
+  const b = e.target.closest && e.target.closest('[data-abo-resilier],[data-abo-reprendre]');
+  if (!b || !D || b.disabled) return;
+  const resilier = 'aboResilier' in b.dataset, id = b.dataset.aboResilier || b.dataset.aboReprendre;
+  const a = (D.abonnements || []).find(x => x.id === id); if (!a) return;
+  if (D.apercu) return K.toast('Aperçu : rien n\'est enregistré à la place du client.');
+  if (resilier && !(await K.confirmer('Résilier votre abonnement ?', 'Votre abonnement Pack ' + a.nom + ' s\'arrêtera le ' + dateLongue(finDuMois(a)) +
+    ', à la fin du mois déjà payé. Vous recevez encore les créatives de ce mois, puis plus aucun prélèvement.', 'Résilier l\'abonnement', true))) return;
+  b.disabled = true;
+  try {
+    const r = await K.api('/api/client/abonnement/' + (resilier ? 'resilier' : 'reprendre'), { methode: 'POST', corps: { abo: id } });
+    K.toast(resilier ? 'Abonnement résilié : il s\'arrête le ' + dateLongue(r.fin_le) : 'Votre abonnement continue');
+    await recharger();
+  } catch (err) { K.toast(err.message); b.disabled = false; }
+});
+
 // ---------- PROFIL ----------
 function ecranProfil() {
   const c = D.client;
@@ -577,7 +620,7 @@ function ecranProfil() {
     '<div class="grid g2" style="gap:12px">' + ch('p-contact', 'Votre nom', c.contact, 'text', 'Prénom et nom') + ch('p-tel', 'Téléphone', c.telephone, 'tel', '06…') + '</div>' +
     ch('p-email', 'Email', c.email, 'email', 'vous@marque.fr') +
     ch('p-site', 'Site', c.site, 'url', 'https://…') +
-    '<div style="display:flex;justify-content:flex-end;margin-top:8px"><button class="btn btn-p" id="p-ok">Enregistrer</button></div></div>' +
+    '<div style="display:flex;justify-content:flex-end;margin-top:8px"><button class="btn btn-p" id="p-ok">Enregistrer</button></div></div>' + carteAbonnement() +
     '<div class="card" style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap"><div><h3 style="font-size:15px">Se déconnecter</h3>' +
     '<p class="muted" style="font-size:13px;margin-top:4px">Votre lien d\'accès reste valable : il vous reconnecte quand vous le souhaitez.</p></div>' +
     '<a class="btn btn-s" href="' + (D.apercu ? '/admin/#/clients/' + esc(c.id) : '/client/sortie') + '">' + i.sortie + 'Se déconnecter</a></div></div>';
@@ -664,7 +707,7 @@ K.rendre = () => {
 // l'espace suit le projet en direct : relu toutes les 30 s (et au retour sur l'onglet), redessiné seulement
 // si quelque chose a changé, jamais pendant une saisie, une fenêtre ou la visionneuse
 function suivreEnDirect() {
-  const sig = d => JSON.stringify([d.commandes, d.factures, d.livraisons]);
+  const sig = d => JSON.stringify([d.commandes, d.factures, d.livraisons, d.abonnements]);
   let derniere = sig(D);
   const verifier = async () => {
     if (document.visibilityState !== 'visible' || !D) return;

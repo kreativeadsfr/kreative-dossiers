@@ -31,13 +31,13 @@ Ce fichier est lu automatiquement par Claude quand il ouvre ce dépôt. Il conti
 - **Site vitrine** : kreativeads.fr sur **Framer** (Claude n'y a pas accès : Dario fait les manipulations).
 - **Portail** : app.kreativeads.fr = un **Cloudflare Worker** (`outils/cloudflare/worker.js`) qui sert les pages de ce dépôt (lues via l'API GitHub, cache ~20 s) et l'API.
   - Pages : `admin/`, `client/`, `strategiste/`, `designer/`, `commander/` (panier public), `merci/`, `fiche/`, `ui/` (app.js, app.css, review.js, panier.js, logos).
-  - Une modification de page poussée sur `main` est en ligne en ~20 s. **Une modification de `worker.js` ne l'est pas** : copier le fichier pour Dario sous le nom « Worker Kreative vNN (a coller dans Cloudflare).js » ; il le colle dans Cloudflare puis Deploy. Dernière version donnée : **v36**. Toujours lui rappeler que la nouvelle version contient les précédentes.
-  - Base **D1** : clients, commandes, livraisons, fichiers, commentaires, factures, retours, prod_etapes, push_abos, notifications, reglages, activite.
+  - Une modification de page poussée sur `main` est en ligne en ~20 s. **Une modification de `worker.js` ne l'est pas** : copier le fichier pour Dario sous le nom « Worker Kreative vNN (a coller dans Cloudflare).js » ; il le colle dans Cloudflare puis Deploy. Dernière version donnée : **v37** (résiliation de l'abonnement). Toujours lui rappeler que la nouvelle version contient les précédentes.
+  - Base **D1** : clients, commandes, abonnements, livraisons, fichiers, commentaires, factures, retours, prod_etapes, push_abos, notifications, reglages, activite.
   - Fichiers livrés : **R2** (binding `FICHIERS`).
   - Secrets Cloudflare (jamais dans le code) : `ACCES` (équipe, `prenom=motdepasse:role`, rôles admin / strategiste / designer, séparés par des virgules), `CLE` (clé n8n), `GITHUB_TOKEN`, `STRIPE_SECRET`, `STRIPE_WEBHOOK_SECRET`, `N8N_EMAIL`.
 - **n8n** : https://n8n.srv1536015.hstgr.cloud (section 7).
 - **Fillout** : formulaires de brief (section 6).
-- **Stripe** : compte « Kreative » (live). Webhook `https://app.kreativeads.fr/api/stripe/webhook`, événements checkout.session.completed, checkout.session.async_payment_succeeded, invoice.paid, invoice.finalized.
+- **Stripe** : compte « Kreative » (live). Webhook `https://app.kreativeads.fr/api/stripe/webhook`, événements checkout.session.completed, checkout.session.async_payment_succeeded, invoice.paid, invoice.finalized, customer.subscription.updated, customer.subscription.deleted.
 
 ## 4. Parcours d'un client
 
@@ -54,8 +54,8 @@ Ce fichier est lu automatiquement par Claude quand il ouvre ce dépôt. Il conti
 - Starter 6 créas 280 € (48 h, 2 rounds de révision), Growth 12 créas 490 € (48 h), Scale 24 créas 890 € (72 h). Mensuel : 240 / 420 / 760 €.
 - Custom : 30 à 100 créas par pas de 5 ; 35 € dès 30, 32 € dès 50, 29 € dès 75. Mensuel -15 %. Délais du panier : 72 h jusqu'à 30, 96 h jusqu'à 50, 120 h jusqu'à 70, 168 h jusqu'à 100.
 - Options : express (délai divisé par 2) 90 / 190 / 290 / 390 € selon le pack ; A/B test visuel 20 €/créa ; A/B test texte 15 €/créa.
-- Abonnement : engagement 3 mois. Il n'existe **pas encore** de bouton « Résilier » dans l'espace client (les CGV disent : par email ; le portail dit « depuis votre espace » : à corriger ou à construire).
-- CGV mises à jour le 15/10/2026 avec ces prix.
+- Abonnement : engagement 3 mois. Bouton « Résilier l'abonnement » dans l'espace client (Mon profil et Factures), actif dès que le 3e mois est payé ; Stripe `cancel_at_period_end` : s'arrête à la fin du mois payé ; le client peut « Garder mon abonnement » jusque-là. Table D1 `abonnements`. Le webhook Stripe doit aussi envoyer customer.subscription.updated et customer.subscription.deleted.
+- CGV mises à jour le 17/10/2026 (prix, résiliation depuis l'espace client, article 3.2).
 
 ## 6. Formulaires Fillout
 
@@ -93,7 +93,7 @@ Ce fichier est lu automatiquement par Claude quand il ouvre ce dépôt. Il conti
 
 ## 9. Banc de test (`outils/tests/`)
 
-- `bash outils/tests/tout.sh` : lance les ~380 tests (Worker dans Miniflare, faux GitHub, faux Stripe, faux n8n), chaque suite sur une base vide. `config-test.json` ne contient que des valeurs de test.
+- `bash outils/tests/tout.sh` : lance les ~420 tests (Worker dans Miniflare, faux GitHub, faux Stripe, faux n8n), chaque suite sur une base vide. `config-test.json` ne contient que des valeurs de test.
 - `bash outils/tests/relance.sh` puis `node outils/tests/test_stripe.mjs outils/tests/config-test.json` pour une seule suite. Portail local : http://127.0.0.1:8787 (mot de passe de test `mdp-test-dario`).
 - Ajouter un test pour chaque bug corrigé (ex. : client déjà connu de Stripe qui repaie).
 - Pour les captures d'écran : Playwright est installé (Chromium dans /opt/pw-browsers). Le réseau sortant est filtré : kreativeads.fr et app.kreativeads.fr ne sont pas joignables depuis la machine de Claude.
@@ -111,6 +111,5 @@ Ce fichier est lu automatiquement par Claude quand il ouvre ce dépôt. Il conti
 
 - **Délais du Custom incohérents** : le panier et les CGV promettent 72 h à 7 jours selon le volume, alors que n8n découpe en 2 livraisons espacées de 15 jours (31-60 créas) ou 4 hebdomadaires (61-100). Dario doit choisir ; aligner ensuite le panier, les CGV et n8n.
 - Ajouter le champ caché `creas` dans le formulaire Fillout Custom (sinon n8n compte 30 créas).
-- Bouton « Résilier l'abonnement » dans l'espace client (ou corriger la phrase du portail).
 - Test complet avec l'IA (brief → fiche → visuels) : MOTEUR, VISUELS et les briefs sont « Available in MCP ».
 - Comptes de test Podmax et Attar à supprimer dans l'admin si ce n'est pas fait.

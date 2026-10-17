@@ -9,6 +9,10 @@ http.createServer((req, res) => {
   if (u.pathname === '/v1/checkout/sessions') { let b=''; req.on('data', c => b += c); req.on('end', () => {
     if (req.headers.authorization !== 'Bearer sk_test_faux') { res.writeHead(401,{'content-type':'application/json'}); return res.end('{"error":{"message":"Invalid API Key"}}'); }
     fs.appendFileSync('stripe.log', b + '\n'); res.writeHead(200,{'content-type':'application/json'}); const emb = /ui_mode=embedded/.test(b); res.end(JSON.stringify({ id: 'cs_test_' + Date.now(), url: emb ? null : 'https://checkout.stripe.com/c/pay/cs_test_faux', client_secret: emb ? 'cs_test_faux_secret_123' : null })); }); return; }
+  if (u.pathname.startsWith('/v1/coupons/')) {
+    if (req.headers.authorization !== 'Bearer sk_test_faux') { res.writeHead(401,{'content-type':'application/json'}); return res.end('{"error":{"message":"Invalid API Key"}}'); }
+    if (u.pathname !== '/v1/coupons/FIDELITE') { res.writeHead(404,{'content-type':'application/json'}); return res.end('{"error":{"message":"No such coupon"}}'); }
+    res.writeHead(200,{'content-type':'application/json'}); return res.end(JSON.stringify({ id: 'FIDELITE', object: 'coupon', percent_off: 20, duration: 'once', valid: true })); }
   if (u.pathname.startsWith('/v1/subscriptions/')) { let b=''; req.on('data', c => b += c); req.on('end', () => {
     if (req.headers.authorization !== 'Bearer sk_test_faux') { res.writeHead(401,{'content-type':'application/json'}); return res.end('{"error":{"message":"Invalid API Key"}}'); }
     const id = decodeURIComponent(u.pathname.split('/').pop()), q = Object.fromEntries(new URLSearchParams(b));

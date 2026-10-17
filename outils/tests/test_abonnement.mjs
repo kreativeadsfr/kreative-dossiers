@@ -32,6 +32,7 @@ t('1er mois : abonnement Growth visible, 1 mois payé, pas encore résiliable', 
 const d1 = new Date(ab.debut), d3 = new Date(ab.resiliable_des);
 t('… résiliable dès le paiement du 3e mois (début + 2 mois)', (d3.getUTCFullYear() * 12 + d3.getUTCMonth()) - (d1.getUTCFullYear() * 12 + d1.getUTCMonth()) === 2, d1.toISOString() + ' ' + d3.toISOString());
 r = await api('/api/client/abonnement/resilier', CK, 'POST', { abo: 'sub_abo' });
+t('pendant l\'engagement : pas d\'offre non plus', (await api('/api/client/abonnement/offre?abo=sub_abo', CK)).d.offre === null);
 t('pendant l\'engagement : résiliation refusée, avec la date', r.s === 409 && /Engagement de 3 mois en cours : vous pourrez résilier à partir du \d+ \S+ \d{4}/.test(r.d.erreur) && !appelsAbo().length, r.s + ' ' + JSON.stringify(r.d));
 
 // 2e et 3e mois payés
@@ -50,9 +51,27 @@ t('un autre client ne peut pas résilier cet abonnement', r.s === 404 && !appels
 r = await api('/api/client/abonnement/resilier', CK, 'POST', { abo: 'sub_inexistant' });
 t('abonnement inconnu : 404', r.s === 404, r.s);
 
+// avant de résilier : l'offre pour rester (coupon Stripe FIDELITE), une seule fois
+r = await api('/api/client/abonnement/offre?abo=sub_abo', CK);
+t('offre pour rester : lue dans le coupon Stripe FIDELITE (-20 % une fois)', r.s === 200 && r.d.offre && r.d.offre.texte === '-20 % sur votre prochain mois', JSON.stringify(r.d));
+r = await api('/api/client/abonnement/offre?abo=sub_abo', CK2);
+t('… pas pour un autre client', r.s === 404, r.s);
+r = await api('/api/client/abonnement/garder?client=' + cid, A, 'POST', { abo: 'sub_abo' });
+t('… l\'admin en aperçu ne peut pas l\'accepter', r.s === 403 && !appelsAbo().length, r.s);
+r = await api('/api/client/abonnement/garder', CK, 'POST', { abo: 'sub_abo' });
+let L = appelsAbo();
+t('« Garder mon abonnement » avec l\'offre : coupon posé sur l\'abonnement Stripe, pas de résiliation', r.s === 200 && L.length === 1 && L[0]['discounts[0][coupon]'] === 'FIDELITE' && !('cancel_at_period_end' in L[0]), r.s + ' ' + JSON.stringify(L));
+r = await api('/api/client/moi', CK); ab = r.d.abonnements[0];
+t('… toujours actif, offre notée (et dans l\'activité)', ab.statut === 'actif' && ab.offre_le && r.d.activite.some(a => /a gardé son abonnement Pack Growth avec l'offre -20 % sur votre prochain mois/.test(a.texte)), JSON.stringify(ab));
+r = await api('/api/client/abonnement/offre?abo=sub_abo', CK);
+t('… une seule fois : plus d\'offre ensuite', r.s === 200 && r.d.offre === null, JSON.stringify(r.d));
+r = await api('/api/client/abonnement/garder', CK, 'POST', { abo: 'sub_abo' });
+t('… et impossible de la reprendre', r.s === 409 && appelsAbo().length === 1, r.s);
+fs.rmSync('stripe_abo.log', { force: true });
+
 // la résiliation
 r = await api('/api/client/abonnement/resilier', CK, 'POST', { abo: 'sub_abo' });
-let L = appelsAbo();
+L = appelsAbo();
 t('résiliation : Stripe arrête l\'abonnement à la fin du mois payé (cancel_at_period_end), pas tout de suite', r.s === 200 && r.d.statut === 'resiliation' && L.length === 1 && L[0].id === 'sub_abo' && L[0].cancel_at_period_end === 'true' && Object.keys(L[0]).length === 2, r.s + ' ' + JSON.stringify(r.d) + ' ' + JSON.stringify(L));
 t('… date de fin = fin de la période déjà payée (dans ~20 jours)', Math.abs(r.d.fin_le - (Date.now() + 20 * 86400000)) < 120000, r.d.fin_le);
 r = await api('/api/client/moi', CK); ab = r.d.abonnements[0];
@@ -65,7 +84,7 @@ t('… pas de double résiliation', r.s === 409 && /déjà enregistrée/.test(r.
 // Stripe confirme par webhook : pas de doublon dans l'activité
 await webhook({ type: 'customer.subscription.updated', data: { object: { id: 'sub_abo', status: 'active', cancel_at_period_end: true, cancel_at: Math.floor(Date.now() / 1000) + 20 * 86400 } } });
 r = await api('/api/client/moi', CK);
-t('confirmation de Stripe : pas de ligne en double', r.d.activite.filter(a => a.type === 'abonnement').length === 1, JSON.stringify(r.d.activite));
+t('confirmation de Stripe : pas de ligne en double', r.d.activite.filter(a => a.type === 'abonnement' && /résilié/.test(a.texte)).length === 1, JSON.stringify(r.d.activite));
 
 // changer d'avis
 r = await api('/api/client/abonnement/reprendre', CK, 'POST', { abo: 'sub_abo' });

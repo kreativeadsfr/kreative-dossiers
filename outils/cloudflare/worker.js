@@ -694,7 +694,7 @@ async function base(env) {
     for (const col of ['avis_le INTEGER', 'avis_ignore_le INTEGER', 'valide_le INTEGER', 'stripe_session TEXT', 'stripe_abo TEXT', 'stripe_facture TEXT', 'options TEXT', 'brief_json TEXT']) {
       try { await env.DB.prepare('ALTER TABLE commandes ADD COLUMN ' + col).run(); } catch (e) {}
     }
-    try { await env.DB.prepare('ALTER TABLE abonnements ADD COLUMN stripe_le INTEGER').run(); } catch (e) {}
+    for (const col of ['stripe_le INTEGER', 'offre_le INTEGER']) { try { await env.DB.prepare('ALTER TABLE abonnements ADD COLUMN ' + col).run(); } catch (e) {} }
     for (const col of ['stripe_client TEXT', 'photo TEXT', 'photo_le INTEGER', 'app_le INTEGER']) {
       try { await env.DB.prepare('ALTER TABLE clients ADD COLUMN ' + col).run(); } catch (e) {}
     }
@@ -975,6 +975,26 @@ async function apiClient(req, env, ctx, url, chemin, methode, cl, apercu) {
   if (chemin === '/notifications/derniere' && methode === 'GET') {
     const n = await (await baseLiv(env)).prepare('SELECT titre, texte, url, cree_le FROM notifications WHERE client_id = ? ORDER BY id DESC LIMIT 1').bind(cl.id).first();
     return json(n || { titre: 'Kreative', texte: 'Du nouveau dans votre espace.', url: '/client/' });
+  }
+  // avant de résilier : l'offre pour rester (une seule fois par abonnement), et l'accepter
+  if (chemin === '/abonnement/offre' && methode === 'GET') {
+    const A = (await abonnementsDuClient(db, cl.id)).find(a => a.id === url.searchParams.get('abo'));
+    if (!A) return json({ erreur: 'Abonnement introuvable.' }, 404);
+    return json({ offre: A.statut === 'actif' && A.resiliable && !A.offre_le ? await offreFidelite(env) : null });
+  }
+  if (chemin === '/abonnement/garder' && methode === 'POST') {
+    const b = await corpsJson(req);
+    const A = (await abonnementsDuClient(db, cl.id)).find(a => a.id === String(b.abo || ''));
+    if (!A) return json({ erreur: 'Abonnement introuvable.' }, 404);
+    if (A.statut !== 'actif' || A.offre_le) return json({ erreur: 'Cette offre n\'est plus disponible.' }, 409);
+    const o = await offreFidelite(env);
+    if (!o) return json({ erreur: 'Cette offre n\'est plus disponible.' }, 409);
+    try { await appelStripe(env, 'subscriptions/' + encodeURIComponent(A.id), { discounts: [{ coupon: COUPON_FIDELITE }] }); }
+    catch (e) { return json({ erreur: 'Stripe n\'a pas pu appliquer l\'offre (' + e.message + '). Écrivez-nous sur WhatsApp.' }, 502); }
+    await db.prepare(`INSERT INTO abonnements (stripe_abo, client_id, statut, offre_le, maj_le) VALUES (?,?,?,?,?)
+      ON CONFLICT(stripe_abo) DO UPDATE SET offre_le = excluded.offre_le`).bind(A.id, cl.id, 'actif', maintenant(), maintenant()).run();
+    await noter(db, cl.id, null, 'abonnement', 'Voulait résilier, a gardé son abonnement Pack ' + A.nom + ' avec l\'offre ' + o.texte);
+    return json({ ok: true, offre: o });
   }
   // résilier son abonnement (ou revenir sur sa résiliation) : après les 3 mois d'engagement, à la fin du mois en cours
   if ((m = chemin.match(/^\/abonnement\/(resilier|reprendre)$/)) && methode === 'POST') {
@@ -2200,6 +2220,31 @@ async function appelStripe(env, chemin, params) {
   if (!r.ok) throw new Error((d.error && d.error.message) || ('erreur ' + r.status));
   return d;
 }
+async function lireStripe(env, chemin) {
+  const r = await fetch((env.STRIPE_API || 'https://api.stripe.com') + '/v1/' + chemin, { headers: { 'Authorization': 'Bearer ' + env.STRIPE_SECRET } });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error((d.error && d.error.message) || ('erreur ' + r.status));
+  return d;
+}
+// l'offre pour rester, proposée quand un client veut résilier : le coupon Stripe d'ID « FIDELITE », créé par Kreative
+// dans Stripe (sa valeur et sa durée y sont réglées, le portail les lit). Pas de coupon : pas d'offre.
+const COUPON_FIDELITE = 'FIDELITE';
+let OFFRE_CACHE = null;
+async function offreFidelite(env) {
+  if (!env.STRIPE_SECRET) return null;
+  if (OFFRE_CACHE && OFFRE_CACHE.fin > Date.now()) return OFFRE_CACHE.v;
+  let v = null;
+  try {
+    const c = await lireStripe(env, 'coupons/' + COUPON_FIDELITE);
+    if (c && c.valid !== false && (c.percent_off || c.amount_off)) {
+      const remise = c.percent_off ? '-' + String(c.percent_off).replace('.', ',') + ' %' : '-' + Math.round(c.amount_off / 100) + ' €';
+      const duree = c.duration === 'forever' ? 'sur tous vos prochains mois' : c.duration === 'repeating' && c.duration_in_months > 1 ? 'pendant vos ' + c.duration_in_months + ' prochains mois' : 'sur votre prochain mois';
+      v = { remise, duree, texte: remise + ' ' + duree };
+    }
+  } catch (e) {}
+  OFFRE_CACHE = { v, fin: Date.now() + 10 * 60000 };
+  return v;
+}
 async function hmacHex(secret, texteASigner) {
   const k = await crypto.subtle.importKey('raw', new TextEncoder().encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
   const s = await crypto.subtle.sign('HMAC', k, new TextEncoder().encode(texteASigner));
@@ -2247,7 +2292,7 @@ async function abonnementsDuClient(db, clientId) {
     const e = E.find(x => x.stripe_abo === id) || {}, der = L[L.length - 1], statut = e.statut || 'actif';
     return { id, pack: der.pack, nom: (PACKS[der.pack] || PACKS.custom).nom, nb_creas: der.nb_creas, prix: der.prix, debut: L[0].cree_le,
       mois_payes: L.length, engagement: ENGAGEMENT_MOIS, resiliable_des: ajouterMois(L[0].cree_le, ENGAGEMENT_MOIS - 1),
-      resiliable: statut === 'actif' && L.length >= ENGAGEMENT_MOIS, statut, resilie_le: e.resilie_le || null, fin_le: e.fin_le || null };
+      resiliable: statut === 'actif' && L.length >= ENGAGEMENT_MOIS, statut, resilie_le: e.resilie_le || null, fin_le: e.fin_le || null, offre_le: e.offre_le || null };
   }).sort((a, b) => (a.statut === 'termine') - (b.statut === 'termine') || b.debut - a.debut);
 }
 // l'état d'un abonnement Stripe, rangé dans la base : actif, resiliation (s'arrête à fin_le), termine

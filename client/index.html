@@ -424,7 +424,6 @@ document.addEventListener('click', e => {
 function ecranFactures() {
   const F = payees(D.factures);
   let h = apercu() + '<div class="ph"><div><h1>Factures</h1><p>Toutes vos factures Kreative, à télécharger quand vous le souhaitez.</p></div></div>';
-  if ((D.abonnements || []).length) h += '<div style="margin-bottom:14px">' + carteAbonnement() + '</div>';
   return h + (F.length ? '<div class="card"><div class="tbl-wrap">' + tableFactures(F) + '</div></div>'
     : '<div class="card"><div class="vide">' + i.recu + 'Vos factures apparaissent ici après chaque paiement.</div></div>');
 }
@@ -585,24 +584,42 @@ function carteAbonnement() {
       bouton = '<button class="btn btn-s" disabled title="Disponible à partir du ' + esc(dateLongue(a.resiliable_des)) + '">Résilier l\'abonnement</button>';
     }
     return '<div class="abo-l"><div class="abo-t"><b>Pack ' + esc(a.nom) + '</b><span class="pill ' + couleur + '"><i></i>' + etat + '</span></div>' +
-      '<div class="muted" style="font-size:13px;margin-top:4px">' + a.nb_creas + ' créatives par mois, ' + K.euros(a.prix) + ' par mois. Depuis le ' + dateLongue(a.debut) + ', ' + a.mois_payes + ' mois payé' + (a.mois_payes > 1 ? 's' : '') + '.</div>' +
+      '<div class="muted" style="font-size:13px;margin-top:4px">' + a.nb_creas + ' créatives par mois, ' + K.euros(a.prix) + ' par mois. Depuis le ' + dateLongue(a.debut) + '.</div>' +
       '<p style="font-size:13.5px;line-height:1.55;margin-top:10px">' + texte + '</p>' + (bouton ? '<div style="margin-top:12px">' + bouton + '</div>' : '') + '</div>';
   }).join('') + '</div>';
+}
+// « Résilier » ouvre d'abord une fenêtre pour retenir le client : l'offre pour rester (si Kreative en a une),
+// un grand bouton « Garder mon abonnement », et un simple lien « Résilier quand même »
+async function fenetreResilier(a) {
+  let offre = null;
+  try { offre = (await K.api('/api/client/abonnement/offre?abo=' + encodeURIComponent(a.id))).offre; } catch (e) {}
+  const v = K.fenetre('<div class="fen-h retenir-h"><h2>Êtes-vous sûr de vouloir résilier ?</h2><p>Avec votre Pack ' + esc(a.nom) + ', vous recevez ' + a.nb_creas +
+    ' nouvelles créatives chaque mois pour garder vos publicités fraîches. Si vous résiliez, votre abonnement s\'arrêtera le ' + dateLongue(finDuMois(a)) + '.</p></div>' +
+    (offre ? '<div class="offre-rester"><span class="offre-etiquette">Offre pour rester</span><div class="offre-remise">' + esc(offre.remise) + '</div>' +
+      '<div class="offre-texte">' + esc(offre.duree.charAt(0).toUpperCase() + offre.duree.slice(1)) + ', si vous gardez votre abonnement. Appliqué automatiquement, rien d\'autre ne change.</div></div>' : '') +
+    '<div class="retenir-b"><button class="btn btn-p btn-lg btn-bloc" data-garder>' + (offre ? 'Garder mon abonnement avec ' + esc(offre.remise) : 'Garder mon abonnement') + '</button>' +
+    '<button class="lien-resilier" data-resilier>Résilier quand même</button></div>');
+  v.querySelector('[data-garder]').onclick = async e => {
+    if (!offre) { K.fermer(); return K.toast('Votre abonnement continue, merci !'); }
+    e.target.disabled = true;
+    try { await K.api('/api/client/abonnement/garder', { methode: 'POST', corps: { abo: a.id } }); K.fermer(); K.toast('C\'est noté : ' + offre.texte + '. Merci de rester !'); await recharger(); }
+    catch (err) { K.toast(err.message); e.target.disabled = false; }
+  };
+  v.querySelector('[data-resilier]').onclick = async e => {
+    e.target.disabled = true;
+    try { const r = await K.api('/api/client/abonnement/resilier', { methode: 'POST', corps: { abo: a.id } }); K.fermer(); K.toast('Abonnement résilié : il s\'arrête le ' + dateLongue(r.fin_le)); await recharger(); }
+    catch (err) { K.toast(err.message); e.target.disabled = false; }
+  };
 }
 document.addEventListener('click', async e => {
   const b = e.target.closest && e.target.closest('[data-abo-resilier],[data-abo-reprendre]');
   if (!b || !D || b.disabled) return;
   const resilier = 'aboResilier' in b.dataset, id = b.dataset.aboResilier || b.dataset.aboReprendre;
   const a = (D.abonnements || []).find(x => x.id === id); if (!a) return;
-  if (D.apercu) return K.toast('Aperçu : rien n\'est enregistré à la place du client.');
-  if (resilier && !(await K.confirmer('Résilier votre abonnement ?', 'Votre abonnement Pack ' + a.nom + ' s\'arrêtera le ' + dateLongue(finDuMois(a)) +
-    ', à la fin du mois déjà payé. Vous recevez encore les créatives de ce mois, puis plus aucun prélèvement.', 'Résilier l\'abonnement', true))) return;
+  if (resilier) return fenetreResilier(a);
   b.disabled = true;
-  try {
-    const r = await K.api('/api/client/abonnement/' + (resilier ? 'resilier' : 'reprendre'), { methode: 'POST', corps: { abo: id } });
-    K.toast(resilier ? 'Abonnement résilié : il s\'arrête le ' + dateLongue(r.fin_le) : 'Résiliation annulée : votre abonnement continue normalement');
-    await recharger();
-  } catch (err) { K.toast(err.message); b.disabled = false; }
+  try { await K.api('/api/client/abonnement/reprendre', { methode: 'POST', corps: { abo: id } }); K.toast('Résiliation annulée : votre abonnement continue normalement'); await recharger(); }
+  catch (err) { K.toast(err.message); b.disabled = false; }
 });
 
 // ---------- PROFIL ----------

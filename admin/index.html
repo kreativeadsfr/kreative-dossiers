@@ -638,7 +638,7 @@ async function ecranClient(id) {
       : a.statut === 'resiliation' ? 'Résilié par le client le ' + dl(a.resilie_le) + '. Dernier mois payé : il s\'arrête le ' + dl(a.fin_le) + ', plus aucun prélèvement ensuite.'
       : a.resiliable ? 'Engagement terminé : le client peut résilier depuis son espace.' : 'Engagement en cours (' + a.mois_payes + ' mois sur ' + a.engagement + ') : résiliable à partir du ' + dl(a.resiliable_des) + '.';
     h += '<div class="card pad" style="margin-top:14px"><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><h3 style="font-size:15px">Abonnement Pack ' + esc(a.nom) + '</h3>' +
-      '<span class="pill ' + coul + '"><i></i>' + etat + '</span></div><p class="muted" style="font-size:13px;margin-top:6px">' + K.euros(a.prix) + ' par mois, depuis le ' + dl(a.debut) + ', ' + a.mois_payes + ' mois payé' + (a.mois_payes > 1 ? 's' : '') + '. ' + esc(detail) + '</p></div>';
+      '<span class="pill ' + coul + '"><i></i>' + etat + '</span></div><p class="muted" style="font-size:13px;margin-top:6px">' + K.euros(a.prix) + ' par mois, depuis le ' + dl(a.debut) + ', ' + a.mois_payes + ' mois payé' + (a.mois_payes > 1 ? 's' : '') + '. ' + esc(detail) + (a.offre_le ? ' Offre pour rester acceptée le ' + esc(dl(a.offre_le)) + '.' : '') + '</p></div>';
   });
   h += '<div class="sec"><div><h2>Commandes</h2><p>Reliez chaque commande à son dossier de production dès que le brief est arrivé.</p></div></div>';
   h += cmds.length ? '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Commande</th><th>Pack</th><th class="num">Prix</th><th>Dossier de production</th><th>Statut</th><th>Avancement</th><th></th></tr></thead><tbody>' +

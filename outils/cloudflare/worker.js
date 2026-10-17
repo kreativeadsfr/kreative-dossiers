@@ -1512,31 +1512,24 @@ async function envoyerAuClient(env, ctx, url, db, l) {
   await noter(db, k.client_id, k.id, 'livre', l.version > 1 ? 'Nouvelle version de vos créatives (version ' + l.version + ')' : 'Vos créatives sont livrées');
   // une partie d'un projet livré en plusieurs fois : « Livraison 1 sur 4 disponible », et le brief de la suivante est
   // programmé à sa date (voir briefSuivantLe) : il partira seul, au bon moment
-  // Si ce brief est déjà dû (rythme chaque semaine), le message de la livraison le dit, plutôt que deux notifications d'affilée.
   const partie = await partieDe(env, l.dossier), v2 = l.version > 1;
-  let briefOuvert = false;
   if (partie && !v2 && partie.n < partie.sur) {
-    const le = briefSuivantLe(k, partie.n + 1, partie.sur, now);
-    briefOuvert = le <= now;
-    const ch = await db.prepare(`INSERT OR IGNORE INTO rappels (cle, client_id, commande_id, type, n, sur, dossier, le, envoye_le) VALUES (?,?,?,?,?,?,?,?,?)`)
-      .bind('brief:' + l.dossier, k.client_id, k.id, 'brief_suivant', partie.n + 1, partie.sur, l.dossier, le, briefOuvert ? now : null).run();
-    if (!ch.meta || ch.meta.changes !== 1) briefOuvert = false;
+    // au moins une heure après la livraison, même si la date est déjà passée : jamais dans le même message
+    const le = Math.max(briefSuivantLe(k, partie.n + 1, partie.sur, now), now + 36e5);
+    await db.prepare(`INSERT OR IGNORE INTO rappels (cle, client_id, commande_id, type, n, sur, dossier, le) VALUES (?,?,?,?,?,?,?,?)`)
+      .bind('brief:' + l.dossier, k.client_id, k.id, 'brief_suivant', partie.n + 1, partie.sur, l.dossier, le).run();
   }
   const titre = v2 ? 'Vos créatives modifiées sont prêtes' : partie ? 'Livraison ' + partie.n + ' sur ' + partie.sur + ' disponible' : 'Vos créatives sont prêtes';
   const texte = v2 ? 'Les retouches demandées ont été appliquées. La nouvelle version est disponible dans votre espace.'
-    : partie ? (briefOuvert ? 'Vos créatives sont disponibles, ainsi que le brief de la livraison ' + (partie.n + 1) + '.' : 'Les créatives de votre livraison ' + partie.n + ' sont disponibles dans votre espace Kreative.')
-    : 'Vos nouvelles créatives sont disponibles dans votre espace Kreative.';
+    : partie ? 'Les créatives de votre livraison ' + partie.n + ' sont disponibles dans votre espace Kreative.' : 'Vos nouvelles créatives sont disponibles dans votre espace Kreative.';
   const notif = notifier(env, k.client_id, { titre, texte, url: '/client/#/projets/' + k.id + '/creatives' });
   if (ctx && ctx.waitUntil) ctx.waitUntil(notif); else await notif;
   if (k.email && k.jeton && !/^TEST_DEMO_/.test(l.dossier)) {
     const prenom = String(k.contact || '').trim().split(/\s+/)[0], lien = lienAcces(url, k.jeton);
     const envoi = envoyerEmail(env, { type: 'creatives', a: k.email, marque: k.marque, contact: k.contact || '', lien, sujet: k.marque + ' · ' + titre,
       html: emailHtml(url.origin, { titre: 'Bonjour' + (prenom ? ' ' + prenom : '') + ',',
-        paragraphes: v2 ? ['Les retouches demandées ont été appliquées : la nouvelle version de vos créatives est disponible dans votre espace Kreative.',
-            'Si d\'autres ajustements sont nécessaires, indiquez-les directement en commentaire sur les créatives concernées.']
-          : [(partie ? 'Les créatives de votre livraison ' + partie.n + ' sur ' + partie.sur + ' sont disponibles' : 'Vos nouvelles créatives sont disponibles') + ' dans votre espace Kreative, aux formats 1:1, 4:5 et 9:16.',
-            'Si des ajustements sont nécessaires, indiquez-les directement en commentaire sur les créatives concernées : nous nous en chargeons.']
-            .concat(briefOuvert ? ['Le brief de la livraison ' + (partie.n + 1) + ' est également disponible dans votre espace. Dites-nous-en davantage sur ce qui a fonctionné, et sur ce que vous souhaitez garder ou changer : la production de la livraison suivante démarre dès réception de votre brief.'] : []),
+        paragraphes: v2 ? ['Les retouches demandées ont été appliquées.', 'Si d\'autres ajustements sont nécessaires, indiquez-les directement sur les créatives concernées.']
+          : ['Si des ajustements sont nécessaires, indiquez-les directement sur les créatives concernées.'],
         bouton: [v2 ? 'Voir la nouvelle version' : 'Voir mes créatives', lien] }) });
     if (ctx && ctx.waitUntil) ctx.waitUntil(envoi); else await envoi;
   }
@@ -2035,13 +2028,13 @@ function briefPropre(questions) {
 }
 // Le « brief suivant » (formulaire de retour) : après la livraison 1 d'un projet en plusieurs fois
 // (pour préparer la 2), et pour un abonnement, sur la commande du mois suivant.
-// Le rythme d'un Custom livré en plusieurs fois : la livraison n est prévue à commande + (n - 1) × intervalle
-// (tous les 15 jours en 2 fois, chaque semaine en 4 fois). Son brief est demandé assez tôt pour tenir ce rythme
-// (date prévue moins le délai d'une livraison), jamais avant que la livraison précédente soit chez le client.
-// Un brief rempli en retard ne décale pas les suivants : le rythme reste calé sur la date de commande.
+// Le rythme d'un Custom livré en plusieurs fois, calé sur la date de commande : une période de 15 jours (en 2 fois)
+// ou d'une semaine (en 4 fois) par livraison. Le brief de la livraison n est demandé à la fin de la période n - 1,
+// la veille de la date du rythme (commande + (n - 1) × intervalle - 1 jour), jamais avant que la livraison
+// précédente soit chez le client, et toujours dans un message à part. Un brief rempli en retard ne décale pas les suivants.
 const intervalleJours = sur => sur >= 4 ? 7 : 15;
 function briefSuivantLe(k, n, sur, livreLe) {
-  const prevu = (k.cree_le || 0) + (n - 1) * intervalleJours(sur) * 864e5 - delaiHeures(k.pack, k.nb_creas, k.options) * 36e5;
+  const prevu = (k.cree_le || 0) + ((n - 1) * intervalleJours(sur) - 1) * 864e5;
   return Math.max(livreLe || 0, prevu);
 }
 // la partie (n sur sur) d'un dossier livré en plusieurs fois
@@ -2404,8 +2397,8 @@ async function rappelsDus(env, url, a) {
       const prenom = String(r.contact || '').trim().split(/\s+/)[0];
       await envoyerEmail(env, { type: 'brief_suivant', a: r.email, marque: r.marque, contact: r.contact || '', lien: lienAcces(url, r.jeton), sujet: r.marque + ' · Votre brief pour la livraison ' + r.n,
         html: emailHtml(url.origin, { titre: 'Bonjour' + (prenom ? ' ' + prenom : '') + ',',
-          paragraphes: ['La livraison ' + r.n + ' sur ' + r.sur + ' de votre projet se prépare.',
-            'Dites-nous-en davantage sur ce qui a fonctionné dans la livraison précédente, et sur ce que vous souhaitez garder ou changer pour la suivante. La production démarre dès réception de votre brief.'],
+          paragraphes: ['Pour préparer votre livraison ' + r.n + ', nous avons besoin de vos retours sur la précédente.',
+            'Dites-nous-en davantage sur ce qui a fonctionné, et sur ce que vous souhaitez garder ou changer. La production de la livraison ' + r.n + ' démarre dès réception de votre brief.'],
           bouton: ['Remplir mon brief', lienAcces(url, r.jeton)] }) });
     }
     envoyes++;

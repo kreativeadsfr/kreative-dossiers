@@ -576,7 +576,7 @@ function carteAbonnement() {
     if (a.statut === 'termine') texte = 'Abonnement terminé le ' + dateLongue(a.fin_le) + '. Vous pouvez reprendre un pack quand vous le souhaitez.';
     else if (a.statut === 'resiliation') {
       texte = 'Résiliation enregistrée. Votre abonnement s\'arrête le <b>' + dateLongue(a.fin_le) + '</b> : vous recevez encore les créatives de ce mois, puis plus aucun prélèvement.';
-      bouton = '<button class="btn btn-s" data-abo-reprendre="' + esc(a.id) + '">Garder mon abonnement</button>';
+      bouton = '<button class="btn btn-s" data-abo-reprendre="' + esc(a.id) + '">Annuler ma résiliation</button>';
     } else if (a.resiliable) {
       texte = 'Engagement de ' + a.engagement + ' mois terminé : résiliable à tout moment. La résiliation prend effet à la fin du mois en cours, déjà payé.';
       bouton = '<button class="btn btn-r" data-abo-resilier="' + esc(a.id) + '">Résilier l\'abonnement</button>';
@@ -600,7 +600,7 @@ document.addEventListener('click', async e => {
   b.disabled = true;
   try {
     const r = await K.api('/api/client/abonnement/' + (resilier ? 'resilier' : 'reprendre'), { methode: 'POST', corps: { abo: id } });
-    K.toast(resilier ? 'Abonnement résilié : il s\'arrête le ' + dateLongue(r.fin_le) : 'Votre abonnement continue');
+    K.toast(resilier ? 'Abonnement résilié : il s\'arrête le ' + dateLongue(r.fin_le) : 'Résiliation annulée : votre abonnement continue normalement');
     await recharger();
   } catch (err) { K.toast(err.message); b.disabled = false; }
 });

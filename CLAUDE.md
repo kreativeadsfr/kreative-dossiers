@@ -31,7 +31,7 @@ Ce fichier est lu automatiquement par Claude quand il ouvre ce dépôt. Il conti
 - **Site vitrine** : kreativeads.fr sur **Framer** (Claude n'y a pas accès : Dario fait les manipulations).
 - **Portail** : app.kreativeads.fr = un **Cloudflare Worker** (`outils/cloudflare/worker.js`) qui sert les pages de ce dépôt (lues via l'API GitHub, cache ~20 s) et l'API.
   - Pages : `admin/`, `client/`, `strategiste/`, `designer/`, `commander/` (panier public), `merci/`, `fiche/`, `ui/` (app.js, app.css, review.js, panier.js, logos).
-  - Une modification de page poussée sur `main` est en ligne en ~20 s. **Une modification de `worker.js` ne l'est pas** : copier le fichier pour Dario sous le nom « Worker Kreative vNN (a coller dans Cloudflare).js » ; il le colle dans Cloudflare puis Deploy. Dernière version donnée : **v39** (résiliation, verrou d'engagement Stripe, offre pour rester). Toujours lui rappeler que la nouvelle version contient les précédentes.
+  - Une modification de page poussée sur `main` est en ligne en ~20 s. **Une modification de `worker.js` ne l'est pas** : copier le fichier pour Dario sous le nom « Worker Kreative vNN (a coller dans Cloudflare).js » ; il le colle dans Cloudflare puis Deploy. Dernière version donnée : **v40** (résiliation, verrou d'engagement Stripe, offre pour rester, notification du brief du mois). Toujours lui rappeler que la nouvelle version contient les précédentes.
   - Base **D1** : clients, commandes, abonnements, livraisons, fichiers, commentaires, factures, retours, prod_etapes, push_abos, notifications, reglages, activite.
   - Fichiers livrés : **R2** (binding `FICHIERS`).
   - Secrets Cloudflare (jamais dans le code) : `ACCES` (équipe, `prenom=motdepasse:role`, rôles admin / strategiste / designer, séparés par des virgules), `CLE` (clé n8n), `GITHUB_TOKEN`, `STRIPE_SECRET`, `STRIPE_WEBHOOK_SECRET`, `N8N_EMAIL`.
@@ -62,6 +62,7 @@ Ce fichier est lu automatiquement par Claude quand il ouvre ce dépôt. Il conti
 - Premier brief : starter `hSWiGFjTVhus`, growth `soMTps1WZmus`, scale `sPx62jwVQqus`, custom `oQN3qKRznVus` (sur `kreative-forms.fillout.com/t/`). Le portail ajoute `commande`, `client`, `email`, `marque`, et `creas` pour le Custom (n8n lit le nombre de créas dans `creas`). Dans Fillout, ces paramètres doivent exister comme champs cachés (URL parameters).
 - Formulaire de retour `9pEDzM8K9Tus?dossier=…` : après chaque livraison d'un Custom livré en plusieurs fois (`brief_suivant`) ; chaque mois d'abonnement à partir du 2e mois (`brief_mois`). Le 1er mois d'un abonné passe par le brief complet du pack.
 - n8n renvoie les réponses au portail : `POST /api/n8n/brief` et `/api/n8n/retour` (en-tête `X-Kreative-Cle`). Elles s'affichent dans « Mon brief ».
+- **Notifications client (push de l'app + email), volontairement peu nombreuses** : (1) « Vos créatives sont prêtes » / « La nouvelle version est prête » (`envoyerAuClient`) ; pour une partie non finale d'un Custom en plusieurs fois, le même message ajoute « remplissez le brief de la livraison suivante » (pas de 2e notification) ; (2) « Votre brief de <mois> » + email « Remplir mon brief » quand un nouveau mois d'abonnement est payé (`prevenirBriefDuMois`, facture `subscription_cycle`). Les promos : seulement à la main par Dario (admin, bouton Notification). Ne pas ajouter d'autres notifications automatiques sans son accord. Emails : lien d'accès, créatives prêtes, brief du mois (workflow n8n générique : `a`, `sujet`, `html`).
 
 ## 7. n8n (ne jamais afficher les clés qu'ils contiennent)
 
@@ -93,7 +94,7 @@ Ce fichier est lu automatiquement par Claude quand il ouvre ce dépôt. Il conti
 
 ## 9. Banc de test (`outils/tests/`)
 
-- `bash outils/tests/tout.sh` : lance les ~440 tests (Worker dans Miniflare, faux GitHub, faux Stripe, faux n8n), chaque suite sur une base vide. `config-test.json` ne contient que des valeurs de test.
+- `bash outils/tests/tout.sh` : lance les ~445 tests (Worker dans Miniflare, faux GitHub, faux Stripe, faux n8n), chaque suite sur une base vide. `config-test.json` ne contient que des valeurs de test.
 - `bash outils/tests/relance.sh` puis `node outils/tests/test_stripe.mjs outils/tests/config-test.json` pour une seule suite. Portail local : http://127.0.0.1:8787 (mot de passe de test `mdp-test-dario`).
 - Ajouter un test pour chaque bug corrigé (ex. : client déjà connu de Stripe qui repaie).
 - Pour les captures d'écran : Playwright est installé (Chromium dans /opt/pw-browsers). Le réseau sortant est filtré : kreativeads.fr et app.kreativeads.fr ne sont pas joignables depuis la machine de Claude.

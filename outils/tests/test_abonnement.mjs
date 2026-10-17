@@ -35,8 +35,16 @@ r = await api('/api/client/abonnement/resilier', CK, 'POST', { abo: 'sub_abo' })
 t('pendant l\'engagement : pas d\'offre non plus', (await api('/api/client/abonnement/offre?abo=sub_abo', CK)).d.offre === null);
 t('pendant l\'engagement : résiliation refusée, avec la date', r.s === 409 && /Engagement de 3 mois en cours : vous pourrez résilier à partir du \d+ \S+ \d{4}/.test(r.d.erreur) && !appelsAbo().length, r.s + ' ' + JSON.stringify(r.d));
 
-// 2e et 3e mois payés
+// 2e et 3e mois payés : à chaque nouveau mois, le client est prévenu que son brief est à remplir
+const emailsAvant = fs.existsSync('emails.log') ? fs.readFileSync('emails.log', 'utf8').trim().split('\n').filter(Boolean).length : 0;
+t('1er mois : pas de notification de brief du mois (le brief complet passe par l\'email d\'accès)', !/^Votre brief/.test((await api('/api/client/notifications/derniere', CK)).d.titre || ''));
 await webhook(facture('in_a2', 2, 'subscription_cycle'));
+const nb = (await api('/api/client/notifications/derniere', CK)).d;
+t('nouveau mois payé : notification « Votre brief de … » vers Mon brief', /^Votre brief (de |d')(janvier|février|mars|avril|mai|juin|juillet|août|septembre|octobre|novembre|décembre)$/.test(nb.titre) && nb.url === '/client/#/brief' && /Lumen · votre nouveau mois commence/.test(nb.texte), JSON.stringify(nb));
+const mails = fs.readFileSync('emails.log', 'utf8').trim().split('\n').filter(Boolean).slice(emailsAvant).map(l => JSON.parse(l).corps);
+t('… et un email « Remplir mon brief » avec son lien d\'accès', mails.length === 1 && mails[0].a === 'sara@lumen.fr' && /^Lumen · votre brief (de |d')/.test(mails[0].sujet) && /Remplir mon brief/.test(mails[0].html) && /\/acces\//.test(mails[0].html), JSON.stringify(mails.map(m => m.sujet)));
+await webhook(facture('in_a2', 2, 'subscription_cycle'));
+t('… une seule fois, même si Stripe renvoie la facture', fs.readFileSync('emails.log', 'utf8').trim().split('\n').filter(Boolean).length === emailsAvant + 1);
 r = await api('/api/client/moi', CK); ab = r.d.abonnements[0];
 t('2e mois : toujours pas résiliable', ab.mois_payes === 2 && !ab.resiliable, JSON.stringify(ab));
 await webhook(facture('in_a3', 3, 'subscription_cycle'));

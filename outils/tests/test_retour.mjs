@@ -45,11 +45,14 @@ const etatQ = async () => (await api('/api/client/moi', QK)).d.commandes.find(x 
 let qk = await etatQ(); t('4 livraisons : rien à remplir avant la livraison 1', !qk.brief_suivant, JSON.stringify(qk.brief_suivant));
 for (let n = 1; n <= 3; n++) {
   await livrer('QUAD_10_bbbb_L' + n); qk = await etatQ();
+  const nq = (await api('/api/client/notifications/derniere', QK)).d;
+  t('… notification « Vos créatives sont prêtes » qui dit aussi de remplir le brief de la suite (livraison ' + n + ')', nq.titre === 'Vos créatives sont prêtes' && /remplissez le brief de la livraison suivante/.test(nq.texte), JSON.stringify(nq));
   t('livraison ' + n + '/4 chez le client : formulaire de retour pour la livraison ' + (n + 1), qk.brief_suivant && qk.brief_suivant.n === n + 1 && qk.brief_suivant.sur === 4 && qk.brief_suivant.dossier === 'QUAD_10_bbbb_L' + n, JSON.stringify(qk.brief_suivant));
   r = await n8n('retour', { dossier: 'QUAD_10_bbbb_L' + n, client: qid, questions: [{ name: 'Pour la suite', value: 'Retour ' + n }] });
   qk = await etatQ(); t('… retour ' + n + ' reçu : plus rien à remplir jusqu\'à la livraison suivante', r.ok === true && !qk.brief_suivant, JSON.stringify(r));
 }
 await livrer('QUAD_10_bbbb_L4'); qk = await etatQ();
+t('dernière livraison : notification normale, sans brief à remplir', !/brief/.test((await api('/api/client/notifications/derniere', QK)).d.texte));
 t('livraison 4/4 : plus de formulaire de retour pour ce mois', !qk.brief_suivant && qk.retours.length === 3, JSON.stringify(qk.brief_suivant) + ' ' + qk.retours.length);
 await new Promise(z => setTimeout(z, 20));
 r = await api('/api/admin/commandes', A, 'POST', { client_id: qid, pack: 'custom', formule: 'mensuel', nb_creas: 80 }); const q2 = r.d;

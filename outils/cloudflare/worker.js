@@ -1505,14 +1505,17 @@ async function envoyerAuClient(env, ctx, url, db, l) {
   // une partie (1/2…) renvoyée après retouches : la commande repart en production
   if (!finale && k.statut === 'revisions') await db.prepare("UPDATE commandes SET statut = 'production' WHERE id = ?").bind(k.id).run();
   await noter(db, k.client_id, k.id, 'livre', l.version > 1 ? 'Nouvelle version de vos créatives (version ' + l.version + ')' : 'Vos créatives sont livrées');
-  const notif = notifier(env, k.client_id, { titre: l.version > 1 ? 'La nouvelle version est prête' : 'Vos créatives sont prêtes', texte: k.marque + ' · ' + (l.version > 1 ? 'version ' + l.version + ', avec vos retouches.' : 'regardez-les et dites-nous ce que vous en pensez.'), url: '/client/#/projets/' + k.id + '/creatives' });
+  // une partie d'un projet livré en plusieurs fois : le même message dit aussi de remplir le brief de la suite (pas de 2e notification)
+  const suite = !finale && l.version <= 1;
+  const notif = notifier(env, k.client_id, { titre: l.version > 1 ? 'La nouvelle version est prête' : 'Vos créatives sont prêtes', texte: k.marque + ' · ' + (l.version > 1 ? 'version ' + l.version + ', avec vos retouches.' : suite ? 'regardez-les, puis remplissez le brief de la livraison suivante.' : 'regardez-les et dites-nous ce que vous en pensez.'), url: '/client/#/projets/' + k.id + '/creatives' });
   if (ctx && ctx.waitUntil) ctx.waitUntil(notif); else await notif;
   if (k.email && k.jeton && !/^TEST_DEMO_/.test(l.dossier)) {
     const prenom = String(k.contact || '').trim().split(/\s+/)[0], lien = lienAcces(url, k.jeton);
     const envoi = envoyerEmail(env, { type: 'creatives', a: k.email, marque: k.marque, contact: k.contact || '', lien,
       sujet: k.marque + (l.version > 1 ? ' · la nouvelle version de vos créatives' : ' · vos créatives sont prêtes'),
       html: emailHtml(url.origin, { titre: 'Bonjour' + (prenom ? ' ' + prenom : '') + ',',
-        paragraphes: [l.version > 1 ? 'La nouvelle version de vos créatives est prête, avec les retouches demandées.' : 'Vos créatives sont prêtes. Regardez-les format par format, commentez ce qui doit bouger, et approuvez ce qui vous plaît.'],
+        paragraphes: [l.version > 1 ? 'La nouvelle version de vos créatives est prête, avec les retouches demandées.' : 'Vos créatives sont prêtes. Regardez-les format par format, commentez ce qui doit bouger, et approuvez ce qui vous plaît.']
+          .concat(suite ? ['Ensuite, remplissez le brief de la livraison suivante depuis votre espace (rubrique « Mon brief ») : il lance la suite de votre projet.'] : []),
         bouton: ['Voir mes créatives', lien] }) });
     if (ctx && ctx.waitUntil) ctx.waitUntil(envoi); else await envoi;
   }
@@ -2264,7 +2267,7 @@ async function stripeWebhook(req, env, ctx, url) {
   if (!o) return json({ recu: true });
   if (ev.type === 'checkout.session.completed' || ev.type === 'checkout.session.async_payment_succeeded') {
     if (o.payment_status === 'paid' || o.payment_status === 'no_payment_required') await paiementRecu(env, ctx, url, o);
-  } else if (/^invoice\./.test(ev.type || '')) await enregistrerFacture(env, o);
+  } else if (/^invoice\./.test(ev.type || '')) await enregistrerFacture(env, o, url);
   else if (ev.type === 'customer.subscription.updated' || ev.type === 'customer.subscription.deleted') await abonnementChange(env, o, ev.created || Math.floor(Date.now() / 1000));
   return json({ recu: true });
 }
@@ -2338,7 +2341,26 @@ async function abonnementChange(env, s, quand) {
   await noter(db, k.client_id, null, 'abonnement', e.statut === 'termine' ? 'Abonnement terminé le ' + dateFr(e.fin_le)
     : e.statut === 'resiliation' ? 'Abonnement résilié : il s\'arrête le ' + dateFr(e.fin_le) : 'Abonnement réactivé');
 }
-async function enregistrerFacture(env, inv) {
+// un nouveau mois d'abonnement commence : la production attend son brief, le client est prévenu (notification + email)
+const MOIS_FR = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+async function prevenirBriefDuMois(env, url, clientId) {
+  try {
+    const db = await base(env);
+    const cl = await db.prepare('SELECT marque, email, contact, jeton FROM clients WHERE id = ?').bind(clientId).first();
+    if (!cl) return;
+    const m = MOIS_FR[Number(new Date().toLocaleString('en-US', { month: 'numeric', timeZone: 'Europe/Paris' })) - 1];
+    const deMois = (/^[ao]/.test(m) ? 'd\'' : 'de ') + m;
+    await notifier(env, clientId, { titre: 'Votre brief ' + deMois, texte: cl.marque + ' · votre nouveau mois commence : dites-nous ce que vous voulez ce mois-ci.', url: '/client/#/brief' });
+    if (cl.email && cl.jeton && url) {
+      const prenom = String(cl.contact || '').trim().split(/\s+/)[0], lien = lienAcces(url, cl.jeton);
+      await envoyerEmail(env, { type: 'brief_mois', a: cl.email, marque: cl.marque, contact: cl.contact || '', lien, sujet: cl.marque + ' · votre brief ' + deMois,
+        html: emailHtml(url.origin, { titre: 'Bonjour' + (prenom ? ' ' + prenom : '') + ',',
+          paragraphes: ['Votre nouveau mois d\'abonnement commence. Dites-nous en deux minutes ce qui a marché le mois dernier et ce que vous voulez ce mois-ci : la production démarre dès que votre brief est reçu.'],
+          bouton: ['Remplir mon brief', lien] }) });
+    }
+  } catch (e) {}
+}
+async function enregistrerFacture(env, inv, url) {
   if (!inv.id || inv.status === 'draft') return;
   const db = await base(env);
   const email = String(inv.customer_email || '').toLowerCase();
@@ -2360,6 +2382,7 @@ async function enregistrerFacture(env, inv) {
         const r = await creerCommande(db, { client_id: derniere.client_id, pack: derniere.pack, formule: 'mensuel', nb: derniere.nb_creas,
           prix: (inv.total || 0) / 100, options: derniere.options ? derniere.options.split(',') : [], stripe_abo: abo, stripe_facture: inv.id, texte: 'Nouveau mois d\'abonnement' });
         k = { id: r.id, client_id: derniere.client_id };
+        await prevenirBriefDuMois(env, url, derniere.client_id);
       } catch (e) { k = await db.prepare('SELECT id, client_id FROM commandes WHERE stripe_facture = ?').bind(inv.id).first(); }
     } else if (derniere && !derniere.stripe_facture) k = { id: derniere.id, client_id: derniere.client_id };
   }

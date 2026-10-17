@@ -40,7 +40,7 @@ const emailsAvant = fs.existsSync('emails.log') ? fs.readFileSync('emails.log', 
 t('1er mois : pas de notification de brief du mois (le brief complet passe par l\'email d\'accès)', !/^Votre brief/.test((await api('/api/client/notifications/derniere', CK)).d.titre || ''));
 await webhook(facture('in_a2', 2, 'subscription_cycle'));
 const nb = (await api('/api/client/notifications/derniere', CK)).d;
-t('nouveau mois payé : notification « Votre brief de … » vers Mon brief', /^Votre brief (de |d')(janvier|février|mars|avril|mai|juin|juillet|août|septembre|octobre|novembre|décembre)$/.test(nb.titre) && nb.url === '/client/#/brief' && nb.texte === 'Votre nouveau mois commence. Faites-nous part de vos retours pour lancer la production.', JSON.stringify(nb));
+t('nouveau mois payé : notification « Votre brief de … » vers Mon brief', /^Votre brief (de |d')(janvier|février|mars|avril|mai|juin|juillet|août|septembre|octobre|novembre|décembre)$/.test(nb.titre) && nb.url === '/client/#/brief' && nb.texte === 'Faites-nous part de vos retours pour lancer la production de ce nouveau mois.', JSON.stringify(nb));
 const mails = fs.readFileSync('emails.log', 'utf8').trim().split('\n').filter(Boolean).slice(emailsAvant).map(l => JSON.parse(l).corps);
 t('… et un email « Remplir mon brief » avec son lien d\'accès', mails.length === 1 && mails[0].a === 'sara@lumen.fr' && /^Lumen · Votre brief (de |d')/.test(mails[0].sujet) && /Remplir mon brief/.test(mails[0].html) && /Dites-nous-en davantage/.test(mails[0].html) && /\/acces\//.test(mails[0].html), JSON.stringify(mails.map(m => m.sujet)));
 await webhook(facture('in_a2', 2, 'subscription_cycle'));

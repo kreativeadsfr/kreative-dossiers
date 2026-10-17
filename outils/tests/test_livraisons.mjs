@@ -51,7 +51,7 @@ const avantMails = lignes('emails.log').length;
 r = await api('/api/equipe/livraisons/' + v2.id + '/decision', A, 'POST', { action: 'envoyer' }); t('Kreative envoie au client', r.s === 200, JSON.stringify(r.d));
 await new Promise(z => setTimeout(z, 400));
 const mail = lignes('emails.log').slice(avantMails).map(l => JSON.parse(l).corps).pop() || {};
-t('le client reçoit un email « nouvelle version » avec le HTML', mail.a === 'ines@nova.fr' && /Vos créatives modifiées sont prêtes/.test(mail.sujet) && /Voir la nouvelle version/.test(mail.html) && /retouches demandées ont été appliquées/.test(mail.html), JSON.stringify(mail).slice(0, 200));
+t('le client reçoit un email « nouvelle version » avec le HTML', mail.a === 'ines@nova.fr' && /· Vos créatives modifiées$/.test(mail.sujet) && /Voir la nouvelle version/.test(mail.html) && /ou validez le projet en un clic/.test(mail.html), JSON.stringify(mail).slice(0, 200));
 r = await api('/api/admin/clients/' + cid, A); t('commande passée en « livré »', r.d.commandes[0].statut === 'livre', r.d.commandes[0].statut);
 r = await api('/api/client/moi', CK); t('le portail sait qu\'une review attend', r.d.commandes[0].creatives === 1 && r.d.commandes[0].a_reviewer === true, JSON.stringify(r.d.commandes[0].creatives));
 

@@ -30,7 +30,7 @@ const mails0 = fs.existsSync('emails.log') ? fs.readFileSync('emails.log', 'utf8
 r = await rappels(prevu2 + 60000); nq = (await api('/api/client/notifications/derniere', CK)).d;
 t('à sa date : notification « Votre brief pour la livraison 2 » vers Mon brief', r.envoyes === 1 && nq.titre === 'Votre brief pour la livraison 2' && nq.url === '/client/#/brief', JSON.stringify([r, nq]));
 const ml = fs.readFileSync('emails.log', 'utf8').trim().split('\n').filter(Boolean).slice(mails0).map(l => JSON.parse(l).corps);
-t('… et l\'email « Remplir mon brief »', ml.length === 1 && ml[0].sujet === 'Splitco · Votre brief pour la livraison 2' && /Pour préparer votre livraison 2, nous avons besoin de vos retours sur la précédente/.test(ml[0].html) && /Remplir mon brief/.test(ml[0].html), JSON.stringify(ml.map(x => x.sujet)));
+t('… et l\'email « Remplir mon brief »', ml.length === 1 && ml[0].sujet === 'Splitco · Votre brief pour la livraison 2' && /Faites-nous part de vos retours pour lancer la prochaine livraison/.test(ml[0].html) && /Remplir mon brief/.test(ml[0].html), JSON.stringify(ml.map(x => x.sujet)));
 r = await rappels(prevu2 + 120000); t('… une seule fois', r.envoyes === 0, JSON.stringify(r));
 await api('/api/admin/commandes/' + kid, A, 'PATCH', { cree_le: Date.now() - 15 * 864e5 });
 moi = (await api('/api/client/moi', CK)).d; k = moi.commandes[0];

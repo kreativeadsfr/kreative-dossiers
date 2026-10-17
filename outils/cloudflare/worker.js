@@ -1519,7 +1519,7 @@ async function envoyerAuClient(env, ctx, url, db, l) {
     await db.prepare(`INSERT OR IGNORE INTO rappels (cle, client_id, commande_id, type, n, sur, dossier, le) VALUES (?,?,?,?,?,?,?,?)`)
       .bind('brief:' + l.dossier, k.client_id, k.id, 'brief_suivant', partie.n + 1, partie.sur, l.dossier, le).run();
   }
-  const titre = v2 ? 'Vos créatives modifiées sont prêtes' : partie ? 'Livraison ' + partie.n + ' sur ' + partie.sur + ' disponible' : 'Vos créatives sont prêtes';
+  const titre = v2 ? 'Vos créatives modifiées' : partie ? 'Livraison ' + partie.n + ' sur ' + partie.sur + ' disponible' : 'Vos créatives sont prêtes';
   const texte = v2 ? 'Les retouches demandées ont été appliquées. La nouvelle version est disponible dans votre espace.'
     : partie ? 'Les créatives de votre livraison ' + partie.n + ' sont disponibles dans votre espace Kreative.' : 'Vos nouvelles créatives sont disponibles dans votre espace Kreative.';
   const notif = notifier(env, k.client_id, { titre, texte, url: '/client/#/projets/' + k.id + '/creatives' });
@@ -1528,7 +1528,7 @@ async function envoyerAuClient(env, ctx, url, db, l) {
     const prenom = String(k.contact || '').trim().split(/\s+/)[0], lien = lienAcces(url, k.jeton);
     const envoi = envoyerEmail(env, { type: 'creatives', a: k.email, marque: k.marque, contact: k.contact || '', lien, sujet: k.marque + ' · ' + titre,
       html: emailHtml(url.origin, { titre: 'Bonjour' + (prenom ? ' ' + prenom : '') + ',',
-        paragraphes: v2 ? ['Les retouches demandées ont été appliquées.', 'Si d\'autres ajustements sont nécessaires, indiquez-les directement sur les créatives concernées.']
+        paragraphes: v2 ? ['Les retouches demandées ont été appliquées. Si d\'autres ajustements sont nécessaires, indiquez-les directement sur les créatives concernées, ou validez le projet en un clic.']
           : ['Si des ajustements sont nécessaires, indiquez-les directement sur les créatives concernées.'],
         bouton: [v2 ? 'Voir la nouvelle version' : 'Voir mes créatives', lien] }) });
     if (ctx && ctx.waitUntil) ctx.waitUntil(envoi); else await envoi;
@@ -2392,13 +2392,13 @@ async function rappelsDus(env, url, a) {
     if (!ch.meta || ch.meta.changes !== 1) continue;
     const fait = await (await baseLiv(env)).prepare('SELECT 1 AS ok FROM retours WHERE apres = ? LIMIT 1').bind(r.dossier).first();
     if (fait || ['annule', 'valide'].includes(r.k_statut)) continue;
-    await notifier(env, r.client_id, { titre: 'Votre brief pour la livraison ' + r.n, texte: 'Faites-nous part de vos retours sur la livraison précédente pour lancer la suivante.', url: '/client/#/brief' });
+    await notifier(env, r.client_id, { titre: 'Votre brief pour la livraison ' + r.n, texte: 'Faites-nous part de vos retours avant de lancer la prochaine livraison.', url: '/client/#/brief' });
     if (r.email && r.jeton) {
       const prenom = String(r.contact || '').trim().split(/\s+/)[0];
       await envoyerEmail(env, { type: 'brief_suivant', a: r.email, marque: r.marque, contact: r.contact || '', lien: lienAcces(url, r.jeton), sujet: r.marque + ' · Votre brief pour la livraison ' + r.n,
         html: emailHtml(url.origin, { titre: 'Bonjour' + (prenom ? ' ' + prenom : '') + ',',
-          paragraphes: ['Pour préparer votre livraison ' + r.n + ', nous avons besoin de vos retours sur la précédente.',
-            'Dites-nous-en davantage sur ce qui a fonctionné, et sur ce que vous souhaitez garder ou changer. La production de la livraison ' + r.n + ' démarre dès réception de votre brief.'],
+          paragraphes: ['Faites-nous part de vos retours pour lancer la prochaine livraison.',
+            'Dites-nous-en davantage sur ce qui a fonctionné dans la livraison précédente, et sur ce que vous souhaitez garder ou changer pour la suivante.'],
           bouton: ['Remplir mon brief', lienAcces(url, r.jeton)] }) });
     }
     envoyes++;
@@ -2414,12 +2414,12 @@ async function prevenirBriefDuMois(env, url, clientId) {
     if (!cl) return;
     const m = MOIS_FR[Number(new Date().toLocaleString('en-US', { month: 'numeric', timeZone: 'Europe/Paris' })) - 1];
     const deMois = (/^[ao]/.test(m) ? 'd\'' : 'de ') + m;
-    await notifier(env, clientId, { titre: 'Votre brief ' + deMois, texte: 'Votre nouveau mois commence. Faites-nous part de vos retours pour lancer la production.', url: '/client/#/brief' });
+    await notifier(env, clientId, { titre: 'Votre brief ' + deMois, texte: 'Faites-nous part de vos retours pour lancer la production de ce nouveau mois.', url: '/client/#/brief' });
     if (cl.email && cl.jeton && url) {
       const prenom = String(cl.contact || '').trim().split(/\s+/)[0], lien = lienAcces(url, cl.jeton);
       await envoyerEmail(env, { type: 'brief_mois', a: cl.email, marque: cl.marque, contact: cl.contact || '', lien, sujet: cl.marque + ' · Votre brief ' + deMois,
         html: emailHtml(url.origin, { titre: 'Bonjour' + (prenom ? ' ' + prenom : '') + ',',
-          paragraphes: ['Votre nouveau mois d\'abonnement commence.', 'Dites-nous-en davantage sur ce qui a fonctionné le mois dernier, et sur ce que vous souhaitez garder ou changer ce mois-ci. La production démarre dès réception de votre brief.'],
+          paragraphes: ['Votre nouveau mois d\'abonnement commence.', 'Dites-nous-en davantage sur ce qui a fonctionné le mois dernier, et sur ce que vous souhaitez garder ou changer ce mois-ci.'],
           bouton: ['Remplir mon brief', lien] }) });
     }
   } catch (e) {}

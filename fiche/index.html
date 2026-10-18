@@ -504,12 +504,9 @@ button.p:hover:not(:disabled){background:var(--blue-h);border-color:var(--blue-h
 /* ============================================================
    A REGLER UNE FOIS
    ============================================================ */
-const WEBHOOK = "https://n8n.srv1536015.hstgr.cloud/webhook/fiche-creas";
-/* 18/10 : ouverte dans le portail (app.kreativeads.fr), la fiche part par le Worker,
-   qui ajoute lui-meme le code Kreative : plus rien a taper. L ancienne adresse
-   GitHub garde le code. */
+/* la fiche part par le portail (le Worker), jamais directement vers n8n */
 const PORTAIL = !/github\.io$/.test(location.hostname) && location.protocol !== "file:";
-const ENVOI = PORTAIL ? "/api/equipe/fiche" : WEBHOOK;
+const ENVOI = "/api/equipe/fiche";
 
 /* chemins, relatifs au dossier de la fiche dans le depot */
 const URL_PROJETS = "../projets.json";
@@ -529,19 +526,9 @@ const PROJET_LIEN = (new URLSearchParams(location.search).get("projet")||"").rep
 const PROJET_TEST = /^[A-Z0-9]{6}$/.test(ID_TEST)
   ? {dossier:"TEST_"+ID_TEST, brand_name:"Turnly", nb_creas:6, pack:"starter"} : null;
 
-/* LE CODE KREATIVE : demande au premier envoi, garde dans ce
-   navigateur, verifie par n8n avant de lancer quoi que ce soit.
-   Sans le bon code, l envoi est refuse. */
-const CLE_CODE = "fiche:code";
-function codeKreative(){
-  let c=""; try{c=localStorage.getItem(CLE_CODE)||""}catch(e){}
-  if(!c){
-    c=(prompt("Code Kreative pour envoyer la fiche :")||"").trim();
-    if(c) try{localStorage.setItem(CLE_CODE,c)}catch(e){}
-  }
-  return c;
-}
-const oublieCode=()=>{try{localStorage.removeItem(CLE_CODE)}catch(e){}};
+/* 18/10 : plus aucun code. La fiche s ouvre seulement dans le portail (prive, avec
+   mot de passe) et part par le Worker, qui s occupe du reste. */
+try{localStorage.removeItem("fiche:code")}catch(e){}
 
 const FAMS={agence:"Service",ecom:"Produit",ugly:"Ugly ads"};
 const esc=t=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -1436,11 +1423,10 @@ async function allege(blob){
   return p;
 }
 
-async function envoie(code){
+async function envoie(){
   const n=nc();
   const charge=charge_utile();
   charge.fichiers={};
-  charge.code=code||"";
 
   let poids=0;
   const trop=[];
@@ -1472,27 +1458,13 @@ async function envoie(code){
 
   /* projet de démonstration (TEST_DEMO_*) : rien ne part vers n8n, personne n est prevenu */
   if(/^TEST_DEMO_/.test(charge.dossier||""))return {ok:true,demo:true};
-  /* dans le portail : le Worker ajoute le code. S il ne sait pas encore le faire
-     (ancienne version, code pas regle), on repasse par l ancien chemin, avec le code. */
-  let r=null,viaPortail=false;
-  if(PORTAIL){
-    r=await fetch(ENVOI,{method:"POST",headers:{"Content-Type":"application/json"},credentials:"same-origin",body:JSON.stringify(charge)});
-    if([401,403,404,405,503].includes(r.status)){
-      r=null;
-      const c=TEST?"":codeKreative();
-      if(!TEST&&!c)throw new Error("il faut le code Kreative pour envoyer la fiche");
-      charge.code=c;
-    } else viaPortail=true;
-  }
-  if(!r)r=await fetch(WEBHOOK,{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify(charge)
-  });
+  const r=await fetch(ENVOI,{method:"POST",headers:{"Content-Type":"application/json"},credentials:"same-origin",body:JSON.stringify(charge)});
+  if(r.status===401||r.status===403)throw new Error("ta session a expiré : recharge la page, reconnecte-toi, puis renvoie");
+  if(r.status===503||r.status===404||r.status===405)throw new Error("le portail n'est pas encore à jour");
   if(r.status===413)throw new Error("envoi trop lourd pour le serveur (413) : retire quelques pieces et renvoie");
   if(r.status===409){
     let rep={};try{rep=await r.json()}catch(e){}
-    if(rep.code_invalide){if(viaPortail){const e=new Error("Envoi refusé : le code de la fiche réglé dans le portail n'est pas le bon. Préviens Kreative.");e.bloque=true;throw e;}oublieCode();const e=new Error("Code Kreative incorrect. Clique sur Envoyer et entre le bon code.");e.bloque=true;throw e;}
+    if(rep.code_invalide){const e=new Error("Envoi refusé par la production. Préviens Kreative.");e.bloque=true;throw e;}
     const e=new Error(TEST&&rep.message?rep.message:rep.envois>=MAX_ENVOIS?MSG_BLOQUE:"Un envoi de cette fiche vient de partir. Attends quelques minutes, puis contacte Kreative si besoin.");e.bloque=true;e.envois=rep.envois;throw e;
   }
   if(!r.ok)throw new Error("le webhook a repondu "+r.status);
@@ -1512,11 +1484,10 @@ $("send").onclick=async()=>{
   for(let i=1;i<=n;i++)if(!full(i))miss.push(String(i).padStart(2,"0"));
   if(miss.length&&!confirm("Créa "+miss.join(", ")+" incomplète(s).\nEnvoyer quand même ?"))return;
   const DEMO=/^TEST_DEMO_/.test(PRJ.dossier||"");
-  const code=TEST||DEMO||PORTAIL?"":codeKreative();
-  if(!TEST&&!DEMO&&!PORTAIL&&!code)return say("Il faut le code Kreative pour envoyer la fiche.","ko");
+  if(!PORTAIL&&!DEMO)return say("Ouvre la fiche depuis ton espace (app.kreativeads.fr/strategiste/) pour l'envoyer.","ko");
   $("send").disabled=true;say("Envoi en cours...");
   try{
-    const rep=await envoie(code);
+    const rep=await envoie();
     say("");
     ENVOYEES[PRJ.dossier]=new Date().toISOString();
     saveEnvois();

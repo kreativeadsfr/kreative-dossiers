@@ -78,5 +78,7 @@ r = await get('/designer/', { headers: { Cookie: 'k_espace=evan.' + (Date.now() 
   rf = await envoi(null, { dossier: 'TURNLY_10_bc5e' }); t('sans session : refusé', rf.status === 403);
   rf = await envoi(s.ck, { dossier: '../x' }); t('dossier invalide refusé', rf.status === 400);
   const pf = await (await get('/fiche/', s.ck)).text(); t('la fiche du portail part par /api/equipe/fiche', pf.includes('"/api/equipe/fiche"') && pf.includes('const PORTAIL'));
+  t('la fiche ne demande plus jamais de code', !/prompt\(|codeKreative|Code Kreative/.test(pf));
+  t('l\'adresse n8n n\'est plus dans la fiche', !pf.includes('n8n.srv1536015'));
 }
 console.log('\n' + ok + ' OK, ' + ko + ' en échec');

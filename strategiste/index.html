@@ -81,7 +81,7 @@ function ecranAccueil() {
     kpi('En retard', retard.length, retard.length ? 'à rendre en priorité' : 'tout est dans les temps', retard.length ? 'color:var(--red)' : '') +
     kpi('Prochaine échéance', prochain ? K.date(prochain.strat, { year: undefined }) : 'Aucune', prochain ? prochain.marque + ', ' + K.prod.echeance(prochain.strat).texte : 'aucune fiche en attente') +
     kpi('Envoyées à l\'heure', mois.length ? aLheure.length + ' / ' + mois.length : '0', 'sur les 30 derniers jours') + '</div>';
-  if (retouches.length) h += '<div class="sec"><div><h2>Retouches de textes</h2><p>Le client a demandé des changements de textes. Écris les textes corrigés en commentaire sur les créatives concernées, puis passe la main à la designer.</p></div></div>' +
+  if (retouches.length) h += '<div class="sec"><div><h2>Retouches de textes</h2><p>Le client a demandé des changements de textes. Écris les textes corrigés en commentaire sur les créatives concernées, puis clique sur « Textes corrigés ».</p></div></div>' +
     '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Projet</th><th>Type</th><th>Version</th><th>Statut</th><th></th></tr></thead><tbody>' +
     retouches.map(x => '<tr class="clic" onclick="location.hash=\'#/retouches/' + esc(x.dossier) + '\'"><td>' + ligneNom(x) + '</td><td>' + K.prod.celluleType(x) + '</td><td>Version ' + esc(x.etape.version || 1) + '</td><td>' + K.prod.pillStrat(x) + '</td>' +
       '<td class="fin"><a class="btn btn-p btn-sm" href="#/retouches/' + esc(x.dossier) + '">' + i.message + 'Voir les retours</a></td></tr>').join('') + '</tbody></table></div></div>';
@@ -125,9 +125,9 @@ function ecranRetouches(id) {
   if (!v) return h + '<div class="card"><div class="vide">Aucune version livrée pour ce projet.</div></div>';
   const coms = v.fichiers.reduce((n, f) => n + f.commentaires.filter(c => c.role === 'client').length, 0);
   if (enRetouche(x)) h += '<div class="etat-envoi" style="margin:0 0 22px"><span class="pastille attente">' + i.crayon + '</span><div style="flex:1"><b>' + coms + ' commentaire' + (coms > 1 ? 's' : '') + ' du client sur la version ' + v.version + '</b>' +
-    '<small>Clique sur chaque créative commentée et écris le texte corrigé en commentaire (le client ne voit pas tes commentaires). Puis passe la main : la designer fait la version ' + (v.version + 1) + ' avec tes nouveaux textes.</small></div>' +
+    '<small>Clique sur chaque créative commentée et écris le texte corrigé en commentaire (le client ne voit pas tes commentaires). Puis clique sur « Textes corrigés » : la version ' + (v.version + 1) + ' est préparée avec tes nouveaux textes.</small></div>' +
     '<button class="btn btn-p" id="rt-fait">' + i.coche + 'Textes corrigés</button></div>';
-  else h += '<div class="etat-envoi" style="margin:0 0 22px"><span class="pastille">' + i.coche + '</span><div><b>Rien à corriger de ton côté</b><small>Les retouches de ce projet sont chez la designer.</small></div></div>';
+  else h += '<div class="etat-envoi" style="margin:0 0 22px"><span class="pastille">' + i.coche + '</span><div><b>Rien à corriger de ton côté</b><small>Les retouches de ce projet sont en production.</small></div></div>';
   return h + K.rv.grille(v, { mode: 'strategiste', titre: 'Version ' + v.version, sousTitre: v.fichiers.length + ' fichiers' });
 }
 function brancherRetouches(id) {
@@ -139,7 +139,7 @@ function brancherRetouches(id) {
       supprimer: id2 => K.api('/api/equipe/commentaires/' + id2, { methode: 'DELETE' }) } });
   const b = document.getElementById('rt-fait');
   if (b) b.onclick = async () => {
-    if (!await K.confirmer('Textes corrigés ?', 'La designer est prévenue dans son espace et fait la version ' + (v.version + 1) + ' avec tes nouveaux textes.', 'Passer à la designer')) return;
+    if (!await K.confirmer('Textes corrigés ?', 'Kreative est prévenue : la version ' + (v.version + 1) + ' est préparée avec tes nouveaux textes.', 'Envoyer mes textes')) return;
     b.disabled = true;
     try { const r = await K.api('/api/equipe/livraisons/' + v.id + '/retouches-faites', { methode: 'POST', corps: {} }); K.toast(r.message); await K.prod.charger(true); RT.donnees = null; RT.dossier = null; location.hash = '#/'; }
     catch (e) { K.toast(e.message); b.disabled = false; }

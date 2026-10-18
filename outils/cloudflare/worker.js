@@ -808,6 +808,7 @@ async function routerPortail(req, env, ctx, url, chemin) {
     // le stratégiste : l'état des projets, les retours du client, ses retouches de textes
     if (qui.role === 'strategiste' && !(
       (sousChemin === '/etats' && methode === 'GET') ||
+      (sousChemin === '/fiche' && methode === 'POST') ||
       (/^\/livraisons\/[A-Za-z0-9_-]{3,80}$/.test(sousChemin) && methode === 'GET') ||
       (/^\/livraisons\/l_[A-Za-z0-9_]+\/retouches-faites$/.test(sousChemin) && methode === 'POST') ||
       (sousChemin === '/commentaires' && methode === 'POST') || (/^\/commentaires\/\d+$/.test(sousChemin) && methode === 'DELETE')))
@@ -1425,6 +1426,8 @@ async function apiAdmin(req, env, ctx, url, chemin, methode) {
 //                          ↘ a_corriger        ↘ review_terminee (retouches)
 // ============================================================
 const N8N_LIVRAISON = 'https://n8n.srv1536015.hstgr.cloud/webhook/livraison-designer';
+// la fiche créas, envoyée depuis le portail : le Worker ajoute le code Kreative (secret CODE_FICHE)
+const N8N_FICHE = 'https://n8n.srv1536015.hstgr.cloud/webhook/fiche-creas';
 const FORMATS_OK = ['1x1', '4x5', '9x16', 'autre'];
 const VISIBLES_CLIENT = ['envoyee', 'review_terminee', 'approuvee'];
 const baseDossier = d => String(d || '').replace(/_L\d+$/, '');
@@ -1707,6 +1710,20 @@ async function apiEquipe(req, env, ctx, url, chemin, methode, qui) {
   const db = await baseLiv(env);
   const admin = qui.role === 'admin';
   let m;
+  // la fiche créas envoyée depuis le portail : la session suffit, le code Kreative est ajouté ici
+  // (secret CODE_FICHE dans Cloudflare), le stratégiste n'a plus rien à taper
+  if (chemin === '/fiche' && methode === 'POST') {
+    if (!['admin', 'strategiste'].includes(qui.role)) return json({ erreur: 'Accès refusé' }, 403);
+    let charge;
+    try { charge = await req.json(); } catch (e) { return json({ erreur: 'Fiche illisible.' }, 400); }
+    if (!charge || typeof charge !== 'object' || !/^[A-Za-z0-9_-]{3,80}$/.test(String(charge.dossier || ''))) return json({ erreur: 'Projet inconnu.' }, 400);
+    if (!env.CODE_FICHE) return json({ erreur: 'Le code de la fiche n\'est pas réglé dans Cloudflare (secret CODE_FICHE).', code_manquant: true }, 503);
+    charge.code = env.CODE_FICHE;
+    let r;
+    try { r = await fetch(env.N8N_FICHE || N8N_FICHE, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(charge) }); }
+    catch (e) { return json({ erreur: 'n8n ne répond pas.' }, 502); }
+    return new Response(await r.text(), { status: r.status, headers: { 'Content-Type': r.headers.get('Content-Type') || 'application/json', 'Cache-Control': 'no-store' } });
+  }
   // toutes les livraisons (la liste de l'admin, l'historique de la designer)
   if (chemin === '/livraisons' && methode === 'GET') {
     const { results } = await db.prepare(`SELECT l.*, (SELECT COUNT(*) FROM fichiers f WHERE f.livraison_id = l.id) AS nb,
@@ -1847,7 +1864,7 @@ async function apiEquipe(req, env, ctx, url, chemin, methode, qui) {
     await db.prepare("UPDATE livraisons SET retouche = 'designer', retouche_le = ?, note_kreative = COALESCE(?, note_kreative) WHERE id = ?")
       .bind(maintenant(), note ? 'Textes corrigés par le stratégiste : ' + note : null, l.id).run();
     await db.prepare('DELETE FROM prod_etapes WHERE dossier = ?').bind(l.dossier).run();
-    return json({ ok: true, message: 'Merci, la designer peut faire la nouvelle version.' });
+    return json({ ok: true, message: 'Merci, la nouvelle version va être préparée avec tes textes.' });
   }
   // l'état de chaque projet, le même pour tout le monde (admin, stratégiste, designer)
   if (chemin === '/etats' && methode === 'GET') return json(await etatsProduction(db));

@@ -5,6 +5,7 @@ http.createServer((req, res) => {
   const u = new URL(req.url, 'http://x');
   if (u.pathname.startsWith('/push/')) { fs.appendFileSync('push.log', JSON.stringify({ chemin: u.pathname, auth: req.headers.authorization, ttl: req.headers.ttl }) + '\n'); res.writeHead(u.pathname.includes('perime') ? 410 : 201); return res.end(); }
   if (u.pathname === '/n8n-livraison') { let b=''; req.on('data', c => b += c); req.on('end', () => { fs.appendFileSync('livraison.log', b + '\n'); res.writeHead(200,{'content-type':'application/json'}); res.end('{"ok":true}'); }); return; }
+  if (u.pathname === '/n8n-fiche') { let b=''; req.on('data', c => b += c); req.on('end', () => { const j = JSON.parse(b || '{}'); res.writeHead(j.code === 'code-fiche-test' ? 200 : 409, {'content-type':'application/json'}); if (j.code !== 'code-fiche-test') return res.end('{"code_invalide":true}'); fs.appendFileSync('fiche.log', b + '\n'); res.end('{"ok":true,"envoi":1}'); }); return; }
   if (u.pathname === '/n8n-email') { let b=''; req.on('data', c => b += c); req.on('end', () => { fs.appendFileSync('emails.log', JSON.stringify({ cle: req.headers['x-kreative-cle'], corps: JSON.parse(b) }) + '\n'); res.writeHead(200); res.end('{"ok":true}'); }); return; }
   if (u.pathname === '/v1/checkout/sessions') { let b=''; req.on('data', c => b += c); req.on('end', () => {
     if (req.headers.authorization !== 'Bearer sk_test_faux') { res.writeHead(401,{'content-type':'application/json'}); return res.end('{"error":{"message":"Invalid API Key"}}'); }

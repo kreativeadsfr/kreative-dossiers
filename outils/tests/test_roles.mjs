@@ -62,4 +62,21 @@ r = await get('/TURNLY_10_bc5e/nexiste.html', s.ck); h = await r.text(); t('404 
 
 // ---- accès retiré / rôle inconnu
 r = await get('/designer/', { headers: { Cookie: 'k_espace=evan.' + (Date.now() + 1e9) + '.x' } }); t('session inconnue refusée', r.status === 302);
+
+// ---- la fiche créas envoyée depuis le portail : plus de code à taper, le Worker ajoute le sien
+{
+  const envoi = (ck, corps) => get('/api/equipe/fiche', { method: 'POST', headers: { ...(ck ? ck.headers : {}), 'Content-Type': 'application/json' }, body: JSON.stringify(corps) });
+  const LOG = new URL('fiche.log', import.meta.url);
+  try { fs.unlinkSync(LOG); } catch (e) {}
+  let rf = await envoi(s.ck, { dossier: 'TURNLY_10_bc5e', code: '', creas: [{ n: 1 }] }); let jf = await rf.json();
+  t('fiche envoyée par le stratégiste sans code : acceptée', rf.status === 200 && jf.ok === true, rf.status + ' ' + JSON.stringify(jf));
+  const recu = fs.existsSync(LOG) ? JSON.parse(fs.readFileSync(LOG, 'utf8').trim().split('\n').pop()) : {};
+  t('le Worker ajoute le code Kreative et garde la fiche', recu.code === 'code-fiche-test' && recu.dossier === 'TURNLY_10_bc5e' && recu.creas && recu.creas.length === 1, JSON.stringify(recu).slice(0, 120));
+  rf = await envoi(s.ck, { dossier: 'TURNLY_10_bc5e', code: 'faux-code-tape' }); t('un code tapé à la main est ignoré (celui du Worker gagne)', rf.status === 200);
+  rf = await envoi(a.ck, { dossier: 'TURNLY_10_bc5e' }); t('Dario peut aussi envoyer une fiche', rf.status === 200);
+  rf = await envoi(d.ck, { dossier: 'TURNLY_10_bc5e' }); t('la designer ne peut pas envoyer de fiche', rf.status === 403);
+  rf = await envoi(null, { dossier: 'TURNLY_10_bc5e' }); t('sans session : refusé', rf.status === 403);
+  rf = await envoi(s.ck, { dossier: '../x' }); t('dossier invalide refusé', rf.status === 400);
+  const pf = await (await get('/fiche/', s.ck)).text(); t('la fiche du portail part par /api/equipe/fiche', pf.includes('"/api/equipe/fiche"') && pf.includes('const PORTAIL'));
+}
 console.log('\n' + ok + ' OK, ' + ko + ' en échec');

@@ -53,4 +53,11 @@ r = await api('/api/client/notifications/derniere', CK); t('… et l\'app l\'aff
 r = await api('/api/admin/notifier', A, 'POST', { titre: 'Pas pour toi', texte: 'x', clients: [autre] });
 t('client décoché : rien reçu', r.s === 200 && r.d.clients === 0 && (await api('/api/client/notifications/derniere', CK)).d.titre === 'Pour toi', JSON.stringify(r.d));
 r = await api('/api/admin/notifier', A, 'POST', { titre: 'x', texte: 'y', clients: [] }); t('sélection vide refusée', r.s === 400, r.s);
+// l'app de l'admin (Windows, Mac, téléphone) : son propre manifeste, lisible sans être connecté
+let ma = await get('/admin/manifest.webmanifest'), mj = await ma.json();
+t('app admin : manifeste public « Kreative Admin », ouvre /admin/', ma.status === 200 && mj.name === 'Kreative Admin' && mj.start_url === '/admin/' && mj.scope === '/admin/' && mj.icons.length === 3 && mj.display === 'standalone', JSON.stringify(mj));
+t('app admin : service worker public, limité à /admin/', (await get('/admin/sw.js')).status === 200 && (await get('/admin/sw.js')).headers.get('service-worker-allowed') === '/admin/');
+const mc = await (await get('/client/manifest.webmanifest')).json();
+t('l\'app des clients ne change pas', mc.name === 'Kreative' && mc.start_url === '/client/?app=1' && mc.scope === '/client/', JSON.stringify(mc));
+t('l\'admin reste fermé sans connexion', [302, 303].includes((await get('/admin/')).status));
 console.log('\n' + ok + ' ok, ' + ko + ' en échec');

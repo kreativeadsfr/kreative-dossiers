@@ -69,7 +69,7 @@ t('la designer ne peut rien déposer dans une livraison Wimmov', await deposer(D
 r = await api('/api/client/wimmov', W);
 t('un brouillon n\'est pas visible par Wimmov', r.d.commandes[0].livraisons.length === 0, JSON.stringify(r.d.commandes[0].livraisons));
 const tg = lignes('livraison.log').length;
-r = await api('/api/admin/wimmov/livraisons/' + l1.id + '/envoyer', A, 'POST');
+r = await api('/api/admin/wimmov/livraisons/' + l1.id + '/envoyer', A, 'POST'); await pause(400);
 t('envoyer à Wimmov', r.s === 200 && /Livraison 1 envoyée/.test(r.d.message), JSON.stringify(r.d));
 t('… aucun Telegram (livraison designer) ne part', lignes('livraison.log').length === tg);
 let E = emails().filter(e => e.type === 'creatives');
@@ -102,14 +102,14 @@ t('l\'admin, lui, voit tout', JSON.stringify(r.d).includes('WIMMOV_'));
 r = await api('/api/admin/wimmov/livraisons', A, 'POST', { dossier: l1.dossier });
 t('nouvelle version de la livraison 1 : reprend les 3 fichiers', r.s === 200 && r.d.version === 2 && r.d.fichiers.length === 3, JSON.stringify(r.d).slice(0, 200));
 await deposer(A, r.d.id, 'WIMMOV_STANDARD_01.png', 1080, 1080, '1x1');
-await api('/api/admin/wimmov/livraisons/' + r.d.id + '/envoyer', A, 'POST');
+await api('/api/admin/wimmov/livraisons/' + r.d.id + '/envoyer', A, 'POST'); await pause(400);
 E = emails().filter(e => e.type === 'creatives');
 t('… email « nouvelle version »', /Livraison 1 : nouvelle version/.test(E[E.length - 1].sujet), E[E.length - 1].sujet);
 r = await api('/api/admin/wimmov/livraisons', A, 'POST', { commande_id: k.id });
 t('livraison suivante : « _L2 »', r.d.dossier === k.dossier + '_L2', r.d.dossier);
 
 // ---------- l'accès partagé (le media buyer) ----------
-r = await api('/api/client/wimmov/acces', W, 'PATCH', { emails: ['Media@Wimmov.com', 'pas-un-email', 'hugo.raffaelli@wimmov.com'] });
+r = await api('/api/client/wimmov/acces', W, 'PATCH', { emails: ['Media@Wimmov.com', 'pas-un-email', 'hugo.raffaelli@wimmov.com'] }); await pause(400);
 t('Hugo ajoute son media buyer (adresse propre, sans lui-même ni l\'invalide)', r.s === 200 && JSON.stringify(r.d.emails) === '["media@wimmov.com"]', JSON.stringify(r.d));
 E = emails().filter(e => e.type === 'acces');
 t('… le media buyer reçoit tout de suite le lien de l\'espace Wimmov', E.length === 1 && E[0].a === 'media@wimmov.com' && /espace Kreative/.test(E[0].sujet) && /retours de la semaine/.test(E[0].html), JSON.stringify(E).slice(0, 300));
@@ -189,14 +189,14 @@ r = await api('/api/admin/wimmov/commandes', A, 'POST', { type: 'extra', nb_crea
 r = await api('/api/admin/wimmov', A);
 t('l\'admin ajoute des créatives en plus à la main (prix calculé : 490 €)', r.d.commandes.some(x => x.formule === 'unique' && x.nb_creas === 24 && x.prix === 490 && /^WIMMOV_/.test(x.dossier)));
 const nL = emails().length;
-r = await api('/api/admin/wimmov/lien', A, 'POST', {});
+r = await api('/api/admin/wimmov/lien', A, 'POST', {}); await pause(400);
 E = emails().slice(nL);
 t('« Envoyer le lien à tout le monde » : Hugo et le media buyer', r.s === 200 && E.map(e => e.a).sort().join(',') === 'hugo.raffaelli@wimmov.com,media@wimmov.com', JSON.stringify(E.map(e => e.a)));
 const nL2 = emails().length;
-r = await api('/api/admin/clients/' + wid + '/envoyer-lien', A, 'POST');
+r = await api('/api/admin/clients/' + wid + '/envoyer-lien', A, 'POST'); await pause(400);
 t('le bouton « Envoyer le lien » de la fiche client envoie le lien Wimmov', r.s === 200 && emails().slice(nL2).every(e => /retours de la semaine/.test(e.html)) && emails().slice(nL2).length === 2);
 const nL3 = emails().length;
-await api('/api/admin/clients/' + lid + '/envoyer-lien', A, 'POST');
+await api('/api/admin/clients/' + lid + '/envoyer-lien', A, 'POST'); await pause(400);
 t('… et pour un autre client, l\'email classique', emails().slice(nL3).length === 1 && /votre brief/.test(emails().slice(nL3)[0].html));
 t('la page admin Wimmov s\'ouvre', /Wimmov · Kreative/.test(await (await get('/admin/wimmov.html', { headers: { Cookie: A } })).text()));
 t('… pas pour le stratégiste', (await get('/admin/wimmov.html', { headers: { Cookie: S } })).status === 302);

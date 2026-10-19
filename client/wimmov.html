@@ -14,6 +14,7 @@
 <script src="/ui/app.js"></script>
 <script src="/ui/review.js"></script>
 <style>
+.nav a{white-space:nowrap}
 .w-retour{padding:20px 22px}
 .w-retour + .w-retour{margin-top:12px}
 .w-retour .tete{display:flex;justify-content:space-between;gap:12px;align-items:baseline;flex-wrap:wrap}
@@ -64,7 +65,7 @@ const params = new URLSearchParams(location.search);
 if (params.get('client')) K.suffixe = '?client=' + encodeURIComponent(params.get('client'));
 const wa = t => WA + '&text=' + encodeURIComponent(t);
 // espace partagé (Hugo, le media buyer) : on salue avec le nom que la personne a tapé sur cet appareil
-const prenom = () => { let n = ''; try { n = (localStorage.getItem('w-auteur') || '').trim().split(/\s+/)[0]; } catch (e) {} return n; };
+const prenom = () => (D.client.contact || '').trim().split(/\s+/)[0] || D.client.marque;
 const MOIS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
 const moisDe = ms => { const d = new Date(ms || Date.now()); return MOIS[d.getMonth()] + ' ' + d.getFullYear(); };
 const nomCmd = c => c.formule === 'mensuel' ? 'Abonnement · ' + moisDe(c.cree_le) : 'Créatives en plus · ' + c.nb_creas + ' créatives';
@@ -76,12 +77,11 @@ async function recharger() { D = await K.api('/api/client/wimmov'); K.rendre(); 
 
 function conf() {
   return {
-    cta: { texte: 'Vos retours de la semaine', href: '#/retours' },
     sections: [{ titre: 'Espace ' + D.client.marque, liens: [
       { id: 'accueil', texte: 'Accueil', icone: 'accueil', href: '#/' },
       { id: 'creatives', texte: 'Créatives', icone: 'image', href: '#/creatives', nb: livrees().length || '' },
       { id: 'retours', texte: 'Retours de la semaine', icone: 'message', href: '#/retours' },
-      { id: 'commander', texte: 'Créatives en plus', icone: 'panier', href: '#/commander' },
+      { id: 'commander', texte: 'Commander des créatives', icone: 'panier', href: '#/commander' },
       { id: 'factures', texte: 'Factures', icone: 'recu', href: '#/factures', nb: payees(D.factures).length || '' }
     ] }, { titre: 'Kreative', liens: [
       { id: 'acces', texte: 'Partager l\'accès', icone: 'gens', href: '#/acces' },
@@ -103,19 +103,17 @@ function apercu() {
 function ecranAccueil() {
   const L = livrees(), recente = L.find(l => l.envoye_le && Date.now() - l.envoye_le < 8 * 864e5);
   const mois = D.commandes.find(c => c.formule === 'mensuel' && c.statut !== 'annule');
-  const abo = (D.abonnements || [])[0], dernier = (D.retours || [])[0];
+  const dernier = (D.retours || [])[0];
   let h = apercu();
   if (recente) h += '<div class="bandeau"><span class="ic">' + i.image + '</span><div><b>Livraison ' + recente.n + ' disponible</b><small>' + esc(nomCmd(recente.c)) + '</small></div>' +
     '<a class="btn" href="#/creatives/' + esc(recente.c.id) + '/' + recente.n + '">Voir les créatives</a></div>';
-  h += '<div class="ph"><div><h1>Bonjour' + (prenom() ? ', ' + esc(prenom()) : '') + '</h1><p>L\'espace ' + esc(D.client.marque) + ' chez Kreative : vos créatives de la semaine, vos retours, vos commandes.</p></div></div>';
+  h += '<div class="ph"><div><h1>Bonjour, ' + esc(prenom()) + '</h1><p>L\'espace ' + esc(D.client.marque) + ' chez Kreative : vos créatives de la semaine, vos retours, vos commandes.</p></div></div>';
   const envoyees = mois ? mois.livraisons.filter(l => l.statut !== 'brouillon').length : 0;
-  h += '<div class="grid g3">' +
+  h += '<div class="grid g2">' +
     '<a class="card kpi lien-kpi" href="#/creatives' + (mois ? '/' + esc(mois.id) : '') + '"><div class="lab">Ce mois-ci</div><div class="v s">' + (mois ? envoyees + ' livraison' + (envoyees > 1 ? 's' : '') + ' sur ' + D.contrat.livraisons_mois : 'Pas encore') + '</div>' +
       '<div class="d">' + (mois ? (mois.livrees || 0) + ' créatives livrées sur ' + mois.nb_creas : 'Votre mois démarre au prochain paiement') + '</div></a>' +
-    '<div class="card kpi"><div class="lab">Votre abonnement</div><div class="v s">' + K.euros(D.contrat.prix_mois) + ' par mois</div><div class="d">' + D.contrat.creas_mois + ' créatives, livrées en ' + D.contrat.livraisons_mois + ' fois' +
-      (abo && abo.statut === 'resiliation' ? ' · s\'arrête le ' + esc(K.date(abo.fin_le, { month: 'long' })) : abo ? ' · actif' : '') + '</div></div>' +
     '<a class="card kpi lien-kpi" href="#/retours"><div class="lab">Retours de la semaine</div><div class="v s">' + (dernier ? esc(K.date(dernier.envoye_le, { year: undefined })) : 'Pas encore') + '</div>' +
-      '<div class="d">' + (dernier ? 'Derniers retours' + (dernier.auteur ? ', de ' + esc(dernier.auteur) : '') : 'Déposez-les pour la prochaine livraison') + '</div></a></div>';
+      '<div class="d">' + (dernier ? 'Derniers retours envoyés' : 'Déposez-les pour la prochaine livraison') + '</div></a></div>';
   h += '<div class="sec"><div><h2>Dernières livraisons</h2><p>Chaque livraison s\'ouvre en un clic, tous les fichiers se téléchargent.</p></div>' + (L.length ? '<a class="btn btn-g btn-sm" href="#/creatives">Toutes les créatives</a>' : '') + '</div>';
   h += L.length ? tableLivraisons(L.slice(0, 6)) : '<div class="card"><div class="vide">' + i.image + 'Vos créatives arrivent ici chaque semaine.</div></div>';
   h += '<div class="card pad" style="margin-top:14px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap"><div><h3 style="font-size:16px">Vos retours de la semaine</h3>' +
@@ -168,8 +166,7 @@ function brancherCreatives(p) {
 }
 
 // ---------- RETOURS DE LA SEMAINE ----------
-const R = { id: null, pieces: [], envois: [], liens: [''], texte: '', auteur: '' };
-try { R.auteur = localStorage.getItem('w-auteur') || ''; } catch (e) {}
+const R = { id: null, pieces: [], envois: [], liens: [''], texte: '' };
 function ecranRetours() {
   let h = apercu() + '<div class="ph"><div><h1>Vos retours de la semaine</h1><p>Ce qui a fonctionné, ce que vous voulez pour la semaine prochaine, vos rapports et vos fichiers. Tout arrive directement chez Kreative.</p></div></div>';
   h += '<div class="grid g2" style="align-items:start"><div class="card pad">' +
@@ -181,21 +178,19 @@ function ecranRetours() {
       '<input type="file" id="w-fichiers" multiple hidden></div>' +
       '<div class="envois" id="w-envois">' + R.envois.map(e => '<div class="envoi-l"><span>' + esc(e.nom) + '</span><div class="barre' + (e.ok ? ' g' : '') + '"><i style="width:' + e.pc + '%"></i></div><small class="muted">' + esc(e.etat) + '</small></div>').join('') + '</div>' +
       (R.pieces.length ? '<div class="w-pieces">' + R.pieces.map(p => '<span class="w-piece">' + i.doc + '<span title="' + esc(p.nom) + '">' + esc(p.nom) + '</span><button data-piece-x="' + esc(p.id) + '" aria-label="Retirer ' + esc(p.nom) + '">' + i.croix + '</button></span>').join('') + '</div>' : '') + '</div>' +
-    '<div class="champ"><label for="w-auteur">Votre nom</label><input class="in" id="w-auteur" value="' + esc(R.auteur) + '" placeholder="Pour que Kreative sache qui écrit"></div>' +
     '<button class="btn btn-p btn-bloc btn-lg" id="w-envoyer">' + i.envoi + 'Envoyer à Kreative</button></div>';
   h += '<div><div class="sec" style="margin-top:0"><div><h2>Déjà envoyés</h2><p>Vos retours des semaines précédentes.</p></div></div>' +
     ((D.retours || []).length ? D.retours.map(carteRetour).join('') : '<div class="card"><div class="vide">' + i.message + 'Vos retours apparaîtront ici.</div></div>') + '</div></div>';
   return h;
 }
 function carteRetour(r) {
-  return '<div class="card w-retour"><div class="tete"><b>' + esc(K.dateHeure(r.envoye_le)) + '</b><span class="muted" style="font-size:13px">' + (r.auteur ? 'De ' + esc(r.auteur) : '') + '</span></div>' +
+  return '<div class="card w-retour"><div class="tete"><b>' + esc(K.dateHeure(r.envoye_le)) + '</b></div>' +
     (r.texte ? '<div class="texte">' + esc(r.texte) + '</div>' : '') +
     (r.liens && r.liens.length ? '<div class="w-liens">' + r.liens.map(l => '<a href="' + esc(l) + '" target="_blank" rel="noopener">' + esc(l) + '</a>').join('') + '</div>' : '') +
     (r.pieces && r.pieces.length ? '<div class="w-pieces">' + r.pieces.map(p => '<a class="w-piece" href="' + esc(p.url) + '?dl=1' + (K.suffixe ? '&' + K.suffixe.slice(1) : '') + '">' + i.telecharger + '<span>' + esc(p.nom) + '</span><small class="muted">' + taille(p.taille) + '</small></a>').join('') + '</div>' : '') + '</div>';
 }
 const lireForm = () => {
   const t = document.getElementById('w-texte'); if (t) R.texte = t.value;
-  const a = document.getElementById('w-auteur'); if (a) R.auteur = a.value;
   document.querySelectorAll('[data-lien]').forEach(x => { R.liens[Number(x.dataset.lien)] = x.value; });
 };
 async function brouillon() {
@@ -259,36 +254,38 @@ function brancherRetours() {
     env.disabled = true;
     try {
       const id = await brouillon();
-      await K.api('/api/client/wimmov/retours/' + id + '/envoyer', { methode: 'POST', corps: { texte: R.texte, liens, auteur: R.auteur } });
-      try { localStorage.setItem('w-auteur', R.auteur); } catch (e) {}
+      await K.api('/api/client/wimmov/retours/' + id + '/envoyer', { methode: 'POST', corps: { texte: R.texte, liens } });
       Object.assign(R, { id: null, pieces: [], envois: [], liens: [''], texte: '' });
       K.toast('Merci, vos retours sont chez Kreative'); await recharger();
     } catch (e) { K.toast(e.message); env.disabled = false; }
   };
 }
 
-// ---------- CRÉATIVES EN PLUS : ses tarifs ----------
-let libre = 30;
+// ---------- COMMANDER DES CRÉATIVES : ses tarifs ----------
+// sur mesure : de 30 à 100 créatives, par 5 (comme le Custom du site)
+const LIBRE = { min: 30, max: 100, pas: 5 };
+let libre = LIBRE.min;
 function ecranCommander() {
   const T = D.tarifs;
-  let h = apercu() + '<div class="ph"><div><h1>Des créatives en plus</h1><p>En plus de votre abonnement, aux tarifs ' + esc(D.client.marque) + '. Paiement en une fois.</p></div></div>';
+  let h = apercu() + '<div class="ph"><div><h1>Commander des créatives</h1><p>Si vous manquez de créatives, vous pouvez en prendre en plus.</p></div></div>';
   h += '<div class="w-offres">' + T.packs.map(p => '<div class="card w-offre"><h3>Pack ' + esc(p.nom) + '</h3><div class="prix">' + K.euros(p.prix) + '</div>' +
     '<div class="unit">' + p.nb + ' créatives · ' + Math.floor(p.prix / p.nb) + ' € la créative<br>Livrées en 1:1, 4:5 et 9:16</div>' +
     '<button class="btn btn-p btn-bloc" data-commander="' + p.nb + '">Commander</button></div>').join('') +
-    '<div class="card w-offre"><h3>Sur mesure</h3><div class="prix" id="w-libre-prix">' + K.euros(libre * T.au_dela) + '</div>' +
-    '<div class="unit">' + T.au_dela + ' € la créative, à partir de ' + T.min_libre + ' créatives</div>' +
-    '<input class="in" id="w-libre" type="number" min="' + T.min_libre + '" max="' + T.max_libre + '" step="1" value="' + libre + '" aria-label="Nombre de créatives">' +
+    '<div class="card w-offre"><h3>Pack Sur mesure</h3><div class="prix">Sur mesure</div>' +
+    '<div class="unit">De ' + LIBRE.min + ' à ' + LIBRE.max + ' créatives · ' + T.au_dela + ' € la créative<br>Livrées en 1:1, 4:5 et 9:16</div>' +
+    '<select class="in" id="w-libre" aria-label="Nombre de créatives">' + Array.from({ length: (LIBRE.max - LIBRE.min) / LIBRE.pas + 1 }, (_, n) => LIBRE.min + n * LIBRE.pas)
+      .map(n => '<option value="' + n + '"' + (n === libre ? ' selected' : '') + '>' + n + ' créatives</option>').join('') + '</select>' +
     '<button class="btn btn-p btn-bloc" data-commander="libre">Commander</button></div></div>';
   h += '<p class="muted" style="font-size:13px;margin-top:18px">Après le paiement, dites-nous ce que vous voulez dans « Vos retours de la semaine ». La page de paiement Stripe s\'ouvre dans un nouvel onglet.</p>';
   return h;
 }
 function brancherCommander() {
   const champ = document.getElementById('w-libre');
-  if (champ) champ.oninput = () => { libre = Math.round(Number(champ.value) || 0); const p = document.getElementById('w-libre-prix'); if (p) p.textContent = K.euros(Math.max(0, libre) * D.tarifs.au_dela); };
+  if (champ) champ.onchange = () => { libre = Number(champ.value) || LIBRE.min; };
   document.querySelectorAll('[data-commander]').forEach(b => b.onclick = async () => {
     if (D.apercu) return K.toast('Aperçu : le paiement s\'ouvre seulement pour le client.');
     const nb = b.dataset.commander === 'libre' ? libre : Number(b.dataset.commander);
-    if (b.dataset.commander === 'libre' && (nb < D.tarifs.min_libre || nb > D.tarifs.max_libre)) return K.toast('Entre ' + D.tarifs.min_libre + ' et ' + D.tarifs.max_libre + ' créatives.');
+    if (b.dataset.commander === 'libre' && (nb < LIBRE.min || nb > LIBRE.max || nb % LIBRE.pas)) return K.toast('Entre ' + LIBRE.min + ' et ' + LIBRE.max + ' créatives.');
     const w = window.open('', '_blank');
     b.disabled = true;
     try {
@@ -379,8 +376,8 @@ const ECRANS = {
   '': ['accueil', 'accueil', () => ['Accueil'], () => ecranAccueil()],
   creatives: ['creatives', 'image', () => ['Créatives'], p => ecranCreatives(p), p => brancherCreatives(p)],
   retours: ['retours', 'message', () => ['Retours de la semaine'], () => ecranRetours(), () => brancherRetours()],
-  commander: ['commander', 'panier', () => ['Créatives en plus'], () => ecranCommander(), () => brancherCommander()],
-  merci: ['commander', 'panier', () => ['Créatives en plus', 'Paiement reçu'], () => ecranMerci()],
+  commander: ['commander', 'panier', () => ['Commander des créatives'], () => ecranCommander(), () => brancherCommander()],
+  merci: ['commander', 'panier', () => ['Commander des créatives', 'Paiement reçu'], () => ecranMerci()],
   factures: ['factures', 'recu', () => ['Factures'], () => ecranFactures()],
   acces: ['acces', 'gens', () => ['Partager l\'accès'], () => ecranAcces(), () => brancherAcces()],
   contact: ['contact', 'telephone', () => ['Nous contacter'], () => ecranContact()]

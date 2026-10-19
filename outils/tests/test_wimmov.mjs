@@ -135,7 +135,7 @@ let pj = await p.json();
 t('Wimmov joint un fichier (PDF)', p.status === 200 && /^wp_/.test(pj.id), JSON.stringify(pj));
 t('Lumen ne peut pas joindre à ses retours', (await get('/api/client/wimmov/pieces?retour=' + rid + '&nom=x.pdf', { method: 'PUT', headers: { Cookie: L, 'Content-Type': 'application/pdf' }, body: Buffer.from('x') })).status === 404);
 const nR = emails().length;
-r = await api('/api/client/wimmov/retours/' + rid + '/envoyer', W, 'POST', { texte: 'Les créas 3 et 7 ont cartonné.\nPlus de témoignages la semaine prochaine.', liens: ['wimark.wimmov.com/partage/rapport', 'javascript:alert(1)'], auteur: 'Hugo' });
+r = await api('/api/client/wimmov/retours/' + rid + '/envoyer', W, 'POST', { texte: 'Les créas 3 et 7 ont cartonné.\nPlus de témoignages la semaine prochaine.', liens: ['wimark.wimmov.com/partage/rapport', 'javascript:alert(1)'] });
 await pause(400);
 t('Wimmov envoie ses retours', r.s === 200, JSON.stringify(r.d));
 E = emails().slice(nR).filter(e => e.type === 'wimmov_retours');
@@ -143,7 +143,7 @@ t('… Kreative reçoit un email avec le texte et le lien', E.length === 1 && /W
 t('… déjà envoyés : pas deux fois', (await api('/api/client/wimmov/retours/' + rid + '/envoyer', W, 'POST', { texte: 'x' })).s === 409);
 r = await api('/api/admin/wimmov', A);
 const ret = r.d.retours[0];
-t('l\'admin voit les retours : texte, lien, fichier, auteur', ret && ret.auteur === 'Hugo' && ret.liens.length === 1 && ret.pieces.length === 1 && ret.pieces[0].nom === 'Rapport semaine 42.pdf', JSON.stringify(ret));
+t('l\'admin voit les retours : texte, lien, fichier', ret && ret.liens.length === 1 && ret.pieces.length === 1 && ret.pieces[0].nom === 'Rapport semaine 42.pdf', JSON.stringify(ret));
 t('l\'admin ouvre le fichier joint', (await get(ret.pieces[0].url, { headers: { Cookie: A } })).status === 200);
 t('Wimmov aussi', (await get(ret.pieces[0].url, { headers: { Cookie: W } })).status === 200);
 t('la designer et un autre client : non', (await get(ret.pieces[0].url, { headers: { Cookie: DZ } })).status === 403 && (await get(ret.pieces[0].url, { headers: { Cookie: L } })).status === 403);

@@ -699,7 +699,7 @@ async function base(env) {
       try { await env.DB.prepare('ALTER TABLE commandes ADD COLUMN ' + col).run(); } catch (e) {}
     }
     for (const col of ['stripe_le INTEGER', 'offre_le INTEGER']) { try { await env.DB.prepare('ALTER TABLE abonnements ADD COLUMN ' + col).run(); } catch (e) {} }
-    for (const col of ['stripe_client TEXT', 'photo TEXT', 'photo_le INTEGER', 'app_le INTEGER']) {
+    for (const col of ['stripe_client TEXT', 'photo TEXT', 'photo_le INTEGER', 'app_le INTEGER', 'special TEXT']) {
       try { await env.DB.prepare('ALTER TABLE clients ADD COLUMN ' + col).run(); } catch (e) {}
     }
     try { await env.DB.prepare('CREATE UNIQUE INDEX IF NOT EXISTS i_cmd_session ON commandes(stripe_session)').run(); } catch (e) {}
@@ -2548,7 +2548,8 @@ const WIMMOV = {
   au_dela: 20, min_libre: 25, max_libre: 200,   // au-delà du Scale : 20 € la créative
   max_pieces: 30
 };
-const estWimmov = cl => !!cl && new RegExp('@' + WIMMOV.domaine.replace('.', '\\.') + '$', 'i').test(String(cl.email || '').trim());
+// Wimmov = une adresse @wimmov.com, ou l'espace créé par son lien Stripe même payé avec une autre adresse (special = 'wimmov')
+const estWimmov = cl => !!cl && (cl.special === 'wimmov' || new RegExp('@' + WIMMOV.domaine.replace('.', '\\.') + '$', 'i').test(String(cl.email || '').trim()));
 const DOSSIER_WIMMOV = /^WIMMOV_/;
 const dossierWimmov = commandeId => 'WIMMOV_' + String(commandeId).replace(/^k_/, '');
 function prixWimmov(nb) {
@@ -2560,11 +2561,11 @@ function prixWimmov(nb) {
 }
 // l'espace Wimmov (le plus ancien client à une adresse @wimmov.com) : tous les paiements y arrivent
 async function clientWimmov(db) {
-  return db.prepare("SELECT * FROM clients WHERE lower(email) LIKE ? AND statut != 'bloque' ORDER BY cree_le LIMIT 1").bind('%@' + WIMMOV.domaine).first();
+  return db.prepare("SELECT * FROM clients WHERE (special = 'wimmov' OR lower(email) LIKE ?) AND statut != 'bloque' ORDER BY CASE WHEN special = 'wimmov' THEN 0 ELSE 1 END, cree_le LIMIT 1").bind('%@' + WIMMOV.domaine).first();
 }
 async function estClientWimmov(db, clientId) {
   if (!clientId) return false;
-  const c = await db.prepare('SELECT email FROM clients WHERE id = ?').bind(clientId).first();
+  const c = await db.prepare('SELECT email, special FROM clients WHERE id = ?').bind(clientId).first();
   return estWimmov(c);
 }
 let WIMMOV_PRET = false;
@@ -2628,8 +2629,11 @@ async function paiementWimmov(env, ctx, url, s) {
     const det = s.customer_details || {}, info = s.collected_information || {};
     const id = 'c_' + aleatoire(10), jeton = aleatoire(32);
     const marque = propre(info.business_name || det.business_name || 'Wimmov', 80) || 'Wimmov';
-    await db.prepare('INSERT INTO clients (id, marque, contact, email, jeton, cree_le) VALUES (?,?,?,?,?,?)')
-      .bind(id, marque, propre(info.individual_name || det.individual_name || '', 80), email, jeton, maintenant()).run();
+    // le lien Stripe ne demande que l'entreprise : le prénom vient du nom saisi au paiement (adresse de facturation)
+    const nomPaiement = propre(det.name || '', 80), contact = propre(info.individual_name || det.individual_name || '', 80) ||
+      (nomPaiement && nomPaiement.toLowerCase() !== marque.toLowerCase() ? nomPaiement : '');
+    await db.prepare("INSERT INTO clients (id, marque, contact, email, jeton, cree_le, special) VALUES (?,?,?,?,?,?,'wimmov')")
+      .bind(id, marque, contact, email, jeton, maintenant()).run();
     await noter(db, id, null, 'client', 'Espace Wimmov créé');
     cl = await db.prepare('SELECT * FROM clients WHERE id = ?').bind(id).first();
     nouveau = true;

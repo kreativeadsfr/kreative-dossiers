@@ -19,7 +19,7 @@ fs.rmSync('emails.log', { force: true });
 t('avant le paiement : aucun espace Wimmov', (await api('/api/admin/wimmov', A)).s !== 200 || !(await api('/api/admin/wimmov', A)).d.client);
 await webhook({ type: 'checkout.session.completed', data: { object: { id: 'cs_w0', mode: 'subscription', payment_status: 'paid', amount_total: 120000, customer: 'cus_w0',
   subscription: 'sub_w0', payment_link: 'plink_1UJxUZBaFgfyJZxjJCQHpo2g', metadata: {},
-  customer_details: { email: 'Hugo.Perso@gmail.com', name: 'Hugo Raffaelli', business_name: 'Wimmov' } } } });
+  customer_details: { email: 'Hugo.Perso@gmail.com', business_name: 'Wimmov' } } } });
 await new Promise(x => setTimeout(x, 400));
 const r = await api('/api/admin/wimmov', A);
 t('payé avec une adresse Gmail : l\'espace Wimmov se crée quand même', r.s === 200 && r.d.client && r.d.client.email === 'hugo.perso@gmail.com' && r.d.client.marque === 'Wimmov' && r.d.client.contact === 'Hugo Raffaelli', JSON.stringify(r.d && r.d.client));

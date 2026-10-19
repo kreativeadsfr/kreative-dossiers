@@ -2542,6 +2542,7 @@ async function enregistrerFacture(env, inv, url) {
 const WIMMOV = {
   domaine: 'wimmov.com',
   lien: 'plink_1UJxUZBaFgfyJZxjJCQHpo2g',      // le lien Stripe de son abonnement (Pack ULTRA, 1 200 € par mois)
+  contact: 'Hugo Raffaelli',   // c'est toujours Hugo qui paie : « Bonjour Hugo, » dans l'email
   creas_mois: 60, prix_mois: 1200, livraisons_mois: 4,
   // ses anciens prix, pour des créatives en plus (paiement en une fois)
   packs: [{ nb: 6, prix: 180, nom: 'Starter' }, { nb: 12, prix: 280, nom: 'Growth' }, { nb: 24, prix: 490, nom: 'Scale' }],
@@ -2629,9 +2630,7 @@ async function paiementWimmov(env, ctx, url, s) {
     const det = s.customer_details || {}, info = s.collected_information || {};
     const id = 'c_' + aleatoire(10), jeton = aleatoire(32);
     const marque = propre(info.business_name || det.business_name || 'Wimmov', 80) || 'Wimmov';
-    // le lien Stripe ne demande que l'entreprise : le prénom vient du nom saisi au paiement (adresse de facturation)
-    const nomPaiement = propre(det.name || '', 80), contact = propre(info.individual_name || det.individual_name || '', 80) ||
-      (nomPaiement && nomPaiement.toLowerCase() !== marque.toLowerCase() ? nomPaiement : '');
+    const contact = WIMMOV.contact;
     await db.prepare("INSERT INTO clients (id, marque, contact, email, jeton, cree_le, special) VALUES (?,?,?,?,?,?,'wimmov')")
       .bind(id, marque, contact, email, jeton, maintenant()).run();
     await noter(db, id, null, 'client', 'Espace Wimmov créé');

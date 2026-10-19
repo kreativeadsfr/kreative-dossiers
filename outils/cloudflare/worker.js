@@ -1648,7 +1648,10 @@ const MANIFESTE = { name: 'Kreative', short_name: 'Kreative', description: 'Votr
   display: 'standalone', background_color: '#f8f6f3', theme_color: '#ffffff', lang: 'fr',
   icons: [{ src: '/app-icon-192.png', sizes: '192x192', type: 'image/png' }, { src: '/app-icon-512.png', sizes: '512x512', type: 'image/png' },
     { src: '/app-icon-maskable.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' }] };
-const MANIFESTE_ADMIN = { ...MANIFESTE, name: 'Kreative Admin', short_name: 'Kreative', description: 'L\'admin Kreative', id: '/admin/', start_url: '/admin/', scope: '/admin/' };
+// ses icônes à lui (Dario) : Windows = fond blanc arrondi, téléphone = K blanc sur fond noir ; l'app des clients ne change pas
+const MANIFESTE_ADMIN = { ...MANIFESTE, name: 'Kreative Admin', short_name: 'Kreative', description: 'L\'admin Kreative', id: '/admin/', start_url: '/admin/', scope: '/admin/',
+  icons: [{ src: '/app-icon-admin-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' }, { src: '/app-icon-admin-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+    { src: '/app-icon-admin-maskable.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' }] };
 // l'app admin : juste de quoi s'installer (pas de cache, pas de notifications)
 const SERVICE_WORKER_ADMIN = `self.addEventListener('install', e => self.skipWaiting());
 self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));

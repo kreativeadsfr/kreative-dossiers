@@ -53,7 +53,7 @@
     enCours = opt.mode === 'designer' ? 'en' : 'fr';
     const F = l.fichiers, nbCom = F.reduce((s, f) => s + f.commentaires.filter(c => !c.interne).length, 0), nbOk = F.filter(f => f.approuve_le).length;
     let h = '<div class="rv"><div class="rv-tete"><div><h2>' + esc(opt.titre || 'Vos créatives') + '</h2><p>' + esc(opt.sousTitre || (F.length + ' ' + T('fichier') + (F.length > 1 ? 's' : '') + (opt.mode === 'client' && l.statut === 'envoyee' ? T(' à reviewer') : ''))) +
-      (F.length ? ' · ' + nbOk + ' ' + T('approuvé') + (nbOk > 1 ? 's' : '') + (nbCom ? ' · ' + nbCom + ' ' + T('commentaire') + (nbCom > 1 ? 's' : '') : '') : '') + '</p></div>' +
+      (F.length && !opt.sansCompte ? ' · ' + nbOk + ' ' + T('approuvé') + (nbOk > 1 ? 's' : '') + (nbCom ? ' · ' + nbCom + ' ' + T('commentaire') + (nbCom > 1 ? 's' : '') : '') : '') + '</p></div>' +
       '<div class="rv-actions">' + (opt.actions || '') + (F.length ? '<button class="btn btn-s" data-rv-zip>' + I.telecharger + T('Tout télécharger') + '</button>' : '') + '</div></div>';
     if (!F.length) return h + '<div class="card"><div class="vide">' + T('Aucun fichier pour l\'instant.') + '</div></div></div>';
     RV.formats(l).forEach(fmt => {

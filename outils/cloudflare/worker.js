@@ -785,8 +785,11 @@ async function routerPortail(req, env, ctx, url, chemin) {
       const db = await base(env);
       const cl = await db.prepare('SELECT * FROM clients WHERE lower(email) = ? AND statut != ?').bind(email, 'bloque').first();
       if (cl) {
-        ctx.waitUntil(envoyerEmail(env, emailAcces(url, cl, lienAcces(url, cl.jeton))));
+        ctx.waitUntil(estWimmov(cl) ? envoyerAccesWimmov(env, url, cl, [email]) : envoyerEmail(env, emailAcces(url, cl, lienAcces(url, cl.jeton))));
         ctx.waitUntil(noter(db, cl.id, null, 'lien', 'Lien d\'accès redemandé par email'));
+      } else if ((await emailsWimmov(env)).includes(email)) {
+        const w = await clientWimmov(db);
+        if (w) ctx.waitUntil(envoyerAccesWimmov(env, url, w, [email]));
       }
     }
     await new Promise(r => setTimeout(r, 400));
@@ -797,6 +800,9 @@ async function routerPortail(req, env, ctx, url, chemin) {
   if (chemin === '/api/stripe/webhook' && methode === 'POST') return stripeWebhook(req, env, ctx, url);
   // ---- n8n (clé dans l'en-tête X-Kreative-Cle) ----
   if (chemin.startsWith('/api/n8n/')) return apiN8n(req, env, ctx, url, chemin.slice('/api/n8n'.length), methode);
+  // ---- les fichiers joints aux retours de Wimmov ----
+  const wp = chemin.match(/^\/api\/wimmov\/pieces\/(wp_[A-Za-z0-9]+)$/);
+  if (wp && (methode === 'GET' || methode === 'HEAD')) return servirPieceWimmov(req, env, url, wp[1]);
   // ---- les fichiers livrés ----
   const fic = chemin.match(/^\/fichiers\/(fi_[A-Za-z0-9_]+)$/);
   if (fic && (methode === 'GET' || methode === 'HEAD')) return servirFichier(req, env, ctx, url, fic[1]);
@@ -844,6 +850,9 @@ async function routerPortail(req, env, ctx, url, chemin) {
   if (chemin.startsWith('/api/client/')) {
     if (!cl) return json({ erreur: 'Connexion requise' }, 401);
     const apercu = !!admin && !(await sessionClient(req, env));
+    if (chemin === '/api/client/wimmov' || chemin.startsWith('/api/client/wimmov/')) return apiWimmovClient(req, env, ctx, url, chemin.slice('/api/client/wimmov'.length), methode, cl, apercu);
+    // Wimmov ne résilie pas depuis son espace, et ne commande pas les packs des autres clients
+    if (estWimmov(cl) && /^\/api\/client\/(abonnement\/|paiement$)/.test(chemin)) return json({ erreur: 'Écrivez-nous sur WhatsApp pour votre abonnement.' }, 403);
     const liv = await apiClientLivraisons(req, env, ctx, url, chemin.slice('/api/client'.length), methode, cl, apercu);
     if (liv) return liv;
     return apiClient(req, env, ctx, url, chemin.slice('/api/client'.length), methode, cl, apercu);
@@ -852,7 +861,7 @@ async function routerPortail(req, env, ctx, url, chemin) {
   if (methode !== 'GET' && methode !== 'HEAD') return texte('Méthode non autorisée', 405);
   // une seule page pour tout le portail (les écrans changent sans recharger)
   if (chemin === '/client' ) return redirection('/client/' + url.search);
-  if (/^\/client\/[^.]*$/.test(chemin)) return servir('client/index.html', env, ctx, { brut: false, origine: url.origin, req });
+  if (/^\/client\/[^.]*$/.test(chemin)) return servir(estWimmov(cl) ? 'client/wimmov.html' : 'client/index.html', env, ctx, { brut: false, origine: url.origin, req });
   return null;
 }
 
@@ -1217,6 +1226,7 @@ async function apiAdmin(req, env, ctx, url, chemin, methode) {
   const db = await base(env);
   const b = methode === 'GET' ? {} : await corpsJson(req);
   let m;
+  if (chemin === '/wimmov' || chemin.startsWith('/wimmov/')) return apiWimmovAdmin(env, ctx, url, chemin.slice('/wimmov'.length), methode, b);
 
   // une notification aux clients qui ont l'app (une promo, une nouvelle) ou à un seul client
   if (chemin === '/notifier' && methode === 'POST') {
@@ -1301,6 +1311,7 @@ async function apiAdmin(req, env, ctx, url, chemin, methode) {
       return json({ lien: lienAcces(url, jeton) });
     }
     if (!cl.email) return json({ erreur: 'Ce client n\'a pas d\'email.' }, 400);
+    if (estWimmov(cl)) { const rw = await envoyerAccesWimmov(env, url, cl, [cl.email].concat(await emailsWimmov(env))); if (rw.ok) await noter(db, cl.id, null, 'lien', 'Lien de l\'espace envoyé'); return json(rw, rw.ok ? 200 : 502); }
     const r = await envoyerEmail(env, emailAcces(url, cl, lienAcces(url, cl.jeton)));
     if (r.ok) await noter(db, cl.id, null, 'lien', 'Lien d\'accès envoyé par email');
     return json(r, r.ok ? 200 : 502);
@@ -1710,6 +1721,21 @@ async function apiEquipe(req, env, ctx, url, chemin, methode, qui) {
   const db = await baseLiv(env);
   const admin = qui.role === 'admin';
   let m;
+  // Wimmov n'existe pas pour le stratégiste et la designer : ses livraisons (WIMMOV_…) leur sont cachées
+  const cache = d => !admin && DOSSIER_WIMMOV.test(String(d || ''));
+  if (!admin) {
+    const viseLiv = chemin.match(/^\/livraisons\/(l_[A-Za-z0-9_]+)(\/|$)/), viseFic = chemin.match(/^\/fichiers\/(fi_[A-Za-z0-9_]+)(\/|$)/);
+    const idLiv = viseLiv ? viseLiv[1] : chemin === '/fichiers' ? url.searchParams.get('livraison') : null;
+    let d = null;
+    if (idLiv) d = (await db.prepare('SELECT dossier FROM livraisons WHERE id = ?').bind(idLiv).first() || {}).dossier;
+    else if (viseFic) d = (await db.prepare('SELECT l.dossier FROM fichiers f JOIN livraisons l ON l.id = f.livraison_id WHERE f.id = ?').bind(viseFic[1]).first() || {}).dossier;
+    else if (chemin === '/commentaires' && methode === 'POST') {
+      const b0 = await req.clone().json().catch(() => ({}));
+      d = (await db.prepare('SELECT l.dossier FROM fichiers f JOIN livraisons l ON l.id = f.livraison_id WHERE f.id = ?').bind(propre(b0.fichier_id, 40)).first() || {}).dossier;
+    } else if (chemin === '/livraisons' && methode === 'POST') d = (await req.clone().json().catch(() => ({}))).dossier;
+    else if ((m = chemin.match(/^\/livraisons\/([A-Za-z0-9_-]{3,80})$/))) d = m[1];
+    if (cache(d)) return json({ erreur: 'Introuvable' }, 404);
+  }
   // la fiche créas envoyée depuis le portail : la session suffit, le code Kreative est ajouté ici
   // (secret CODE_FICHE dans Cloudflare), le stratégiste n'a plus rien à taper
   if (chemin === '/fiche' && methode === 'POST') {
@@ -1730,6 +1756,7 @@ async function apiEquipe(req, env, ctx, url, chemin, methode, qui) {
       (SELECT COUNT(*) FROM commentaires c WHERE c.livraison_id = l.id AND c.interne = 0) AS nb_client,
       (SELECT COUNT(*) FROM fichiers f WHERE f.livraison_id = l.id AND f.approuve_le IS NOT NULL) AS nb_approuves
       FROM livraisons l ORDER BY COALESCE(l.depose_le, l.cree_le) DESC LIMIT 300`).all();
+    if (!admin) for (let n = results.length - 1; n >= 0; n--) if (cache(results[n].dossier)) results.splice(n, 1);
     const { results: K2 } = await db.prepare("SELECT k.dossier, k.ref, k.id AS commande_id, c.marque FROM commandes k JOIN clients c ON c.id = k.client_id WHERE k.dossier IS NOT NULL").all();
     return json(results.map(l => { const k = K2.find(x => x.dossier === l.dossier || x.dossier === baseDossier(l.dossier)) || {}; return { ...l, marque: k.marque || null, ref: k.ref || null }; }));
   }
@@ -1867,7 +1894,11 @@ async function apiEquipe(req, env, ctx, url, chemin, methode, qui) {
     return json({ ok: true, message: 'Merci, la nouvelle version va être préparée avec tes textes.' });
   }
   // l'état de chaque projet, le même pour tout le monde (admin, stratégiste, designer)
-  if (chemin === '/etats' && methode === 'GET') return json(await etatsProduction(db));
+  if (chemin === '/etats' && methode === 'GET') {
+    const e = await etatsProduction(db);
+    if (!admin) for (const o of [e.etats, e.commandes, e.options]) for (const d of Object.keys(o)) if (cache(d)) delete o[d];
+    return json(e);
+  }
   // le Kanban : un projet glissé d'une colonne à l'autre
   if (chemin === '/deplacer' && methode === 'POST') {
     if (!admin) return json({ erreur: 'Accès refusé' }, 403);
@@ -2005,6 +2036,10 @@ async function servirFichier(req, env, ctx, url, id) {
     const cl = await sessionClient(req, env);
     if (!cl || !(await livraisonDuClient(db, cl, f.livraison_id))) return texte('Accès refusé', 403);
   } else if (!['admin', 'designer', 'strategiste'].includes(equipe.role)) return texte('Accès refusé', 403);
+  else if (equipe.role !== 'admin') {
+    const l = await db.prepare('SELECT dossier FROM livraisons WHERE id = ?').bind(f.livraison_id).first();
+    if (l && DOSSIER_WIMMOV.test(l.dossier)) return texte('Introuvable', 404);
+  }
   const mini = url.searchParams.has('mini') && f.mini, cle = mini ? f.mini : f.cle;
   const entetes = { 'Cache-Control': 'private, max-age=86400' };
   if (url.searchParams.has('dl')) entetes['Content-Disposition'] = 'attachment; filename="' + f.nom.replace(/"/g, '') + '"';
@@ -2171,6 +2206,7 @@ async function apiN8n(req, env, ctx, url, chemin, methode) {
 async function paiementRecu(env, ctx, url, s) {
   const db = await base(env);
   if (await db.prepare('SELECT id FROM commandes WHERE stripe_session = ?').bind(s.id).first()) return;     // déjà traité
+  if (await paiementWimmov(env, ctx, url, s)) return;     // Wimmov : son contrat à part (voir WIMMOV)
   const meta = s.metadata || {};
   const email = String((s.customer_details && s.customer_details.email) || s.customer_email || '').toLowerCase();
   const idClient = meta.kreative_client || (/^c_[A-Za-z0-9_]+$/.test(String(s.client_reference_id || '')) ? s.client_reference_id : null);
@@ -2383,7 +2419,8 @@ async function abonnementChange(env, s, quand) {
   const mini = finMinimale(s);
   const avant = await db.prepare('SELECT stripe_le FROM abonnements WHERE stripe_abo = ?').bind(s.id).first();
   let repousse = false;
-  if (s.status !== 'canceled' && fin && mini && fin < mini - 86400 && !(avant && avant.stripe_le && quand < avant.stripe_le) && env.STRIPE_SECRET) {
+  const sansEngagement = await estClientWimmov(db, k.client_id);   // Wimmov : pas d'engagement, Kreative gère son abonnement
+  if (!sansEngagement && s.status !== 'canceled' && fin && mini && fin < mini - 86400 && !(avant && avant.stripe_le && quand < avant.stripe_le) && env.STRIPE_SECRET) {
     try {
       const chemin = 'subscriptions/' + encodeURIComponent(s.id);
       if (s.cancel_at_period_end) await appelStripe(env, chemin, { cancel_at_period_end: 'false' });
@@ -2464,7 +2501,8 @@ async function enregistrerFacture(env, inv, url) {
         const r = await creerCommande(db, { client_id: derniere.client_id, pack: derniere.pack, formule: 'mensuel', nb: derniere.nb_creas,
           prix: (inv.total || 0) / 100, options: derniere.options ? derniere.options.split(',') : [], stripe_abo: abo, stripe_facture: inv.id, texte: 'Nouveau mois d\'abonnement' });
         k = { id: r.id, client_id: derniere.client_id };
-        await prevenirBriefDuMois(env, url, derniere.client_id);
+        if (await estClientWimmov(db, derniere.client_id)) await preparerCommandeWimmov(db, r.id);   // Wimmov : pas de brief, directement en production
+        else await prevenirBriefDuMois(env, url, derniere.client_id);
       } catch (e) { k = await db.prepare('SELECT id, client_id FROM commandes WHERE stripe_facture = ?').bind(inv.id).first(); }
     } else if (derniere && !derniere.stripe_facture) k = { id: derniere.id, client_id: derniere.client_id };
   }
@@ -2484,4 +2522,386 @@ async function enregistrerFacture(env, inv, url) {
       inv.invoice_pdf || null, inv.hosted_invoice_url || null, email || null, 'stripe', inv.id, maintenant()).run();
   const qui = (k && k.client_id) || (cl && cl.id);
   if (qui && statut === 'payee' && (!avant || avant.statut !== 'payee')) await noter(db, qui, k ? k.id : null, 'facture', 'Paiement reçu · facture ' + (inv.number || '') + ' disponible');
+}
+
+// ============================================================
+//  WIMMOV : un client à part, avec un contrat qui n'existe que pour lui.
+//  Rien ici ne s'applique aux autres clients : tout passe par estWimmov().
+//  - Abonnement de 1 200 € par mois (lien Stripe « Pack ULTRA ») : 60 créatives,
+//    livrées en 4 fois (15 par semaine). Pas d'engagement de 3 mois, pas de
+//    bouton Résilier dans son espace : il passe par Kreative.
+//  - Kreative (l'admin) fait et livre ses créatives elle-même, depuis
+//    /admin/wimmov.html. Le stratégiste et la designer ne voient jamais
+//    Wimmov : ses dossiers (WIMMOV_…) sont cachés de leur API, aucun
+//    Telegram, aucun brief Fillout, aucune fiche.
+//  - Son espace (client/wimmov.html) : les créatives livrées, « Vos retours
+//    de la semaine » (fichiers, liens, texte), des créatives en plus à ses
+//    anciens prix, les factures, et l'accès partagé avec son media buyer
+//    (même espace « Wimmov », son email reçoit aussi les livraisons).
+// ============================================================
+const WIMMOV = {
+  domaine: 'wimmov.com',
+  lien: 'plink_1UJxUZBaFgfyJZxjJCQHpo2g',      // le lien Stripe de son abonnement (Pack ULTRA, 1 200 € par mois)
+  creas_mois: 60, prix_mois: 1200, livraisons_mois: 4,
+  // ses anciens prix, pour des créatives en plus (paiement en une fois)
+  packs: [{ nb: 6, prix: 180, nom: 'Starter' }, { nb: 12, prix: 280, nom: 'Growth' }, { nb: 24, prix: 490, nom: 'Scale' }],
+  au_dela: 20, min_libre: 25, max_libre: 200,   // au-delà du Scale : 20 € la créative
+  max_pieces: 30
+};
+const estWimmov = cl => !!cl && new RegExp('@' + WIMMOV.domaine.replace('.', '\\.') + '$', 'i').test(String(cl.email || '').trim());
+const DOSSIER_WIMMOV = /^WIMMOV_/;
+const dossierWimmov = commandeId => 'WIMMOV_' + String(commandeId).replace(/^k_/, '');
+function prixWimmov(nb) {
+  nb = Math.round(Number(nb) || 0);
+  const p = WIMMOV.packs.find(x => x.nb === nb);
+  if (p) return { nb, total: p.prix, nom: 'Pack ' + p.nom };
+  if (nb >= WIMMOV.min_libre && nb <= WIMMOV.max_libre) return { nb, total: nb * WIMMOV.au_dela, nom: 'Pack sur mesure' };
+  return null;
+}
+// l'espace Wimmov (le plus ancien client à une adresse @wimmov.com) : tous les paiements y arrivent
+async function clientWimmov(db) {
+  return db.prepare("SELECT * FROM clients WHERE lower(email) LIKE ? AND statut != 'bloque' ORDER BY cree_le LIMIT 1").bind('%@' + WIMMOV.domaine).first();
+}
+async function estClientWimmov(db, clientId) {
+  if (!clientId) return false;
+  const c = await db.prepare('SELECT email FROM clients WHERE id = ?').bind(clientId).first();
+  return estWimmov(c);
+}
+let WIMMOV_PRET = false;
+async function baseWimmov(env) {
+  const db = await baseLiv(env);
+  if (!WIMMOV_PRET) {
+    await db.batch([
+      db.prepare(`CREATE TABLE IF NOT EXISTS wimmov_retours (id TEXT PRIMARY KEY, client_id TEXT, auteur TEXT, texte TEXT, liens TEXT,
+        cree_le INTEGER, envoye_le INTEGER)`),
+      db.prepare(`CREATE TABLE IF NOT EXISTS wimmov_pieces (id TEXT PRIMARY KEY, retour_id TEXT NOT NULL, nom TEXT, cle TEXT, type TEXT,
+        taille INTEGER, cree_le INTEGER)`),
+      db.prepare('CREATE INDEX IF NOT EXISTS i_wpiece_retour ON wimmov_pieces(retour_id)')]);
+    WIMMOV_PRET = true;
+  }
+  return db;
+}
+// les adresses qui reçoivent aussi les emails de Wimmov (le media buyer…)
+async function emailsWimmov(env) {
+  const db = await baseLiv(env);
+  const r = await db.prepare("SELECT valeur FROM reglages WHERE cle = 'wimmov'").first();
+  let v = {}; try { v = r ? JSON.parse(r.valeur) : {}; } catch (e) { v = {}; }
+  return Array.isArray(v.emails) ? v.emails.filter(emailValide) : [];
+}
+async function enregistrerEmailsWimmov(env, liste, cl) {
+  const propres = [...new Set((Array.isArray(liste) ? liste : []).map(x => propre(x, 160).toLowerCase()).filter(emailValide))]
+    .filter(x => !cl || x !== String(cl.email || '').toLowerCase()).slice(0, 8);
+  const db = await baseLiv(env);
+  await db.prepare("INSERT INTO reglages (cle, valeur) VALUES ('wimmov', ?) ON CONFLICT(cle) DO UPDATE SET valeur = excluded.valeur").bind(JSON.stringify({ emails: propres })).run();
+  return propres;
+}
+// une commande de Wimmov : pas de brief, directement en production, dans un dossier caché de l'équipe
+async function preparerCommandeWimmov(db, commandeId) {
+  await db.prepare("UPDATE commandes SET dossier = COALESCE(dossier, ?), statut = CASE WHEN statut = 'brief' THEN 'production' ELSE statut END, brief_le = COALESCE(brief_le, ?) WHERE id = ?")
+    .bind(dossierWimmov(commandeId), maintenant(), commandeId).run();
+}
+// ---------- les emails de Wimmov (vouvoiement, sobres) ----------
+function emailAccesWimmov(url, cl, a) {
+  const prenom = a === String(cl.email || '').toLowerCase() ? String(cl.contact || '').trim().split(/\s+/)[0] : '';
+  const lien = lienAcces(url, cl.jeton);
+  return { type: 'acces', a, marque: cl.marque, contact: cl.contact || '', lien, sujet: cl.marque + ' · votre espace Kreative',
+    html: emailHtml(url.origin, { titre: 'Bonjour' + (prenom ? ' ' + prenom : '') + ',',
+      paragraphes: ['Voici le lien de l\'espace <b>' + echapper(cl.marque) + '</b> chez Kreative.',
+        'Vous y retrouvez les créatives livrées chaque semaine, vous y déposez vos retours de la semaine (fichiers, liens, explications) et vous pouvez commander des créatives en plus.'],
+      bouton: ['Ouvrir l\'espace ' + cl.marque, lien], note: 'Ce lien ouvre l\'espace de toute l\'équipe ' + echapper(cl.marque) + ' : partagez-le seulement avec les personnes qui travaillent sur vos publicités.' }) };
+}
+async function envoyerAccesWimmov(env, url, cl, adresses) {
+  const r = [];
+  for (const a of adresses) r.push(await envoyerEmail(env, emailAccesWimmov(url, cl, a)));
+  return { ok: r.length > 0 && r.every(x => x.ok), envoyes: r.filter(x => x.ok).length, message: (r.find(x => !x.ok) || {}).message };
+}
+// ---------- un paiement Stripe de Wimmov (abonnement ou créatives en plus) ----------
+async function paiementWimmov(env, ctx, url, s) {
+  const db = await base(env), meta = s.metadata || {};
+  const email = String((s.customer_details && s.customer_details.email) || s.customer_email || '').toLowerCase();
+  let cl = meta.kreative_client ? await db.prepare('SELECT * FROM clients WHERE id = ?').bind(String(meta.kreative_client)).first() : null;
+  if (!(s.payment_link === WIMMOV.lien || meta.wimmov === '1' || estWimmov({ email }) || estWimmov(cl))) return false;
+  if (!estWimmov(cl)) cl = await clientWimmov(db);
+  let nouveau = false;
+  if (!cl) {
+    if (!emailValide(email)) return true;
+    const det = s.customer_details || {}, info = s.collected_information || {};
+    const id = 'c_' + aleatoire(10), jeton = aleatoire(32);
+    const marque = propre(info.business_name || det.business_name || 'Wimmov', 80) || 'Wimmov';
+    await db.prepare('INSERT INTO clients (id, marque, contact, email, jeton, cree_le) VALUES (?,?,?,?,?,?)')
+      .bind(id, marque, propre(info.individual_name || det.individual_name || '', 80), email, jeton, maintenant()).run();
+    await noter(db, id, null, 'client', 'Espace Wimmov créé');
+    cl = await db.prepare('SELECT * FROM clients WHERE id = ?').bind(id).first();
+    nouveau = true;
+  }
+  if (s.customer && !cl.stripe_client) await db.prepare('UPDATE clients SET stripe_client = ? WHERE id = ?').bind(String(s.customer), cl.id).run();
+  const mensuel = s.mode === 'subscription', total = (s.amount_total || 0) / 100;
+  const nb = mensuel ? WIMMOV.creas_mois : (Number(meta.nb_creas) || (WIMMOV.packs.find(x => x.prix === total) || {}).nb || Math.round(total / WIMMOV.au_dela));
+  const r = await creerCommande(db, { client_id: cl.id, pack: 'custom', formule: mensuel ? 'mensuel' : 'unique', nb: nb || 0, prix: total, options: [],
+    stripe_session: s.id, stripe_abo: typeof s.subscription === 'string' ? s.subscription : null, stripe_facture: typeof s.invoice === 'string' ? s.invoice : null,
+    texte: mensuel ? 'Paiement reçu, abonnement Wimmov' : 'Paiement reçu, créatives en plus' });
+  await preparerCommandeWimmov(db, r.id);
+  if (typeof s.invoice === 'string') {
+    await db.prepare('UPDATE factures SET commande_id = COALESCE(commande_id, ?), client_id = COALESCE(client_id, ?) WHERE stripe_id = ?').bind(r.id, cl.id, s.invoice).run();
+    const f = await db.prepare('SELECT numero FROM factures WHERE stripe_id = ?').bind(s.invoice).first();
+    if (f && f.numero) await numeroDeCommande(db, r.id, s.invoice, f.numero);
+  }
+  if (nouveau) {
+    const envoi = envoyerAccesWimmov(env, url, cl, [cl.email].concat(await emailsWimmov(env)));
+    if (ctx && ctx.waitUntil) ctx.waitUntil(envoi); else await envoi;
+  }
+  return true;
+}
+// ---------- l'état d'une livraison Wimmov : « Livraison 2 » (le numéro vient du dossier _L2) ----------
+const numeroLivraison = d => Number((String(d).match(/_L(\d+)$/) || [])[1]) || 1;
+async function commandesWimmov(env, db, clientId, pourClient) {
+  const { results: K } = await db.prepare("SELECT * FROM commandes WHERE client_id = ? AND statut != 'annule' ORDER BY cree_le DESC").bind(clientId).all();
+  const dossiers = K.map(k => k.dossier).filter(Boolean);
+  let L = [];
+  if (dossiers.length) {
+    L = (await db.prepare('SELECT l.*, (SELECT COUNT(*) FROM fichiers f WHERE f.livraison_id = l.id) AS nb, ' +
+      "(SELECT COUNT(*) FROM fichiers f WHERE f.livraison_id = l.id AND f.format = '1x1') AS nb_1x1 FROM livraisons l WHERE " +
+      dossiers.map(() => 'l.dossier LIKE ?').join(' OR ') + ' ORDER BY l.dossier, l.version DESC').bind(...dossiers.map(d => d + '_L%')).all()).results;
+  }
+  return K.map(k => {
+    const d = k.dossier || '', mes = L.filter(l => baseDossier(l.dossier) === d && (!pourClient || VISIBLES_CLIENT.includes(l.statut)));
+    // une ligne par livraison (la dernière version visible)
+    const par = {};
+    for (const l of mes) if (!par[l.dossier]) par[l.dossier] = l;
+    const livraisons = Object.values(par).map(l => ({ id: l.id, dossier: l.dossier, n: numeroLivraison(l.dossier), version: l.version, statut: l.statut,
+      envoye_le: l.envoye_le, cree_le: l.cree_le, fichiers: l.nb, creatives: l.nb_1x1 || Math.round((l.nb || 0) / 3) })).sort((a, b) => a.n - b.n);
+    return { id: k.id, ref: k.ref, formule: k.formule, nb_creas: k.nb_creas, prix: k.prix, statut: k.statut, cree_le: k.cree_le, dossier: k.dossier,
+      livraisons, livrees: livraisons.filter(l => VISIBLES_CLIENT.includes(l.statut)).reduce((s, l) => s + l.creatives, 0) };
+  });
+}
+async function retoursWimmov(env, clientId, tous) {
+  const db = await baseWimmov(env);
+  const { results: R } = await db.prepare('SELECT * FROM wimmov_retours WHERE client_id = ? AND envoye_le IS NOT NULL ORDER BY envoye_le DESC LIMIT ' + (tous ? 200 : 60)).bind(clientId).all();
+  if (!R.length) return [];
+  const { results: P } = await db.prepare('SELECT id, retour_id, nom, type, taille FROM wimmov_pieces WHERE retour_id IN (' + R.map(() => '?').join(',') + ') ORDER BY cree_le').bind(...R.map(r => r.id)).all();
+  return R.map(r => { let liens = []; try { liens = JSON.parse(r.liens || '[]'); } catch (e) {}
+    return { id: r.id, auteur: r.auteur, texte: r.texte, liens, envoye_le: r.envoye_le, pieces: P.filter(p => p.retour_id === r.id).map(p => ({ id: p.id, nom: p.nom, type: p.type, taille: p.taille, url: '/api/wimmov/pieces/' + p.id })) }; });
+}
+const lienPropre = x => { const t = propre(x, 600); try { const u = new URL(/^https?:\/\//i.test(t) ? t : 'https://' + t); return /^https?:$/.test(u.protocol) && u.hostname.includes('.') ? u.toString() : null; } catch (e) { return null; } };
+// ---------- l'API de l'espace Wimmov (le client, ou l'admin en aperçu) ----------
+async function apiWimmovClient(req, env, ctx, url, chemin, methode, cl, apercu) {
+  if (!estWimmov(cl)) return json({ erreur: 'Introuvable' }, 404);
+  const db = await baseWimmov(env);
+  let m;
+  if (chemin === '' && methode === 'GET') {
+    const [commandes, retours, { results: factures }, abonnements, emails] = await Promise.all([
+      commandesWimmov(env, db, cl.id, true), retoursWimmov(env, cl.id),
+      db.prepare("SELECT * FROM factures WHERE client_id = ? AND statut != 'brouillon' ORDER BY emise_le DESC").bind(cl.id).all(),
+      abonnementsDuClient(db, cl.id), emailsWimmov(env)]);
+    if (!apercu) ctx.waitUntil(db.prepare('UPDATE clients SET vu_le = ? WHERE id = ?').bind(maintenant(), cl.id).run());
+    return json({ apercu, client: { id: cl.id, marque: cl.marque, contact: cl.contact, email: cl.email, photo_le: cl.photo ? cl.photo_le || 1 : null },
+      lien: lienAcces(url, cl.jeton), emails, commandes, retours, factures: factures.map(FACTURE_PUBLIQUE),
+      abonnements: abonnements.map(a => ({ id: a.id, statut: a.statut, debut: a.debut, mois_payes: a.mois_payes, fin_le: a.fin_le })),
+      contrat: { creas_mois: WIMMOV.creas_mois, prix_mois: WIMMOV.prix_mois, livraisons_mois: WIMMOV.livraisons_mois },
+      tarifs: { packs: WIMMOV.packs, au_dela: WIMMOV.au_dela, min_libre: WIMMOV.min_libre, max_libre: WIMMOV.max_libre }, paiement: !!env.STRIPE_SECRET });
+  }
+  if (methode !== 'GET' && apercu) return json({ erreur: 'Aperçu : rien n\'est enregistré à la place du client.' }, 403);
+  // les retours de la semaine : un brouillon (pour y joindre des fichiers), puis l'envoi
+  if (chemin === '/retours' && methode === 'POST') {
+    const deja = await db.prepare('SELECT id FROM wimmov_retours WHERE client_id = ? AND envoye_le IS NULL ORDER BY cree_le DESC LIMIT 1').bind(cl.id).first();
+    if (deja) return json({ id: deja.id });
+    const id = 'wr_' + aleatoire(12);
+    await db.prepare('INSERT INTO wimmov_retours (id, client_id, cree_le) VALUES (?,?,?)').bind(id, cl.id, maintenant()).run();
+    return json({ id });
+  }
+  if (chemin === '/pieces' && methode === 'PUT') {
+    if (!env.FICHIERS) return json({ erreur: 'Le stockage des fichiers n\'est pas branché.' }, 503);
+    const r = await db.prepare('SELECT * FROM wimmov_retours WHERE id = ? AND client_id = ?').bind(url.searchParams.get('retour') || '', cl.id).first();
+    if (!r || r.envoye_le) return json({ erreur: 'Ces retours sont déjà envoyés.' }, 409);
+    const n = await db.prepare('SELECT COUNT(*) AS n FROM wimmov_pieces WHERE retour_id = ?').bind(r.id).first();
+    if (n && n.n >= WIMMOV.max_pieces) return json({ erreur: WIMMOV.max_pieces + ' fichiers au maximum par envoi.' }, 413);
+    const taille = Number(req.headers.get('Content-Length') || 0);
+    if (taille > 95e6) return json({ erreur: 'Fichier trop lourd (95 Mo au maximum).' }, 413);
+    const nom = propre(url.searchParams.get('nom'), 140).replace(/[^\p{L}\p{N}._ ()-]/gu, '_') || 'fichier';
+    const type = propre((req.headers.get('Content-Type') || 'application/octet-stream').split(';')[0], 100);
+    const id = 'wp_' + aleatoire(12), cle = 'wimmov/retours/' + r.id + '/' + id + '-' + nom.replace(/\s+/g, '_');
+    await env.FICHIERS.put(cle, req.body, { httpMetadata: { contentType: type } });
+    await db.prepare('INSERT INTO wimmov_pieces (id, retour_id, nom, cle, type, taille, cree_le) VALUES (?,?,?,?,?,?,?)').bind(id, r.id, nom, cle, type, taille, maintenant()).run();
+    return json({ ok: true, id, nom });
+  }
+  if ((m = chemin.match(/^\/pieces\/(wp_[A-Za-z0-9]+)$/)) && methode === 'DELETE') {
+    const p = await db.prepare('SELECT p.*, r.envoye_le, r.client_id FROM wimmov_pieces p JOIN wimmov_retours r ON r.id = p.retour_id WHERE p.id = ?').bind(m[1]).first();
+    if (!p || p.client_id !== cl.id || p.envoye_le) return json({ erreur: 'Ce fichier ne peut plus être retiré.' }, 409);
+    if (env.FICHIERS) { try { await env.FICHIERS.delete(p.cle); } catch (e) {} }
+    await db.prepare('DELETE FROM wimmov_pieces WHERE id = ?').bind(p.id).run();
+    return json({ ok: true });
+  }
+  if ((m = chemin.match(/^\/retours\/(wr_[A-Za-z0-9]+)\/envoyer$/)) && methode === 'POST') {
+    const b = await corpsJson(req);
+    const r = await db.prepare('SELECT * FROM wimmov_retours WHERE id = ? AND client_id = ?').bind(m[1], cl.id).first();
+    if (!r || r.envoye_le) return json({ erreur: 'Ces retours sont déjà envoyés.' }, 409);
+    const texte = propre(b.texte, 8000), auteur = propre(b.auteur, 80);
+    const liens = [...new Set((Array.isArray(b.liens) ? b.liens : []).map(lienPropre).filter(Boolean))].slice(0, 20);
+    const P = (await db.prepare('SELECT nom FROM wimmov_pieces WHERE retour_id = ?').bind(r.id).all()).results;
+    if (!texte && !liens.length && !P.length) return json({ erreur: 'Écrivez vos retours, ajoutez un lien ou un fichier.' }, 400);
+    const ch = await db.prepare('UPDATE wimmov_retours SET texte = ?, liens = ?, auteur = ?, envoye_le = ? WHERE id = ? AND envoye_le IS NULL')
+      .bind(texte || null, JSON.stringify(liens), auteur || null, maintenant(), r.id).run();
+    if (!ch.meta || ch.meta.changes !== 1) return json({ erreur: 'Ces retours sont déjà envoyés.' }, 409);
+    await noter(db, cl.id, null, 'brief', 'Retours de la semaine envoyés' + (auteur ? ' par ' + auteur : ''));
+    // Kreative est prévenu par email (le texte, les liens, les fichiers sont dans l'admin)
+    const admin = url.origin + '/admin/wimmov.html#/retours';
+    const envoi = envoyerEmail(env, { type: 'wimmov_retours', a: env.EMAIL_KREATIVE || 'contact@kreativeads.fr', marque: cl.marque, contact: 'Kreative', lien: admin,
+      sujet: cl.marque + ' · retours de la semaine',
+      html: emailHtml(url.origin, { titre: cl.marque + ' a envoyé ses retours de la semaine', paragraphes: [
+        (auteur ? 'De ' + echapper(auteur) + '. ' : '') + (P.length ? P.length + ' fichier' + (P.length > 1 ? 's' : '') + ' joint' + (P.length > 1 ? 's' : '') + '. ' : '') + (liens.length ? liens.length + ' lien' + (liens.length > 1 ? 's' : '') + '.' : '')]
+        .concat(texte ? ['« ' + echapper(texte).replace(/\n/g, '<br>') + ' »'] : [])
+        .concat(liens.map(l => '<a href="' + echapper(l) + '" style="color:#4d94ff">' + echapper(l) + '</a>')),
+        bouton: ['Voir dans l\'admin', admin] }) });
+    if (ctx && ctx.waitUntil) ctx.waitUntil(envoi); else await envoi;
+    return json({ ok: true });
+  }
+  // l'accès partagé : les adresses qui reçoivent aussi les emails (le media buyer)
+  if (chemin === '/acces' && methode === 'PATCH') {
+    const b = await corpsJson(req), avant = await emailsWimmov(env);
+    const emails = await enregistrerEmailsWimmov(env, b.emails, cl);
+    const nouveaux = emails.filter(x => !avant.includes(x));
+    if (nouveaux.length) await noter(db, cl.id, null, 'lien', 'Accès partagé avec ' + nouveaux.join(', '));
+    // la nouvelle adresse reçoit tout de suite le lien de l'espace
+    if (nouveaux.length && b.envoyer !== false) { const envoi = envoyerAccesWimmov(env, url, cl, nouveaux); if (ctx && ctx.waitUntil) ctx.waitUntil(envoi); else await envoi; }
+    return json({ ok: true, emails });
+  }
+  // des créatives en plus, à ses anciens prix (paiement en une fois)
+  if (chemin === '/paiement' && methode === 'POST') {
+    if (!env.STRIPE_SECRET) return json({ erreur: 'Le paiement en ligne n\'est pas encore branché. Écrivez-nous sur WhatsApp.' }, 503);
+    const b = await corpsJson(req), d = prixWimmov(b.nb_creas);
+    if (!d) return json({ erreur: 'Choisissez 6, 12, 24 créatives, ou entre ' + WIMMOV.min_libre + ' et ' + WIMMOV.max_libre + '.' }, 400);
+    const meta = { wimmov: '1', kreative_client: cl.id, pack: 'custom', formule: 'unique', nb_creas: String(d.nb), total: String(d.total) };
+    const description = d.nb + ' créatives • Livrées en 1:1, 4:5 et 9:16';
+    const p = { mode: 'payment', locale: 'fr', metadata: meta, client_reference_id: cl.id,
+      success_url: url.origin + '/client/#/merci', cancel_url: url.origin + '/client/#/commander',
+      allow_promotion_codes: 'true', billing_address_collection: 'required', tax_id_collection: { enabled: 'true' },
+      line_items: [{ quantity: 1, price_data: { currency: 'eur', unit_amount: String(Math.round(d.total * 100)), product_data: { name: d.nom, description } } }],
+      invoice_creation: { enabled: 'true', invoice_data: { metadata: meta, description } }, payment_intent_data: { metadata: meta } };
+    if (cl.stripe_client) { p.customer = cl.stripe_client; p.customer_update = { name: 'auto', address: 'auto' }; }
+    else { p.customer_email = cl.email; p.customer_creation = 'always'; }
+    try {
+      const s = await appelStripe(env, 'checkout/sessions', p);
+      if (!b.prepare) await noter(db, cl.id, null, 'paiement', 'Paiement ouvert · ' + d.nb + ' créatives · ' + d.total + ' €');
+      return json({ url: s.url, total: d.total });
+    } catch (e) { return json({ erreur: 'Stripe : ' + e.message }, 502); }
+  }
+  return json({ erreur: 'Introuvable' }, 404);
+}
+// un fichier joint aux retours de Wimmov : Wimmov ou l'admin seulement
+async function servirPieceWimmov(req, env, url, id) {
+  const db = await baseWimmov(env);
+  const p = await db.prepare('SELECT p.*, r.client_id FROM wimmov_pieces p JOIN wimmov_retours r ON r.id = p.retour_id WHERE p.id = ?').bind(id).first();
+  if (!p) return texte('Introuvable', 404);
+  const equipe = await session(req, env);
+  if (!(equipe && equipe.role === 'admin')) {
+    const cl = await sessionClient(req, env);
+    if (!cl || cl.id !== p.client_id) return texte('Accès refusé', 403);
+  }
+  if (!env.FICHIERS) return texte('Stockage absent', 503);
+  const o = await env.FICHIERS.get(p.cle);
+  if (!o) return texte('Introuvable', 404);
+  return new Response(o.body, { headers: { 'Content-Type': p.type || 'application/octet-stream', 'Cache-Control': 'private, max-age=3600',
+    'Content-Disposition': (url.searchParams.has('dl') ? 'attachment' : 'inline') + '; filename="' + String(p.nom).replace(/["\\\r\n]/g, '_') + '"' } });
+}
+// ---------- l'admin : la page Wimmov (/admin/wimmov.html) ----------
+async function apiWimmovAdmin(env, ctx, url, chemin, methode, b) {
+  const db = await baseWimmov(env);
+  const cl = await clientWimmov(db);
+  let m;
+  if (chemin === '' && methode === 'GET') {
+    if (!cl) return json({ client: null, emails: await emailsWimmov(env), contrat: WIMMOV });
+    const [commandes, retours, { results: factures }, abonnements, emails] = await Promise.all([
+      commandesWimmov(env, db, cl.id, false), retoursWimmov(env, cl.id, true),
+      db.prepare('SELECT * FROM factures WHERE client_id = ? ORDER BY emise_le DESC').bind(cl.id).all(), abonnementsDuClient(db, cl.id), emailsWimmov(env)]);
+    const { photo, ...client } = cl;
+    return json({ client: { ...client, lien: lienAcces(url, cl.jeton) }, emails, commandes, retours, factures, abonnements, contrat: WIMMOV, stockage: !!env.FICHIERS });
+  }
+  if (!cl) return json({ erreur: 'Créez d\'abord le client Wimmov (Clients, puis Nouveau client, avec son adresse @' + WIMMOV.domaine + ').' }, 409);
+  // un mois d'abonnement ou des créatives en plus, ajoutés à la main (payés hors du portail)
+  if (chemin === '/commandes' && methode === 'POST') {
+    const mois = b.type !== 'extra';
+    const nb = mois ? WIMMOV.creas_mois : Math.round(Number(b.nb_creas) || 0);
+    if (!nb || nb < 1 || nb > 500) return json({ erreur: 'Nombre de créatives invalide.' }, 400);
+    const prix = b.prix === '' || b.prix == null ? (mois ? WIMMOV.prix_mois : (prixWimmov(nb) || { total: nb * WIMMOV.au_dela }).total) : Number(b.prix);
+    if (!Number.isFinite(prix) || prix < 0) return json({ erreur: 'Prix invalide.' }, 400);
+    const r = await creerCommande(db, { client_id: cl.id, pack: 'custom', formule: mois ? 'mensuel' : 'unique', nb, prix, options: [], texte: mois ? 'Nouveau mois Wimmov' : 'Créatives en plus' });
+    await preparerCommandeWimmov(db, r.id);
+    return json({ ok: true, id: r.id, ref: r.ref });
+  }
+  // une nouvelle livraison (la suivante de la commande), ou une nouvelle version d'une livraison
+  if (chemin === '/livraisons' && methode === 'POST') {
+    let dossier;
+    if (b.dossier) {
+      dossier = propre(b.dossier, 80);
+      if (!DOSSIER_WIMMOV.test(dossier) || !/^[A-Za-z0-9_-]{3,80}$/.test(dossier)) return json({ erreur: 'Livraison inconnue.' }, 400);
+    } else {
+      const k = await db.prepare('SELECT * FROM commandes WHERE id = ? AND client_id = ?').bind(propre(b.commande_id, 40), cl.id).first();
+      if (!k) return json({ erreur: 'Commande introuvable.' }, 404);
+      if (!k.dossier) await preparerCommandeWimmov(db, k.id);
+      const base = k.dossier || dossierWimmov(k.id);
+      const { results: D } = await db.prepare('SELECT DISTINCT dossier FROM livraisons WHERE dossier LIKE ?').bind(base + '_L%').all();
+      const n = D.reduce((x, d) => Math.max(x, numeroLivraison(d.dossier)), 0);
+      // un brouillon déjà commencé : on le reprend
+      const brouillon = n ? await db.prepare("SELECT * FROM livraisons WHERE dossier = ? AND statut = 'brouillon'").bind(base + '_L' + n).first() : null;
+      dossier = brouillon ? brouillon.dossier : base + '_L' + (n + 1);
+    }
+    const der = await db.prepare('SELECT * FROM livraisons WHERE dossier = ? ORDER BY version DESC LIMIT 1').bind(dossier).first();
+    if (der && der.statut === 'brouillon') return json(await detailLivraison(db, der, false));
+    const id = 'l_' + aleatoire(10), now = maintenant();
+    await db.prepare('INSERT INTO livraisons (id, dossier, version, statut, cree_le) VALUES (?,?,?,?,?)').bind(id, dossier, der ? der.version + 1 : 1, 'brouillon', now).run();
+    if (der) {
+      // la nouvelle version reprend les fichiers de la précédente : on ne remplace que ce qui change
+      const { results: F } = await db.prepare('SELECT * FROM fichiers WHERE livraison_id = ?').bind(der.id).all();
+      if (F.length) await db.batch(F.map(f => db.prepare('INSERT INTO fichiers (id, livraison_id, format, nom, cle, mini, type, taille, largeur, hauteur, cree_le) VALUES (?,?,?,?,?,?,?,?,?,?,?)')
+        .bind('fi_' + aleatoire(12), id, f.format, f.nom, f.cle, f.mini, f.type, f.taille, f.largeur, f.hauteur, now)));
+    }
+    return json(await detailLivraison(db, await db.prepare('SELECT * FROM livraisons WHERE id = ?').bind(id).first(), false));
+  }
+  if ((m = chemin.match(/^\/livraisons\/([A-Za-z0-9_-]{3,80})$/)) && methode === 'GET') {
+    if (!DOSSIER_WIMMOV.test(m[1])) return json({ erreur: 'Introuvable' }, 404);
+    const { results } = await db.prepare('SELECT * FROM livraisons WHERE dossier = ? ORDER BY version DESC').bind(m[1]).all();
+    return json({ dossier: m[1], versions: await Promise.all(results.map(l => detailLivraison(db, l, false))) });
+  }
+  // envoyer une livraison à Wimmov : visible tout de suite dans son espace, email à Hugo et au media buyer
+  if ((m = chemin.match(/^\/livraisons\/(l_[A-Za-z0-9_]+)\/envoyer$/)) && methode === 'POST') {
+    const l = await db.prepare('SELECT * FROM livraisons WHERE id = ?').bind(m[1]).first();
+    if (!l || !DOSSIER_WIMMOV.test(l.dossier)) return json({ erreur: 'Livraison inconnue.' }, 404);
+    if (l.statut !== 'brouillon') return json({ erreur: 'Cette livraison est déjà envoyée.' }, 409);
+    const nf = await db.prepare('SELECT COUNT(*) AS n FROM fichiers WHERE livraison_id = ?').bind(l.id).first();
+    if (!nf || !nf.n) return json({ erreur: 'Ajoutez d\'abord les fichiers.' }, 400);
+    const now = maintenant();
+    const ch = await db.prepare("UPDATE livraisons SET statut = 'envoyee', depose_le = ?, verifie_le = ?, envoye_le = ? WHERE id = ? AND statut = 'brouillon'").bind(now, now, now, l.id).run();
+    if (!ch.meta || ch.meta.changes !== 1) return json({ erreur: 'Cette livraison est déjà envoyée.' }, 409);
+    const k = await commandeDuDossier(db, l.dossier);
+    const n = numeroLivraison(l.dossier), v2 = l.version > 1;
+    if (k) {
+      // un mois (60 créas) n'est livré qu'à sa 4e livraison ; des créas en plus, dès la 1re
+      const faites = await db.prepare("SELECT COUNT(DISTINCT dossier) AS n FROM livraisons WHERE statut = 'envoyee' AND (dossier = ? OR dossier LIKE ?)").bind(k.dossier, k.dossier + '_L%').first().catch(() => null);
+      const fini = k.formule !== 'mensuel' || (faites && faites.n >= WIMMOV.livraisons_mois);
+      if (fini && !['valide', 'annule'].includes(k.statut)) await db.prepare("UPDATE commandes SET statut = 'livre', livre_le = COALESCE(livre_le, ?) WHERE id = ?").bind(now, k.id).run();
+      await noter(db, k.client_id, k.id, 'livre', v2 ? 'Livraison ' + n + ' : nouvelle version' : 'Livraison ' + n + ' disponible');
+    }
+    const titre = v2 ? 'Livraison ' + n + ' : nouvelle version' : 'Livraison ' + n + ' disponible';
+    const notif = notifier(env, cl.id, { titre, texte: 'Vos nouvelles créatives sont disponibles dans votre espace.', url: '/client/#/creatives' });
+    if (ctx && ctx.waitUntil) ctx.waitUntil(notif); else await notif;
+    const lien = lienAcces(url, cl.jeton), a = [cl.email].concat(await emailsWimmov(env)).filter(Boolean);
+    const envoi = (async () => { for (const x of a) await envoyerEmail(env, { type: 'creatives', a: x, marque: cl.marque, contact: cl.contact || '', lien, sujet: cl.marque + ' · ' + titre,
+      html: emailHtml(url.origin, { titre: 'Bonjour' + (x === String(cl.email).toLowerCase() && cl.contact ? ' ' + String(cl.contact).trim().split(/\s+/)[0] : '') + ',',
+        paragraphes: [v2 ? 'La nouvelle version de la livraison ' + n + ' est disponible dans votre espace.' : 'Les créatives de la livraison ' + n + ' sont disponibles dans votre espace.',
+          'Vos retours de la semaine se déposent au même endroit.'],
+        bouton: ['Voir les créatives', lien] }) }); })();
+    if (ctx && ctx.waitUntil) ctx.waitUntil(envoi); else await envoi;
+    return json({ ok: true, message: 'Livraison ' + n + ' envoyée à ' + cl.marque + '.' });
+  }
+  // les adresses qui reçoivent aussi les emails, et l'envoi du lien de l'espace
+  if (chemin === '/acces' && methode === 'PATCH') return json({ ok: true, emails: await enregistrerEmailsWimmov(env, b.emails, cl) });
+  if (chemin === '/lien' && methode === 'POST') {
+    const tous = [cl.email].concat(await emailsWimmov(env)).filter(Boolean);
+    const a = b.a ? tous.filter(x => x === String(b.a).toLowerCase()) : tous;
+    if (!a.length) return json({ erreur: 'Adresse inconnue.' }, 400);
+    const r = await envoyerAccesWimmov(env, url, cl, a);
+    if (r.ok) await noter(db, cl.id, null, 'lien', 'Lien de l\'espace envoyé à ' + a.join(', '));
+    return json({ ...r, message: r.ok ? 'Lien envoyé à ' + a.join(', ') + '.' : r.message }, r.ok ? 200 : 502);
+  }
+  return json({ erreur: 'Introuvable' }, 404);
 }

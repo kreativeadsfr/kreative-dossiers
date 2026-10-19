@@ -110,7 +110,7 @@ function ecranAccueil() {
   h += '<div class="ph"><div><h1>Bonjour, ' + esc(prenom()) + '</h1><p>L\'espace ' + esc(D.client.marque) + ' chez Kreative : vos créatives de la semaine, vos retours, vos commandes.</p></div></div>';
   const envoyees = mois ? mois.livraisons.filter(l => l.statut !== 'brouillon').length : 0;
   h += '<div class="grid g2">' +
-    '<a class="card kpi lien-kpi" href="#/creatives' + (mois ? '/' + esc(mois.id) : '') + '"><div class="lab">Ce mois-ci</div><div class="v s">' + (mois ? envoyees + ' livraison' + (envoyees > 1 ? 's' : '') + ' sur ' + D.contrat.livraisons_mois : 'Pas encore') + '</div>' +
+    '<a class="card kpi lien-kpi" href="#/creatives"><div class="lab">Ce mois-ci</div><div class="v s">' + (mois ? envoyees + ' livraison' + (envoyees > 1 ? 's' : '') + ' sur ' + D.contrat.livraisons_mois : 'Pas encore') + '</div>' +
       '<div class="d">' + (mois ? (mois.livrees || 0) + ' créatives livrées sur ' + mois.nb_creas : 'Votre mois démarre au prochain paiement') + '</div></a>' +
     '<a class="card kpi lien-kpi" href="#/retours"><div class="lab">Retours de la semaine</div><div class="v s">' + (dernier ? esc(K.date(dernier.envoye_le, { year: undefined })) : 'Pas encore') + '</div>' +
       '<div class="d">' + (dernier ? 'Derniers retours envoyés' : 'Déposez-les pour la prochaine livraison') + '</div></a></div>';
@@ -129,6 +129,7 @@ function tableLivraisons(L) {
 }
 
 // ---------- CRÉATIVES ----------
+// comme l'espace client normal : la liste des livraisons, puis une livraison avec « Retour »
 const CR = { commande: null, donnees: null };
 async function chargerCreatives(id) {
   CR.commande = id;
@@ -136,31 +137,40 @@ async function chargerCreatives(id) {
   K.rendre();
 }
 const numero = d => Number((String(d).match(/_L(\d+)$/) || [])[1]) || 1;
+// la dernière version de la livraison n de la commande c
+function livraisonVue(p) {
+  const c = D.commandes.find(x => x.id === p[0]);
+  if (!c || !CR.donnees || CR.commande !== c.id) return { c };
+  const n = Number(p[1]) || 1;
+  const l = CR.donnees.livraisons.filter(x => numero(x.dossier) === n).sort((x, y) => y.version - x.version)[0];
+  return { c, l, n };
+}
+// comme l'espace client normal : un tableau de toutes les livraisons, un clic ouvre la livraison
+function livraisonOuverte(p) {
+  if (!CR.donnees) return null;
+  const n = Number(p[1]) || 1, par = {};
+  for (const l of CR.donnees.livraisons) if (numero(l.dossier) === n && (!par.l || par.l.version < l.version)) par.l = l;
+  return par.l || null;
+}
 function ecranCreatives(p) {
-  let h = apercu() + '<div class="ph"><div><h1>Vos créatives</h1><p>Toutes les livraisons, par mois. Chaque fichier se télécharge, ou tout d\'un coup.</p></div></div>';
-  const avec = D.commandes.filter(c => c.livraisons.length);
-  if (!avec.length) return h + '<div class="card"><div class="vide">' + i.image + 'Vos créatives arrivent ici chaque semaine.</div></div>';
-  const c = avec.find(x => x.id === p[0]) || avec[0];
-  h += '<div class="filtres">' + avec.map(x => '<a class="chip' + (x === c ? ' on' : '') + '" href="#/creatives/' + esc(x.id) + '">' + esc(nomCmd(x)) + '<span class="c">' + x.livraisons.length + '</span></a>').join('') + '</div>';
+  if (!p[0]) {
+    const L = livrees();
+    let h = apercu() + '<div class="ph"><div><h1>Vos créatives</h1><p>Toutes vos livraisons. Chaque livraison s\'ouvre en un clic, tous les fichiers se téléchargent.</p></div></div>';
+    return h + (L.length ? tableLivraisons(L) : '<div class="card"><div class="vide">' + i.image + 'Vos créatives arrivent ici chaque semaine.</div></div>');
+  }
+  const c = D.commandes.find(x => x.id === p[0]);
+  let h = apercu() + '<a class="retour" href="#/creatives">' + i.gauche + 'Retour à mes créatives</a>';
+  if (!c) return h + '<div class="card"><div class="vide">Livraison introuvable.</div></div>';
   if (CR.commande !== c.id) { CR.commande = c.id; CR.donnees = null; setTimeout(() => chargerCreatives(c.id), 0); }
   if (!CR.donnees) return h + '<div class="card"><div class="vide">Chargement de vos créatives…</div></div>';
-  // une ligne par livraison : la dernière version
-  const par = {};
-  for (const l of CR.donnees.livraisons) if (!par[l.dossier] || par[l.dossier].version < l.version) par[l.dossier] = l;
-  const L = Object.values(par).sort((a, b) => numero(a.dossier) - numero(b.dossier));
-  if (!L.length) return h + '<div class="card"><div class="vide">Les créatives de ce mois arrivent bientôt.</div></div>';
-  const n = Number(p[1]) || numero(L[L.length - 1].dossier), l = L.find(x => numero(x.dossier) === n) || L[L.length - 1];
-  h += '<div class="rv-puces">' + L.map(x => '<a class="chip' + (x === l ? ' on' : '') + '" href="#/creatives/' + esc(c.id) + '/' + numero(x.dossier) + '">Livraison ' + numero(x.dossier) + '</a>').join('') + '</div>';
-  return h + K.rv.grille(l, { mode: 'client', sansCompte: true, titre: 'Livraison ' + numero(l.dossier) + (l.version > 1 ? ' · version ' + l.version : ''),
+  const l = livraisonOuverte(p);
+  if (!l) return h + '<div class="card"><div class="vide">Livraison introuvable.</div></div>';
+  return h + K.rv.grille(l, { mode: 'client', sansCompte: true, titre: nomCmd(c) + ' · Livraison ' + numero(l.dossier),
     sousTitre: l.fichiers.length + ' fichier' + (l.fichiers.length > 1 ? 's' : '') + ' · envoyée le ' + K.date(l.envoye_le, { month: 'long' }) });
 }
 function brancherCreatives(p) {
-  const L = (CR.donnees && CR.donnees.livraisons) || [];
-  if (!L.length) return;
-  const avec = D.commandes.filter(c => c.livraisons.length), c = avec.find(x => x.id === p[0]) || avec[0];
-  const par = {}; for (const l of L) if (!par[l.dossier] || par[l.dossier].version < l.version) par[l.dossier] = l;
-  const T = Object.values(par).sort((a, b) => numero(a.dossier) - numero(b.dossier)), n = Number(p[1]) || numero(T[T.length - 1].dossier);
-  const l = T.find(x => numero(x.dossier) === n) || T[T.length - 1];
+  const c = D.commandes.find(x => x.id === p[0]), l = c && livraisonOuverte(p);
+  if (!l) return;
   K.rv.brancher(l, { mode: 'client', nomZip: (D.client.marque + '-' + nomCmd(c) + '-livraison-' + numero(l.dossier)).replace(/[^A-Za-z0-9]+/g, '-'), rendre: () => K.rendre(),
     auteur: D.client.contact || D.client.marque, peutCommenter: () => false, peutApprouver: () => false, api: {} });
 }
@@ -374,7 +384,7 @@ function ecranContact() {
 // ---------- RENDU ----------
 const ECRANS = {
   '': ['accueil', 'accueil', () => ['Accueil'], () => ecranAccueil()],
-  creatives: ['creatives', 'image', () => ['Créatives'], p => ecranCreatives(p), p => brancherCreatives(p)],
+  creatives: ['creatives', 'image', p => p[0] ? ['Créatives', 'Livraison ' + (Number(p[1]) || 1)] : ['Créatives'], p => ecranCreatives(p), p => brancherCreatives(p)],
   retours: ['retours', 'message', () => ['Retours de la semaine'], () => ecranRetours(), () => brancherRetours()],
   commander: ['commander', 'panier', () => ['Commander des créatives'], () => ecranCommander(), () => brancherCommander()],
   merci: ['commander', 'panier', () => ['Commander des créatives', 'Paiement reçu'], () => ecranMerci()],

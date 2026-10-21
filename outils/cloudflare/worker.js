@@ -1659,7 +1659,7 @@ const MANIFESTE = { name: 'Kreative', short_name: 'Kreative', description: 'Votr
     { src: '/app-icon-maskable.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' }] };
 // ses icônes à lui (Dario) : Windows = fond blanc arrondi, téléphone = K blanc sur fond noir ; l'app des clients ne change pas
 const MANIFESTE_ADMIN = { ...MANIFESTE, name: 'Kreative Admin', short_name: 'Kreative', description: 'L\'admin Kreative', id: '/admin/', start_url: '/admin/', scope: '/admin/',
-  icons: [{ src: '/app-icon-admin-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' }, { src: '/app-icon-admin-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+  icons: [{ src: '/app-icon-admin-win-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' }, { src: '/app-icon-admin-win-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
     { src: '/app-icon-admin-maskable.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' }] };
 // l'app admin : juste de quoi s'installer (pas de cache, pas de notifications)
 const SERVICE_WORKER_ADMIN = `self.addEventListener('install', e => self.skipWaiting());
@@ -2944,7 +2944,7 @@ const STUDIO = { version: 'v23.0', max_octets: 95e6, sync_toutes: 55 * 60e3, raf
 // l'app « Kreative Studio » : K blanc sur fond noir (arrondi sur ordinateur, plein sur téléphone)
 const MANIFESTE_STUDIO = { name: 'Kreative Studio', short_name: 'Studio', description: 'Programmer et suivre les reels Instagram de Kreative', id: '/', start_url: '/', scope: '/',
   display: 'standalone', background_color: '#f8f6f3', theme_color: '#ffffff', lang: 'fr',
-  icons: [{ src: '/app-icon-studio-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' }, { src: '/app-icon-studio-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+  icons: [{ src: '/app-icon-studio-win-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' }, { src: '/app-icon-studio-win-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
     { src: '/app-icon-studio-maskable.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' }] };
 const estStudio = (url, env) => /^studio\./.test(url.hostname) || (!!env.STUDIO_HOTE && url.hostname === env.STUDIO_HOTE);
 const apiIG = env => (env.INSTAGRAM_API || 'https://graph.instagram.com').replace(/\/$/, '');

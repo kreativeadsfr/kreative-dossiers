@@ -2,6 +2,6 @@
 # Redémarre le banc avec une base vide (à faire avant chaque suite de tests).
 cd "$(dirname "$0")"
 pkill -f '^node lancer.mjs' ; pkill -f '^node fauxgithub.mjs' ; sleep 1
-rm -f fiche.log emails.log stripe.log stripe_abo.log livraison.log push.log
+rm -f fiche.log emails.log stripe.log stripe_abo.log livraison.log push.log ig.log
 bash demarrer.sh >/dev/null 2>&1
 sleep 3

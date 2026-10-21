@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Studio · Kreative</title>
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png"><link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png"><link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png"><link rel="apple-touch-icon" href="/app-icon-admin-apple.png">
+<link rel="stylesheet" href="/ui/app.css">
+<script src="/ui/app.js"></script>
+<style>
+.s-mini{width:46px;height:82px;border-radius:9px;background:var(--soft2);object-fit:cover;display:block;flex:none;overflow:hidden}
+.s-mini.sm{width:34px;height:60px;border-radius:7px}
+.s-reel{display:flex;align-items:center;gap:12px;min-width:0}
+.s-reel .t{min-width:0}
+.s-reel .t b{display:block;font-weight:600;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:320px}
+.s-reel .t span{display:block;font-size:12px;color:var(--tx3);margin-top:2px}
+.s-carte{display:grid;grid-template-columns:120px minmax(0,1fr);gap:18px;padding:18px}
+.s-carte + .s-carte{margin-top:12px}
+.s-carte video{width:120px;height:213px;border-radius:12px;background:#111;object-fit:cover;display:block}
+.s-ligne{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.s-type{display:inline-flex;gap:2px;padding:3px;border:1px solid var(--line);border-radius:11px;background:var(--soft)}
+.s-type button{height:34px;padding:0 14px;border-radius:8px;font-size:13px;font-weight:500;color:var(--tx2)}
+.s-type button.on{background:var(--panel);color:var(--ink);box-shadow:var(--ombre)}
+.s-coche{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--tx2);margin-top:9px;cursor:pointer}
+.s-coche input{width:16px;height:16px;accent-color:var(--blue)}
+.s-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:4px}
+.s-compte{font-size:12px;color:var(--tx3);text-align:right;margin-top:4px}
+.s-jour{font:600 13px var(--titre);color:var(--tx2);margin:22px 0 8px}
+.s-jour::first-letter{text-transform:uppercase}
+.s-jour:first-child{margin-top:0}
+.s-prog{display:flex;align-items:center;gap:14px;padding:12px 16px;border-top:1px solid var(--line)}
+.s-prog:first-child{border-top:0}
+.s-prog .h{font:600 15px var(--titre);width:52px;flex:none;font-variant-numeric:tabular-nums}
+.s-prog .t{flex:1;min-width:0}
+.s-prog .t b{display:block;font-size:13.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.s-prog .t span{font-size:12px;color:var(--tx3)}
+.s-outils{padding:16px 18px;display:flex;flex-wrap:wrap;gap:10px 18px;align-items:flex-end}
+.s-outils .champ{margin:0}
+.s-outils .in{height:36px;font-size:13px}
+.s-envoi{display:flex;align-items:center;gap:12px;font-size:13px;padding:8px 0}
+.s-envoi span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.s-envoi .barre{width:160px;flex:none}
+.s-podium{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.s-podium .card{padding:20px}
+.s-podium .rang{font:600 12px var(--titre);color:var(--blue-tx);text-transform:uppercase;letter-spacing:.06em}
+.s-podium h3{font-size:19px;margin-top:6px}
+.s-podium .score{font:600 30px/1 var(--titre);letter-spacing:-.03em;margin-top:12px}
+.s-podium .score small{font-size:14px;color:var(--tx3);font-weight:500}
+.s-podium ul{list-style:none;margin:12px 0 0;padding:0;font-size:13px;color:var(--tx2)}
+.s-podium li{display:flex;justify-content:space-between;padding:4px 0;border-top:1px solid var(--line)}
+.s-podium li:first-child{border-top:0}
+.tbl th.tri{cursor:pointer;user-select:none;white-space:nowrap}
+.tbl th.tri:hover{color:var(--ink)}
+.tbl th.tri.on{color:var(--blue-tx)}
+.tbl select.in{height:32px;font-size:12.5px;min-width:120px;padding:0 8px}
+.s-filtres{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.s-filtres select.in{width:auto;height:36px;font-size:13px}
+.s-format{display:flex;align-items:center;gap:8px;padding:8px 0;border-top:1px solid var(--line)}
+.s-format:first-child{border-top:0}
+.s-format .in{height:36px;font-size:13.5px}
+.s-moi{display:flex;align-items:center;gap:14px}
+.s-moi img,.s-moi .ph-av{width:52px;height:52px;border-radius:50%;background:var(--soft2);object-fit:cover}
+.s-alerte{display:flex;gap:12px;align-items:flex-start;padding:14px 18px;border-radius:var(--r);background:var(--red-soft);color:var(--red);font-size:13.5px;margin-bottom:14px}
+.s-alerte b{font-weight:600}
+@media(max-width:900px){.s-ligne{grid-template-columns:1fr}.s-podium{grid-template-columns:1fr}}
+.s-fmt td:first-child{white-space:nowrap;min-width:170px}
+@media(max-width:620px){.s-prog{flex-wrap:wrap}.s-prog .t{flex:1 1 calc(100% - 140px)}.s-prog > .s-actions,.s-prog > .btn,.s-prog > .pill{flex-basis:100%;margin-left:66px;margin-top:0}.s-carte{grid-template-columns:1fr}.s-carte video{width:100%;height:auto;aspect-ratio:9/16;max-height:340px}}
+</style>
+</head>
+<body>
+<div id="racine"><div class="chargement">Chargement…</div></div>
+<script>
+/* ============================================================
+   STUDIO · l'Instagram de Kreative (studio.kreativeads.fr), pour Dario
+   Programmer des reels (normal ou d'essai), suivre leurs statistiques,
+   et comparer les formats pour garder ceux qui marchent.
+   ============================================================ */
+const { i, esc } = K;
+let D = null;
+const N = x => new Intl.NumberFormat('fr-FR').format(Math.round(x || 0));
+const court = x => { x = x || 0; return x >= 1e6 ? (x / 1e6).toFixed(1).replace('.', ',').replace(',0', '') + ' M' : x >= 1e4 ? (x / 1e3).toFixed(1).replace('.', ',').replace(',0', '') + ' k' : N(x); };
+const J = 864e5;
+const mo = n => n > 1e6 ? (n / 1e6).toFixed(1).replace('.', ',') + ' Mo' : Math.max(1, Math.round((n || 0) / 1e3)) + ' ko';
+const jourDe = ms => new Intl.DateTimeFormat('fr-CA', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'Europe/Paris' }).format(new Date(ms));
+const heureDe = ms => new Intl.DateTimeFormat('fr-FR', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Paris' }).format(new Date(ms));
+const S = x => (x && x.stats) || {};
+async function charger() { D = await K.api('/api/studio'); }
+async function recharger() { await charger(); K.rendre(); }
+
+// ---------- la période (vue d'ensemble, vidéos, formats) ----------
+let PER = '30j';
+const PERIODES = { '7j': '7 jours', '30j': '30 jours', mois: 'Ce mois', avant: 'Mois dernier', tout: 'Tout' };
+function bornes() {
+  const now = Date.now(), d = new Date();
+  if (PER === '7j') return [now - 7 * J, now];
+  if (PER === '30j') return [now - 30 * J, now];
+  if (PER === 'mois') return [new Date(d.getFullYear(), d.getMonth(), 1).getTime(), now];
+  if (PER === 'avant') return [new Date(d.getFullYear(), d.getMonth() - 1, 1).getTime(), new Date(d.getFullYear(), d.getMonth(), 1).getTime() - 1];
+  return [0, now];
+}
+const onglets = () => '<div class="onglets">' + Object.entries(PERIODES).map(([k, v]) => '<button data-per="' + k + '" class="' + (PER === k ? 'on' : '') + '">' + v + '</button>').join('') + '</div>';
+const brancherPeriode = () => document.querySelectorAll('[data-per]').forEach(b => b.onclick = () => { PER = b.dataset.per; K.rendre(); });
+const reelsDe = (a, b) => D.medias.filter(x => x.publie_le && x.publie_le >= a && x.publie_le <= b);
+
+function conf() {
+  const prog = D.videos.filter(v => v.statut === 'programme').length, err = D.videos.filter(v => v.statut === 'erreur').length;
+  return {
+    sections: [{ titre: 'Studio', liens: [
+      { id: 'accueil', texte: 'Vue d\'ensemble', icone: 'accueil', href: '#/' },
+      { id: 'programmer', texte: 'Programmer', icone: 'calendrier', href: '#/programmer', nb: (prog + err) || '' },
+      { id: 'videos', texte: 'Vidéos', icone: 'image', href: '#/videos', nb: D.medias.length || '' },
+      { id: 'formats', texte: 'Formats', icone: 'graph', href: '#/formats' },
+      { id: 'reglages', texte: 'Réglages', icone: 'cadenas', href: '#/reglages' }] }],
+    clair: true,
+    qui: { nom: D.compte.username ? '@' + D.compte.username : 'Studio', role: D.compte.connecte ? court(D.compte.abonnes) + ' abonnés' : 'Instagram non connecté' },
+    sortie: '/_deconnexion'
+  };
+}
+const nonConnecte = () => '<div class="card pad" style="max-width:680px"><h3 style="font-size:17px">Connectez votre Instagram</h3>' +
+  '<p class="muted" style="font-size:14px;margin-top:6px;line-height:1.6">Le Studio a besoin d\'un token de votre app Meta pour programmer vos reels et lire leurs statistiques. Une seule fois : il se prolonge ensuite tout seul.</p>' +
+  '<a class="btn btn-p" style="margin-top:14px" href="#/reglages">Connecter Instagram</a></div>';
+const alerteCompte = () => D.compte.erreur ? '<div class="s-alerte">' + i.cadenas + '<div><b>Instagram ne répond plus.</b> ' + esc(D.compte.erreur) + ' <a href="#/reglages" style="color:inherit;text-decoration:underline">Réglages</a></div></div>' : '';
+
+// ---------- VUE D'ENSEMBLE ----------
+const kpi = (lab, v, d) => '<div class="card kpi"><div class="lab">' + esc(lab) + '</div><div class="v">' + v + '</div><div class="d">' + d + '</div></div>';
+function abonnesGagnes(a, b) {
+  const jours = D.jours.filter(j => { const t = Date.parse(j.jour + 'T12:00:00'); return t >= a - J / 2 && t <= b; });
+  const g = jours.filter(j => j.gagnes != null);
+  if (g.length) return { v: g.reduce((t, j) => t + j.gagnes, 0), d: 'nouveaux abonnés selon Instagram' };
+  const snap = jours.filter(j => j.abonnes != null).sort((x, y) => x.jour < y.jour ? -1 : 1);
+  if (snap.length > 1) return { v: Math.max(0, snap[snap.length - 1].abonnes - snap[0].abonnes), d: 'abonnés en plus sur la période' };
+  return null;
+}
+function ecranAccueil() {
+  let h = '<div class="ph"><div><h1>Vue d\'ensemble</h1><p>' + (D.compte.connecte ? '@' + esc(D.compte.username) + ' · ' + N(D.compte.abonnes) + ' abonnés' + (D.sync_le ? ' · statistiques du ' + esc(K.dateHeure(D.sync_le)) : '') : 'Votre Instagram n\'est pas encore connecté.') + '</p></div>' +
+    '<div class="act">' + onglets() + '</div></div>';
+  h += alerteCompte();
+  if (!D.compte.connecte) return h + nonConnecte();
+  const [a, b] = bornes(), R = reelsDe(a, b), som = k => R.reduce((t, x) => t + (Number(S(x)[k]) || 0), 0);
+  const ab = abonnesGagnes(a, b), follows = som('follows');
+  h += '<div class="grid g3">' + kpi('Vues', court(som('views')), R.length + ' reel' + (R.length > 1 ? 's' : '') + ' publié' + (R.length > 1 ? 's' : '') + ' sur la période') +
+    kpi('Abonnés gagnés', N(ab ? ab.v : follows), ab ? ab.d : (follows ? 'grâce aux reels de la période' : 'Instagram ne l\'a pas encore donné')) +
+    kpi('Likes', court(som('likes')), R.length ? N(som('likes') / R.length) + ' par reel' : '0 par reel') + '</div>';
+  h += '<div class="grid g3" style="margin-top:14px">' + kpi('Commentaires', N(som('comments')), R.length ? N(som('comments') / R.length) + ' par reel' : '0 par reel') +
+    kpi('Partages', N(som('shares')), som('views') ? N(som('shares') * 1000 / som('views')) + ' pour 1 000 vues' : '0 pour 1 000 vues') +
+    kpi('Enregistrements', N(som('saved')), som('views') ? N(som('saved') * 1000 / som('views')) + ' pour 1 000 vues' : '0 pour 1 000 vues') + '</div>';
+  // vues par jour de publication
+  const debut = Math.max(a, R.length ? Math.min(...R.map(x => x.publie_le)) : b - 30 * J), cases = [];
+  const pas = (b - debut) > 92 * J ? 7 * J : J;
+  for (let t = Date.parse(jourDe(debut) + 'T00:00:00'); t <= b; t += pas) cases.push({ t, v: 0 });
+  R.forEach(x => { const n = Math.min(cases.length - 1, Math.max(0, Math.floor((x.publie_le - cases[0].t) / pas))); if (cases[n]) cases[n].v += Number(S(x).views) || 0; });
+  const max = Math.max(...cases.map(c => c.v), 1);
+  if (cases.length) h += '<div class="card graph" style="margin-top:14px"><div class="card-h"><h3>Vues par jour de publication</h3><span class="muted" style="font-size:13px">' + court(som('views')) + ' vues</span></div>' +
+    '<div class="graph-zone"><div class="graph-grille">' + [1, .5, 0].map(r => '<div><span>' + court(max * r) + '</span></div>').join('') + '</div>' +
+    '<div class="graph-barres">' + cases.map(c => '<div class="bar" title="' + esc(K.date(c.t, { weekday: 'short', year: undefined }) + ' : ' + N(c.v) + ' vues') + '"><i style="height:' + (c.v ? Math.max(2, c.v / max * 100) : 0) + '%"></i></div>').join('') + '</div>' +
+    '<div class="graph-x">' + cases.map((c, n) => '<span>' + (cases.length <= 10 || n === 0 || n === cases.length - 1 || n % Math.ceil(cases.length / 6) === 0 ? esc(K.date(c.t, { year: undefined })) : '') + '</span>').join('') + '</div></div></div>';
+  // à venir et erreurs
+  const prochains = D.videos.filter(v => v.statut === 'programme').sort((x, y) => x.publier_le - y.publier_le), erreurs = D.videos.filter(v => v.statut === 'erreur');
+  if (erreurs.length) h += '<div class="s-alerte" style="margin-top:14px">' + i.cloche + '<div><b>' + erreurs.length + ' reel' + (erreurs.length > 1 ? 's' : '') + ' n\'' + (erreurs.length > 1 ? 'ont' : 'a') + ' pas pu partir.</b> <a href="#/programmer" style="color:inherit;text-decoration:underline">Voir et réessayer</a></div></div>';
+  h += '<div class="grid g2" style="margin-top:14px;align-items:start">';
+  h += '<div class="card"><div class="card-h"><h3>À venir</h3><a class="btn btn-g btn-sm" href="#/programmer">' + i.plus + 'Programmer</a></div>' +
+    (prochains.length ? prochains.slice(0, 6).map(v => ligneProg(v, true)).join('') : '<div class="vide">' + i.calendrier + 'Aucun reel programmé.</div>') + '</div>';
+  const top = R.slice().sort((x, y) => (S(y).views || 0) - (S(x).views || 0)).slice(0, 6);
+  h += '<div class="card"><div class="card-h"><h3>Meilleurs reels</h3><a class="btn btn-g btn-sm" href="#/videos">Tout voir</a></div>' +
+    (top.length ? top.map(x => '<a class="s-prog" style="text-decoration:none;color:inherit" href="' + esc(x.permalink || '#') + '" target="_blank" rel="noopener">' + mini(x, true) +
+      '<div class="t"><b>' + esc(x.legende || 'Sans légende') + '</b><span>' + esc(K.date(x.publie_le, { year: undefined })) + (x.format ? ' · ' + esc(x.format) : '') + (x.essai ? ' · essai' : '') + '</span></div>' +
+      '<div style="text-align:right"><b style="font:600 15px var(--titre)">' + court(S(x).views) + '</b><span class="muted" style="display:block;font-size:12px">vues</span></div></a>').join('') : '<div class="vide">' + i.image + 'Pas encore de reel sur la période.</div>') + '</div>';
+  return h + '</div>';
+}
+const mini = (x, sm) => x.miniature ? '<img class="s-mini' + (sm ? ' sm' : '') + '" src="' + esc(x.miniature) + '" alt="" loading="lazy">' : '<span class="s-mini' + (sm ? ' sm' : '') + '"></span>';
+const typeReel = v => v.essai ? '<span class="pill v"><i></i>Essai</span>' : '<span class="pill"><i></i>Normal</span>';
+function ligneProg(v, court_) {
+  return '<div class="s-prog"><div class="h">' + esc(heureDe(v.publier_le)) + '</div><video class="s-mini sm" src="' + esc(v.apercu) + '#t=0.5" muted preload="metadata"></video>' +
+    '<div class="t"><b>' + esc(v.legende || 'Sans légende') + '</b><span>' + (court_ ? esc(K.date(v.publier_le, { weekday: 'short', year: undefined })) + ' · ' : '') + (v.format ? esc(v.format) + ' · ' : '') + (v.essai ? 'essai' : 'normal') + '</span></div>' +
+    (court_ ? '' : '<div class="s-actions"><button class="btn btn-s btn-sm" data-modifier="' + v.id + '">' + i.crayon + 'Modifier</button><button class="btn btn-s btn-sm" data-maintenant="' + v.id + '">Publier maintenant</button>' +
+      '<button class="btn btn-g btn-sm" data-suppr="' + v.id + '" title="Supprimer" aria-label="Supprimer">' + i.poubelle + '</button></div>') + '</div>';
+}
+
+// ---------- PROGRAMMER ----------
+const ENVOIS = [];   // vidéos en cours d'envoi
+const LOT = { debut: '', parJour: 3, de: '09:00', a: '21:00', format: '', type: '' };
+const demain18 = () => { const d = new Date(Date.now() + J); return { date: jourDe(d.getTime()), heure: '18:00' }; };
+function champsDate(v) {
+  if (v.publier_le) return { date: jourDe(v.publier_le), heure: heureDe(v.publier_le) };
+  return demain18();
+}
+function carteBrouillon(v) {
+  const d = champsDate(v), F = D.formats;
+  return '<div class="card s-carte" data-carte="' + v.id + '"><video src="' + esc(v.apercu) + '#t=0.5" controls muted preload="metadata" playsinline></video><div>' +
+    (v.statut === 'erreur' ? '<div class="s-alerte" style="margin-bottom:12px">' + i.cloche + '<div><b>Pas publié.</b> ' + esc(v.erreur || '') + '</div></div>' : '') +
+    '<div class="champ"><label>Légende</label><textarea class="in" rows="4" data-champ="legende" maxlength="2200" placeholder="Le texte sous le reel, avec vos hashtags…">' + esc(v.legende) + '</textarea>' +
+    '<div class="s-compte"><span data-compte>' + (v.legende || '').length + '</span> / 2 200</div></div>' +
+    '<div class="s-ligne"><div class="champ"><label>Format</label><select class="in" data-champ="format"><option value="">Sans format</option>' +
+      F.concat(v.format && !F.includes(v.format) ? [v.format] : []).map(f => '<option' + (f === v.format ? ' selected' : '') + '>' + esc(f) + '</option>').join('') + '</select></div>' +
+    '<div class="champ"><label>Jour</label><input class="in" type="date" data-champ="date" value="' + d.date + '"></div>' +
+    '<div class="champ"><label>Heure</label><input class="in" type="time" data-champ="heure" value="' + d.heure + '"></div></div>' +
+    '<div class="champ"><label>Type de reel</label><div class="s-type"><button data-type="normal" class="' + (v.essai ? '' : 'on') + '">Reel normal</button><button data-type="essai" class="' + (v.essai ? 'on' : '') + '">Reel d\'essai</button></div>' +
+    (v.essai ? '<label class="s-coche"><input type="checkbox" data-champ="essai_auto"' + (v.essai_auto ? ' checked' : '') + '>Le montrer à mes abonnés automatiquement s\'il marche</label>' +
+      '<div class="aide">Un reel d\'essai est montré seulement aux personnes qui ne vous suivent pas.' + (v.essai_auto ? '' : ' Pour le montrer à vos abonnés ensuite, ouvrez-le dans l\'app Instagram.') + '</div>'
+      : '<label class="s-coche"><input type="checkbox" data-champ="partage_fil"' + (v.partage_fil ? ' checked' : '') + '>Aussi dans la grille de mon profil</label>') + '</div>' +
+    '<div class="s-actions"><button class="btn btn-p" data-programmer="' + v.id + '">' + i.calendrier + 'Programmer</button><button class="btn btn-s" data-maintenant="' + v.id + '">Publier maintenant</button>' +
+      '<button class="btn btn-g" data-suppr="' + v.id + '">' + i.poubelle + 'Supprimer</button><span class="muted" style="font-size:12px;margin-left:auto">' + esc(v.nom) + ' · ' + mo(v.taille) + '</span></div></div></div>';
+}
+function ecranProgrammer() {
+  let h = '<div class="ph"><div><h1>Programmer</h1><p>Déposez vos vidéos, écrivez la légende, choisissez le jour et l\'heure. Elles partent toutes seules.</p></div></div>';
+  h += alerteCompte();
+  if (!D.compte.connecte) h += '<div style="margin-bottom:14px">' + nonConnecte() + '</div>';
+  h += '<div class="depot" id="s-depot">' + i.telecharger + '<b>Glissez vos vidéos ici, ou cliquez pour les choisir</b><small>MP4 ou MOV, 9:16, 95 Mo au maximum par vidéo. Plusieurs d\'un coup, c\'est possible.</small><input type="file" id="s-fichiers" accept="video/mp4,video/quicktime,.mp4,.mov" multiple hidden></div>';
+  if (ENVOIS.length) h += '<div class="card pad" style="margin-top:12px;padding:10px 18px">' + ENVOIS.map(e => '<div class="s-envoi"><span>' + esc(e.nom) + '</span><div class="barre' + (e.ok ? ' g' : '') + '"><i style="width:' + e.pc + '%"></i></div><small class="muted" style="width:90px;text-align:right">' + esc(e.etat) + '</small></div>').join('') + '</div>';
+  const B = D.videos.filter(v => v.statut === 'brouillon' || v.statut === 'erreur').sort((x, y) => (x.cree_le || 0) - (y.cree_le || 0));
+  if (B.length) {
+    h += '<div class="sec"><div><h2>À programmer</h2><p>' + B.length + ' vidéo' + (B.length > 1 ? 's' : '') + '. Chaque changement est enregistré tout seul.</p></div>' + (B.length > 1 ? '<button class="btn btn-p" id="s-tout">' + i.calendrier + 'Tout programmer</button>' : '') + '</div>';
+    if (B.length > 1) h += '<div class="card s-outils" style="margin-bottom:12px">' +
+      '<div class="champ"><label>Format pour toutes</label><select class="in" id="l-format"><option value="">Ne pas changer</option>' + D.formats.map(f => '<option>' + esc(f) + '</option>').join('') + '</select></div>' +
+      '<div class="champ"><label>Type pour toutes</label><select class="in" id="l-type"><option value="">Ne pas changer</option><option value="normal">Reel normal</option><option value="essai">Reel d\'essai</option></select></div>' +
+      '<button class="btn btn-s btn-sm" id="l-appliquer" style="height:36px">Appliquer</button><span style="width:1px;align-self:stretch;background:var(--line)"></span>' +
+      '<div class="champ"><label>Répartir à partir du</label><input class="in" type="date" id="l-debut" value="' + (LOT.debut || demain18().date) + '"></div>' +
+      '<div class="champ"><label>Par jour</label><input class="in" type="number" id="l-par" min="1" max="25" value="' + LOT.parJour + '" style="width:80px"></div>' +
+      '<div class="champ"><label>Entre</label><input class="in" type="time" id="l-de" value="' + LOT.de + '"></div>' +
+      '<div class="champ"><label>et</label><input class="in" type="time" id="l-a" value="' + LOT.a + '"></div>' +
+      '<button class="btn btn-s btn-sm" id="l-repartir" style="height:36px">Répartir les dates</button></div>';
+    h += B.map(carteBrouillon).join('');
+  }
+  const EC = D.videos.filter(v => v.statut === 'envoi' || v.statut === 'traitement');
+  if (EC.length) h += '<div class="sec"><div><h2>En cours de publication</h2><p>Instagram prépare la vidéo, ça prend en général moins de 2 minutes.</p></div></div><div class="card">' +
+    EC.map(v => '<div class="s-prog"><div class="h">' + esc(heureDe(v.publier_le)) + '</div><video class="s-mini sm" src="' + esc(v.apercu) + '#t=0.5" muted preload="metadata"></video><div class="t"><b>' + esc(v.legende || 'Sans légende') + '</b><span>' + (v.essai ? 'essai' : 'normal') + '</span></div><span class="pill b"><i></i>Publication en cours</span></div>').join('') + '</div>';
+  const P = D.videos.filter(v => v.statut === 'programme').sort((x, y) => x.publier_le - y.publier_le);
+  h += '<div class="sec"><div><h2>Programmés</h2><p>' + (P.length ? P.length + ' reel' + (P.length > 1 ? 's' : '') + ' à venir.' : 'Rien de programmé pour l\'instant.') + '</p></div></div>';
+  if (P.length) {
+    const jours = {}; P.forEach(v => { const k = jourDe(v.publier_le); (jours[k] = jours[k] || []).push(v); });
+    h += Object.entries(jours).map(([k, L]) => '<div class="s-jour">' + esc(K.date(Date.parse(k + 'T12:00:00'), { weekday: 'long', month: 'long', year: undefined })) + ' · ' + L.length + '</div><div class="card">' + L.map(v => ligneProg(v)).join('') + '</div>').join('');
+  }
+  const pub = D.videos.filter(v => v.statut === 'publie').sort((x, y) => y.publie_le - x.publie_le).slice(0, 8);
+  if (pub.length) h += '<div class="sec"><div><h2>Publiés récemment</h2><p>Par le Studio.</p></div></div><div class="card">' + pub.map(v => '<div class="s-prog"><div class="h">' + esc(heureDe(v.publie_le)) + '</div><video class="s-mini sm" src="' + esc(v.apercu) + '#t=0.5" muted preload="metadata"></video><div class="t"><b>' + esc(v.legende || 'Sans légende') + '</b><span>' + esc(K.date(v.publie_le, { weekday: 'short', year: undefined })) + (v.format ? ' · ' + esc(v.format) : '') + ' · ' + (v.essai ? 'essai' : 'normal') + '</span></div>' +
+    (v.permalink ? '<a class="btn btn-s btn-sm" href="' + esc(v.permalink) + '" target="_blank" rel="noopener">' + i.externe + 'Voir sur Instagram</a>' : '<span class="pill g"><i></i>Publié</span>') + '</div>').join('') + '</div>';
+  return h;
+}
+function lireCarte(el) {
+  const v = q => el.querySelector('[data-champ="' + q + '"]');
+  const date = v('date').value, heure = v('heure').value, t = date && heure ? new Date(date + 'T' + heure).getTime() : null;
+  return { legende: v('legende').value, format: v('format').value, publier_le: t, essai: el.querySelector('[data-type="essai"]').classList.contains('on'),
+    essai_auto: v('essai_auto') ? v('essai_auto').checked : undefined, partage_fil: v('partage_fil') ? v('partage_fil').checked : undefined };
+}
+const minuteurs = {};
+function enregistrerCarte(id, el, tout) {
+  clearTimeout(minuteurs[id]);
+  const c = lireCarte(el);
+  Object.keys(c).forEach(k => c[k] === undefined && delete c[k]);
+  const v = D.videos.find(x => x.id === id); if (v) Object.assign(v, c);
+  return K.api('/api/studio/videos/' + id, { methode: 'PATCH', corps: tout ? Object.assign(c, tout) : c });
+}
+async function envoyerFichier(f, e) {
+  return new Promise((ok, ko) => {
+    const x = new XMLHttpRequest();
+    x.open('PUT', '/api/studio/videos?nom=' + encodeURIComponent(f.name));
+    x.setRequestHeader('Content-Type', f.type || (/\.mov$/i.test(f.name) ? 'video/quicktime' : 'video/mp4'));
+    x.upload.onprogress = ev => { if (ev.lengthComputable) { e.pc = Math.round(ev.loaded * 100 / ev.total); e.etat = e.pc + ' %'; const b = document.querySelector('#racine'); if (b && K.route().ecran === 'programmer') K.rendre(); } };
+    x.onload = () => { let r = {}; try { r = JSON.parse(x.responseText); } catch (er) {} if (x.status < 300) ok(r); else ko(new Error(r.erreur || 'Envoi impossible (' + x.status + ')')); };
+    x.onerror = () => ko(new Error('Connexion perdue'));
+    x.send(f);
+  });
+}
+async function deposer(fichiers) {
+  const L = Array.from(fichiers).filter(f => /^video\/(mp4|quicktime)$/.test(f.type) || /\.(mp4|mov)$/i.test(f.name));
+  if (!L.length) return K.toast('Choisissez des vidéos MP4 ou MOV.');
+  const trop = L.filter(f => f.size > 95e6);
+  if (trop.length) K.toast(trop.length + ' vidéo' + (trop.length > 1 ? 's' : '') + ' de plus de 95 Mo ignorée' + (trop.length > 1 ? 's' : '') + '.');
+  const E = L.filter(f => f.size <= 95e6).map(f => ({ f, nom: f.name, pc: 0, etat: 'en attente', ok: false }));
+  ENVOIS.push(...E); K.rendre();
+  for (const e of E) {
+    try { const v = await envoyerFichier(e.f, e); e.ok = true; e.pc = 100; e.etat = 'Envoyée'; D.videos.unshift(v); }
+    catch (er) { e.etat = 'Échec'; K.toast(e.nom + ' : ' + er.message); }
+    K.rendre();
+  }
+  setTimeout(() => { for (let n = ENVOIS.length - 1; n >= 0; n--) if (ENVOIS[n].ok) ENVOIS.splice(n, 1); K.rendre(); }, 1500);
+}
+function brancherProgrammer() {
+  const z = document.getElementById('s-depot'), inp = document.getElementById('s-fichiers');
+  if (z) {
+    z.onclick = () => inp.click();
+    inp.onchange = () => { deposer(inp.files); inp.value = ''; };
+    z.ondragover = e => { e.preventDefault(); z.classList.add('survol'); };
+    z.ondragleave = () => z.classList.remove('survol');
+    z.ondrop = e => { e.preventDefault(); z.classList.remove('survol'); deposer(e.dataTransfer.files); };
+  }
+  document.querySelectorAll('[data-carte]').forEach(el => {
+    const id = el.dataset.carte;
+    el.querySelectorAll('[data-champ]').forEach(c => {
+      const ev = c.tagName === 'TEXTAREA' ? 'input' : 'change';
+      c.addEventListener(ev, () => {
+        if (c.dataset.champ === 'legende') el.querySelector('[data-compte]').textContent = c.value.length;
+        clearTimeout(minuteurs[id]); minuteurs[id] = setTimeout(() => enregistrerCarte(id, el).catch(er => K.toast(er.message)), c.tagName === 'TEXTAREA' ? 700 : 50);
+      });
+    });
+    el.querySelectorAll('[data-type]').forEach(bt => bt.onclick = async () => {
+      el.querySelectorAll('[data-type]').forEach(x => x.classList.toggle('on', x === bt));
+      try { await enregistrerCarte(id, el); K.rendre(); } catch (er) { K.toast(er.message); }
+    });
+  });
+  document.querySelectorAll('[data-programmer]').forEach(bt => bt.onclick = async () => {
+    const el = document.querySelector('[data-carte="' + bt.dataset.programmer + '"]');
+    const c = lireCarte(el);
+    if (!c.publier_le) return K.toast('Choisissez le jour et l\'heure.');
+    if (c.publier_le < Date.now() - 60e3) return K.toast('Cette heure est déjà passée. Choisissez plus tard, ou « Publier maintenant ».');
+    bt.disabled = true;
+    try { await enregistrerCarte(bt.dataset.programmer, el, { programmer: true }); K.toast('Programmé pour ' + K.dateHeure(c.publier_le)); await recharger(); }
+    catch (er) { K.toast(er.message); bt.disabled = false; }
+  });
+  const tout = document.getElementById('s-tout');
+  if (tout) tout.onclick = async () => {
+    const cartes = [...document.querySelectorAll('[data-carte]')];
+    const passees = cartes.filter(el => { const c = lireCarte(el); return !c.publier_le || c.publier_le < Date.now() - 60e3; });
+    if (passees.length) return K.toast(passees.length + ' vidéo' + (passees.length > 1 ? 's ont' : ' a') + ' une heure passée ou vide. Corrigez-la' + (passees.length > 1 ? 's' : '') + ' d\'abord.');
+    tout.disabled = true; let n = 0;
+    for (const el of cartes) { try { await enregistrerCarte(el.dataset.carte, el, { programmer: true }); n++; } catch (er) { K.toast(er.message); } }
+    K.toast(n + ' reel' + (n > 1 ? 's' : '') + ' programmé' + (n > 1 ? 's' : '')); await recharger();
+  };
+  const app = document.getElementById('l-appliquer');
+  if (app) app.onclick = async () => {
+    const f = document.getElementById('l-format').value, t = document.getElementById('l-type').value;
+    if (!f && !t) return K.toast('Choisissez un format ou un type.');
+    for (const el of document.querySelectorAll('[data-carte]')) {
+      if (f) el.querySelector('[data-champ="format"]').value = f;
+      if (t) el.querySelectorAll('[data-type]').forEach(x => x.classList.toggle('on', x.dataset.type === t));
+      try { await enregistrerCarte(el.dataset.carte, el); } catch (er) {}
+    }
+    K.rendre(); K.toast('Appliqué à toutes les vidéos');
+  };
+  const rep = document.getElementById('l-repartir');
+  if (rep) rep.onclick = async () => {
+    LOT.debut = document.getElementById('l-debut').value; LOT.parJour = Math.max(1, Math.min(25, Number(document.getElementById('l-par').value) || 1));
+    LOT.de = document.getElementById('l-de').value || '09:00'; LOT.a = document.getElementById('l-a').value || '21:00';
+    const [h1, m1] = LOT.de.split(':').map(Number), [h2, m2] = LOT.a.split(':').map(Number), d1 = h1 * 60 + m1, d2 = Math.max(d1, h2 * 60 + m2);
+    const cartes = [...document.querySelectorAll('[data-carte]')];
+    cartes.forEach((el, n) => {
+      const jour = Math.floor(n / LOT.parJour), rang = n % LOT.parJour, minutes = LOT.parJour === 1 ? d1 : Math.round(d1 + (d2 - d1) * rang / (LOT.parJour - 1));
+      const d = new Date(LOT.debut + 'T12:00:00'); d.setDate(d.getDate() + jour);
+      el.querySelector('[data-champ="date"]').value = jourDe(d.getTime());
+      el.querySelector('[data-champ="heure"]').value = String(Math.floor(minutes / 60)).padStart(2, '0') + ':' + String(minutes % 60).padStart(2, '0');
+    });
+    for (const el of cartes) { try { await enregistrerCarte(el.dataset.carte, el); } catch (er) {} }
+    K.toast('Dates réparties sur ' + Math.ceil(cartes.length / LOT.parJour) + ' jour' + (cartes.length > LOT.parJour ? 's' : '') + '. Vérifiez, puis « Tout programmer ».');
+  };
+  brancherCommun();
+}
+function brancherCommun() {
+  document.querySelectorAll('[data-maintenant]').forEach(bt => bt.onclick = async () => {
+    if (!D.compte.connecte) return K.toast('Connectez d\'abord Instagram dans Réglages.');
+    if (!await K.confirmer('Publier maintenant ?', 'Le reel part tout de suite sur Instagram.', 'Publier maintenant')) return;
+    const el = document.querySelector('[data-carte="' + bt.dataset.maintenant + '"]');
+    bt.disabled = true;
+    try { if (el) await enregistrerCarte(bt.dataset.maintenant, el); const r = await K.api('/api/studio/videos/' + bt.dataset.maintenant + '/maintenant', { methode: 'POST' });
+      K.toast(r.video.statut === 'publie' ? 'Publié sur Instagram' : r.video.statut === 'erreur' ? 'Pas publié : ' + r.video.erreur : 'Envoyé à Instagram, publication dans un instant'); await recharger(); }
+    catch (er) { K.toast(er.message); bt.disabled = false; }
+  });
+  document.querySelectorAll('[data-modifier]').forEach(bt => bt.onclick = async () => {
+    try { await K.api('/api/studio/videos/' + bt.dataset.modifier, { methode: 'PATCH', corps: { programmer: false } }); await recharger(); window.scrollTo(0, 0); }
+    catch (er) { K.toast(er.message); }
+  });
+  document.querySelectorAll('[data-suppr]').forEach(bt => bt.onclick = async () => {
+    if (!await K.confirmer('Supprimer cette vidéo ?', 'Elle ne sera pas publiée et le fichier est effacé du Studio.', 'Supprimer', true)) return;
+    try { await K.api('/api/studio/videos/' + bt.dataset.suppr, { methode: 'DELETE' }); await recharger(); } catch (er) { K.toast(er.message); }
+  });
+}
+
+// ---------- VIDÉOS : tous les reels, triables et filtrables ----------
+const VT = { tri: 'publie_le', sens: -1, format: '', type: '', q: '' };
+const COLS = [['views', 'Vues'], ['follows', 'Abonnés'], ['likes', 'Likes'], ['comments', 'Comm.'], ['shares', 'Partages'], ['saved', 'Enreg.'], ['ig_reels_avg_watch_time', 'Visionnage']];
+const valeur = (x, k) => k === 'publie_le' ? x.publie_le || 0 : Number(S(x)[k]) || 0;
+const cellule = (x, k) => { const v = S(x)[k]; if (v == null) return '<span class="muted">0</span>'; return k === 'ig_reels_avg_watch_time' ? (v / 1000).toFixed(1).replace('.', ',') + ' s' : N(v); };
+function ecranVideos() {
+  let h = '<div class="ph"><div><h1>Vidéos</h1><p>Tous vos reels, ceux du Studio et ceux publiés depuis l\'app. Donnez-leur un format pour les comparer.</p></div><div class="act">' + onglets() + '</div></div>';
+  h += alerteCompte();
+  if (!D.compte.connecte && !D.medias.length) return h + nonConnecte();
+  const [a, b] = bornes();
+  let L = reelsDe(a, b);
+  if (VT.format) L = L.filter(x => VT.format === '-' ? !x.format : x.format === VT.format);
+  if (VT.type) L = L.filter(x => VT.type === 'essai' ? x.essai : !x.essai);
+  if (VT.q) L = L.filter(x => (x.legende || '').toLowerCase().includes(VT.q.toLowerCase()));
+  L.sort((x, y) => (valeur(x, VT.tri) - valeur(y, VT.tri)) * VT.sens);
+  const fmts = [...new Set(D.formats.concat(D.medias.map(x => x.format).filter(Boolean)))];
+  h += '<div class="s-filtres"><div class="champ-r">' + i.chercher + '<input id="v-q" placeholder="Chercher dans les légendes" value="' + esc(VT.q) + '"></div>' +
+    '<select class="in" id="v-format"><option value="">Tous les formats</option><option value="-"' + (VT.format === '-' ? ' selected' : '') + '>Sans format</option>' + fmts.map(f => '<option' + (VT.format === f ? ' selected' : '') + '>' + esc(f) + '</option>').join('') + '</select>' +
+    '<select class="in" id="v-type"><option value="">Essai et normal</option><option value="essai"' + (VT.type === 'essai' ? ' selected' : '') + '>Reels d\'essai</option><option value="normal"' + (VT.type === 'normal' ? ' selected' : '') + '>Reels normaux</option></select>' +
+    '<span class="muted" style="font-size:13px;margin-left:auto">' + L.length + ' reel' + (L.length > 1 ? 's' : '') + ' · ' + court(L.reduce((t, x) => t + (Number(S(x).views) || 0), 0)) + ' vues</span></div>';
+  const th = (k, t, cl) => '<th class="tri' + (cl ? ' ' + cl : '') + (VT.tri === k ? ' on' : '') + '" data-tri="' + k + '">' + t + (VT.tri === k ? (VT.sens < 0 ? ' ↓' : ' ↑') : '') + '</th>';
+  h += '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr>' + th('publie_le', 'Reel') + '<th>Format</th><th>Type</th>' + COLS.map(([k, t]) => th(k, t, 'num')).join('') + '<th></th></tr></thead><tbody>' +
+    (L.length ? L.map(x => '<tr><td><div class="s-reel">' + mini(x, true) + '<div class="t"><b title="' + esc(x.legende) + '">' + esc(x.legende || 'Sans légende') + '</b><span>' + esc(K.date(x.publie_le)) + '</span></div></div></td>' +
+      '<td><select class="in" data-mformat="' + esc(x.id) + '"><option value="">Sans format</option>' + fmts.map(f => '<option' + (f === x.format ? ' selected' : '') + '>' + esc(f) + '</option>').join('') + '</select></td>' +
+      '<td><button class="btn btn-g btn-sm" data-messai="' + esc(x.id) + '" title="Changer">' + typeReel(x) + '</button></td>' +
+      COLS.map(([k]) => '<td class="num">' + cellule(x, k) + '</td>').join('') +
+      '<td class="fin">' + (x.permalink ? '<a class="btn btn-g btn-sm" href="' + esc(x.permalink) + '" target="_blank" rel="noopener" title="Ouvrir sur Instagram" aria-label="Ouvrir sur Instagram">' + i.externe + '</a>' : '') + '</td></tr>').join('')
+      : '<tr><td colspan="11"><div class="vide">' + i.image + (D.medias.length ? 'Aucun reel ne correspond.' : 'Vos reels apparaîtront ici après la première mise à jour des statistiques.') + '</div></td></tr>') +
+    '</tbody></table></div></div>';
+  h += '<p class="muted" style="font-size:12.5px;margin-top:12px">« Abonnés » : les personnes qui se sont abonnées depuis ce reel, quand Instagram le donne. « Visionnage » : la durée moyenne regardée.</p>';
+  return h;
+}
+function brancherVideos() {
+  brancherPeriode();
+  document.querySelectorAll('[data-tri]').forEach(t => t.onclick = () => { const k = t.dataset.tri; if (VT.tri === k) VT.sens = -VT.sens; else { VT.tri = k; VT.sens = -1; } K.rendre(); });
+  const q = document.getElementById('v-q');
+  if (q) q.oninput = () => { VT.q = q.value; clearTimeout(q._t); q._t = setTimeout(() => { K.rendre(); const n = document.getElementById('v-q'); n.focus(); n.setSelectionRange(n.value.length, n.value.length); }, 250); };
+  const f = document.getElementById('v-format'); if (f) f.onchange = () => { VT.format = f.value; K.rendre(); };
+  const t = document.getElementById('v-type'); if (t) t.onchange = () => { VT.type = t.value; K.rendre(); };
+  document.querySelectorAll('[data-mformat]').forEach(s => s.onchange = async () => {
+    const x = D.medias.find(m => m.id === s.dataset.mformat); if (x) x.format = s.value;
+    try { await K.api('/api/studio/medias/' + encodeURIComponent(s.dataset.mformat), { methode: 'PATCH', corps: { format: s.value } }); K.toast('Format enregistré'); } catch (er) { K.toast(er.message); }
+  });
+  document.querySelectorAll('[data-messai]').forEach(bt => bt.onclick = async () => {
+    const x = D.medias.find(m => m.id === bt.dataset.messai); if (!x) return;
+    x.essai = !x.essai; K.rendre();
+    try { await K.api('/api/studio/medias/' + encodeURIComponent(x.id), { methode: 'PATCH', corps: { essai: x.essai } }); } catch (er) { K.toast(er.message); }
+  });
+}
+
+// ---------- FORMATS : le classement ----------
+const mediane = L => { if (!L.length) return 0; const s = L.slice().sort((a, b) => a - b), m = Math.floor(s.length / 2); return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
+function statsFormats() {
+  const [a, b] = bornes(), R = reelsDe(a, b).filter(x => x.format), G = {};
+  R.forEach(x => (G[x.format] = G[x.format] || []).push(x));
+  const L = Object.entries(G).map(([nom, X]) => {
+    const vues = X.map(x => Number(S(x).views) || 0), tv = vues.reduce((t, v) => t + v, 0), s = k => X.reduce((t, x) => t + (Number(S(x)[k]) || 0), 0);
+    const montres = X.filter(x => S(x).ig_reels_avg_watch_time != null);
+    return { nom, n: X.length, mediane: mediane(vues), moyenne: tv / X.length, vues: tv, abo: tv ? s('follows') * 1000 / tv : 0, abonnes: s('follows'), partages: tv ? s('shares') * 1000 / tv : 0,
+      enreg: tv ? s('saved') * 1000 / tv : 0, visionnage: montres.length ? montres.reduce((t, x) => t + S(x).ig_reels_avg_watch_time, 0) / montres.length / 1000 : null,
+      meilleur: X.slice().sort((x, y) => (S(y).views || 0) - (S(x).views || 0))[0] };
+  });
+  const max = k => Math.max(...L.map(x => x[k]), 0) || 1;
+  const mM = max('mediane'), mA = max('abo'), mP = Math.max(...L.map(x => x.partages + x.enreg), 0) || 1;
+  L.forEach(x => { x.score = Math.round(50 * x.mediane / mM + 30 * x.abo / mA + 20 * (x.partages + x.enreg) / mP); });
+  return L.sort((x, y) => y.score - x.score);
+}
+function ecranFormats() {
+  let h = '<div class="ph"><div><h1>Formats</h1><p>Quels formats font des vues et amènent des abonnés. Donnez un format à chaque reel (dans Programmer ou Vidéos) pour qu\'il compte ici.</p></div><div class="act">' + onglets() + '</div></div>';
+  const L = statsFormats(), sans = (() => { const [a, b] = bornes(); return reelsDe(a, b).filter(x => !x.format).length; })();
+  if (!L.length) return h + '<div class="card"><div class="vide">' + i.graph + 'Aucun reel avec un format sur la période. Ajoutez vos formats dans Réglages, puis choisissez-les sur vos vidéos.</div></div>';
+  h += '<div class="s-podium">' + L.slice(0, 3).map((x, n) => '<div class="card"><div class="rang">' + ['1er', '2e', '3e'][n] + ' format</div><h3>' + esc(x.nom) + '</h3><div class="score">' + x.score + ' <small>/ 100</small></div>' +
+    '<ul><li><span>Vues médianes</span><b>' + court(x.mediane) + '</b></li><li><span>Abonnés pour 1 000 vues</span><b>' + x.abo.toFixed(1).replace('.', ',') + '</b></li><li><span>Partages + enreg. pour 1 000 vues</span><b>' + (x.partages + x.enreg).toFixed(1).replace('.', ',') + '</b></li><li><span>Reels</span><b>' + x.n + (x.n < 5 ? ' · à confirmer' : '') + '</b></li></ul></div>').join('') + '</div>';
+  h += '<div class="card" style="margin-top:14px"><div class="tbl-wrap"><table class="tbl s-fmt"><thead><tr><th>Format</th><th class="num">Reels</th><th class="num">Vues médianes</th><th class="num">Vues moyennes</th><th class="num">Abonnés</th><th class="num">Abonnés / 1 000 vues</th><th class="num">Partages / 1 000</th><th class="num">Enreg. / 1 000</th><th class="num">Visionnage</th><th class="num">Score</th></tr></thead><tbody>' +
+    L.map((x, n) => '<tr><td><b>' + (n + 1) + '. ' + esc(x.nom) + '</b>' + (x.n < 5 ? '<span class="sub">peu de reels, à confirmer</span>' : '') + '</td><td class="num">' + x.n + '</td><td class="num">' + N(x.mediane) + '</td><td class="num">' + N(x.moyenne) + '</td><td class="num">' + N(x.abonnes) + '</td>' +
+      '<td class="num">' + x.abo.toFixed(1).replace('.', ',') + '</td><td class="num">' + x.partages.toFixed(1).replace('.', ',') + '</td><td class="num">' + x.enreg.toFixed(1).replace('.', ',') + '</td><td class="num">' + (x.visionnage != null ? x.visionnage.toFixed(1).replace('.', ',') + ' s' : '<span class="muted">0 s</span>') + '</td><td class="num"><b>' + x.score + '</b></td></tr>').join('') +
+    '</tbody></table></div></div>';
+  h += '<p class="muted" style="font-size:12.5px;margin-top:12px;line-height:1.6">Le score sur 100 compare les formats entre eux : 50 % les vues médianes (la viralité, sans qu\'un seul reel chanceux fausse tout), 30 % les abonnés gagnés pour 1 000 vues (le bon public), 20 % les partages et enregistrements pour 1 000 vues. ' +
+    (sans ? sans + ' reel' + (sans > 1 ? 's' : '') + ' sans format sur la période n\'' + (sans > 1 ? 'entrent' : 'entre') + ' pas dans le classement.' : '') + '</p>';
+  return h;
+}
+
+// ---------- RÉGLAGES ----------
+function ecranReglages() {
+  const C = D.compte;
+  let h = '<div class="ph"><div><h1>Réglages</h1><p>Votre compte Instagram et vos formats.</p></div></div>';
+  h += '<div class="grid g2" style="align-items:start"><div class="card pad"><h3 style="font-size:16px">Instagram</h3>';
+  if (C.connecte) h += '<div class="s-moi" style="margin-top:14px">' + (C.photo ? '<img src="' + esc(C.photo) + '" alt="">' : '<span class="ph-av"></span>') + '<div><b style="font-size:15px">@' + esc(C.username) + '</b><div class="muted" style="font-size:13px">' + N(C.abonnes) + ' abonnés · connecté depuis le ' + esc(K.date(C.token_le)) + '</div></div></div>' +
+    (C.erreur ? '<div class="s-alerte" style="margin-top:14px">' + esc(C.erreur) + '</div>' : '<p class="muted" style="font-size:13px;margin-top:12px;line-height:1.6">La connexion se prolonge toute seule. Si Instagram la coupe un jour, recollez un nouveau token ci-dessous.</p>');
+  h += '<div class="champ" style="margin-top:16px"><label for="r-token">' + (C.connecte ? 'Remplacer le token' : 'Token Instagram') + '</label><input class="in" type="password" id="r-token" autocomplete="off" placeholder="Collez ici le token généré dans votre app Meta">' +
+    '<div class="aide">Meta for Developers → votre app → API setup with Instagram login → Générer des tokens d\'accès → Générer le token. Ne le collez nulle part ailleurs.</div></div>' +
+    '<div class="s-actions"><button class="btn btn-p" id="r-connecter">' + (C.connecte ? 'Remplacer' : 'Connecter Instagram') + '</button>' + (C.connecte ? '<button class="btn btn-g" id="r-deconnecter">Déconnecter</button>' : '') + '</div></div>';
+  h += '<div><div class="card pad"><h3 style="font-size:16px">Vos formats</h3><p class="muted" style="font-size:13px;margin:4px 0 12px">Les formats que vous testez. Un format renommé est renommé sur toutes ses vidéos.</p><div id="r-formats">' +
+    (D.formats.length ? D.formats.map((f, n) => '<div class="s-format"><input class="in" data-fmt="' + n + '" value="' + esc(f) + '"><button class="btn btn-g btn-sm" data-fmt-x="' + n + '" aria-label="Retirer ' + esc(f) + '">' + i.poubelle + '</button></div>').join('') : '<div class="muted" style="font-size:13px;padding:6px 0 10px">Aucun format pour l\'instant.</div>') + '</div>' +
+    '<div class="s-format"><input class="in" id="r-nouveau" placeholder="Nouveau format, par exemple « Face cam hook choc »"><button class="btn btn-s btn-sm" id="r-ajouter" style="height:36px">' + i.plus + 'Ajouter</button></div></div>' +
+    '<div class="card pad" style="margin-top:14px"><h3 style="font-size:16px">Statistiques</h3><p class="muted" style="font-size:13px;margin-top:4px;line-height:1.6">Mises à jour toutes les heures. ' + (D.sync_le ? 'Dernière mise à jour : ' + esc(K.dateHeure(D.sync_le)) + '.' : 'Pas encore mises à jour.') + '</p>' +
+    '<button class="btn btn-s" id="r-actualiser" style="margin-top:12px"' + (C.connecte ? '' : ' disabled') + '>' + i.rafraichir + 'Actualiser maintenant</button></div></div></div>';
+  return h;
+}
+async function sauverFormats(F, renomme) {
+  try { const r = await K.api('/api/studio/formats', { methode: 'PUT', corps: { formats: F, renomme } }); D.formats = r.formats; if (renomme) await charger(); K.rendre(); }
+  catch (er) { K.toast(er.message); }
+}
+function brancherReglages() {
+  const c = document.getElementById('r-connecter');
+  if (c) c.onclick = async () => {
+    const t = document.getElementById('r-token').value.trim();
+    if (!t) return K.toast('Collez d\'abord le token.');
+    c.disabled = true; c.textContent = 'Vérification…';
+    try { const r = await K.api('/api/studio/connexion', { methode: 'POST', corps: { token: t } }); K.toast('Connecté à @' + r.username); await recharger(); }
+    catch (er) { K.toast(er.message); c.disabled = false; c.textContent = 'Réessayer'; }
+  };
+  const d = document.getElementById('r-deconnecter');
+  if (d) d.onclick = async () => {
+    if (!await K.confirmer('Déconnecter Instagram ?', 'Les reels programmés ne partiront plus tant qu\'un nouveau token n\'est pas collé. Les statistiques déjà lues restent.', 'Déconnecter', true)) return;
+    try { await K.api('/api/studio/connexion', { methode: 'DELETE' }); await recharger(); } catch (er) { K.toast(er.message); }
+  };
+  const aj = document.getElementById('r-ajouter'), nv = document.getElementById('r-nouveau');
+  if (aj) { const ajouter = () => { const v = nv.value.trim(); if (!v) return; if (D.formats.includes(v)) return K.toast('Ce format existe déjà.'); sauverFormats(D.formats.concat(v)); }; aj.onclick = ajouter; nv.onkeydown = e => { if (e.key === 'Enter') ajouter(); }; }
+  document.querySelectorAll('[data-fmt]').forEach(inp => inp.onchange = () => {
+    const n = Number(inp.dataset.fmt), de = D.formats[n], vers = inp.value.trim();
+    if (!vers || vers === de) { inp.value = de; return; }
+    const F = D.formats.slice(); F[n] = vers; sauverFormats(F, { de, vers });
+  });
+  document.querySelectorAll('[data-fmt-x]').forEach(bt => bt.onclick = async () => {
+    const f = D.formats[Number(bt.dataset.fmtX)];
+    if (!await K.confirmer('Retirer « ' + f + ' » ?', 'Il disparaît de la liste. Les vidéos qui l\'ont déjà le gardent.', 'Retirer')) return;
+    sauverFormats(D.formats.filter(x => x !== f));
+  });
+  const ac = document.getElementById('r-actualiser');
+  if (ac) ac.onclick = async () => {
+    ac.disabled = true; ac.textContent = 'Mise à jour…';
+    try { const r = await K.api('/api/studio/actualiser', { methode: 'POST' }); K.toast(r.ok ? 'Statistiques à jour' : (r.erreur || 'Instagram ne répond pas')); await recharger(); }
+    catch (er) { K.toast(er.message); ac.disabled = false; }
+  };
+}
+
+// ---------- RENDU ----------
+const ECRANS = {
+  '': ['accueil', 'accueil', () => ['Studio'], () => ecranAccueil(), () => { brancherPeriode(); brancherCommun(); }],
+  programmer: ['programmer', 'calendrier', () => ['Studio', 'Programmer'], () => ecranProgrammer(), () => brancherProgrammer()],
+  videos: ['videos', 'image', () => ['Studio', 'Vidéos'], () => ecranVideos(), () => brancherVideos()],
+  formats: ['formats', 'graph', () => ['Studio', 'Formats'], () => ecranFormats(), () => brancherPeriode()],
+  reglages: ['reglages', 'cadenas', () => ['Studio', 'Réglages'], () => ecranReglages(), () => brancherReglages()]
+};
+K.rendre = () => {
+  if (!D) return;
+  const r = K.route(), e = ECRANS[r.ecran] || ECRANS[''];
+  const c = conf();
+  document.getElementById('racine').innerHTML = K.coquille(c, e[0], K.ariane(e[1], ...e[2](r.params)), e[3](r.params), false);
+  K.brancherCoquille(c);
+  if (e[4]) e[4](r.params);
+  document.title = 'Studio · Kreative';
+};
+// la page fait avancer les publications en cours, et se relit sans écraser ce qu'on est en train de taper
+const occupe = () => ENVOIS.some(e => !e.ok && e.etat !== 'Échec') || document.querySelector('#k-fen') || (document.activeElement && /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName));
+async function veille() {
+  if (document.visibilityState !== 'visible' || occupe()) return;
+  const enCours = D.videos.some(v => v.statut === 'envoi' || v.statut === 'traitement' || (v.statut === 'programme' && v.publier_le <= Date.now()));
+  try { if (enCours) await K.api('/api/studio/avancer', { methode: 'POST' }); await charger(); if (!occupe()) K.rendre(); } catch (e) {}
+}
+(async () => {
+  try { await charger(); K.rendre(); setInterval(veille, 15000); }
+  catch (e) { document.getElementById('racine').innerHTML = '<div class="chargement">Impossible de charger le Studio. ' + esc(e.message) + '</div>'; }
+})();
+</script>
+</body>
+</html>

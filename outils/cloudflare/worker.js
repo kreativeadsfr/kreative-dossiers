@@ -44,8 +44,12 @@ const TYPES = {
 const TEXTES = /^(text\/|application\/json|image\/svg)/;
 
 export default {
-  // toutes les 15 min (déclencheur Cron de Cloudflare) : les briefs des livraisons suivantes arrivés à leur date
-  async scheduled(ev, env, ctx) { ctx.waitUntil(rappelsDus(env).catch(() => {})); },
+  // toutes les 15 min (déclencheur Cron de Cloudflare) : les briefs des livraisons suivantes arrivés à leur date ;
+  // le Studio (reels programmés) à chaque déclencheur, aussi celui de 5 min s'il existe (les rappels, eux, restent au quart d'heure)
+  async scheduled(ev, env, ctx) {
+    if (!ev || ev.cron !== '*/5 * * * *') ctx.waitUntil(rappelsDus(env).catch(() => {}));
+    ctx.waitUntil(cronStudio(env).catch(() => {}));
+  },
   async fetch(req, env, ctx) {
     try { return await traiter(req, env, ctx); }
     catch (e) { return new Response('Erreur : ' + (e && e.message || e), { status: 500, headers: { 'Content-Type': 'text/plain; charset=utf-8' } }); }
@@ -105,6 +109,10 @@ async function traiter(req, env, ctx) {
     return new Response(null, { status: 303, headers: {
       'Location': lieu, 'Cache-Control': 'no-store', 'Set-Cookie': COOKIE + '=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax' } });
   }
+
+  // ---------- le Studio Instagram (studio.kreativeads.fr), réservé à l'admin ----------
+  const studio = await routerStudio(req, env, ctx, url, chemin);
+  if (studio) return studio;
 
   // ---------- portail client et API (voir « PORTAIL » plus bas) ----------
   const portail = await routerPortail(req, env, ctx, url, chemin);
@@ -172,7 +180,7 @@ const ACCUEILS = { admin: '/admin/', strategiste: '/strategiste/', designer: '/d
 const DESIGNER_OK = /^\/(designer\/.*|[A-Za-z0-9_-]+\/creas\/.*|projets\.json|[A-Za-z0-9_-]+\/(donnees|envois|livraison)\.json|signaler\.js|ui\/.*|favicon-\d+\.png|logo-kreative\.png)$/;
 function autorise(role, chemin) {
   if (role === 'admin') return true;
-  if (/^\/(admin|_admin|client)(\/|$)/.test(chemin)) return false;
+  if (/^\/(admin|_admin|client|studio)(\/|$)/.test(chemin)) return false;
   if (role === 'designer') return DESIGNER_OK.test(chemin) || chemin === '/designer';
   if (role === 'strategiste') return !/^\/designer(\/|$)/.test(chemin);
   return false;
@@ -334,7 +342,7 @@ function typePage(chemin, url) {
 
 function coquille(qui, chemin, req) {
   if (!qui || !req) return null;
-  if (/^\/(admin|client|strategiste|designer)(\/|$)/.test(chemin)) return null;   // les portails ont leur propre coquille
+  if (/^\/(admin|client|strategiste|designer|studio)(\/|$)/.test(chemin)) return null;   // les portails ont leur propre coquille
   const url = new URL(req.url);
   const pg = typePage(chemin, url);
   const page = '<link rel="stylesheet" href="/ui/coquille.css"><script src="/ui/page.js" defer></script>';
@@ -391,7 +399,7 @@ function coquille(qui, chemin, req) {
 // une page de production ouverte directement (lien d'un email, d'une notification…)
 // s'ouvre dans le portail : même barre latérale, la page au milieu
 function routePortail(chemin, url) {
-  if (/^\/(admin|client|strategiste|designer|ui|_[a-z]+)(\/|$)/.test(chemin)) return null;
+  if (/^\/(admin|client|strategiste|designer|studio|ui|_[a-z]+)(\/|$)/.test(chemin)) return null;
   const pg = typePage(chemin, url);
   const P = pg.projet ? '/' + encodeURIComponent(pg.projet) : '';
   return { fiche: 'fiche' + P, dossier: 'dossier' + P, retours: P ? 'brief' + P : 'brief', apercu: 'visuels' + P, telech: 'telechargement' + P }[pg.type] || null;
@@ -521,6 +529,7 @@ async function connexion(req, env, url) {
       const fin = Date.now() + DUREE_JOURS * 864e5;
       const valeur = p.nom + '.' + fin + '.' + (await signer(env, p.nom + '.' + fin));
       if (!/^\/(?!\/)/.test(suite) || suite === '/' || !autorise(p.role, suite.split('?')[0])) suite = ACCUEILS[p.role];
+      if (estStudio(url, env) && p.role === 'admin') suite = '/';   // studio.kreativeads.fr : on reste sur le Studio
       return new Response(null, { status: 303, headers: {
         'Location': suite,
         'Set-Cookie': COOKIE + '=' + valeur + '; Path=/; Max-Age=' + DUREE_JOURS * 86400 + '; HttpOnly; Secure; SameSite=Lax',
@@ -2918,4 +2927,339 @@ async function apiWimmovAdmin(env, ctx, url, chemin, methode, b) {
     return json({ ...r, message: r.ok ? 'Lien envoyé à ' + a.join(', ') + '.' : r.message }, r.ok ? 200 : 502);
   }
   return json({ erreur: 'Introuvable' }, 404);
+}
+
+// ============================================================
+//  STUDIO (studio.kreativeads.fr) : l'Instagram de Kreative, pour Dario seulement (rôle admin)
+//    - programmer des reels (normal ou d'essai) : la vidéo est gardée dans R2, publiée à l'heure par le Cron
+//    - les statistiques de tous ses reels (vues, abonnés gagnés, likes, partages…) et le classement des formats
+//  API officielle « Instagram API with Instagram Login » (graph.instagram.com). Le token est collé une fois
+//  dans le Studio (Réglages), gardé dans D1, jamais renvoyé à la page, rafraîchi tout seul avant ses 60 jours.
+//  Rien ici ne touche aux clients, à l'équipe ni au reste du portail.
+// ============================================================
+const STUDIO = { version: 'v23.0', max_octets: 95e6, sync_toutes: 55 * 60e3, rafraichir_apres: 20 * 864e5,
+  // métriques demandées pour chaque reel ; celles qu'Instagram refuse sont retenues et plus redemandées
+  metriques: ['views', 'reach', 'likes', 'comments', 'shares', 'saved', 'total_interactions', 'ig_reels_avg_watch_time', 'follows', 'profile_visits'],
+  stats_par_passe: 30 };
+const estStudio = (url, env) => /^studio\./.test(url.hostname) || (!!env.STUDIO_HOTE && url.hostname === env.STUDIO_HOTE);
+const apiIG = env => (env.INSTAGRAM_API || 'https://graph.instagram.com').replace(/\/$/, '');
+let STUDIO_PRET = false;
+async function baseStudio(env) {
+  const db = await baseLiv(env);
+  if (!STUDIO_PRET) {
+    await db.batch([
+      // les vidéos déposées dans le Studio (à programmer, programmées, publiées)
+      db.prepare(`CREATE TABLE IF NOT EXISTS studio_videos (id TEXT PRIMARY KEY, statut TEXT, nom TEXT, cle TEXT, jeton TEXT, type TEXT, taille INTEGER,
+        legende TEXT, format TEXT, essai INTEGER DEFAULT 0, essai_auto INTEGER DEFAULT 0, partage_fil INTEGER DEFAULT 1, publier_le INTEGER,
+        origine TEXT, conteneur TEXT, conteneur_le INTEGER, media_id TEXT, permalink TEXT, erreur TEXT, publie_le INTEGER, cree_le INTEGER)`),
+      // tous ses reels Instagram (publiés par le Studio ou depuis l'app) et leurs dernières statistiques
+      db.prepare(`CREATE TABLE IF NOT EXISTS studio_medias (media_id TEXT PRIMARY KEY, legende TEXT, type TEXT, permalink TEXT, miniature TEXT,
+        publie_le INTEGER, format TEXT, essai INTEGER, video_id TEXT, stats TEXT, stats_le INTEGER, vu_le INTEGER)`),
+      // abonnés : le total relevé chaque jour, et les nouveaux abonnés du jour donnés par Instagram
+      db.prepare('CREATE TABLE IF NOT EXISTS studio_jours (jour TEXT PRIMARY KEY, abonnes INTEGER, gagnes INTEGER)'),
+      db.prepare('CREATE INDEX IF NOT EXISTS i_studio_v_statut ON studio_videos(statut, publier_le)')]);
+    STUDIO_PRET = true;
+  }
+  return db;
+}
+async function reglageStudio(db) {
+  const r = await db.prepare("SELECT valeur FROM reglages WHERE cle = 'studio'").first();
+  try { return r ? JSON.parse(r.valeur) : {}; } catch (e) { return {}; }
+}
+async function enregistrerStudio(db, maj) {
+  const v = Object.assign(await reglageStudio(db), maj);
+  await db.prepare("INSERT INTO reglages (cle, valeur) VALUES ('studio', ?) ON CONFLICT(cle) DO UPDATE SET valeur = excluded.valeur").bind(JSON.stringify(v)).run();
+  return v;
+}
+// un appel à Instagram : GET (paramètres dans l'adresse) ou POST (formulaire) ; renvoie le JSON ou lance l'erreur d'Instagram
+async function appelIG(env, chemin, params, methode, sansVersion) {
+  const u = apiIG(env) + (sansVersion ? '' : '/' + STUDIO.version) + chemin, corps = new URLSearchParams(params || {});
+  const r = methode === 'POST' ? await fetch(u, { method: 'POST', body: corps, headers: { 'Content-Type': 'application/x-www-form-urlencoded' } })
+    : await fetch(u + '?' + corps.toString());
+  let d = {}; try { d = await r.json(); } catch (e) {}
+  if (!r.ok || d.error) { const e = new Error((d.error && d.error.message) || ('Instagram a répondu ' + r.status)); e.code = d.error && d.error.code; throw e; }
+  return d;
+}
+const messageIG = e => {
+  const m = String(e && e.message || e);
+  if (e && e.code === 190) return 'La connexion Instagram a expiré : recollez un token dans Réglages.';
+  if (/format|codec|resolution|aspect|duration/i.test(m)) return 'Instagram refuse cette vidéo (format, durée ou taille). Exportez-la en MP4 (H.264), 9:16, 3 s à 15 min.';
+  return 'Instagram : ' + m.slice(0, 220);
+};
+
+// ---------- le routeur : la page (studio.kreativeads.fr ou /studio/), l'API, et la vidéo publique pour Instagram ----------
+async function routerStudio(req, env, ctx, url, chemin) {
+  let m;
+  // Instagram vient chercher la vidéo à cette adresse (publique, introuvable sans son jeton)
+  if ((m = chemin.match(/^\/_studio\/video\/(sv_[A-Za-z0-9]+)-([A-Za-z0-9]{24})\.mp4$/)) && (req.method === 'GET' || req.method === 'HEAD')) return servirVideoStudio(req, env, m[1], m[2]);
+  const surStudio = estStudio(url, env);
+  if (!chemin.startsWith('/api/studio') && !(surStudio && (chemin === '/' || chemin === '/index.html'))) return null;
+  const qui = await session(req, env);
+  if (!qui) return chemin.startsWith('/api/') ? json({ erreur: 'Connexion requise' }, 401) : redirection('/_connexion?suite=%2F');
+  if (qui.role !== 'admin') return chemin.startsWith('/api/') ? json({ erreur: 'Accès refusé' }, 403) : texte('Le Studio est réservé à Kreative.', 403);
+  if (!chemin.startsWith('/api/studio')) return servir('studio/index.html', env, ctx, { brut: false, origine: url.origin, req });
+  try { return await apiStudio(req, env, ctx, url, chemin.slice('/api/studio'.length), req.method); }
+  catch (e) { return json({ erreur: e.message || String(e) }, 500); }
+}
+async function servirVideoStudio(req, env, id, jeton) {
+  const db = await baseStudio(env);
+  const v = await db.prepare('SELECT cle, jeton, type FROM studio_videos WHERE id = ?').bind(id).first();
+  if (!v || !egal(v.jeton || '', jeton) || !env.FICHIERS) return texte('Introuvable', 404);
+  const plage = req.headers.get('Range');
+  const o = await env.FICHIERS.get(v.cle, plage ? { range: req.headers } : undefined);
+  if (!o) return texte('Introuvable', 404);
+  const h = new Headers({ 'Content-Type': v.type || 'video/mp4', 'Accept-Ranges': 'bytes', 'Cache-Control': 'private, max-age=3600', 'X-Robots-Tag': 'noindex' });
+  if (plage && o.range && o.range.offset != null) {
+    const debut = o.range.offset, long = o.range.length != null ? o.range.length : o.size - debut;
+    h.set('Content-Range', 'bytes ' + debut + '-' + (debut + long - 1) + '/' + o.size); h.set('Content-Length', String(long));
+    return new Response(req.method === 'HEAD' ? null : o.body, { status: 206, headers: h });
+  }
+  h.set('Content-Length', String(o.size));
+  return new Response(req.method === 'HEAD' ? null : o.body, { headers: h });
+}
+const VIDEO_PUBLIQUE = v => ({ id: v.id, statut: v.statut, nom: v.nom, taille: v.taille, legende: v.legende || '', format: v.format || '', essai: !!v.essai, essai_auto: !!v.essai_auto,
+  partage_fil: v.partage_fil !== 0, publier_le: v.publier_le, media_id: v.media_id, permalink: v.permalink, erreur: v.erreur, publie_le: v.publie_le, cree_le: v.cree_le,
+  apercu: '/_studio/video/' + v.id + '-' + v.jeton + '.mp4' });
+const MEDIA_PUBLIC = x => { let s = {}; try { s = x.stats ? JSON.parse(x.stats) : {}; } catch (e) {}
+  return { id: x.media_id, legende: x.legende || '', type: x.type, permalink: x.permalink, miniature: x.miniature, publie_le: x.publie_le, format: x.format || '', essai: !!x.essai, stats: s, stats_le: x.stats_le }; };
+
+async function apiStudio(req, env, ctx, url, chemin, methode) {
+  const db = await baseStudio(env);
+  let m, b = {};
+  if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(methode) && /json/.test(req.headers.get('Content-Type') || '')) { try { b = await req.json(); } catch (e) {} }
+  if (chemin === '' && methode === 'GET') {
+    const R = await reglageStudio(db);
+    const [V, M, J] = await Promise.all([
+      db.prepare("SELECT * FROM studio_videos WHERE statut != 'supprime' ORDER BY COALESCE(publier_le, cree_le) DESC LIMIT 500").all(),
+      db.prepare('SELECT * FROM studio_medias ORDER BY publie_le DESC LIMIT 1000').all(),
+      db.prepare('SELECT * FROM studio_jours ORDER BY jour DESC LIMIT 400').all()]);
+    return json({ compte: { connecte: !!R.token, username: R.username || '', nom: R.nom || '', photo: R.photo || '', abonnes: R.abonnes || 0, token_le: R.token_le || null, erreur: R.erreur || '' },
+      formats: Array.isArray(R.formats) ? R.formats : [], sync_le: R.sync_le || null, videos: V.results.map(VIDEO_PUBLIQUE), medias: M.results.map(MEDIA_PUBLIC), jours: J.results });
+  }
+  // ---- la connexion Instagram : le token est collé ici, vérifié, gardé ; jamais renvoyé ----
+  if (chemin === '/connexion' && methode === 'POST') {
+    const token = propre(b.token, 600).replace(/\s+/g, '');
+    if (token.length < 20) return json({ erreur: 'Collez le token Instagram en entier.' }, 400);
+    let moi;
+    try { moi = await appelIG(env, '/me', { fields: 'user_id,username,name,profile_picture_url,followers_count,account_type', access_token: token }); }
+    catch (e) { return json({ erreur: e.code === 190 ? 'Ce token ne marche pas. Générez-en un nouveau dans Meta, puis recollez-le.' : messageIG(e) }, 400); }
+    const R = await enregistrerStudio(db, { token, token_le: maintenant(), user_id: String(moi.user_id || moi.id), username: moi.username || '', nom: moi.name || '',
+      photo: moi.profile_picture_url || '', abonnes: moi.followers_count || 0, erreur: '' });
+    ctx.waitUntil(synchroStudio(env, true).catch(() => {}));
+    return json({ ok: true, username: R.username, abonnes: R.abonnes });
+  }
+  if (chemin === '/connexion' && methode === 'DELETE') { await enregistrerStudio(db, { token: null, erreur: '' }); return json({ ok: true }); }
+  if (chemin === '/formats' && methode === 'PUT') {
+    const F = [...new Set((Array.isArray(b.formats) ? b.formats : []).map(x => propre(x, 60)).filter(Boolean))].slice(0, 40);
+    await enregistrerStudio(db, { formats: F });
+    // un format renommé : ses vidéos suivent
+    if (b.renomme && b.renomme.de && b.renomme.vers) {
+      const de = propre(b.renomme.de, 60), vers = propre(b.renomme.vers, 60);
+      await db.batch([db.prepare('UPDATE studio_videos SET format = ? WHERE format = ?').bind(vers, de), db.prepare('UPDATE studio_medias SET format = ? WHERE format = ?').bind(vers, de)]);
+    }
+    return json({ ok: true, formats: F });
+  }
+  // ---- déposer une vidéo (brouillon), puis la programmer ----
+  if (chemin === '/videos' && methode === 'PUT') {
+    if (!env.FICHIERS) return json({ erreur: 'Le stockage des fichiers n\'est pas branché.' }, 503);
+    const taille = Number(req.headers.get('Content-Length') || 0);
+    if (taille > STUDIO.max_octets) return json({ erreur: 'Vidéo trop lourde (95 Mo au maximum). Exportez-la un peu plus légère.' }, 413);
+    const type = propre((req.headers.get('Content-Type') || 'video/mp4').split(';')[0], 60);
+    if (!/^video\/(mp4|quicktime)$/.test(type)) return json({ erreur: 'Instagram accepte les vidéos MP4 ou MOV.' }, 415);
+    const nom = propre(url.searchParams.get('nom'), 140).replace(/[^\p{L}\p{N}._ ()-]/gu, '_') || 'video.mp4';
+    const id = 'sv_' + aleatoire(14), jeton = aleatoire(24), cle = 'studio/' + id + (type === 'video/quicktime' ? '.mov' : '.mp4');
+    await env.FICHIERS.put(cle, req.body, { httpMetadata: { contentType: type } });
+    await db.prepare(`INSERT INTO studio_videos (id, statut, nom, cle, jeton, type, taille, legende, format, essai, essai_auto, partage_fil, origine, cree_le)
+      VALUES (?, 'brouillon', ?, ?, ?, ?, ?, '', '', 0, 0, 1, ?, ?)`).bind(id, nom, cle, jeton, type, taille, url.origin, maintenant()).run();
+    return json(VIDEO_PUBLIQUE(await db.prepare('SELECT * FROM studio_videos WHERE id = ?').bind(id).first()));
+  }
+  if ((m = chemin.match(/^\/videos\/(sv_[A-Za-z0-9]+)(\/[a-z]+)?$/))) {
+    const v = await db.prepare("SELECT * FROM studio_videos WHERE id = ? AND statut != 'supprime'").bind(m[1]).first();
+    if (!v) return json({ erreur: 'Vidéo introuvable.' }, 404);
+    const action = m[2] || '', modifiable = ['brouillon', 'programme', 'erreur'].includes(v.statut);
+    if (action === '' && methode === 'PATCH') {
+      if (!modifiable) return json({ erreur: v.statut === 'publie' ? 'Cette vidéo est déjà publiée.' : 'Cette vidéo est en cours de publication.' }, 409);
+      const legende = b.legende != null ? String(b.legende).slice(0, 2200) : v.legende;
+      if ((legende.match(/#[\p{L}\p{N}_]+/gu) || []).length > 30) return json({ erreur: 'Instagram limite la légende à 30 hashtags.' }, 400);
+      const publier = b.publier_le != null ? Number(b.publier_le) || null : v.publier_le;
+      let statut = v.statut;
+      if (b.programmer === true) { if (!publier) return json({ erreur: 'Choisissez le jour et l\'heure de publication.' }, 400); statut = 'programme'; }
+      if (b.programmer === false) statut = 'brouillon';
+      await db.prepare(`UPDATE studio_videos SET legende = ?, format = ?, essai = ?, essai_auto = ?, partage_fil = ?, publier_le = ?, statut = ?,
+        erreur = CASE WHEN ? = 'programme' THEN NULL ELSE erreur END, conteneur = CASE WHEN ? = 'programme' THEN NULL ELSE conteneur END WHERE id = ?`)
+        .bind(legende, b.format != null ? propre(b.format, 60) : v.format, b.essai != null ? (b.essai ? 1 : 0) : v.essai, b.essai_auto != null ? (b.essai_auto ? 1 : 0) : v.essai_auto,
+          b.partage_fil != null ? (b.partage_fil ? 1 : 0) : v.partage_fil, publier, statut, statut, statut, v.id).run();
+      return json(VIDEO_PUBLIQUE(await db.prepare('SELECT * FROM studio_videos WHERE id = ?').bind(v.id).first()));
+    }
+    // publier tout de suite (ou réessayer après une erreur)
+    if (action === '/maintenant' && methode === 'POST') {
+      if (!modifiable) return json({ erreur: 'Cette vidéo est déjà partie.' }, 409);
+      await db.prepare("UPDATE studio_videos SET statut = 'programme', publier_le = ?, erreur = NULL, conteneur = NULL WHERE id = ?").bind(maintenant(), v.id).run();
+      const r = await avancerStudio(env, 8000);
+      return json({ ok: true, ...r, video: VIDEO_PUBLIQUE(await db.prepare('SELECT * FROM studio_videos WHERE id = ?').bind(v.id).first()) });
+    }
+    if (action === '' && methode === 'DELETE') {
+      if (['envoi', 'traitement'].includes(v.statut)) return json({ erreur: 'Elle est en train d\'être publiée : attendez une minute.' }, 409);
+      if (env.FICHIERS) { try { await env.FICHIERS.delete(v.cle); } catch (e) {} }
+      // une vidéo publiée reste sur Instagram et dans les statistiques ; seul le fichier est retiré
+      if (v.statut === 'publie') await db.prepare("UPDATE studio_videos SET statut = 'supprime' WHERE id = ?").bind(v.id).run();
+      else await db.prepare('DELETE FROM studio_videos WHERE id = ?').bind(v.id).run();
+      return json({ ok: true });
+    }
+  }
+  // un reel (publié par le Studio ou depuis l'app) : son format, essai ou non
+  if ((m = chemin.match(/^\/medias\/([A-Za-z0-9_]+)$/)) && methode === 'PATCH') {
+    const x = await db.prepare('SELECT media_id FROM studio_medias WHERE media_id = ?').bind(m[1]).first();
+    if (!x) return json({ erreur: 'Reel introuvable.' }, 404);
+    if (b.format != null) await db.prepare('UPDATE studio_medias SET format = ? WHERE media_id = ?').bind(propre(b.format, 60), x.media_id).run();
+    if (b.essai != null) await db.prepare('UPDATE studio_medias SET essai = ? WHERE media_id = ?').bind(b.essai ? 1 : 0, x.media_id).run();
+    return json({ ok: true });
+  }
+  // la page ouverte fait avancer les publications en cours (sans attendre le Cron)
+  if (chemin === '/avancer' && methode === 'POST') return json(await avancerStudio(env, 8000));
+  if (chemin === '/actualiser' && methode === 'POST') {
+    try { return json(await synchroStudio(env, true)); } catch (e) { return json({ erreur: messageIG(e) }, 502); }
+  }
+  return json({ erreur: 'Introuvable' }, 404);
+}
+
+// ---------- publier : créer le conteneur Instagram, attendre qu'il soit prêt, publier ----------
+async function avancerStudio(env, budgetMs) {
+  const db = await baseStudio(env), R = await reglageStudio(db), fin = Date.now() + (budgetMs || 30000), fait = { lances: 0, publies: 0, erreurs: 0 };
+  if (!R.token || !R.user_id) return { ...fait, connecte: false };
+  // 1. les vidéos arrivées à leur heure : on les « prend » une par une (pas deux fois)
+  const dues = (await db.prepare("SELECT * FROM studio_videos WHERE statut = 'programme' AND publier_le <= ? ORDER BY publier_le LIMIT 5").bind(maintenant()).all()).results;
+  for (const v of dues) {
+    const pris = await db.prepare("UPDATE studio_videos SET statut = 'envoi' WHERE id = ? AND statut = 'programme'").bind(v.id).run();
+    if (!pris.meta || pris.meta.changes !== 1) continue;
+    const p = { media_type: 'REELS', video_url: (v.origine || 'https://studio.kreativeads.fr') + '/_studio/video/' + v.id + '-' + v.jeton + '.mp4', caption: v.legende || '', access_token: R.token };
+    if (v.essai) p.trial_params = JSON.stringify({ graduation_strategy: v.essai_auto ? 'SS_PERFORMANCE' : 'MANUAL' });
+    else p.share_to_feed = v.partage_fil === 0 ? 'false' : 'true';
+    try {
+      const c = await appelIG(env, '/' + R.user_id + '/media', p, 'POST');
+      await db.prepare("UPDATE studio_videos SET statut = 'traitement', conteneur = ?, conteneur_le = ?, erreur = NULL WHERE id = ?").bind(String(c.id), maintenant(), v.id).run();
+      fait.lances++;
+    } catch (e) {
+      await db.prepare("UPDATE studio_videos SET statut = 'erreur', erreur = ? WHERE id = ?").bind(messageIG(e), v.id).run(); fait.erreurs++;
+      if (e.code === 190) await enregistrerStudio(db, { erreur: messageIG(e) });
+    }
+  }
+  // 2. les conteneurs en cours : Instagram traite la vidéo (souvent 10 s à 2 min), puis on publie
+  for (let tour = 0; ; tour++) {
+    const T = (await db.prepare("SELECT * FROM studio_videos WHERE statut = 'traitement' ORDER BY conteneur_le LIMIT 10").all()).results;
+    let attente = false;
+    for (const v of T) {
+      try {
+        const s = await appelIG(env, '/' + v.conteneur, { fields: 'status_code,status', access_token: R.token });
+        if (s.status_code === 'FINISHED') {
+          const pub = await appelIG(env, '/' + R.user_id + '/media_publish', { creation_id: v.conteneur, access_token: R.token }, 'POST');
+          const mid = String(pub.id);
+          let info = {}; try { info = await appelIG(env, '/' + mid, { fields: 'permalink,thumbnail_url,timestamp', access_token: R.token }); } catch (e) {}
+          const fait_le = maintenant();
+          await db.prepare("UPDATE studio_videos SET statut = 'publie', media_id = ?, permalink = ?, publie_le = ?, erreur = NULL WHERE id = ? AND statut = 'traitement'")
+            .bind(mid, info.permalink || null, fait_le, v.id).run();
+          await db.prepare(`INSERT INTO studio_medias (media_id, legende, type, permalink, miniature, publie_le, format, essai, video_id) VALUES (?, ?, 'REELS', ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(media_id) DO UPDATE SET format = excluded.format, essai = excluded.essai, video_id = excluded.video_id`)
+            .bind(mid, v.legende || '', info.permalink || null, info.thumbnail_url || null, fait_le, v.format || '', v.essai ? 1 : 0, v.id).run();
+          fait.publies++;
+        } else if (s.status_code === 'ERROR' || s.status_code === 'EXPIRED') {
+          await db.prepare("UPDATE studio_videos SET statut = 'erreur', erreur = ? WHERE id = ?").bind('Instagram n\'a pas pu traiter la vidéo' + (s.status ? ' (' + String(s.status).slice(0, 160) + ')' : '') + '. Réessayez, ou exportez-la à nouveau en MP4 (H.264).', v.id).run();
+          fait.erreurs++;
+        } else if (maintenant() - (v.conteneur_le || 0) > 60 * 60e3) {
+          await db.prepare("UPDATE studio_videos SET statut = 'erreur', erreur = 'Instagram traite la vidéo depuis plus d''une heure. Réessayez.' WHERE id = ?").bind(v.id).run();
+          fait.erreurs++;
+        } else attente = true;
+      } catch (e) {
+        // une erreur passagère au moment de publier : on retente au prochain passage ; un token mort : on arrête
+        if (e.code === 190) { await enregistrerStudio(db, { erreur: messageIG(e) }); return { ...fait, connecte: false }; }
+        if (maintenant() - (v.conteneur_le || 0) > 60 * 60e3) { await db.prepare("UPDATE studio_videos SET statut = 'erreur', erreur = ? WHERE id = ?").bind(messageIG(e), v.id).run(); fait.erreurs++; }
+        else attente = true;
+      }
+    }
+    if (!attente || Date.now() + 5000 > fin) break;
+    await new Promise(r => setTimeout(r, Math.min(5000, Math.max(0, fin - Date.now() - 1000))));
+  }
+  return { ...fait, connecte: true };
+}
+
+// ---------- les statistiques : le compte, les abonnés, et chaque reel (les plus récents d'abord) ----------
+async function synchroStudio(env, force) {
+  const db = await baseStudio(env);
+  let R = await reglageStudio(db);
+  if (!R.token || !R.user_id) return { ok: false, connecte: false };
+  if (!force && R.sync_le && maintenant() - R.sync_le < STUDIO.sync_toutes) return { ok: true, attendu: true };
+  await enregistrerStudio(db, { sync_le: maintenant() });
+  const T = R.token, jour = new Date().toISOString().slice(0, 10);
+  try {
+    const moi = await appelIG(env, '/me', { fields: 'user_id,username,name,profile_picture_url,followers_count', access_token: T });
+    R = await enregistrerStudio(db, { username: moi.username || R.username, nom: moi.name || R.nom, photo: moi.profile_picture_url || R.photo, abonnes: moi.followers_count || 0, erreur: '' });
+    await db.prepare('INSERT INTO studio_jours (jour, abonnes) VALUES (?, ?) ON CONFLICT(jour) DO UPDATE SET abonnes = excluded.abonnes').bind(jour, moi.followers_count || 0).run();
+  } catch (e) { if (e.code === 190) { await enregistrerStudio(db, { erreur: messageIG(e) }); return { ok: false, connecte: false, erreur: messageIG(e) }; } throw e; }
+  // les nouveaux abonnés par jour (30 derniers jours ; Instagram ne le donne qu'à partir de 100 abonnés)
+  try {
+    const depuis = Math.floor((Date.now() - 29 * 864e5) / 1000), jusque = Math.floor(Date.now() / 1000);
+    const ins = await appelIG(env, '/' + R.user_id + '/insights', { metric: 'follower_count', period: 'day', since: depuis, until: jusque, access_token: T });
+    const vals = ((ins.data || []).find(x => x.name === 'follower_count') || {}).values || [];
+    for (const x of vals) {
+      const j = new Date(new Date(x.end_time).getTime() - 864e5).toISOString().slice(0, 10);
+      await db.prepare('INSERT INTO studio_jours (jour, gagnes) VALUES (?, ?) ON CONFLICT(jour) DO UPDATE SET gagnes = excluded.gagnes').bind(j, Number(x.value) || 0).run();
+    }
+  } catch (e) {}
+  // la liste des reels (jusqu'à 150), puis leurs statistiques
+  let suite = null, n = 0;
+  do {
+    const p = suite ? Object.fromEntries(new URL(suite).searchParams) : { fields: 'id,caption,media_type,media_product_type,permalink,thumbnail_url,media_url,timestamp', limit: 50, access_token: T };
+    p.access_token = T;
+    const page = await appelIG(env, '/' + R.user_id + '/media', p);
+    for (const x of page.data || []) {
+      if (x.media_type !== 'VIDEO' && x.media_product_type !== 'REELS') continue;
+      await db.prepare(`INSERT INTO studio_medias (media_id, legende, type, permalink, miniature, publie_le, vu_le) VALUES (?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(media_id) DO UPDATE SET legende = excluded.legende, type = excluded.type, permalink = excluded.permalink, miniature = COALESCE(excluded.miniature, studio_medias.miniature), publie_le = COALESCE(studio_medias.publie_le, excluded.publie_le), vu_le = excluded.vu_le`)
+        .bind(String(x.id), x.caption || '', x.media_product_type || x.media_type, x.permalink || null, x.thumbnail_url || null, x.timestamp ? Date.parse(x.timestamp) : null, maintenant()).run();
+    }
+    suite = page.paging && page.paging.next; n++;
+  } while (suite && n < 3);
+  // les statistiques : jamais lues d'abord, puis les reels des 60 derniers jours, les moins à jour d'abord
+  const aLire = (await db.prepare(`SELECT media_id, type FROM studio_medias WHERE stats_le IS NULL OR publie_le > ? ORDER BY CASE WHEN stats_le IS NULL THEN 0 ELSE 1 END, stats_le LIMIT ?`)
+    .bind(maintenant() - 60 * 864e5, STUDIO.stats_par_passe).all()).results;
+  // les métriques refusées sont retenues par type de publication (un reel n'a pas les mêmes qu'une vidéo du fil)
+  const KO = R.metriques_ko && !Array.isArray(R.metriques_ko) ? R.metriques_ko : {};
+  let nouvellesRefusees = false, lus = 0;
+  for (const x of aLire) {
+    const t = x.type || 'REELS', refusees = new Set(KO[t] || []);
+    const voulues = STUDIO.metriques.filter(k => !refusees.has(k)), stats = {};
+    const lire = async liste => {
+      const d = await appelIG(env, '/' + x.media_id + '/insights', { metric: liste.join(','), access_token: T });
+      for (const e of d.data || []) stats[e.name] = e.total_value ? e.total_value.value : ((e.values || [])[0] || {}).value;
+    };
+    try { await lire(voulues); }
+    catch (e) {
+      if (e.code === 190) { await enregistrerStudio(db, { erreur: messageIG(e) }); break; }
+      // une métrique refusée fait échouer tout l'appel : on les lit une par une, et on retient celles qui ne marchent pas
+      for (const k of voulues) { try { await lire([k]); } catch (e2) { if (/metric|#100/i.test(e2.message) || e2.code === 100) { refusees.add(k); nouvellesRefusees = true; } } }
+      KO[t] = [...refusees];
+    }
+    await db.prepare('UPDATE studio_medias SET stats = ?, stats_le = ? WHERE media_id = ?').bind(JSON.stringify(stats), maintenant(), x.media_id).run();
+    lus++;
+  }
+  // une métrique refusée pour un reel peut marcher pour un autre : on oublie la liste chaque semaine
+  if (nouvellesRefusees) await enregistrerStudio(db, { metriques_ko: KO, metriques_ko_le: R.metriques_ko_le || maintenant() });
+  else if (R.metriques_ko_le && maintenant() - R.metriques_ko_le > 7 * 864e5) await enregistrerStudio(db, { metriques_ko: {}, metriques_ko_le: null });
+  return { ok: true, connecte: true, reels: lus };
+}
+
+// ---------- le token dure 60 jours : on le prolonge tout seul ----------
+async function prolongerTokenStudio(env) {
+  const db = await baseStudio(env), R = await reglageStudio(db);
+  if (!R.token || !R.token_le || maintenant() - R.token_le < STUDIO.rafraichir_apres) return;
+  try {
+    const d = await appelIG(env, '/refresh_access_token', { grant_type: 'ig_refresh_token', access_token: R.token }, 'GET', true);
+    if (d.access_token) await enregistrerStudio(db, { token: d.access_token, token_le: maintenant(), erreur: '' });
+  } catch (e) { if (e.code === 190) await enregistrerStudio(db, { erreur: messageIG(e) }); }
+}
+// ---------- le Cron : publier ce qui est dû, prolonger le token, relire les statistiques (toutes les heures) ----------
+async function cronStudio(env) {
+  try { await avancerStudio(env, 40000); } catch (e) {}
+  try { await prolongerTokenStudio(env); } catch (e) {}
+  try { await synchroStudio(env, false); } catch (e) {}
 }

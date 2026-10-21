@@ -41,6 +41,11 @@
 .s-envoi{display:flex;align-items:center;gap:12px;font-size:13px;padding:8px 0}
 .s-envoi span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .s-envoi .barre{width:160px;flex:none}
+.s-courbe{position:relative;height:180px}
+.s-courbe svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.s-pt{position:absolute;width:9px;height:9px;margin:-4.5px 0 0 -4.5px;border-radius:50%;background:var(--panel);border:2px solid var(--blue);cursor:default}
+.s-pt.zero{width:5px;height:5px;margin:-2.5px 0 0 -2.5px;border:0;background:var(--line2)}
+.s-pt:hover{transform:scale(1.4)}
 .s-podium{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
 .s-podium .card{padding:20px}
 .s-podium .rang{font:600 12px var(--titre);color:var(--blue-tx);text-transform:uppercase;letter-spacing:.06em}
@@ -145,15 +150,21 @@ function ecranAccueil() {
   h += '<div class="grid g3" style="margin-top:14px">' + kpi('Commentaires', N(som('comments')), R.length ? N(som('comments') / R.length) + ' par reel' : '0 par reel') +
     kpi('Partages', N(som('shares')), som('views') ? N(som('shares') * 1000 / som('views')) + ' pour 1 000 vues' : '0 pour 1 000 vues') +
     kpi('Enregistrements', N(som('saved')), som('views') ? N(som('saved') * 1000 / som('views')) + ' pour 1 000 vues' : '0 pour 1 000 vues') + '</div>';
-  // vues par jour de publication
-  const debut = Math.max(a, R.length ? Math.min(...R.map(x => x.publie_le)) : b - 30 * J), cases = [];
+  // toute la période choisie, jour par jour (les jours sans publication à 0), en courbe
+  const debut = a > 0 ? a : (R.length ? Math.min(...R.map(x => x.publie_le)) : b - 30 * J), cases = [];
   const pas = (b - debut) > 92 * J ? 7 * J : J;
   for (let t = Date.parse(jourDe(debut) + 'T00:00:00'); t <= b; t += pas) cases.push({ t, v: 0 });
   R.forEach(x => { const n = Math.min(cases.length - 1, Math.max(0, Math.floor((x.publie_le - cases[0].t) / pas))); if (cases[n]) cases[n].v += Number(S(x).views) || 0; });
-  const max = Math.max(...cases.map(c => c.v), 1);
+  const brut = Math.max(...cases.map(c => c.v), 1), p10 = Math.pow(10, Math.floor(Math.log10(brut))), r = brut / p10;
+  const max = (r <= 1 ? 1 : r <= 2 ? 2 : r <= 5 ? 5 : 10) * p10;
+  const X = n => (n + .5) / cases.length * 1000, Y = v => 100 - v / max * 100;
+  const ligne = cases.map((c, n) => X(n).toFixed(1) + ',' + Y(c.v).toFixed(2)).join(' ');
+  const aire = 'M' + X(0).toFixed(1) + ',100 L' + ligne.split(' ').join(' L') + ' L' + X(cases.length - 1).toFixed(1) + ',100 Z';
   if (cases.length) h += '<div class="card graph" style="margin-top:14px"><div class="card-h"><h3>Vues par jour de publication</h3><span class="muted" style="font-size:13px">' + court(som('views')) + ' vues</span></div>' +
-    '<div class="graph-zone"><div class="graph-grille">' + [1, .5, 0].map(r => '<div><span>' + court(max * r) + '</span></div>').join('') + '</div>' +
-    '<div class="graph-barres">' + cases.map(c => '<div class="bar" title="' + esc(K.date(c.t, { weekday: 'short', year: undefined }) + ' : ' + N(c.v) + ' vues') + '"><i style="height:' + (c.v ? Math.max(2, c.v / max * 100) : 0) + '%"></i></div>').join('') + '</div>' +
+    '<div class="graph-zone"><div class="graph-grille">' + [1, .5, 0].map(q => '<div><span>' + court(max * q) + '</span></div>').join('') + '</div>' +
+    '<div class="s-courbe"><svg viewBox="0 0 1000 100" preserveAspectRatio="none" aria-hidden="true"><path d="' + aire + '" fill="var(--blue-soft)" stroke="none"/>' +
+      '<polyline points="' + ligne + '" fill="none" stroke="var(--blue)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/></svg>' +
+      cases.map((c, n) => '<span class="s-pt' + (c.v ? '' : ' zero') + '" style="left:' + (X(n) / 10) + '%;top:' + Y(c.v) + '%" title="' + esc((pas === J ? K.date(c.t, { weekday: 'short', year: undefined }) : 'Semaine du ' + K.date(c.t, { year: undefined })) + ' : ' + N(c.v) + ' vues') + '"></span>').join('') + '</div>' +
     '<div class="graph-x">' + cases.map((c, n) => '<span>' + (cases.length <= 10 || n === 0 || n === cases.length - 1 || n % Math.ceil(cases.length / 6) === 0 ? esc(K.date(c.t, { year: undefined })) : '') + '</span>').join('') + '</div></div></div>';
   // à venir et erreurs
   const prochains = D.videos.filter(v => v.statut === 'programme').sort((x, y) => x.publier_le - y.publier_le), erreurs = D.videos.filter(v => v.statut === 'erreur');

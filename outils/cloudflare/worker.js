@@ -2941,6 +2941,11 @@ const STUDIO = { version: 'v23.0', max_octets: 95e6, sync_toutes: 55 * 60e3, raf
   // métriques demandées pour chaque reel ; celles qu'Instagram refuse sont retenues et plus redemandées
   metriques: ['views', 'reach', 'likes', 'comments', 'shares', 'saved', 'total_interactions', 'ig_reels_avg_watch_time', 'follows', 'profile_visits'],
   stats_par_passe: 30 };
+// l'app « Kreative Studio » : K blanc sur fond noir (arrondi sur ordinateur, plein sur téléphone)
+const MANIFESTE_STUDIO = { name: 'Kreative Studio', short_name: 'Studio', description: 'Programmer et suivre les reels Instagram de Kreative', id: '/', start_url: '/', scope: '/',
+  display: 'standalone', background_color: '#f8f6f3', theme_color: '#ffffff', lang: 'fr',
+  icons: [{ src: '/app-icon-studio-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' }, { src: '/app-icon-studio-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+    { src: '/app-icon-studio-maskable.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' }] };
 const estStudio = (url, env) => /^studio\./.test(url.hostname) || (!!env.STUDIO_HOTE && url.hostname === env.STUDIO_HOTE);
 const apiIG = env => (env.INSTAGRAM_API || 'https://graph.instagram.com').replace(/\/$/, '');
 let STUDIO_PRET = false;
@@ -2993,6 +2998,9 @@ async function routerStudio(req, env, ctx, url, chemin) {
   // Instagram vient chercher la vidéo à cette adresse (publique, introuvable sans son jeton)
   if ((m = chemin.match(/^\/_studio\/video\/(sv_[A-Za-z0-9]+)-([A-Za-z0-9]{24})\.mp4$/)) && (req.method === 'GET' || req.method === 'HEAD')) return servirVideoStudio(req, env, m[1], m[2]);
   const surStudio = estStudio(url, env);
+  // l'app du Studio (à installer sur l'ordinateur ou le téléphone) : manifeste et service worker, publics
+  if (surStudio && chemin === '/manifest.webmanifest') return new Response(JSON.stringify(MANIFESTE_STUDIO), { headers: { 'Content-Type': 'application/manifest+json; charset=utf-8', 'Cache-Control': 'no-cache' } });
+  if (surStudio && chemin === '/sw.js') return new Response(SERVICE_WORKER_ADMIN, { headers: { 'Content-Type': 'text/javascript; charset=utf-8', 'Cache-Control': 'no-cache', 'Service-Worker-Allowed': '/' } });
   if (!chemin.startsWith('/api/studio') && !(surStudio && (chemin === '/' || chemin === '/index.html'))) return null;
   const qui = await session(req, env);
   if (!qui) return chemin.startsWith('/api/') ? json({ erreur: 'Connexion requise' }, 401) : redirection('/_connexion?suite=%2F');

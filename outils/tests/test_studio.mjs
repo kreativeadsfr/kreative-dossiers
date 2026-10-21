@@ -37,6 +37,11 @@ h = await surStudio('/', { headers: { Cookie: A } });
 t('studio.kreativeads.fr connecté : la page du Studio', h.status === 200 && /Studio · Kreative/.test(h.corps));
 h = await surStudio('/', { headers: { Cookie: S } });
 t('… refusée à la stratégiste', h.status === 403);
+h = await surStudio('/manifest.webmanifest');
+const man = JSON.parse(h.corps || '{}');
+t('l\'app « Kreative Studio » s\'installe (manifeste public, ses icônes noires)', h.status === 200 && man.name === 'Kreative Studio' && man.start_url === '/' && man.icons.every(x => /app-icon-studio-/.test(x.src)), h.corps);
+t('… ses icônes existent', (await Promise.all(man.icons.map(x => get(x.src)).concat([get('/app-icon-studio-apple.png')]))).every(r => r.status === 200));
+t('… et l\'app admin garde les siennes', (await (await get('/admin/manifest.webmanifest')).json()).icons.every(x => /app-icon-admin-/.test(x.src)));
 t('app.kreativeads.fr ne change pas : l\'admin arrive toujours sur /admin/', (await get('/', { headers: { Cookie: A } })).headers.get('location') === '/admin/');
 
 // ---------- la connexion Instagram ----------

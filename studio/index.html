@@ -384,7 +384,7 @@ function blocProgrammes() {
 function brancherProgrammes() {
   document.querySelectorAll('[data-vprog]').forEach(b => b.onclick = () => { VP.vue = b.dataset.vprog; try { localStorage.setItem('studio-vue-prog', VP.vue); } catch (e) {} K.rendre(); });
   document.querySelectorAll('[data-sem]').forEach(b => b.onclick = () => { const n = Number(b.dataset.sem); VP.lundi = n ? plusJours(VP.lundi, 7 * n) : lundiDe(Date.now()); K.rendre(); });
-  document.querySelectorAll('[data-haut]').forEach(a => a.onclick = () => window.scrollTo(0, 0));
+  document.querySelectorAll('[data-haut]').forEach(a => a.onclick = () => enHaut());
   // au survol, la vidéo programmée se lit (sans le son)
   document.querySelectorAll('.s-cal-v video').forEach(vd => { const c = vd.closest('.s-cal-c'); c.onmouseenter = () => vd.play().catch(() => {}); c.onmouseleave = () => { vd.pause(); }; });
 }
@@ -508,7 +508,7 @@ function brancherCommun() {
     catch (er) { K.toast(er.message); bt.disabled = false; }
   });
   document.querySelectorAll('[data-modifier]').forEach(bt => bt.onclick = async () => {
-    try { await K.api('/api/studio/videos/' + bt.dataset.modifier, { methode: 'PATCH', corps: { programmer: false } }); await recharger(); window.scrollTo(0, 0); }
+    try { await K.api('/api/studio/videos/' + bt.dataset.modifier, { methode: 'PATCH', corps: { programmer: false } }); await recharger(); enHaut(); }
     catch (er) { K.toast(er.message); }
   });
   document.querySelectorAll('[data-suppr]').forEach(bt => bt.onclick = async () => {
@@ -662,9 +662,19 @@ const ECRANS = {
   formats: ['formats', 'graph', () => ['Studio', 'Formats'], () => ecranFormats(), () => brancherPeriode()],
   reglages: ['reglages', 'cadenas', () => ['Studio', 'Réglages'], () => ecranReglages(), () => brancherReglages()]
 };
+// on garde l'endroit où on est sur la page quand elle se redessine (changer de semaine, de vue, la mise à jour
+// toutes les 15 s) ; seul un changement d'écran remonte en haut
+let ECRAN_AFFICHE = null;
+const enHaut = () => { const s = document.querySelector('.scroll'); if (s) s.scrollTop = 0; window.scrollTo(0, 0); };
 K.rendre = () => {
   if (!D) return;
   const r = K.route(), e = ECRANS[r.ecran] || ECRANS[''];
+  const sc = document.querySelector('.scroll'), haut = sc ? sc.scrollTop : 0, wy = window.scrollY, meme = ECRAN_AFFICHE === e[0];
+  K.rendreEcran(r, e);
+  if (meme) { const s2 = document.querySelector('.scroll'); if (s2) s2.scrollTop = haut; if (window.scrollY !== wy) window.scrollTo(0, wy); }
+  ECRAN_AFFICHE = e[0];
+};
+K.rendreEcran = (r, e) => {
   const c = conf();
   document.getElementById('racine').innerHTML = K.coquille(c, e[0], K.ariane(e[1], ...e[2](r.params)), e[3](r.params), e[0] === 'programmer');
   K.brancherCoquille(c);

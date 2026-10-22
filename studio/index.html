@@ -81,8 +81,8 @@
 .s-cal-nav .muted{font-size:13px;margin-left:auto}
 .s-cal-fl{display:flex;gap:6px}
 .s-cal-fl .btn svg{width:15px;height:15px}
-.s-cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:12px;align-items:start}
-.s-cal-j{background:var(--soft);border:1px solid var(--line);border-radius:var(--r);padding:10px;min-height:340px}
+.s-cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:12px;align-items:stretch}
+.s-cal-j{background:var(--soft);border:1px solid var(--line);border-radius:var(--r);padding:10px;min-height:max(420px,calc(100vh - 230px));display:flex;flex-direction:column}
 .s-cal-j.auj{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-soft)}
 .s-cal-j.passe{opacity:.72}
 .s-cal-jh{display:flex;align-items:baseline;gap:6px;padding:2px 4px 10px}

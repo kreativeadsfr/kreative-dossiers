@@ -78,7 +78,7 @@ async function traiter(req, env, ctx) {
   // une page par pack : /merci-starter, /merci-growth, /merci-scale, /merci-custom (et /merci)
   if (/^\/merci(-(starter|growth|scale|custom))?\/?$/.test(chemin)) return servir('merci/index.html', env, ctx, { brut: false, origine: url.origin, req });
   // Le paiement depuis la landing, au montant exact, pour TOUS les packs (Custom compris) :
-  //   https://app.kreativeads.fr/payer/custom?creas=45&options=express,ab_visuel
+  //   https://app.kreativeads.fr/payer/custom?creas=45&options=express,variations:1
   //   https://app.kreativeads.fr/payer/growth   (formule=mensuel pour l'abonnement)
   // Le compte client est créé au paiement (webhook), puis la page /merci-<pack> s'affiche.
   // le panier public de la landing (« Voir les options », « Configurer mon pack ») et ses données
@@ -617,9 +617,12 @@ const packDuLien = id => { for (const [pack, f] of Object.entries(LIENS_PAIEMENT
 const OPTIONS = [
   // l'express : un prix fixe selon le pack
   { id: 'express', nom: 'Livraison express', detail: 'Livrée 2 fois plus vite', type: 'fixe', valeur: 390, par_pack: { starter: 90, growth: 190, scale: 290, custom: 390 } },
-  { id: 'ab_visuel', nom: 'A/B test visuel', detail: 'Même texte sur 2 visuels différents', type: 'par_crea', valeur: 20 },
-  { id: 'ab_texte', nom: 'A/B test texte', detail: 'Même visuel avec 2 textes différents', type: 'par_crea', valeur: 15 }
+  // les variations de texte (22/10/2026, remplacent les A/B tests) : sur TOUTES les créas, le même visuel avec
+  // 1 ou 2 textes en plus ; la 1re variation 15 € par créa, la 2e 10 € (donc 25 € par créa pour 2 variations)
+  { id: 'variations', nom: 'Variations de texte', detail: 'Le même visuel avec 2 ou 3 textes, sur chaque créa', type: 'variations', valeur: 15, prix: [15, 10], max: 2 }
 ];
+// « 1 variation de texte (2 textes par visuel) »
+const nomVariations = q => (q > 1 ? q + ' variations' : '1 variation') + ' de texte (' + (q + 1) + ' textes par visuel)';
 // Le pack Custom se configure dans l'espace client : nombre de créas et options.
 const prixOption = (o, pack) => (o.par_pack && o.par_pack[pack] != null) ? o.par_pack[pack] : o.valeur;
 const CUSTOM = {
@@ -634,7 +637,8 @@ const CUSTOM = {
 // (déjà comprise dans le prix mensuel des packs fixes, appliquée aussi aux options).
 function devis(pack, formule, nbDemande, optionsDemandees) {
   const m = formule === 'mensuel';
-  // une option : « express », ou « ab_visuel:5 » (5 créas en A/B test, au plus le nombre de créas du pack)
+  // une option : « express », ou « variations:2 » (2 variations de texte sur chaque créa) ;
+  // les anciens A/B tests (« ab_texte:5 ») ne sont plus en vente : ignorés
   const demandes = {};
   for (const x of optionsDemandees || []) { const [id, q] = String(x).split(':'); demandes[id] = q === undefined ? null : Number(q); }
   let nb, unitaire, base;
@@ -656,15 +660,19 @@ function devis(pack, formule, nbDemande, optionsDemandees) {
     o.qte = Math.min(Math.max(1, reste - (pc.length - k - 1)), Math.max(1, Math.round(voulu))); reste -= o.qte;
   });
   for (const o of options) if (o.type === 'par_crea') base += o.qte * o.valeur;
+  for (const o of options) if (o.type === 'variations') {
+    const q = demandes[o.id] == null || !isFinite(demandes[o.id]) ? 1 : Math.round(demandes[o.id]);
+    o.qte = Math.min(o.max, Math.max(1, q)); o.par_crea = o.prix.slice(0, o.qte).reduce((a, b) => a + b, 0); base += nb * o.par_crea;
+  }
   if (pack === 'custom' && m) base = base * (1 - CUSTOM.remise_mensuel);
   for (const o of options) if (o.type === 'pct') base += base * o.valeur / 100;
   for (const o of options) if (o.type === 'fixe') base += prixOption(o, pack);
   const total = Math.round(base);
   const P = PACKS[pack];
-  const nomOpt = o => o.nom + (o.type === 'par_crea' ? ' × ' + o.qte : '');
+  const nomOpt = o => o.type === 'variations' ? nomVariations(o.qte) : o.nom + (o.type === 'par_crea' ? ' × ' + o.qte : '');
   // ce que voit le client sur la page Stripe : le nom du pack, puis le contenu en points
   const points = [nb + (pack === 'custom' ? ' créatives' : ' visuels statiques') + (m ? ' par mois' : ''), 'Livrés en 1:1, 4:5 et 9:16'].concat(options.map(nomOpt));
-  return { pack, formule: m ? 'mensuel' : 'unique', nb, options: options.map(o => o.type === 'par_crea' ? o.id + ':' + o.qte : o.id), unitaire, total,
+  return { pack, formule: m ? 'mensuel' : 'unique', nb, options: options.map(o => o.type === 'par_crea' || o.type === 'variations' ? o.id + ':' + o.qte : o.id), unitaire, total,
     nom: 'Pack ' + P.nom, description: points.join(' • '),
     libelle: 'Pack ' + P.nom + (m ? ' · abonnement mensuel' : ' · paiement en une fois') + ' · ' + nb + ' créatives' + (m ? ' par mois' : '') +
       (options.length ? ' · ' + options.map(nomOpt).join(', ') : '') };
@@ -1117,10 +1125,10 @@ async function creerDemo(db, env) {
   const J = 864e5, now = maintenant();
   const C = [
     ['lina', 'Lina Mode', 'Lina Moreau', [['starter', 'unique', 6, 280, null, 'brief', 1, null]], 'Commande payée, brief pas encore envoyé'],
-    ['lumen', 'Maison Lumen', 'Hugo Lambert', [['growth', 'unique', 12, 490, 'TEST_DEMO_LUMEN', 'production', 2, null, 'ab_visuel:2,ab_texte:3']], 'Brief reçu, fiche à remplir (avec A/B tests)'],
+    ['lumen', 'Maison Lumen', 'Hugo Lambert', [['growth', 'unique', 12, 490, 'TEST_DEMO_LUMEN', 'production', 2, null, 'variations:1']], 'Brief reçu, fiche à remplir (avec 1 variation de texte)'],
     ['sable', 'Atelier Sable', 'Clara Petit', [['starter', 'unique', 6, 280, 'TEST_DEMO_SABLE', 'production', 4, null]], 'Fiche en retard'],
     ['nordik', 'Nordik Café', 'Erik Dahl', [['custom', 'unique', 40, 1360, 'TEST_DEMO_NORDIK', 'production', 6, null]], 'Sur-mesure en 2 livraisons, brief de la livraison 2 reçu'],
-    ['velvo', 'Velvo', 'Sami Benali', [['scale', 'unique', 24, 890, 'TEST_DEMO_VELVO', 'production', 5, null, 'express,ab_texte:4']], 'Chez la designer, en retard (express, A/B texte)'],
+    ['velvo', 'Velvo', 'Sami Benali', [['scale', 'unique', 24, 890, 'TEST_DEMO_VELVO', 'production', 5, null, 'express,variations:2']], 'Chez la designer, en retard (express, 2 variations de texte)'],
     ['oria', 'Oria Skin', 'Inès Garcia', [['growth', 'mensuel', 12, 420, 'TEST_DEMO_ORIA', 'production', 3, null]], 'Livré par la designer, à envoyer au client'],
     ['pulse', 'Pulse Studio', 'Noah Martin', [['growth', 'unique', 12, 490, 'TEST_DEMO_PULSE', 'livre', 8, null]], 'Livré, le client doit valider'],
     ['brume', 'Brume Paris', 'Léa Roux', [['scale', 'unique', 24, 890, 'TEST_DEMO_BRUME', 'revisions', 10, null]], 'Retouches en cours'],
@@ -1591,7 +1599,7 @@ async function etatsProduction(db) {
   for (const l of L) de(l.dossier).v = { id: l.id, version: l.version, statut: l.statut, retouche: ['a_corriger', 'review_terminee'].includes(l.statut) ? (l.retouche || 'designer') : null,
     le: Math.max(l.cree_le || 0, l.depose_le || 0, l.verifie_le || 0, l.envoye_le || 0, l.review_le || 0, l.retouche_le || 0) };
   for (const o of O) de(o.dossier).o = { etape: o.etape, le: o.le, par: o.par };
-  // les options payées par le client (A/B test visuel, A/B test texte, express) : visibles par le stratégiste et la designer
+  // les options payées par le client (variations de texte, express ; anciennes commandes : A/B tests) : visibles par le stratégiste et la designer
   const commandes = {}, options = {};
   for (const k of K2) { commandes[k.dossier] = k.statut; if (k.options) options[k.dossier] = k.options; }
   return { etats, commandes, options, le: maintenant() };

@@ -17,7 +17,7 @@ fs.rmSync('stripe.log', { force: true });
 // un client et sa session
 let r = await api('/api/admin/clients', A, 'POST', { marque: 'Nova', contact: 'Inès Roy', email: 'ines@nova.fr' });
 const cid = r.d.id; const CK = cookie(await get(r.d.lien.replace(B, '')));
-r = await api('/api/client/moi', CK); t('le portail sait que le paiement est branché et connaît le tarif Custom', r.d.paiement === true && r.d.custom && r.d.custom.options.length === 3);
+r = await api('/api/client/moi', CK); t('le portail sait que le paiement est branché et connaît le tarif Custom', r.d.paiement === true && r.d.custom && r.d.custom.options.length === 2 && r.d.custom.options.some(o => o.id === 'variations'));
 
 // paiement d'un pack fixe : le prix vient du serveur
 r = await api('/api/client/paiement', CK, 'POST', { pack: 'starter', formule: 'unique', total: 1 });
@@ -28,16 +28,16 @@ r = await api('/api/client/paiement', CK, 'POST', { pack: 'growth', formule: 'me
 t('paiement Growth mensuel : abonnement à 420 €/mois', L.mode === 'subscription' && L['line_items[0][price_data][unit_amount]'] === '42000' && L['line_items[0][price_data][recurring][interval]'] === 'month' && L['subscription_data[metadata][pack]'] === 'growth');
 
 // le configurateur Custom
-r = await api('/api/client/paiement', CK, 'POST', { pack: 'custom', formule: 'unique', nb_creas: 47, options: ['ab_texte', 'express', 'ab_visuel', 'pirate'], total: 3 }); L = lignesStripe().pop();
-t('Custom 47 créas → 45, A/B visuel + texte plafonnés à 45 au total, express 390 € : 2 860 €', r.d.total === 2860 && L['line_items[0][price_data][unit_amount]'] === '286000' && L['metadata[options]'] === 'express,ab_visuel:44,ab_texte:1' && L['metadata[nb_creas]'] === '45', JSON.stringify(r.d) + ' ' + L['metadata[options]']);
+r = await api('/api/client/paiement', CK, 'POST', { pack: 'custom', formule: 'unique', nb_creas: 47, options: ['ab_texte:3', 'express', 'variations:2', 'ab_visuel', 'pirate'], total: 3 }); L = lignesStripe().pop();
+t('Custom 47 créas → 45, 2 variations de texte (15 + 10 € par créa), express 390 €, anciens A/B ignorés : 45 × 35 + 45 × 25 + 390 = 3 090 €', r.d.total === 3090 && L['line_items[0][price_data][unit_amount]'] === '309000' && L['metadata[options]'] === 'express,variations:2' && L['metadata[nb_creas]'] === '45', JSON.stringify(r.d) + ' ' + L['metadata[options]']);
 t('… nommé « Pack Custom », le contenu en description', L['line_items[0][price_data][product_data][name]'] === 'Pack Custom' && /^45 créatives • Livrés en 1:1, 4:5 et 9:16/.test(L['line_items[0][price_data][product_data][description]']), L['line_items[0][price_data][product_data][description]']);
-r = await api('/api/client/paiement', CK, 'POST', { pack: 'growth', formule: 'unique', options: ['ab_texte', 'express'] }); L = lignesStripe().pop();
-t('Growth + A/B texte + express : 490 + 12 × 15 + 190 = 860 €', r.d.total === 860 && L['line_items[0][price_data][unit_amount]'] === '86000' && /Livraison express/.test(L['line_items[0][price_data][product_data][description]']), JSON.stringify(r.d));
-r = await api('/api/client/paiement', CK, 'POST', { pack: 'growth', formule: 'mensuel', options: ['ab_visuel'] }); L = lignesStripe().pop();
-t('Growth mensuel + A/B visuel : 420 + 12 × 20 = 660 €/mois, abonnement', r.d.total === 660 && L.mode === 'subscription' && L['line_items[0][price_data][product_data][name]'] === 'Pack Growth' && /12 visuels statiques par mois/.test(L['line_items[0][price_data][product_data][description]']), JSON.stringify(r.d));
+r = await api('/api/client/paiement', CK, 'POST', { pack: 'growth', formule: 'unique', options: ['variations', 'express'] }); L = lignesStripe().pop();
+t('Growth + 1 variation de texte + express : 490 + 12 × 15 + 190 = 860 €', r.d.total === 860 && L['line_items[0][price_data][unit_amount]'] === '86000' && /Livraison express/.test(L['line_items[0][price_data][product_data][description]']) && /1 variation de texte \(2 textes par visuel\)/.test(L['line_items[0][price_data][product_data][description]']), JSON.stringify(r.d) + ' ' + L['line_items[0][price_data][product_data][description]']);
+r = await api('/api/client/paiement', CK, 'POST', { pack: 'growth', formule: 'mensuel', options: ['variations:2'] }); L = lignesStripe().pop();
+t('Growth mensuel + 2 variations de texte : 420 + 12 × 25 = 720 €/mois, abonnement', r.d.total === 720 && L.mode === 'subscription' && L['line_items[0][price_data][product_data][name]'] === 'Pack Growth' && /12 visuels statiques par mois/.test(L['line_items[0][price_data][product_data][description]']), JSON.stringify(r.d));
 r = await api('/api/client/paiement', CK, 'POST', { pack: 'starter', formule: 'unique', integre: true }); L = lignesStripe().pop();
 t('le paiement ouvre toujours la page Stripe (pas de paiement intégré)', r.s === 200 && r.d.url && !L.ui_mode && /\/client\/#\/merci$/.test(L.success_url), JSON.stringify(r.d) + ' ' + L.ui_mode);
-r = await api('/api/client/moi', CK); t('le portail reçoit la clé publique et les options', r.d.stripe_public === 'pk_test_faux' && r.d.options.length === 3, JSON.stringify(r.d.options));
+r = await api('/api/client/moi', CK); t('le portail reçoit la clé publique et les options', r.d.stripe_public === 'pk_test_faux' && r.d.options.length === 2 && r.d.options[1].id === 'variations' && r.d.options[1].max === 2, JSON.stringify(r.d.options));
 r = await api('/api/client/paiement', CK, 'POST', { pack: 'custom', formule: 'mensuel', nb_creas: 500, options: [] });
 t('Custom plafonné à 100 créas, palier 29 €, −15 % en mensuel : 2 465 €', r.d.total === Math.round(100 * 29 * 0.85), JSON.stringify(r.d));
 r = await api('/api/client/paiement?client=' + cid, A, 'POST', { pack: 'starter', formule: 'unique' });
@@ -136,10 +136,10 @@ r = await api('/api/admin/factures', A); t('liste des factures admin', r.s === 2
 // ---- la landing : un lien de paiement pour chaque pack, Custom compris ----
 const lignesBrutes = () => fs.existsSync('stripe.log') ? fs.readFileSync('stripe.log', 'utf8').trim().split('\n').filter(Boolean) : [];
 const avantS = lignesBrutes().length;
-r = await get('/payer/custom?creas=45&options=express,ab_visuel', { headers: { Referer: 'https://kreativeads.fr/tarifs' } });
+r = await get('/payer/custom?creas=45&options=express,variations:1', { headers: { Referer: 'https://kreativeads.fr/tarifs' } });
 const LS = Object.fromEntries(new URLSearchParams(lignesBrutes().slice(avantS).pop() || ''));
 t('lien Custom de la landing → page Stripe (303)', r.status === 303 && /checkout\.stripe\.com/.test(r.headers.get('location') || ''), r.status);
-t('… au bon montant : 45 × 35 + 45 × 20 + 390 = 2 865 €', LS['line_items[0][price_data][unit_amount]'] === '286500', LS['line_items[0][price_data][unit_amount]']);
+t('… au bon montant : 45 × 35 + 45 × 15 + 390 = 2 640 €', LS['line_items[0][price_data][unit_amount]'] === '264000' && LS['metadata[options]'] === 'express,variations:1', LS['line_items[0][price_data][unit_amount]'] + ' ' + LS['metadata[options]']);
 t('… retour sur kreativeads.fr/merci-custom, annulation vers la landing', LS.success_url === 'https://kreativeads.fr/merci-custom?session_id={CHECKOUT_SESSION_ID}' && LS.cancel_url === 'https://kreativeads.fr/tarifs', LS.success_url + ' | ' + LS.cancel_url);
 t('… paiement unique, compte créé au paiement', LS.mode === 'payment' && LS.customer_creation === 'always' && LS['metadata[source]'] === 'landing' && !LS.client_reference_id, JSON.stringify(LS).slice(0, 200));
 r = await get('/payer/starter?options=express'); const LS2 = Object.fromEntries(new URLSearchParams(lignesBrutes().pop() || ''));
@@ -166,11 +166,15 @@ const brief = await r.json();
 t('brief relié à la commande (par son numéro de facture)', brief.ok === true, JSON.stringify(brief));
 const kb = (await api('/api/admin/clients/' + cland.id, A)).d.commandes[0], bj = JSON.parse(kb.brief_json || '[]');
 t('le brief est gardé : 4 réponses, fichiers et choix multiples', bj.length === 4 && bj[2].fichiers[0].nom === 'logo.png' && bj[3].texte === 'Femmes, 25-35 ans' && bj[1].texte === 'Offre 1\nOffre 2', kb.brief_json);
-// les A/B tests en quantité : de 1 au nombre de créas
-r = await get('/payer/growth?options=ab_visuel:5,ab_texte:99');
+// les variations de texte : 1 ou 2, sur toutes les créas
+r = await get('/payer/growth?options=variations:5');
 const LQ = Object.fromEntries(new URLSearchParams(lignesBrutes().pop() || ''));
-t('A/B visuel × 5, A/B texte plafonné à 7 (12 au total) : 490 + 100 + 105 = 695 €', LQ['line_items[0][price_data][unit_amount]'] === '69500' && LQ['metadata[options]'] === 'ab_visuel:5,ab_texte:7', LQ['metadata[options]'] + ' ' + LQ['line_items[0][price_data][unit_amount]']);
-t('… écrit « A/B test visuel × 5 » sur la page Stripe', /A\/B test visuel × 5/.test(LQ['line_items[0][price_data][product_data][description]']), LQ['line_items[0][price_data][product_data][description]']);
+t('variations:5 plafonné à 2 variations : 490 + 12 × (15 + 10) = 790 €', LQ['line_items[0][price_data][unit_amount]'] === '79000' && LQ['metadata[options]'] === 'variations:2', LQ['metadata[options]'] + ' ' + LQ['line_items[0][price_data][unit_amount]']);
+t('… écrit « 2 variations de texte (3 textes par visuel) » sur la page Stripe', /2 variations de texte \(3 textes par visuel\)/.test(LQ['line_items[0][price_data][product_data][description]']), LQ['line_items[0][price_data][product_data][description]']);
+r = await get('/payer/growth?options=variations:0'); const LQ0 = Object.fromEntries(new URLSearchParams(lignesBrutes().pop() || ''));
+t('variations:0 → au moins 1 variation : 490 + 12 × 15 = 670 €', LQ0['line_items[0][price_data][unit_amount]'] === '67000' && LQ0['metadata[options]'] === 'variations:1', LQ0['metadata[options]']);
+r = await get('/payer/growth?options=ab_visuel:5,ab_texte:3'); const LQ1 = Object.fromEntries(new URLSearchParams(lignesBrutes().pop() || ''));
+t('anciens A/B tests plus en vente : ignorés, 490 €', LQ1['line_items[0][price_data][unit_amount]'] === '49000' && !LQ1['metadata[options]'], LQ1['metadata[options]'] + ' ' + LQ1['line_items[0][price_data][unit_amount]']);
 r = await get('/commander/custom'); t('panier public de la landing (style du site)', r.status === 200 && /kc-recap/.test(await r.text()), r.status);
 r = await get('/api/offres'); const off = await r.json(); t('offres publiques (prix express par pack)', off.options.find(o => o.id === 'express').par_pack.growth === 190, JSON.stringify(off).slice(0, 80));
 // les questions du paiement du site (une seule fois) : marque, site, téléphone
@@ -201,7 +205,7 @@ await webhook({ type: 'checkout.session.completed', data: { object: { id: 'cs_q3
 cq = (await api('/api/admin/clients', A)).d.find(c => c.email === 'max@cap.fr');
 t('ancien lien Stripe avec la question : marque reconnue', cq && cq.marque === 'Cap Studio', JSON.stringify(cq).slice(0, 160));
 // depuis le panier affiché dans Framer : chaque pack (même avec options) revient sur sa page merci, l'annulation sur sa page panier
-for (const [pk, q] of [['starter', 'options=express,ab_visuel:2'], ['growth', ''], ['scale', 'options=ab_texte:3'], ['custom', 'creas=55']]) {
+for (const [pk, q] of [['starter', 'options=express,variations:1'], ['growth', ''], ['scale', 'options=variations:2'], ['custom', 'creas=55']]) {
   const avant = lignesBrutes().length;
   r = await get('/payer/' + pk + (q ? '?' + q : ''), { headers: { Referer: B + '/commander/' + pk } });
   const L = Object.fromEntries(new URLSearchParams(lignesBrutes().slice(avant).pop() || ''));

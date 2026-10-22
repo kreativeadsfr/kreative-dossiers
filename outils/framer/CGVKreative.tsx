@@ -40,7 +40,7 @@ const STYLE = `
 `
 
 const TEXTE = `
-<p class="maj">Dernière mise à jour : 17/10/2026</p>
+<p class="maj">Dernière mise à jour : 22/10/2026</p>
 
 <h2>Article 1 - Objet et champ d'application</h2>
 <p>Les présentes Conditions Générales de Vente (« CGV ») régissent les relations contractuelles entre Kreative, auto-entreprise immatriculée au nom de Dario Crespo (SIRET : 103 346 003 00017), dont le siège est situé 47 Rue Vivienne, 75002 Paris, ci-après « le Prestataire », et tout client souhaitant acquérir une prestation de création de visuels publicitaires statiques, ci-après « le Client ».</p>
@@ -69,10 +69,9 @@ const TEXTE = `
 <p>Le Client peut ajouter à sa commande les options suivantes :</p>
 <ul>
   <li>Livraison express : le délai de livraison du pack (de chaque livraison pour le Pack Custom) est divisé par deux. 90 € pour le Pack Starter, 190 € pour le Pack Growth, 290 € pour le Pack Scale et 390 € pour le Pack Custom.</li>
-  <li>A/B test visuel : un même texte décliné sur 2 visuels différents. 20 € par ad concernée.</li>
-  <li>A/B test texte : un même visuel décliné avec 2 textes différents. 15 € par ad concernée.</li>
+  <li>Variations de texte : chaque ad du pack est déclinée sur le même visuel avec un ou deux textes supplémentaires. Une variation (2 textes par visuel) : 15 € par ad. Deux variations (3 textes par visuel) : 25 € par ad.</li>
 </ul>
-<p>Le nombre total d'ads concernées par les options A/B test ne peut pas dépasser le nombre d'ads du pack commandé.</p>
+<p>L'option Variations de texte s'applique à toutes les ads du pack commandé (de chaque livraison pour le Pack Custom). Chaque variation est livrée aux mêmes formats que l'ad d'origine.</p>
 
 <h3>2.3 - Périmètre</h3>
 <p>Les prestations se limitent exclusivement à la création de visuels statiques destinés aux plateformes Meta. Elles n'incluent aucune prestation connexe (gestion de campagnes, ciblage, etc.). Le Client reconnaît en avoir pris connaissance avant toute commande.</p>

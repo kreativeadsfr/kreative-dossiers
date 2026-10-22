@@ -3,7 +3,9 @@
    Utilisé par l'espace client (#/commander/<pack>) et par la page
    publique de la landing (/commander/<pack>).
    Même calcul que le serveur (devis) ; le serveur recalcule de toute façon.
-   Une option « par créa » se prend en quantité : de 1 au nombre de créas.
+   Les variations de texte s'appliquent à toutes les créas : 1 ou 2 variations
+   (la 1re à 15 €, la 2e à 10 € par créa). Une option « par créa » (anciens A/B
+   tests, si le serveur en renvoie encore) se prend de 1 au nombre de créas.
    ============================================================ */
 (function () {
   const esc = K.esc, i = K.i;
@@ -26,15 +28,21 @@
     const c = C(), ids = parCrea(); let reste = PN.nb();
     ids.forEach((id, k) => { const max = Math.max(1, reste - (ids.length - k - 1)); c.qte[id] = Math.min(max, Math.max(1, Math.round(c.qte[id] || 1))); reste -= c.qte[id]; });
   };
-  PN.qte = id => { PN.normaliser(); return C().qte[id] || 1; };
-  PN.max = id => { PN.normaliser(); return PN.nb() - parCrea().filter(x => x !== id).reduce((n, x) => n + (C().qte[x] || 1), 0); };
+  const optDe = id => D().options.find(x => x.id === id);
+  // les variations de texte : 1 à max, et le prix par créa (15 € la 1re, 10 € la 2e)
+  const estVar = o => o && o.type === 'variations';
+  PN.parCreaVar = (o, q) => (o.prix || [o.valeur]).slice(0, q).reduce((a, b) => a + b, 0);
+  PN.detailVar = q => q > 1 ? q + ' variations : ' + (q + 1) + ' textes par visuel' : '1 variation : 2 textes par visuel';
+  PN.nomVar = q => (q > 1 ? q + ' variations' : '1 variation') + ' de texte';
+  PN.qte = id => { const o = optDe(id); if (estVar(o)) return Math.min(o.max || 2, Math.max(1, Math.round(C().qte[id] || 1))); PN.normaliser(); return C().qte[id] || 1; };
+  PN.max = id => { const o = optDe(id); if (estVar(o)) return o.max || 2; PN.normaliser(); return PN.nb() - parCrea().filter(x => x !== id).reduce((n, x) => n + (C().qte[x] || 1), 0); };
   PN.choisir = (pack, formule) => {
     const c = C();
     if (c.pack !== pack) { c.pack = pack; c.options = []; c.qte = {}; }
     if (formule) c.formule = formule;
   };
-  // les options envoyées au serveur : « express », « ab_visuel:5 »
-  PN.liste = () => C().options.map(id => { const o = D().options.find(x => x.id === id); return o && o.type === 'par_crea' ? id + ':' + PN.qte(id) : id; });
+  // les options envoyées au serveur : « express », « variations:2 »
+  PN.liste = () => C().options.filter(id => optDe(id)).map(id => { const o = optDe(id); return o.type === 'par_crea' || estVar(o) ? id + ':' + PN.qte(id) : id; });
   PN.devis = () => {
     const c = C(), d = D(), m = c.formule === 'mensuel', r = d.custom.remise_mensuel, lignes = [];
     const opts = d.options.filter(x => c.options.includes(x.id));
@@ -47,6 +55,7 @@
       base = nb * u; lignes.push([nb + ' créatives × ' + u + ' €', base]);
     }
     opts.filter(x => x.type === 'par_crea').forEach(x => { const q = PN.qte(x.id), v = q * x.valeur; lignes.push([x.nom + ' · ' + q + ' × ' + x.valeur + ' €', v]); base += v; });
+    opts.filter(estVar).forEach(x => { const q = PN.qte(x.id), pc = PN.parCreaVar(x, q), v = nb * pc; lignes.push([PN.nomVar(q) + ' · ' + nb + ' × ' + pc + ' €', v]); base += v; });
     if (c.pack === 'custom' && m) { lignes.push(['Remise mensuelle −' + Math.round(r * 100) + ' %', -base * r]); base *= 1 - r; }
     opts.filter(x => x.type === 'pct').forEach(x => { const v = base * x.valeur / 100; lignes.push([x.nom + ' (+' + x.valeur + ' %)', v]); base += v; });
     opts.filter(x => x.type === 'fixe').forEach(x => { const v = PN.prixOpt(x, c.pack); lignes.push([x.nom, v]); base += v; });
@@ -66,7 +75,7 @@
       : 'Livrée en ' + lots + ' fois, ' + (lots === 2 ? 'à 15 jours d\'intervalle' : 'une par semaine') + ' : chaque livraison en ' + PN.delai();
   };
   PN.corps = () => {
-    const c = C(), P = D().packs[c.pack], noms = D().options.filter(o => c.options.includes(o.id)).map(o => o.nom + (o.type === 'par_crea' ? ' × ' + PN.qte(o.id) : ''));
+    const c = C(), P = D().packs[c.pack], noms = D().options.filter(o => c.options.includes(o.id)).map(o => estVar(o) ? PN.nomVar(PN.qte(o.id)) : o.nom + (o.type === 'par_crea' ? ' × ' + PN.qte(o.id) : ''));
     return { pack: c.pack, formule: c.formule, nb_creas: c.nb, options: PN.liste(),
       texte: 'Pack ' + P.nom + ', ' + PN.devis().nb + ' créatives (' + (c.formule === 'mensuel' ? 'mensuel' : 'commande unique') + ')' + (noms.length ? ' + ' + noms.join(', ') : '') };
   };
@@ -91,16 +100,17 @@
     h += '</div><div class="card recap" id="cf-recap">' + PN.recap(o) + '</div></div>';
     return h;
   };
-  // une option : cochée, et pour les A/B tests, combien de créas (− 3 +)
+  // une option : cochée, et pour les variations de texte, combien de variations (− 1 +)
   PN.options = () => {
     const c = C(), nb = PN.nb();
     return D().options.map(o => {
-      const on = c.options.includes(o.id), parCrea = o.type === 'par_crea', q = PN.qte(o.id), max = PN.max(o.id);
-      const px = o.type === 'pct' ? '+' + o.valeur + ' %' : o.type === 'fixe' ? '+' + K.euros(PN.prixOpt(o, c.pack)) : '+' + o.valeur + ' €<small>par créa</small>';
+      const on = c.options.includes(o.id), vr = estVar(o), parCrea = o.type === 'par_crea' || vr, q = PN.qte(o.id), max = PN.max(o.id);
+      const px = o.type === 'pct' ? '+' + o.valeur + ' %' : o.type === 'fixe' ? '+' + K.euros(PN.prixOpt(o, c.pack)) : '+' + (vr ? PN.parCreaVar(o, on ? q : 1) : o.valeur) + ' €<small>par créa</small>';
+      const un = vr ? 'variation' : 'créa';
       return '<div class="opt' + (on ? ' on' : '') + (on && parCrea ? ' avec-qte' : '') + '" data-cf-opt="' + esc(o.id) + '" role="checkbox" aria-checked="' + on + '" tabindex="0"><span class="case">' + i.coche + '</span>' +
-        '<div class="opt-t"><b>' + esc(o.nom) + '</b><small>' + esc(o.detail) + '</small></div>' +
-        (on && parCrea ? '<div class="qte" data-qte="' + esc(o.id) + '"><button type="button" data-moins aria-label="Une créa de moins"' + (q <= 1 ? ' disabled' : '') + '>−</button>' +
-          '<span><b>' + q + '</b></span><button type="button" data-plus aria-label="Une créa de plus"' + (q >= max ? ' disabled' : '') + '>+</button></div>' : '') +
+        '<div class="opt-t"><b>' + esc(o.nom) + '</b><small>' + esc(vr && on ? PN.detailVar(q) : o.detail) + '</small></div>' +
+        (on && parCrea ? '<div class="qte" data-qte="' + esc(o.id) + '"><button type="button" data-moins aria-label="Une ' + un + ' de moins"' + (q <= 1 ? ' disabled' : '') + '>−</button>' +
+          '<span><b>' + q + '</b></span><button type="button" data-plus aria-label="Une ' + un + ' de plus"' + (q >= max ? ' disabled' : '') + '>+</button></div>' : '') +
         '<span class="px">' + px + '</span></div>';
     }).join('');
   };

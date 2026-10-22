@@ -612,7 +612,10 @@ const nb=()=>{
    nombre de cartes a remplir (les versions en prennent la place). */
 const MAX_VERSIONS = 4;
 const LETTRES = "ABCD";
-const versionsDe = i => { const d = data[i]; return d && d.mode !== "libre" && d.versions > 1 ? Math.min(MAX_VERSIONS, d.versions) : 1; };
+/* 22/10 : variations de texte payees par le client : chaque crea a 2 ou 3 textes
+   par defaut (PRJ.opts.textes) ; la strategiste peut quand meme changer une crea */
+const textesParDefaut = () => (PRJ && PRJ.opts && PRJ.opts.textes > 1) ? PRJ.opts.textes : 1;
+const versionsDe = i => { const d = data[i]; if (d && d.mode === "libre") return 1; if (d && d.versions >= 1) return Math.min(MAX_VERSIONS, d.versions); return textesParDefaut(); };
 const nc = () => { const tot = nb(); let used = 0, cartes = 0;
   while (used < tot) { cartes++; used += Math.min(versionsDe(cartes), tot - used); }
   return cartes; };
@@ -914,11 +917,12 @@ async function ouvre(dossier){
     if(r.ok){const d=await r.json();if(d&&d.nb_creas)n=d.nb_creas;
       if(d&&d.brand_name)PRJ.brand_name=d.brand_name}
   }catch(e){/* donnees.json absent : on garde ce que dit projets.json */}
-  /* 17/10 : les options payees par le client (A/B test visuel, A/B test texte,
-     express), lues dans le portail. Les A/B tests ajoutent des creas a la fiche. */
+  /* 17/10 : les options payees par le client (variations de texte, express ;
+     anciennes commandes : A/B tests), lues dans le portail. Les variations
+     multiplient les textes de chaque crea, les A/B tests ajoutent des creas. */
   const o=await optionsClient(dossier);
   PRJ.opts=o;
-  PRJ.nb_creas=n?n+o.abv+o.abt:0;
+  PRJ.nb_creas=n?n*o.textes+o.abv+o.abt:0;
   if(!n)$("custom").value="";
   montreOptions();
   await chargeRetour(dossier);
@@ -937,7 +941,7 @@ async function ouvre(dossier){
 /* 17/10 : les options du client. Un Custom livre en plusieurs fois les
    repartit entre ses livraisons (comme l espace strategiste). */
 async function optionsClient(dossier){
-  const o={abv:0,abt:0,express:false};
+  const o={abv:0,abt:0,textes:1,express:false};
   let r=null,d=null;
   try{const x=await fetch("/api/equipe/etats",{cache:"no-store",credentials:"same-origin"});if(x.ok)r=await x.json()}catch(e){r=null}
   if(!r||!r.options)return o;
@@ -946,12 +950,14 @@ async function optionsClient(dossier){
   const s=r.options[dossier]||r.options[base]||"";
   const part=t=>!(l&&l.sur>1)?t:Math.floor(t/l.sur)+((l.n||1)<=t%l.sur?1:0);
   s.split(",").forEach(x=>{const [id,q]=x.split(":");
-    if(id==="express")o.express=true;else if(id==="ab_visuel")o.abv=part(+q||0);else if(id==="ab_texte")o.abt=part(+q||0);});
+    if(id==="express")o.express=true;else if(id==="variations")o.textes=1+Math.min(2,Math.max(1,+q||1));
+    else if(id==="ab_visuel")o.abv=part(+q||0);else if(id==="ab_texte")o.abt=part(+q||0);});
   return o;
 }
 function montreOptions(){
   const b=$("options"), o=(PRJ&&PRJ.opts)||{};
   const t=[];
+  if(o.textes>1)t.push("<b>Variations de texte : "+o.textes+" textes par créa</b> : chaque créa a déjà "+o.textes+" champs (A, "+(o.textes>2?"B et C":"B")+"). Écris un texte différent dans chacun, sur le même visuel : une autre accroche, pas une simple reformulation.");
   if(o.abt)t.push("<b>A/B test texte sur "+o.abt+" créa"+(o.abt>1?"s":"")+"</b> : "+(o.abt>1?"choisis "+o.abt+" créas":"choisis une créa")+", puis dans « Déclinaisons de texte », clique sur « 2 textes » et écris le texte B (même visuel, autre texte).");
   if(o.abv)t.push("<b>A/B test visuel sur "+o.abv+" créa"+(o.abv>1?"s":"")+"</b> : "+o.abv+" créa"+(o.abv>1?"s":"")+" en plus, qui reprennent les textes d'une autre (« Reprendre les textes ») avec une autre inspiration.");
   if(o.express)t.push("<b>Express</b> : le client a payé une livraison deux fois plus rapide.");

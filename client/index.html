@@ -452,7 +452,7 @@ function ecranCommander() {
     '<div class="card offre offre-c"><div><h3>Pack Custom</h3><div class="prix"><span>Sur mesure</span>' + (m ? '<small>/ mois</small>' : '') + '</div>' +
     '<div class="unit">À partir de ' + D.custom.min + ' créatives' + (m ? ' par mois' : '') + ', prix dégressif selon le volume.<br>Vous choisissez le volume et les options, le prix s\'affiche tout de suite.</div>' +
     '<div class="acts"><a class="btn btn-d btn-lg" href="#/commander/custom">Configurer mon pack ' + i.fleche + '</a></div></div>' +
-    '<ul>' + ['Volume de créatives au choix', 'Tous les formats Meta', 'Révisions illimitées', 'Options : express, A/B tests', 'Contact WhatsApp inclus',
+    '<ul>' + ['Volume de créatives au choix', 'Tous les formats Meta', 'Révisions illimitées', 'Options : express, variations de texte', 'Contact WhatsApp inclus',
       'Angles marketing variés', 'Support prioritaire', 'Stratégie personnalisée', 'Interlocuteur dédié', 'Cadence de livraison au choix'].map(a => '<li>' + i.coche + '<span>' + a + '</span></li>').join('') + '</ul></div></div>';
   h += '<p class="confiance">' + (m ? ENGAGEMENT : 'Paiement unique, sans engagement.') + '</p>';
   return h;

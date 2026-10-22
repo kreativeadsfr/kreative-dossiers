@@ -76,6 +76,42 @@
 .s-moi img,.s-moi .ph-av{width:52px;height:52px;border-radius:50%;background:var(--soft2);object-fit:cover}
 .s-alerte{display:flex;gap:12px;align-items:flex-start;padding:14px 18px;border-radius:var(--r);background:var(--red-soft);color:var(--red);font-size:13.5px;margin-bottom:14px}
 .s-alerte b{font-weight:600}
+.s-cal-nav{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+.s-cal-nav h3{font:600 17px var(--titre);letter-spacing:-.01em}
+.s-cal-nav .muted{font-size:13px;margin-left:auto}
+.s-cal-fl{display:flex;gap:6px}
+.s-cal-fl .btn svg{width:15px;height:15px}
+.s-cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:12px;align-items:start}
+.s-cal-j{background:var(--soft);border:1px solid var(--line);border-radius:var(--r);padding:10px;min-height:340px}
+.s-cal-j.auj{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-soft)}
+.s-cal-j.passe{opacity:.72}
+.s-cal-jh{display:flex;align-items:baseline;gap:6px;padding:2px 4px 10px}
+.s-cal-jh span{font-size:12px;font-weight:600;color:var(--tx3);text-transform:uppercase;letter-spacing:.06em}
+.s-cal-jh b{font:600 20px/1 var(--titre)}
+.s-cal-j.auj .s-cal-jh b{color:var(--blue-tx)}
+.s-cal-jh small{margin-left:auto;font-size:11.5px;color:var(--tx3)}
+.s-cal-l{display:flex;flex-direction:column;gap:12px}
+.s-cal-rien{border:1.5px dashed var(--line2);border-radius:12px;height:120px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:12px;color:var(--tx3);padding:8px}
+.s-cal-c{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;box-shadow:var(--ombre)}
+.s-cal-v{position:relative;aspect-ratio:9/16;max-height:280px;width:100%;background:#111}
+.s-cal-v video,.s-cal-v img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.s-cal-h{position:absolute;left:8px;top:8px;background:rgba(0,0,0,.72);color:#fff;font:600 12.5px var(--titre);padding:4px 8px;border-radius:7px;font-variant-numeric:tabular-nums}
+.s-cal-e{position:absolute;right:8px;top:8px;background:var(--violet-soft);color:var(--violet);font-size:11px;font-weight:600;padding:3px 7px;border-radius:999px}
+.s-cal-b{padding:10px 10px 4px}
+.s-cal-b .pill{height:21px;font-size:11px;padding:0 8px}
+.s-cal-b b{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:12.5px;font-weight:500;line-height:1.4;margin-top:7px;word-break:break-word}
+.s-cal-f{display:block;font-size:11.5px;color:var(--tx3);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.s-cal-a{display:flex;gap:4px;align-items:center;padding:6px 8px 10px}
+.s-cal-a .btn{height:28px;padding:0 8px;font-size:12px}
+.s-cal-a .btn svg{width:14px;height:14px;flex:none}
+.s-cal-a .btn-s{flex:1;min-width:0}
+.s-cal-a [data-suppr]{flex:none;width:30px;padding:0;justify-content:center}
+.s-cal-vues{margin-left:auto;font-size:12px;font-weight:600}
+.s-tprog .s-tj::first-letter{text-transform:uppercase}
+.s-tprog .s-tj{white-space:nowrap}
+@media(max-width:1180px) and (min-width:901px){.s-cal-a .btn-s{font-size:0;gap:0}.s-cal-a .btn-s svg{margin:0}}
+@media(max-width:900px){.s-cal{grid-template-columns:1fr;gap:10px}.s-cal-j{min-height:0}.s-cal-l{flex-direction:row;overflow-x:auto;gap:10px;padding-bottom:4px}.s-cal-c{width:150px;flex:none}.s-cal-rien{height:auto;padding:14px;width:100%}.s-cal-a .btn-s{font-size:12px;flex:1}.s-cal-nav .muted{margin-left:0;width:100%}.s-cal-j:not(.vide-j) .s-cal-jh{padding-bottom:10px}.s-cal-j.vide-j{padding:8px 10px}.s-cal-j.vide-j .s-cal-jh{padding-bottom:2px}.s-cal-j.vide-j .s-cal-l{display:none}}
+@media(max-width:620px){.sec.s-sec-prog{flex-wrap:wrap}.sec.s-sec-prog .onglets{width:100%}.sec.s-sec-prog .onglets button{flex:1;justify-content:center;padding:0 8px}.s-tprog .s-reel .t b{max-width:190px}}
 @media(max-width:900px){.s-ligne{grid-template-columns:1fr}.s-podium{grid-template-columns:1fr}}
 .s-fmt td:first-child{white-space:nowrap;min-width:170px}
 @media(max-width:620px){.s-prog{flex-wrap:wrap}.s-prog .t{flex:1 1 calc(100% - 140px)}.s-prog > .s-actions,.s-prog > .btn,.s-prog > .pill{flex-basis:100%;margin-left:66px;margin-top:0}.s-carte{grid-template-columns:1fr}.s-carte video{width:100%;height:auto;aspect-ratio:9/16;max-height:340px}}
@@ -269,16 +305,87 @@ function ecranProgrammer() {
   const EC = D.videos.filter(v => v.statut === 'envoi' || v.statut === 'traitement');
   if (EC.length) h += '<div class="sec"><div><h2>En cours de publication</h2><p>Instagram prépare la vidéo, ça prend en général moins de 2 minutes.</p></div></div><div class="card">' +
     EC.map(v => '<div class="s-prog"><div class="h">' + esc(heureDe(v.publier_le)) + '</div><video class="s-mini sm" src="' + esc(v.apercu) + '#t=0.5" muted preload="metadata"></video><div class="t"><b>' + esc(v.legende || 'Sans légende') + '</b><span>' + (v.essai ? 'essai' : 'normal') + '</span></div><span class="pill b"><i></i>Publication en cours</span></div>').join('') + '</div>';
-  const P = D.videos.filter(v => v.statut === 'programme').sort((x, y) => x.publier_le - y.publier_le);
-  h += '<div class="sec"><div><h2>Programmés</h2><p>' + (P.length ? P.length + ' reel' + (P.length > 1 ? 's' : '') + ' à venir.' : 'Rien de programmé pour l\'instant.') + '</p></div></div>';
-  if (P.length) {
-    const jours = {}; P.forEach(v => { const k = jourDe(v.publier_le); (jours[k] = jours[k] || []).push(v); });
-    h += Object.entries(jours).map(([k, L]) => '<div class="s-jour">' + esc(K.date(Date.parse(k + 'T12:00:00'), { weekday: 'long', month: 'long', year: undefined })) + ' · ' + L.length + '</div><div class="card">' + L.map(v => ligneProg(v)).join('') + '</div>').join('');
-  }
+  h += blocProgrammes();
   const pub = D.videos.filter(v => v.statut === 'publie').sort((x, y) => y.publie_le - x.publie_le).slice(0, 8);
   if (pub.length) h += '<div class="sec"><div><h2>Publiés récemment</h2><p>Par le Studio.</p></div></div><div class="card">' + pub.map(v => '<div class="s-prog"><div class="h">' + esc(heureDe(v.publie_le)) + '</div><video class="s-mini sm" src="' + esc(v.apercu) + '#t=0.5" muted preload="metadata"></video><div class="t"><b>' + esc(v.legende || 'Sans légende') + '</b><span>' + esc(K.date(v.publie_le, { weekday: 'short', year: undefined })) + (v.format ? ' · ' + esc(v.format) : '') + ' · ' + (v.essai ? 'essai' : 'normal') + '</span></div>' +
     (v.permalink ? '<a class="btn btn-s btn-sm" href="' + esc(v.permalink) + '" target="_blank" rel="noopener">' + i.externe + 'Voir sur Instagram</a>' : '<span class="pill g"><i></i>Publié</span>') + '</div>').join('') + '</div>';
   return h;
+}
+// ---------- PROGRAMMÉS : trois façons de voir (comme les Projets de l'admin) ----------
+const VUES_PROG = [['semaine', 'Semaine', 'calendrier'], ['liste', 'Liste', 'coche'], ['tableau', 'Tableau', 'liste']];
+const VP = { vue: 'semaine', lundi: null };
+try { const v = localStorage.getItem('studio-vue-prog'); if (VUES_PROG.some(x => x[0] === v)) VP.vue = v; } catch (e) {}
+// le lundi (AAAA-MM-JJ, heure de Paris) de la semaine d'un instant
+const lundiDe = ms => { const d = new Date(jourDe(ms) + 'T12:00:00'); d.setDate(d.getDate() - (d.getDay() + 6) % 7); return jourDe(d.getTime()); };
+const plusJours = (k, n) => { const d = new Date(k + 'T12:00:00'); d.setDate(d.getDate() + n); return jourDe(d.getTime()); };
+// tout ce qui tombe dans la semaine : programmés, en cours, ratés, et publiés (par le Studio ou depuis l'app)
+function reelsSemaine(lundi) {
+  const jours = Array.from({ length: 7 }, (_, n) => plusJours(lundi, n)), dedans = t => t && jours.includes(jourDe(t));
+  const parMedia = new Map(D.medias.map(x => [x.id, x])), L = [];
+  D.videos.forEach(v => {
+    if (v.statut === 'publie') { const m = parMedia.get(v.media_id); if (dedans(v.publie_le)) L.push({ etat: 'publie', t: v.publie_le, v, m }); }
+    else if (['programme', 'envoi', 'traitement', 'erreur'].includes(v.statut) && dedans(v.publier_le)) L.push({ etat: v.statut === 'programme' ? 'prog' : v.statut === 'erreur' ? 'erreur' : 'encours', t: v.publier_le, v });
+  });
+  const duStudio = new Set(D.videos.map(v => v.media_id).filter(Boolean));
+  D.medias.forEach(m => { if (!duStudio.has(m.id) && dedans(m.publie_le)) L.push({ etat: 'publie', t: m.publie_le, m }); });
+  L.sort((a, b) => a.t - b.t);
+  return { jours, L };
+}
+const ETATS_CAL = { prog: ['b', 'Programmé'], encours: ['a', 'En cours'], erreur: ['r', 'Pas publié'], publie: ['g', 'Publié'] };
+function carteCal(x) {
+  const v = x.v, m = x.m, leg = (v ? v.legende : m.legende) || 'Sans légende', essai = v ? v.essai : m.essai, fmt = (v && v.format) || (m && m.format) || '';
+  const visuel = m && m.miniature ? '<img src="' + esc(m.miniature) + '" alt="" loading="lazy">' : v ? '<video src="' + esc(v.apercu) + '#t=0.5" muted loop playsinline preload="metadata"></video>' : '';
+  const [cl, lab] = ETATS_CAL[x.etat], lien = (v && v.permalink) || (m && m.permalink);
+  let actions = '';
+  if (x.etat === 'prog') actions = '<div class="s-cal-a"><button class="btn btn-s btn-sm" data-modifier="' + v.id + '" title="Modifier la légende, le jour ou l\'heure">' + i.crayon + 'Modifier</button>' +
+    '<button class="btn btn-g btn-sm" data-suppr="' + v.id + '" title="Supprimer" aria-label="Supprimer">' + i.poubelle + '</button></div>';
+  else if (x.etat === 'erreur') actions = '<div class="s-cal-a"><a class="btn btn-s btn-sm" href="#/programmer" data-haut>Voir et réessayer</a></div>';
+  else if (lien) actions = '<div class="s-cal-a"><a class="btn btn-g btn-sm" href="' + esc(lien) + '" target="_blank" rel="noopener">' + i.externe + 'Instagram</a>' + (m && S(m).views != null ? '<span class="s-cal-vues">' + court(S(m).views) + ' vues</span>' : '') + '</div>';
+  return '<div class="s-cal-c ' + x.etat + '"><div class="s-cal-v">' + visuel + '<span class="s-cal-h">' + esc(heureDe(x.t)) + '</span>' + (essai ? '<span class="s-cal-e">Essai</span>' : '') + '</div>' +
+    '<div class="s-cal-b"><span class="pill ' + cl + '"><i></i>' + lab + '</span><b title="' + esc(leg) + '">' + esc(leg) + '</b>' + (fmt ? '<span class="s-cal-f">' + esc(fmt) + '</span>' : '') + '</div>' + actions + '</div>';
+}
+function vueSemaine() {
+  if (!VP.lundi) VP.lundi = lundiDe(Date.now());
+  const { jours, L } = reelsSemaine(VP.lundi), auj = jourDe(Date.now()), cetteSemaine = VP.lundi === lundiDe(Date.now());
+  const d1 = new Date(jours[0] + 'T12:00:00'), d7 = new Date(jours[6] + 'T12:00:00');
+  const titre = d1.getMonth() === d7.getMonth() ? d1.getDate() + ' au ' + K.date(d7.getTime(), { month: 'long' }) : K.date(d1.getTime(), { month: 'long', year: d1.getFullYear() === d7.getFullYear() ? undefined : 'numeric' }) + ' au ' + K.date(d7.getTime(), { month: 'long' });
+  const nbProg = L.filter(x => x.etat === 'prog').length, nbPub = L.filter(x => x.etat === 'publie').length;
+  let h = '<div class="s-cal-nav"><div class="s-cal-fl"><button class="btn btn-s btn-sm" data-sem="-1" title="Semaine précédente" aria-label="Semaine précédente">' + i.gauche + '</button>' +
+    '<button class="btn btn-s btn-sm" data-sem="1" title="Semaine suivante" aria-label="Semaine suivante">' + i.fleche + '</button>' +
+    (cetteSemaine ? '' : '<button class="btn btn-g btn-sm" data-sem="0">Cette semaine</button>') + '</div>' +
+    '<h3>Du ' + esc(titre) + '</h3><span class="muted">' + (nbProg ? nbProg + ' programmé' + (nbProg > 1 ? 's' : '') : 'Aucun programmé') + (nbPub ? ' · ' + nbPub + ' publié' + (nbPub > 1 ? 's' : '') : '') + '</span></div>';
+  h += '<div class="s-cal">' + jours.map(k => {
+    const t = Date.parse(k + 'T12:00:00'), du = L.filter(x => jourDe(x.t) === k);
+    return '<div class="s-cal-j' + (du.length ? '' : ' vide-j') + (k === auj ? ' auj' : '') + (k < auj ? ' passe' : '') + '"><div class="s-cal-jh"><span>' + esc(K.date(t, { weekday: 'short', day: undefined, month: undefined, year: undefined }).replace('.', '')) + '</span><b>' + new Date(t).getDate() + '</b>' +
+      (du.length ? '<small>' + du.length + ' reel' + (du.length > 1 ? 's' : '') + '</small>' : '<small>0 reel</small>') + '</div>' +
+      '<div class="s-cal-l">' + (du.length ? du.map(carteCal).join('') : '<div class="s-cal-rien">Rien ce jour-là</div>') + '</div></div>';
+  }).join('') + '</div>';
+  return h;
+}
+function blocProgrammes() {
+  const P = D.videos.filter(v => v.statut === 'programme').sort((x, y) => x.publier_le - y.publier_le);
+  let h = '<div class="sec s-sec-prog"><div><h2>Programmés</h2><p>' + (P.length ? P.length + ' reel' + (P.length > 1 ? 's' : '') + ' à venir' + (P.length ? ', le prochain le ' + esc(K.dateHeure(P[0].publier_le)) : '') + '.' : 'Rien de programmé pour l\'instant.') + '</p></div>' +
+    '<div class="onglets">' + VUES_PROG.map(v => '<button data-vprog="' + v[0] + '" class="' + (VP.vue === v[0] ? 'on' : '') + '">' + i[v[2]] + v[1] + '</button>').join('') + '</div></div>';
+  if (VP.vue === 'semaine') return h + vueSemaine();
+  if (!P.length) return h + '<div class="card"><div class="vide">' + i.calendrier + 'Rien de programmé pour l\'instant. Déposez une vidéo plus haut.</div></div>';
+  if (VP.vue === 'liste') {
+    const jours = {}; P.forEach(v => { const k = jourDe(v.publier_le); (jours[k] = jours[k] || []).push(v); });
+    return h + Object.entries(jours).map(([k, L]) => '<div class="s-jour">' + esc(K.date(Date.parse(k + 'T12:00:00'), { weekday: 'long', month: 'long', year: undefined })) + ' · ' + L.length + '</div><div class="card">' + L.map(v => ligneProg(v)).join('') + '</div>').join('');
+  }
+  return h + '<div class="card"><div class="tbl-wrap"><table class="tbl s-tprog"><thead><tr><th>Reel</th><th>Jour</th><th>Heure</th><th>Format</th><th>Type</th><th></th></tr></thead><tbody>' +
+    P.map(v => '<tr><td><div class="s-reel"><video class="s-mini sm" src="' + esc(v.apercu) + '#t=0.5" muted preload="metadata"></video><div class="t"><b title="' + esc(v.legende) + '">' + esc(v.legende || 'Sans légende') + '</b><span>' + esc(v.nom || '') + '</span></div></div></td>' +
+      '<td class="s-tj">' + esc(K.date(v.publier_le, { weekday: 'long', year: undefined })) + '</td><td class="num"><b>' + esc(heureDe(v.publier_le)) + '</b></td>' +
+      '<td>' + (v.format ? esc(v.format) : '<span class="muted">Sans format</span>') + '</td><td>' + typeReel(v) + '</td>' +
+      '<td class="fin"><div class="s-actions" style="margin:0;flex-wrap:nowrap;justify-content:flex-end"><button class="btn btn-s btn-sm" data-modifier="' + v.id + '">' + i.crayon + 'Modifier</button><button class="btn btn-s btn-sm" data-maintenant="' + v.id + '">Publier maintenant</button>' +
+      '<button class="btn btn-g btn-sm" data-suppr="' + v.id + '" title="Supprimer" aria-label="Supprimer">' + i.poubelle + '</button></div></td></tr>').join('') +
+    '</tbody></table></div></div>';
+}
+function brancherProgrammes() {
+  document.querySelectorAll('[data-vprog]').forEach(b => b.onclick = () => { VP.vue = b.dataset.vprog; try { localStorage.setItem('studio-vue-prog', VP.vue); } catch (e) {} K.rendre(); });
+  document.querySelectorAll('[data-sem]').forEach(b => b.onclick = () => { const n = Number(b.dataset.sem); VP.lundi = n ? plusJours(VP.lundi, 7 * n) : lundiDe(Date.now()); K.rendre(); });
+  document.querySelectorAll('[data-haut]').forEach(a => a.onclick = () => window.scrollTo(0, 0));
+  // au survol, la vidéo programmée se lit (sans le son)
+  document.querySelectorAll('.s-cal-v video').forEach(vd => { const c = vd.closest('.s-cal-c'); c.onmouseenter = () => vd.play().catch(() => {}); c.onmouseleave = () => { vd.pause(); }; });
 }
 function lireCarte(el) {
   const v = q => el.querySelector('[data-champ="' + q + '"]');
@@ -386,6 +493,7 @@ function brancherProgrammer() {
     for (const el of cartes) { try { await enregistrerCarte(el.dataset.carte, el); } catch (er) {} }
     K.toast('Dates réparties sur ' + Math.ceil(cartes.length / LOT.parJour) + ' jour' + (cartes.length > LOT.parJour ? 's' : '') + '. Vérifiez, puis « Tout programmer ».');
   };
+  brancherProgrammes();
   brancherCommun();
 }
 function brancherCommun() {

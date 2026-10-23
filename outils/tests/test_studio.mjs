@@ -174,6 +174,24 @@ r = await api('/api/studio/avancer', A, 'POST'); r = await api('/api/studio/avan
 SB = (await api('/api/studio', A)).d;
 t('… puis les suivants, au fil des passages', [vb1, vb2, vb3].every(v => sb(v.id).statut === 'publie'), [vb1, vb2, vb3].map(v => sb(v.id).statut).join(','));
 
+// ---------- retirer un reel publié du Studio, et les reels archivés sur Instagram ----------
+const archiver = (id, on) => fetch('http://127.0.0.1:9911/ig/_archiver', { method: 'POST', body: 'id=' + id + '&on=' + (on ? 1 : 0) });
+SB = (await api('/api/studio', A)).d;
+const pubB = SB.videos.find(x => x.id === vb2.id), mB = pubB && pubB.media_id;
+r = await api('/api/studio/medias/' + mB, A, 'DELETE');
+SB = (await api('/api/studio', A)).d;
+t('« Retirer du Studio » : le reel disparaît (Vidéos et calendrier), sa vidéo aussi', r.s === 200 && !SB.medias.some(x => x.id === mB) && !SB.videos.some(x => x.id === vb2.id), r.s + ' ' + JSON.stringify(r.d));
+t('… et ne revient pas à la mise à jour suivante', (await api('/api/studio/actualiser', A, 'POST')).s === 200 && !(await api('/api/studio', A)).d.medias.some(x => x.id === mB));
+r = await api('/api/studio/medias/' + mB, S, 'DELETE'); t('retirer est réservé à l\'admin', r.s === 401 || r.s === 403, r.s);
+const mC = (await api('/api/studio', A)).d.videos.find(x => x.id === vb3.id).media_id;
+await archiver(mC, true);
+await api('/api/studio/actualiser', A, 'POST'); SB = (await api('/api/studio', A)).d;
+t('un reel archivé dans l\'app Instagram disparaît tout seul du Studio', !SB.medias.some(x => x.id === mC) && !SB.videos.some(x => x.id === vb3.id), SB.medias.map(x => x.id).join(','));
+t('… les autres reels restent', SB.medias.some(x => x.id === 'media_ext90'), SB.medias.map(x => x.id).join(','));
+await archiver(mC, false);
+await api('/api/studio/actualiser', A, 'POST');
+t('… et revient s\'il est désarchivé', (await api('/api/studio', A)).d.medias.some(x => x.id === mC));
+
 // ---------- déconnexion ----------
 r = await api('/api/studio/connexion', A, 'DELETE');
 r = await api('/api/studio', A);

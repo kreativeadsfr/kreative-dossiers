@@ -32,6 +32,8 @@ http.createServer((req, res) => {
     const p = u.pathname.replace(/^\/ig\/(v[\d.]+\/)?/, '/'), rep = (s, o) => { res.writeHead(s, {'content-type':'application/json'}); res.end(JSON.stringify(o)); };
     // « Meta bloque l'accès » (API access blocked, code 200) : POST /ig/_bloquer on=1 / on=0
     if (p === '/_bloquer') { IG.bloque = q.on === '1'; return rep(200, { ok: true }); }
+    // archiver un reel dans l'app : il disparaît de /media (POST /ig/_archiver id=… on=1 / on=0)
+    if (p === '/_archiver') { IG.archives = IG.archives || {}; IG.archives[q.id] = q.on === '1'; return rep(200, { ok: true }); }
     if (IG.bloque) return rep(400, { error: { message: 'API access blocked.', type: 'OAuthException', code: 200 } });
     if (p === '/refresh_access_token') return rep(200, { access_token: 'tok_rafraichi', token_type: 'bearer', expires_in: 5184000 });
     if (!jeton || /^mauvais/.test(jeton)) return rep(400, { error: { message: 'Invalid OAuth access token - Cannot parse access token', type: 'OAuthException', code: 190 } });
@@ -45,7 +47,7 @@ http.createServer((req, res) => {
     let m;
     if ((m = p.match(/^\/(cont_\d+)$/))) { IG.conteneurs[m[1]] = (IG.conteneurs[m[1]] || 0) + 1; return rep(200, { id: m[1], status_code: IG.conteneurs[m[1]] >= 2 ? 'FINISHED' : 'IN_PROGRESS' }); }
     const stats = id => { const k = Number(String(id).replace(/\D/g, '')) || 7; return { views: 1000 * k, reach: 800 * k, likes: 50 * k, comments: 3 * k, shares: 9 * k, saved: 4 * k, total_interactions: 66 * k, ig_reels_avg_watch_time: 4200 + k, follows: 2 * k, profile_visits: 11 * k }; };
-    if (p === '/1789/media') return rep(200, { data: IG.publies.concat(['media_ext90']).map(id => ({ id, caption: id === 'media_ext90' ? 'Un reel posté depuis l\'app' : 'publié par le studio', media_type: 'VIDEO', media_product_type: id === 'media_ext90' ? 'FEED' : 'REELS', permalink: 'https://www.instagram.com/reel/' + id + '/', thumbnail_url: 'http://127.0.0.1:9911/ig/miniature/' + id + '.jpg', timestamp: '2026-10-' + (id === 'media_ext90' ? '02' : '20') + 'T10:00:00+0000' })), paging: {} });
+    if (p === '/1789/media') return rep(200, { data: IG.publies.concat(['media_ext90']).filter(id => !(IG.archives || {})[id]).map(id => ({ id, caption: id === 'media_ext90' ? 'Un reel posté depuis l\'app' : 'publié par le studio', media_type: 'VIDEO', media_product_type: id === 'media_ext90' ? 'FEED' : 'REELS', permalink: 'https://www.instagram.com/reel/' + id + '/', thumbnail_url: 'http://127.0.0.1:9911/ig/miniature/' + id + '.jpg', timestamp: '2026-10-' + (id === 'media_ext90' ? '02' : '20') + 'T10:00:00+0000' })), paging: {} });
     if (p === '/1789/insights') return rep(200, { data: [{ name: 'follower_count', period: 'day', values: [{ value: 12, end_time: '2026-10-19T07:00:00+0000' }, { value: 8, end_time: '2026-10-20T07:00:00+0000' }] }] });
     if ((m = p.match(/^\/(media_[a-z]*\d+)\/insights$/))) { const demande = String(q.metric || '').split(','), s = stats(m[1]);
       fs.appendFileSync('ig.log', JSON.stringify({ quoi: 'stats', id: m[1], metric: q.metric }) + '\n');

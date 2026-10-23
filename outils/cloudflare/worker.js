@@ -2971,6 +2971,8 @@ async function baseStudio(env) {
       // abonnés : le total relevé chaque jour, et les nouveaux abonnés du jour donnés par Instagram
       db.prepare('CREATE TABLE IF NOT EXISTS studio_jours (jour TEXT PRIMARY KEY, abonnes INTEGER, gagnes INTEGER)'),
       db.prepare('CREATE INDEX IF NOT EXISTS i_studio_v_statut ON studio_videos(statut, publier_le)')]);
+    // masque : 1 = retiré du Studio par Dario, 2 = n'est plus sur Instagram (archivé ou supprimé dans l'app)
+    try { await db.prepare('ALTER TABLE studio_medias ADD COLUMN masque INTEGER DEFAULT 0').run(); } catch (e) {}
     STUDIO_PRET = true;
   }
   return db;
@@ -3053,7 +3055,7 @@ async function apiStudio(req, env, ctx, url, chemin, methode) {
     const R = await reglageStudio(db);
     const [V, M, J] = await Promise.all([
       db.prepare("SELECT * FROM studio_videos WHERE statut != 'supprime' ORDER BY COALESCE(publier_le, cree_le) DESC LIMIT 500").all(),
-      db.prepare('SELECT * FROM studio_medias ORDER BY publie_le DESC LIMIT 1000').all(),
+      db.prepare('SELECT * FROM studio_medias WHERE COALESCE(masque, 0) = 0 ORDER BY publie_le DESC LIMIT 1000').all(),
       db.prepare('SELECT * FROM studio_jours ORDER BY jour DESC LIMIT 400').all()]);
     return json({ compte: { connecte: !!R.token, username: R.username || '', nom: R.nom || '', photo: R.photo || '', abonnes: R.abonnes || 0, token_le: R.token_le || null, erreur: R.erreur || '' },
       formats: Array.isArray(R.formats) ? R.formats : [], sync_le: R.sync_le || null, videos: V.results.map(VIDEO_PUBLIQUE), medias: M.results.map(MEDIA_PUBLIC), jours: J.results });
@@ -3130,6 +3132,12 @@ async function apiStudio(req, env, ctx, url, chemin, methode) {
     }
   }
   // un reel (publié par le Studio ou depuis l'app) : son format, essai ou non
+  // retirer un reel publié du Studio (il disparaît du calendrier, de Vidéos et des statistiques). Instagram ne laisse
+  // pas un outil supprimer, archiver ni modifier la légende d'un reel publié : ça se fait dans l'app.
+  if ((m = chemin.match(/^\/medias\/([A-Za-z0-9_]+)$/)) && methode === 'DELETE') {
+    await masquerMedia(db, env, m[1], 1);
+    return json({ ok: true });
+  }
   if ((m = chemin.match(/^\/medias\/([A-Za-z0-9_]+)$/)) && methode === 'PATCH') {
     const x = await db.prepare('SELECT media_id FROM studio_medias WHERE media_id = ?').bind(m[1]).first();
     if (!x) return json({ erreur: 'Reel introuvable.' }, 404);
@@ -3217,6 +3225,15 @@ async function avancerStudio(env, budgetMs) {
 }
 
 // ---------- les statistiques : le compte, les abonnés, et chaque reel (les plus récents d'abord) ----------
+async function masquerMedia(db, env, mediaId, raison) {
+  await db.prepare(`INSERT INTO studio_medias (media_id, masque) VALUES (?, ?) ON CONFLICT(media_id) DO UPDATE SET masque = excluded.masque`).bind(String(mediaId), raison).run();
+  // sa vidéo du Studio n'est plus utile : le fichier est effacé, la vidéo ne s'affiche plus
+  const { results: V } = await db.prepare("SELECT id, cle FROM studio_videos WHERE media_id = ? AND statut = 'publie'").bind(String(mediaId)).all();
+  for (const v of V) {
+    if (env.FICHIERS && v.cle) { try { await env.FICHIERS.delete(v.cle); } catch (e) {} }
+    await db.prepare("UPDATE studio_videos SET statut = 'supprime' WHERE id = ?").bind(v.id).run();
+  }
+}
 async function synchroStudio(env, force) {
   const db = await baseStudio(env);
   let R = await reglageStudio(db);
@@ -3240,7 +3257,8 @@ async function synchroStudio(env, force) {
     }
   } catch (e) {}
   // la liste des reels (jusqu'à 150), puis leurs statistiques
-  let suite = null, n = 0;
+  const debutListe = maintenant();
+  let suite = null, n = 0, plusAncien = Infinity, vus = 0;
   do {
     const p = suite ? Object.fromEntries(new URL(suite).searchParams) : { fields: 'id,caption,media_type,media_product_type,permalink,thumbnail_url,media_url,timestamp', limit: 50, access_token: T };
     p.access_token = T;
@@ -3248,11 +3266,19 @@ async function synchroStudio(env, force) {
     for (const x of page.data || []) {
       if (x.media_type !== 'VIDEO' && x.media_product_type !== 'REELS') continue;
       await db.prepare(`INSERT INTO studio_medias (media_id, legende, type, permalink, miniature, publie_le, vu_le) VALUES (?, ?, ?, ?, ?, ?, ?)
-        ON CONFLICT(media_id) DO UPDATE SET legende = excluded.legende, type = excluded.type, permalink = excluded.permalink, miniature = COALESCE(excluded.miniature, studio_medias.miniature), publie_le = COALESCE(studio_medias.publie_le, excluded.publie_le), vu_le = excluded.vu_le`)
+        ON CONFLICT(media_id) DO UPDATE SET legende = excluded.legende, type = excluded.type, permalink = excluded.permalink, miniature = COALESCE(excluded.miniature, studio_medias.miniature), publie_le = COALESCE(studio_medias.publie_le, excluded.publie_le), vu_le = excluded.vu_le,
+          masque = CASE WHEN studio_medias.masque = 2 THEN 0 ELSE studio_medias.masque END`)
         .bind(String(x.id), x.caption || '', x.media_product_type || x.media_type, x.permalink || null, x.thumbnail_url || null, x.timestamp ? Date.parse(x.timestamp) : null, maintenant()).run();
     }
+    for (const x of page.data || []) { vus++; if (x.timestamp) plusAncien = Math.min(plusAncien, Date.parse(x.timestamp)); }
     suite = page.paging && page.paging.next; n++;
   } while (suite && n < 3);
+  // un reel déjà vu qu'Instagram ne renvoie plus a été archivé ou supprimé dans l'app : on le cache (il revient s'il est désarchivé).
+  // Seulement sur la période que la liste couvre entièrement (toute la liste, ou les reels plus récents que le dernier lu).
+  const complet = !suite, { results: partis } = await db.prepare(`SELECT media_id FROM studio_medias WHERE vu_le IS NOT NULL AND vu_le < ? AND COALESCE(masque, 0) = 0
+    AND (? = 1 OR publie_le >= ?)`).bind(debutListe, complet ? 1 : 0, isFinite(plusAncien) ? plusAncien : maintenant()).all();
+  // prudence : jamais si Instagram n'a rien renvoyé, ni plus de 10 d'un coup (une réponse incomplète ne doit rien cacher)
+  if (vus > 0 && partis.length <= 10) for (const x of partis) await masquerMedia(db, env, x.media_id, 2);
   // les statistiques : jamais lues d'abord, puis les reels des 60 derniers jours, les moins à jour d'abord
   const aLire = (await db.prepare(`SELECT media_id, type FROM studio_medias WHERE stats_le IS NULL OR publie_le > ? ORDER BY CASE WHEN stats_le IS NULL THEN 0 ELSE 1 END, stats_le LIMIT ?`)
     .bind(maintenant() - 60 * 864e5, STUDIO.stats_par_passe).all()).results;

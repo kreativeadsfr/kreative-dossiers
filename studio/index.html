@@ -388,7 +388,8 @@ function ecranProgrammer() {
   h += blocProgrammes();
   const pub = D.videos.filter(v => v.statut === 'publie').sort((x, y) => y.publie_le - x.publie_le).slice(0, 8);
   if (pub.length) h += '<div class="sec"><div><h2>Publiés récemment</h2><p>Par le Studio.</p></div></div><div class="card">' + pub.map(v => '<div class="s-prog"><div class="h">' + esc(heureDe(v.publie_le)) + '</div>' + miniVideo(v, 's-mini sm') + '<div class="t"><b>' + esc(v.legende || 'Sans légende') + '</b><span>' + esc(K.date(v.publie_le, { weekday: 'short', year: undefined })) + (v.format ? ' · ' + esc(v.format) : '') + ' · ' + (v.essai ? 'essai' : 'normal') + '</span></div>' +
-    (v.permalink ? '<a class="btn btn-s btn-sm" href="' + esc(v.permalink) + '" target="_blank" rel="noopener">' + i.externe + 'Voir sur Instagram</a>' : '<span class="pill g"><i></i>Publié</span>') + '</div>').join('') + '</div>';
+    (v.permalink ? '<a class="btn btn-s btn-sm" href="' + esc(v.permalink) + '" target="_blank" rel="noopener">' + i.externe + 'Voir sur Instagram</a>' : '<span class="pill g"><i></i>Publié</span>') +
+    (v.media_id ? '<button class="btn btn-g btn-sm" data-retirer="' + esc(v.media_id) + '" title="Retirer du Studio" aria-label="Retirer du Studio">' + i.poubelle + '</button>' : '') + '</div>').join('') + '</div>';
   return h;
 }
 // ---------- PROGRAMMÉS : trois façons de voir (comme les Projets de l'admin) ----------
@@ -420,7 +421,10 @@ function carteCal(x) {
   if (x.etat === 'prog') actions = '<div class="s-cal-a"><button class="btn btn-s btn-sm" data-modifier="' + v.id + '" title="Modifier la légende, le jour ou l\'heure">' + i.crayon + 'Modifier</button>' +
     '<button class="btn btn-g btn-sm" data-suppr="' + v.id + '" title="Supprimer" aria-label="Supprimer">' + i.poubelle + '</button></div>';
   else if (x.etat === 'erreur') actions = '<div class="s-cal-a"><a class="btn btn-s btn-sm" href="#/programmer" data-haut>Voir et réessayer</a></div>';
-  else if (lien) actions = '<div class="s-cal-a"><a class="btn btn-g btn-sm" href="' + esc(lien) + '" target="_blank" rel="noopener">' + i.externe + 'Instagram</a>' + (m && S(m).views != null ? '<span class="s-cal-vues">' + court(S(m).views) + ' vues</span>' : '') + '</div>';
+  else if (x.etat === 'publie') { const mid = (m && m.id) || (v && v.media_id);
+    actions = '<div class="s-cal-a">' + (lien ? '<a class="btn btn-g btn-sm" href="' + esc(lien) + '" target="_blank" rel="noopener">' + i.externe + 'Instagram</a>' : '') +
+      (m && S(m).views != null ? '<span class="s-cal-vues">' + court(S(m).views) + ' vues</span>' : '') +
+      (mid ? '<button class="btn btn-g btn-sm s-retirer" data-retirer="' + esc(mid) + '" title="Retirer du Studio" aria-label="Retirer du Studio">' + i.poubelle + '</button>' : '') + '</div>'; }
   return '<div class="s-cal-c ' + x.etat + '"><div class="s-cal-v"' + (v && !(m && m.miniature) ? ' data-lire="' + esc(v.apercu) + '"' : '') + '>' + visuel + '<span class="s-cal-h">' + esc(heureDe(x.t)) + '</span>' + (essai ? '<span class="s-cal-e">Essai</span>' : '') + '</div>' +
     '<div class="s-cal-b"><span class="pill ' + cl + '"><i></i>' + lab + '</span><b title="' + esc(leg) + '">' + esc(leg) + '</b>' + (fmt ? '<span class="s-cal-f">' + esc(fmt) + '</span>' : '') + '</div>' + actions + '</div>';
 }
@@ -667,7 +671,17 @@ function brancherProgrammer() {
   brancherJours();
   brancherCommun();
 }
+// retirer un reel publié du Studio (Instagram ne laisse aucun outil le supprimer ni changer sa légende)
+function brancherRetirer() {
+  document.querySelectorAll('[data-retirer]').forEach(bt => bt.onclick = async e => {
+    e.preventDefault(); e.stopPropagation();
+    if (!await K.confirmer('Retirer ce reel du Studio ?', 'Il disparaît du calendrier, de Vidéos et des statistiques. Sur Instagram, il reste en ligne : pour le supprimer ou l\'archiver là-bas, faites-le dans l\'app (Instagram ne laisse aucun outil le faire).', 'Retirer', true)) return;
+    try { await K.api('/api/studio/medias/' + encodeURIComponent(bt.dataset.retirer), { methode: 'DELETE' }); K.toast('Retiré du Studio'); await recharger(); }
+    catch (er) { K.toast(/introuvable/i.test(er.message) ? 'Collez d\'abord le Worker v58 dans Cloudflare.' : er.message); }
+  });
+}
 function brancherCommun() {
+  brancherRetirer();
   document.querySelectorAll('[data-maintenant]').forEach(bt => bt.onclick = async () => {
     if (!D.compte.connecte) return K.toast('Connectez d\'abord Instagram dans Réglages.');
     if (!await K.confirmer('Publier maintenant ?', 'Le reel part tout de suite sur Instagram.', 'Publier maintenant')) return;
@@ -714,13 +728,15 @@ function ecranVideos() {
       '<td><select class="in" data-mformat="' + esc(x.id) + '"><option value="">Sans format</option>' + fmts.map(f => '<option' + (f === x.format ? ' selected' : '') + '>' + esc(f) + '</option>').join('') + '</select></td>' +
       '<td><button class="btn btn-g btn-sm" data-messai="' + esc(x.id) + '" title="Changer">' + typeReel(x) + '</button></td>' +
       COLS.map(([k]) => '<td class="num">' + cellule(x, k) + '</td>').join('') +
-      '<td class="fin">' + (x.permalink ? '<a class="btn btn-g btn-sm" href="' + esc(x.permalink) + '" target="_blank" rel="noopener" title="Ouvrir sur Instagram" aria-label="Ouvrir sur Instagram">' + i.externe + '</a>' : '') + '</td></tr>').join('')
+      '<td class="fin"><div style="display:flex;gap:2px;justify-content:flex-end">' + (x.permalink ? '<a class="btn btn-g btn-sm" href="' + esc(x.permalink) + '" target="_blank" rel="noopener" title="Ouvrir sur Instagram" aria-label="Ouvrir sur Instagram">' + i.externe + '</a>' : '') +
+        '<button class="btn btn-g btn-sm" data-retirer="' + esc(x.id) + '" title="Retirer du Studio" aria-label="Retirer du Studio">' + i.poubelle + '</button></div></td></tr>').join('')
       : '<tr><td colspan="11"><div class="vide">' + i.image + (D.medias.length ? 'Aucun reel ne correspond.' : 'Vos reels apparaîtront ici après la première mise à jour des statistiques.') + '</div></td></tr>') +
     '</tbody></table></div></div>';
   h += '<p class="muted" style="font-size:12.5px;margin-top:12px">« Abonnés » : les personnes qui se sont abonnées depuis ce reel, quand Instagram le donne. « Visionnage » : la durée moyenne regardée.</p>';
   return h;
 }
 function brancherVideos() {
+  brancherRetirer();
   brancherPeriode();
   document.querySelectorAll('[data-tri]').forEach(t => t.onclick = () => { const k = t.dataset.tri; if (VT.tri === k) VT.sens = -VT.sens; else { VT.tri = k; VT.sens = -1; } K.rendre(); });
   const q = document.getElementById('v-q');

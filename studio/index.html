@@ -113,6 +113,42 @@
 @media(max-width:1180px) and (min-width:901px){.s-cal-a .btn-s{font-size:0;gap:0}.s-cal-a .btn-s svg{margin:0}}
 @media(max-width:900px){.s-cal{grid-template-columns:1fr;gap:10px}.s-cal-j{min-height:0}.s-cal-l{flex-direction:row;overflow-x:auto;gap:10px;padding-bottom:4px}.s-cal-c{width:150px;flex:none}.s-cal-rien{height:auto;padding:14px;width:100%}.s-cal-a .btn-s{font-size:12px;flex:1}.s-cal-nav .muted{margin-left:0;width:100%}.s-cal-j:not(.vide-j) .s-cal-jh{padding-bottom:10px}.s-cal-j.vide-j{padding:8px 10px}.s-cal-j.vide-j .s-cal-jh{padding-bottom:2px}.s-cal-j.vide-j .s-cal-l{display:none}}
 @media(max-width:620px){.sec.s-sec-prog{flex-wrap:wrap}.sec.s-sec-prog .onglets{width:100%}.sec.s-sec-prog .onglets button{flex:1;justify-content:center;padding:0 8px}.s-tprog .s-reel .t b{max-width:190px}}
+.dp-champ{position:relative}
+.dp-btn{display:flex;align-items:center;gap:9px;text-align:left;cursor:pointer;font-size:14px;color:var(--ink)}
+.dp-btn:hover{border-color:var(--tx3)}
+.dp-btn[aria-expanded="true"]{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-soft)}
+.dp-btn svg{width:16px;height:16px;flex:none;color:var(--tx3)}
+.dp-btn span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dp-btn span::first-letter{text-transform:uppercase}
+.dp-btn .dp-fl{width:12px;height:12px}
+.dp-btn.petit{height:36px;font-size:13px;min-width:200px}
+.dp{position:fixed;z-index:200;width:324px;background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:0 24px 60px -18px rgba(0,0,0,.28),0 4px 14px -6px rgba(0,0,0,.12);padding:14px 14px 12px}
+.dp-h{display:flex;align-items:center;gap:4px;padding:0 2px 10px}
+.dp-h b{flex:1;font:600 16px var(--titre);letter-spacing:-.01em}
+.dp-nav{width:32px;height:32px;border-radius:9px;display:grid;place-items:center;color:var(--ink)}
+.dp-nav:hover:not(:disabled){background:var(--soft)}
+.dp-nav:disabled{color:var(--line2);cursor:default}
+.dp-nav svg{width:16px;height:16px}
+.dp-sem,.dp-g{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.dp-sem span{font-size:11.5px;font-weight:600;color:var(--tx3);text-align:center;padding:4px 0 6px}
+.dp-g button{position:relative;height:38px;border-radius:10px;font-size:14px;font-weight:500;color:var(--ink);font-variant-numeric:tabular-nums;transition:background .1s}
+.dp-g button:hover:not(:disabled):not(.on){background:var(--soft)}
+.dp-g button:focus-visible{outline:2px solid var(--blue);outline-offset:1px}
+.dp-g button:disabled{color:var(--line2);cursor:default}
+.dp-g button.auj{box-shadow:inset 0 0 0 1.5px var(--blue);color:var(--blue-tx)}
+.dp-g button.on{background:var(--blue);color:#fff;box-shadow:none}
+.dp-g i,.dp-leg i{position:absolute;left:0;right:0;bottom:4px;display:flex;justify-content:center;gap:2px}
+.dp-g i b,.dp-leg i b{width:4px;height:4px;border-radius:50%;background:var(--violet)}
+.dp-g button.on i b{background:#fff}
+.dp-vite{display:flex;gap:6px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+.dp-vite button{flex:1 1 auto;height:32px;padding:0 8px;border-radius:999px;border:1px solid var(--line2);font-size:12.5px;font-weight:500;color:var(--tx2);white-space:nowrap}
+.dp-vite button:hover{border-color:var(--tx3);color:var(--ink)}
+.dp-vite button.on{background:var(--blue-soft);border-color:var(--blue);color:var(--blue-tx)}
+.dp-leg{position:relative;display:flex;align-items:center;gap:8px;margin-top:10px;font-size:11.5px;color:var(--tx3)}
+.dp-leg i{position:static;width:auto}
+.dp-voile{position:fixed;inset:0;z-index:199;background:rgba(0,0,0,.32)}
+.dp.feuille{left:0;right:0;bottom:0;top:auto;width:auto;border-radius:20px 20px 0 0;padding:18px 16px calc(16px + env(safe-area-inset-bottom))}
+.dp.feuille .dp-g button{height:44px}
 @media(max-width:900px){.s-ligne{grid-template-columns:1fr}.s-podium{grid-template-columns:1fr}}
 .s-fmt td:first-child{white-space:nowrap;min-width:170px}
 @media(max-width:620px){.s-prog{flex-wrap:wrap}.s-prog .t{flex:1 1 calc(100% - 140px)}.s-prog > .s-actions,.s-prog > .btn,.s-prog > .pill{flex-basis:100%;margin-left:66px;margin-top:0}.s-carte{grid-template-columns:1fr}.s-carte video{width:100%;height:auto;aspect-ratio:9/16;max-height:340px}}
@@ -274,7 +310,7 @@ function carteBrouillon(v) {
     '<div class="s-compte"><span data-compte>' + (v.legende || '').length + '</span> / 2 200</div></div>' +
     '<div class="s-ligne"><div class="champ"><label>Format</label><select class="in" data-champ="format"><option value="">Sans format</option>' +
       F.concat(v.format && !F.includes(v.format) ? [v.format] : []).map(f => '<option' + (f === v.format ? ' selected' : '') + '>' + esc(f) + '</option>').join('') + '</select></div>' +
-    '<div class="champ"><label>Jour</label><input class="in" type="date" data-champ="date" value="' + d.date + '"></div>' +
+    '<div class="champ"><label>Jour</label>' + champJour('data-champ="date"', d.date) + '</div>' +
     '<div class="champ"><label>Heure</label><input class="in" type="time" data-champ="heure" value="' + d.heure + '"></div></div>' +
     '<div class="champ"><label>Type de reel</label><div class="s-type"><button data-type="normal" class="' + (v.essai ? '' : 'on') + '">Reel normal</button><button data-type="essai" class="' + (v.essai ? 'on' : '') + '">Reel d\'essai</button></div>' +
     (v.essai ? '<label class="s-coche"><input type="checkbox" data-champ="essai_auto"' + (v.essai_auto ? ' checked' : '') + '>Le montrer à mes abonnés automatiquement s\'il marche</label>' +
@@ -296,7 +332,7 @@ function ecranProgrammer() {
       '<div class="champ"><label>Format pour toutes</label><select class="in" id="l-format"><option value="">Ne pas changer</option>' + D.formats.map(f => '<option>' + esc(f) + '</option>').join('') + '</select></div>' +
       '<div class="champ"><label>Type pour toutes</label><select class="in" id="l-type"><option value="">Ne pas changer</option><option value="normal">Reel normal</option><option value="essai">Reel d\'essai</option></select></div>' +
       '<button class="btn btn-s btn-sm" id="l-appliquer" style="height:36px">Appliquer</button><span style="width:1px;align-self:stretch;background:var(--line)"></span>' +
-      '<div class="champ"><label>Répartir à partir du</label><input class="in" type="date" id="l-debut" value="' + (LOT.debut || demain18().date) + '"></div>' +
+      '<div class="champ"><label>Répartir à partir du</label>' + champJour('id="l-debut"', LOT.debut || demain18().date, true) + '</div>' +
       '<div class="champ"><label>Par jour</label><input class="in" type="number" id="l-par" min="1" max="25" value="' + LOT.parJour + '" style="width:80px"></div>' +
       '<div class="champ"><label>Entre</label><input class="in" type="time" id="l-de" value="' + LOT.de + '"></div>' +
       '<div class="champ"><label>et</label><input class="in" type="time" id="l-a" value="' + LOT.a + '"></div>' +
@@ -387,6 +423,91 @@ function brancherProgrammes() {
   document.querySelectorAll('[data-haut]').forEach(a => a.onclick = () => enHaut());
   // au survol, la vidéo programmée se lit (sans le son)
   document.querySelectorAll('.s-cal-v video').forEach(vd => { const c = vd.closest('.s-cal-c'); c.onmouseenter = () => vd.play().catch(() => {}); c.onmouseleave = () => { vd.pause(); }; });
+}
+// ---------- CHOISIR UN JOUR : un calendrier maison (celui du navigateur est illisible) ----------
+// Le champ caché garde la date AAAA-MM-JJ (lue comme avant) ; le bouton l'affiche en clair.
+// Les jours passés sont grisés, aujourd'hui est entouré, et un point par reel déjà programmé ce jour-là.
+const MOIS_C = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+const texteJour = k => {
+  if (!k) return 'Choisir un jour';
+  const t = Date.parse(k + 'T12:00:00'), auj = jourDe(Date.now());
+  const d = K.date(t, { weekday: 'long', month: 'long', year: new Date(t).getFullYear() === new Date().getFullYear() ? undefined : 'numeric' });
+  return k === auj ? 'Aujourd\'hui, ' + d : k === plusJours(auj, 1) ? 'Demain, ' + d : d;
+};
+const champJour = (attr, val, petit) => '<div class="dp-champ"><input type="hidden" ' + attr + ' value="' + esc(val || '') + '">' +
+  '<button type="button" class="in dp-btn' + (petit ? ' petit' : '') + '" aria-haspopup="dialog" aria-expanded="false">' + i.calendrier + '<span>' + esc(texteJour(val)) + '</span>' +
+  '<svg class="dp-fl" viewBox="0 0 12 8" fill="none" aria-hidden="true"><path d="M1 1.5 6 6.5l5-5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>';
+const majJours = () => document.querySelectorAll('.dp-champ').forEach(c => { c.querySelector('.dp-btn span').textContent = texteJour(c.querySelector('input').value); });
+// combien de reels sont déjà prévus chaque jour (programmés ou en cours)
+const chargeJours = () => { const m = {}; D.videos.forEach(v => { if (['programme', 'envoi', 'traitement'].includes(v.statut) && v.publier_le) { const k = jourDe(v.publier_le); m[k] = (m[k] || 0) + 1; } }); return m; };
+let DP = null;
+function fermerJour(focus) {
+  if (!DP) return;
+  const { el, voile, btn, pos, dehors, clavier } = DP; DP = null;
+  el.remove(); if (voile) voile.remove();
+  document.removeEventListener('pointerdown', dehors, true); document.removeEventListener('keydown', clavier, true);
+  window.removeEventListener('resize', pos); window.removeEventListener('scroll', pos, true);
+  btn.setAttribute('aria-expanded', 'false'); if (focus) btn.focus();
+}
+function ouvrirJour(btn) {
+  if (DP) { const meme = DP.btn === btn; fermerJour(); if (meme) return; }
+  const champ = btn.closest('.dp-champ'), inp = champ.querySelector('input'), auj = jourDe(Date.now());
+  let mois = (inp.value || auj).slice(0, 7);   // AAAA-MM affiché
+  const feuille = window.innerWidth < 560;
+  const el = document.createElement('div'); el.className = 'dp' + (feuille ? ' feuille' : ''); el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', 'Choisir un jour');
+  const voile = feuille ? Object.assign(document.createElement('div'), { className: 'dp-voile' }) : null;
+  const choisir = k => { inp.value = k; inp.dispatchEvent(new Event('change', { bubbles: true })); btn.querySelector('span').textContent = texteJour(k); fermerJour(true); };
+  const dessiner = focusK => {
+    const [a, m] = mois.split('-').map(Number), premier = new Date(a, m - 1, 1, 12), nbj = new Date(a, m, 0).getDate(), vides = (premier.getDay() + 6) % 7;
+    const charge = chargeJours(), moisAuj = auj.slice(0, 7), sel = inp.value;
+    let g = '';
+    for (let n = 0; n < vides; n++) g += '<span></span>';
+    for (let j = 1; j <= nbj; j++) {
+      const k = mois + '-' + String(j).padStart(2, '0'), passe = k < auj, nb = charge[k] || 0;
+      g += '<button type="button" data-j="' + k + '" class="' + (k === sel ? 'on ' : '') + (k === auj ? 'auj ' : '') + '"' + (passe ? ' disabled' : '') +
+        ' tabindex="' + (k === (focusK || sel || auj) ? '0' : '-1') + '" aria-label="' + esc(texteJour(k)) + (nb ? ', ' + nb + ' reel' + (nb > 1 ? 's' : '') + ' déjà programmé' + (nb > 1 ? 's' : '') : '') + '"' +
+        (nb ? ' title="' + nb + ' reel' + (nb > 1 ? 's' : '') + ' déjà programmé' + (nb > 1 ? 's' : '') + '"' : '') + '>' + j +
+        (nb ? '<i>' + '<b></b>'.repeat(Math.min(3, nb)) + '</i>' : '') + '</button>';
+    }
+    const vite = [['Aujourd\'hui', auj], ['Demain', plusJours(auj, 1)], ['Dans 7 jours', plusJours(auj, 7)]];
+    el.innerHTML = '<div class="dp-h"><b>' + MOIS_C[m - 1].replace(/^./, c => c.toUpperCase()) + ' ' + a + '</b>' +
+      '<button type="button" class="dp-nav" data-mois="-1" aria-label="Mois précédent"' + (mois <= moisAuj ? ' disabled' : '') + '>' + i.gauche + '</button>' +
+      '<button type="button" class="dp-nav" data-mois="1" aria-label="Mois suivant">' + i.fleche + '</button></div>' +
+      '<div class="dp-sem">' + ['L', 'M', 'M', 'J', 'V', 'S', 'D'].map(x => '<span>' + x + '</span>').join('') + '</div>' +
+      '<div class="dp-g">' + g + '</div>' +
+      '<div class="dp-vite">' + vite.map(([t, k]) => '<button type="button" data-j="' + k + '" class="' + (k === sel ? 'on' : '') + '">' + t + '</button>').join('') + '</div>' +
+      (Object.keys(charge).length ? '<div class="dp-leg"><i><b></b></i>un point par reel déjà programmé ce jour-là</div>' : '');
+    el.querySelectorAll('[data-j]').forEach(b => b.onclick = () => choisir(b.dataset.j));
+    el.querySelectorAll('[data-mois]').forEach(b => b.onclick = () => { changerMois(Number(b.dataset.mois)); });
+    if (focusK) { const f = el.querySelector('.dp-g [data-j="' + focusK + '"]'); if (f) f.focus(); }
+  };
+  const changerMois = (n, focusK) => { const [a, m] = mois.split('-').map(Number), d = new Date(a, m - 1 + n, 1, 12); mois = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'); if (mois < auj.slice(0, 7)) mois = auj.slice(0, 7); dessiner(focusK); };
+  const pos = () => {
+    if (feuille) return;
+    const r = btn.getBoundingClientRect(), w = el.offsetWidth, h = el.offsetHeight;
+    el.style.left = Math.max(12, Math.min(r.left, window.innerWidth - w - 12)) + 'px';
+    el.style.top = (r.bottom + 8 + h > window.innerHeight - 12 && r.top - h - 8 > 12 ? r.top - h - 8 : r.bottom + 8) + 'px';
+  };
+  const dehors = e => { if (!el.contains(e.target) && !btn.contains(e.target)) fermerJour(); };
+  // au clavier : flèches pour bouger d'un jour ou d'une semaine, Page haut/bas pour le mois, Échap pour fermer
+  const clavier = e => {
+    if (e.key === 'Escape') { e.preventDefault(); fermerJour(true); return; }
+    const b = document.activeElement && document.activeElement.closest && document.activeElement.closest('.dp-g [data-j]'); if (!b) return;
+    const pas = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -7, ArrowDown: 7 }[e.key];
+    if (pas) { e.preventDefault(); const k = plusJours(b.dataset.j, pas); if (k < auj) return; if (k.slice(0, 7) !== mois) { mois = k.slice(0, 7); dessiner(k); } else el.querySelector('.dp-g [data-j="' + k + '"]').focus(); }
+    else if (e.key === 'PageUp' || e.key === 'PageDown') { e.preventDefault(); changerMois(e.key === 'PageUp' ? -1 : 1); }
+  };
+  if (voile) { document.body.appendChild(voile); voile.onclick = () => fermerJour(); }
+  document.body.appendChild(el);
+  DP = { el, voile, btn, pos, dehors, clavier };
+  dessiner(); pos();
+  btn.setAttribute('aria-expanded', 'true');
+  (el.querySelector('.dp-g .on') || el.querySelector('.dp-g .auj') || el.querySelector('.dp-g [data-j]:not([disabled])') || el).focus();
+  document.addEventListener('pointerdown', dehors, true); document.addEventListener('keydown', clavier, true);
+  window.addEventListener('resize', pos); window.addEventListener('scroll', pos, true);
+}
+function brancherJours() {
+  document.querySelectorAll('.dp-btn').forEach(b => b.onclick = e => { e.preventDefault(); ouvrirJour(b); });
 }
 function lireCarte(el) {
   const v = q => el.querySelector('[data-champ="' + q + '"]');
@@ -491,10 +612,12 @@ function brancherProgrammer() {
       el.querySelector('[data-champ="date"]').value = jourDe(d.getTime());
       el.querySelector('[data-champ="heure"]').value = String(Math.floor(minutes / 60)).padStart(2, '0') + ':' + String(minutes % 60).padStart(2, '0');
     });
+    majJours();
     for (const el of cartes) { try { await enregistrerCarte(el.dataset.carte, el); } catch (er) {} }
     K.toast('Dates réparties sur ' + Math.ceil(cartes.length / LOT.parJour) + ' jour' + (cartes.length > LOT.parJour ? 's' : '') + '. Vérifiez, puis « Tout programmer ».');
   };
   brancherProgrammes();
+  brancherJours();
   brancherCommun();
 }
 function brancherCommun() {
@@ -682,7 +805,7 @@ K.rendreEcran = (r, e) => {
   document.title = 'Studio · Kreative';
 };
 // la page fait avancer les publications en cours, et se relit sans écraser ce qu'on est en train de taper
-const occupe = () => ENVOIS.some(e => !e.ok && e.etat !== 'Échec') || document.querySelector('#k-fen') || (document.activeElement && /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName));
+const occupe = () => ENVOIS.some(e => !e.ok && e.etat !== 'Échec') || document.querySelector('#k-fen') || !!DP || (document.activeElement && /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName));
 async function veille() {
   if (document.visibilityState !== 'visible' || occupe()) return;
   const enCours = D.videos.some(v => v.statut === 'envoi' || v.statut === 'traitement' || (v.statut === 'programme' && v.publier_le <= Date.now()));

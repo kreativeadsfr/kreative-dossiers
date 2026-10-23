@@ -150,6 +150,30 @@ r = await api('/api/studio/videos/' + v1.id, A, 'DELETE');
 r = await api('/api/studio', A);
 t('supprimer un reel publié retire le fichier, le reel reste dans les statistiques', !r.d.videos.some(x => x.id === v1.id) && r.d.medias.some(m => m.id === V.media_id));
 
+// ---------- Meta bloque l'accès (« API access blocked », code 200) : rien n'est perdu ----------
+const bloquer = on => fetch('http://127.0.0.1:9911/ig/_bloquer', { method: 'POST', body: 'on=' + (on ? 1 : 0) });
+await bloquer(true);
+const vb1 = (await deposer(A, 'Bloque 1.mp4')).d, vb2 = (await deposer(A, 'Bloque 2.mp4')).d, vb3 = (await deposer(A, 'Bloque 3.mp4')).d;
+await api('/api/studio/videos/' + vb1.id, A, 'PATCH', { legende: 'B1', publier_le: Date.now() - 60 * 60e3, programmer: true });
+await api('/api/studio/videos/' + vb2.id, A, 'PATCH', { legende: 'B2', publier_le: Date.now() - 50 * 60e3, programmer: true });
+await api('/api/studio/videos/' + vb3.id, A, 'PATCH', { legende: 'B3', publier_le: Date.now() + 3 * 864e5, programmer: true });
+r = await api('/api/studio/avancer', A, 'POST');
+let SB = (await api('/api/studio', A)).d, sb = id => SB.videos.find(x => x.id === id);
+t('Meta bloque : les reels arrivés à l\'heure restent programmés (pas en erreur)', r.s === 200 && r.d.bloque && sb(vb1.id).statut === 'programme' && sb(vb2.id).statut === 'programme' && sb(vb3.id).statut === 'programme', JSON.stringify(r.d) + ' ' + sb(vb1.id).statut);
+t('… le Studio dit clairement quoi faire (developers.facebook.com)', /developers\.facebook\.com/.test(SB.compte.erreur) && /restent programmés/.test(SB.compte.erreur), SB.compte.erreur);
+r = await api('/api/studio/videos/' + vb3.id + '/maintenant', A, 'POST');
+t('« Publier maintenant » pendant le blocage : le reel reste programmé, pas d\'erreur', r.s === 200 && r.d.video.statut === 'programme' && !r.d.video.erreur, JSON.stringify(r.d).slice(0, 200));
+r = await api('/api/studio/actualiser', A, 'POST');
+t('les statistiques pendant le blocage : pas de plantage, le message reste', r.s === 200 && /bloque/.test((await api('/api/studio', A)).d.compte.erreur), r.s + ' ' + JSON.stringify(r.d).slice(0, 160));
+await bloquer(false);
+r = await api('/api/studio/avancer', A, 'POST');
+SB = (await api('/api/studio', A)).d;
+t('accès rétabli : un seul reel en retard part par passage (pas tout d\'un coup), « Publier maintenant » part aussi', sb(vb1.id).statut === 'publie' && sb(vb2.id).statut === 'programme' && sb(vb3.id).statut === 'publie', [vb1, vb2, vb3].map(v => sb(v.id).statut).join(','));
+t('… et le message d\'erreur disparaît', !SB.compte.erreur, SB.compte.erreur);
+r = await api('/api/studio/avancer', A, 'POST'); r = await api('/api/studio/avancer', A, 'POST');
+SB = (await api('/api/studio', A)).d;
+t('… puis les suivants, au fil des passages', [vb1, vb2, vb3].every(v => sb(v.id).statut === 'publie'), [vb1, vb2, vb3].map(v => sb(v.id).statut).join(','));
+
 // ---------- déconnexion ----------
 r = await api('/api/studio/connexion', A, 'DELETE');
 r = await api('/api/studio', A);

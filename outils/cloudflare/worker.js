@@ -2993,9 +2993,15 @@ async function appelIG(env, chemin, params, methode, sansVersion) {
   if (!r.ok || d.error) { const e = new Error((d.error && d.error.message) || ('Instagram a répondu ' + r.status)); e.code = d.error && d.error.code; throw e; }
   return d;
 }
+// Meta bloque tout le compte (accès bloqué, compte développeur à vérifier, permission retirée, trop d'appels) :
+// rien à voir avec la vidéo, donc elle reste programmée et part dès que c'est rétabli
+const bloqueIG = e => !!e && (e.code === 190 || e.code === 200 || [4, 10, 17, 32, 613].includes(e.code) || /access blocked|temporarily blocked|request limit|too many calls/i.test(String(e.message || '')));
 const messageIG = e => {
   const m = String(e && e.message || e);
   if (e && e.code === 190) return 'La connexion Instagram a expiré : recollez un token dans Réglages.';
+  if (/access blocked/i.test(m)) return 'Meta bloque l\'accès de l\'app Kreative Studio (API access blocked). Connectez-vous sur developers.facebook.com et faites ce que Meta demande (vérification du compte). Les reels programmés restent programmés et partiront dès que c\'est rétabli.';
+  if (e && [4, 17, 32, 613].includes(e.code)) return 'Instagram limite les envois pour le moment. Nouvel essai automatique dans quelques minutes.';
+  if (e && e.code === 200) return 'Instagram refuse l\'accès (' + m.slice(0, 120) + '). Vérifiez l\'app Meta et ses permissions. Les reels programmés partiront dès que c\'est rétabli.';
   if (/format|codec|resolution|aspect|duration/i.test(m)) return 'Instagram refuse cette vidéo (format, durée ou taille). Exportez-la en MP4 (H.264), 9:16, 3 s à 15 min.';
   return 'Instagram : ' + m.slice(0, 220);
 };
@@ -3141,11 +3147,16 @@ async function apiStudio(req, env, ctx, url, chemin, methode) {
 
 // ---------- publier : créer le conteneur Instagram, attendre qu'il soit prêt, publier ----------
 async function avancerStudio(env, budgetMs) {
-  const db = await baseStudio(env), R = await reglageStudio(db), fin = Date.now() + (budgetMs || 30000), fait = { lances: 0, publies: 0, erreurs: 0 };
+  const db = await baseStudio(env); let R = await reglageStudio(db); const fin = Date.now() + (budgetMs || 30000), fait = { lances: 0, publies: 0, erreurs: 0 };
   if (!R.token || !R.user_id) return { ...fait, connecte: false };
-  // 1. les vidéos arrivées à leur heure : on les « prend » une par une (pas deux fois)
+  // les vidéos tombées en erreur parce que Meta bloquait le compte (avant la v57) : de nouveau programmées
+  await db.prepare("UPDATE studio_videos SET statut = 'programme', erreur = NULL WHERE statut = 'erreur' AND (erreur LIKE '%access blocked%' OR erreur LIKE '%refuse l''accès%' OR erreur LIKE '%limite les envois%')").run();
+  // 1. les vidéos arrivées à leur heure : on les « prend » une par une (pas deux fois). Celles en retard de plus
+  //    de 20 min (Meta bloquait, Worker arrêté…) partent une par passage, pour ne pas tout publier d'un coup.
   const dues = (await db.prepare("SELECT * FROM studio_videos WHERE statut = 'programme' AND publier_le <= ? ORDER BY publier_le LIMIT 5").bind(maintenant()).all()).results;
+  let rattrapage = false;
   for (const v of dues) {
+    if (maintenant() - v.publier_le > 20 * 60e3) { if (rattrapage) continue; rattrapage = true; }
     const pris = await db.prepare("UPDATE studio_videos SET statut = 'envoi' WHERE id = ? AND statut = 'programme'").bind(v.id).run();
     if (!pris.meta || pris.meta.changes !== 1) continue;
     const p = { media_type: 'REELS', video_url: (v.origine || 'https://studio.kreativeads.fr') + '/_studio/video/' + v.id + '-' + v.jeton + '.mp4', caption: v.legende || '', access_token: R.token };
@@ -3155,7 +3166,14 @@ async function avancerStudio(env, budgetMs) {
       const c = await appelIG(env, '/' + R.user_id + '/media', p, 'POST');
       await db.prepare("UPDATE studio_videos SET statut = 'traitement', conteneur = ?, conteneur_le = ?, erreur = NULL WHERE id = ?").bind(String(c.id), maintenant(), v.id).run();
       fait.lances++;
+      if (R.erreur) { R = await enregistrerStudio(db, { erreur: '' }); }
     } catch (e) {
+      if (bloqueIG(e)) {
+        // le compte est bloqué : la vidéo reste programmée (même heure), on s'arrête là pour ce passage
+        await db.prepare("UPDATE studio_videos SET statut = 'programme' WHERE id = ? AND statut = 'envoi'").bind(v.id).run();
+        await enregistrerStudio(db, { erreur: messageIG(e) });
+        return { ...fait, connecte: e.code !== 190, bloque: messageIG(e) };
+      }
       await db.prepare("UPDATE studio_videos SET statut = 'erreur', erreur = ? WHERE id = ?").bind(messageIG(e), v.id).run(); fait.erreurs++;
       if (e.code === 190) await enregistrerStudio(db, { erreur: messageIG(e) });
     }
@@ -3187,7 +3205,7 @@ async function avancerStudio(env, budgetMs) {
         } else attente = true;
       } catch (e) {
         // une erreur passagère au moment de publier : on retente au prochain passage ; un token mort : on arrête
-        if (e.code === 190) { await enregistrerStudio(db, { erreur: messageIG(e) }); return { ...fait, connecte: false }; }
+        if (bloqueIG(e)) { await enregistrerStudio(db, { erreur: messageIG(e) }); return { ...fait, connecte: e.code !== 190, bloque: messageIG(e) }; }
         if (maintenant() - (v.conteneur_le || 0) > 60 * 60e3) { await db.prepare("UPDATE studio_videos SET statut = 'erreur', erreur = ? WHERE id = ?").bind(messageIG(e), v.id).run(); fait.erreurs++; }
         else attente = true;
       }
@@ -3210,7 +3228,7 @@ async function synchroStudio(env, force) {
     const moi = await appelIG(env, '/me', { fields: 'user_id,username,name,profile_picture_url,followers_count', access_token: T });
     R = await enregistrerStudio(db, { username: moi.username || R.username, nom: moi.name || R.nom, photo: moi.profile_picture_url || R.photo, abonnes: moi.followers_count || 0, erreur: '' });
     await db.prepare('INSERT INTO studio_jours (jour, abonnes) VALUES (?, ?) ON CONFLICT(jour) DO UPDATE SET abonnes = excluded.abonnes').bind(jour, moi.followers_count || 0).run();
-  } catch (e) { if (e.code === 190) { await enregistrerStudio(db, { erreur: messageIG(e) }); return { ok: false, connecte: false, erreur: messageIG(e) }; } throw e; }
+  } catch (e) { if (bloqueIG(e)) { await enregistrerStudio(db, { erreur: messageIG(e) }); return { ok: false, connecte: e.code !== 190, erreur: messageIG(e) }; } throw e; }
   // les nouveaux abonnés par jour (30 derniers jours ; Instagram ne le donne qu'à partir de 100 abonnés)
   try {
     const depuis = Math.floor((Date.now() - 29 * 864e5) / 1000), jusque = Math.floor(Date.now() / 1000);

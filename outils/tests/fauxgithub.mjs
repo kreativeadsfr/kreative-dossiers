@@ -30,6 +30,9 @@ http.createServer((req, res) => {
     const IG = globalThis.IG = globalThis.IG || { n: 0, conteneurs: {}, publies: [] };
     const q = Object.fromEntries(new URLSearchParams(b || u.search)), jeton = q.access_token || u.searchParams.get('access_token');
     const p = u.pathname.replace(/^\/ig\/(v[\d.]+\/)?/, '/'), rep = (s, o) => { res.writeHead(s, {'content-type':'application/json'}); res.end(JSON.stringify(o)); };
+    // « Meta bloque l'accès » (API access blocked, code 200) : POST /ig/_bloquer on=1 / on=0
+    if (p === '/_bloquer') { IG.bloque = q.on === '1'; return rep(200, { ok: true }); }
+    if (IG.bloque) return rep(400, { error: { message: 'API access blocked.', type: 'OAuthException', code: 200 } });
     if (p === '/refresh_access_token') return rep(200, { access_token: 'tok_rafraichi', token_type: 'bearer', expires_in: 5184000 });
     if (!jeton || /^mauvais/.test(jeton)) return rep(400, { error: { message: 'Invalid OAuth access token - Cannot parse access token', type: 'OAuthException', code: 190 } });
     if (p === '/me') return rep(200, { id: '1789', user_id: '1789', username: 'kreative.ads', name: 'Kreative', account_type: 'BUSINESS', followers_count: 1200 + IG.publies.length, media_count: 40, profile_picture_url: '' });

@@ -76,6 +76,8 @@
 .s-moi img,.s-moi .ph-av{width:52px;height:52px;border-radius:50%;background:var(--soft2);object-fit:cover}
 .s-alerte{display:flex;gap:12px;align-items:flex-start;padding:14px 18px;border-radius:var(--r);background:var(--red-soft);color:var(--red);font-size:13.5px;margin-bottom:14px}
 .s-alerte b{font-weight:600}
+.s-alerte svg{width:18px;height:18px;flex:none;margin-top:1px}
+.s-alerte.info{background:var(--amber-soft);color:var(--amber)}
 .sec.s-sec-prog{align-items:center}
 .s-cal-nav{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:14px}
 .s-cal-nav h3{font:600 17px var(--titre);letter-spacing:-.01em}
@@ -635,7 +637,8 @@ function brancherCommun() {
     const el = document.querySelector('[data-carte="' + bt.dataset.maintenant + '"]');
     bt.disabled = true;
     try { if (el) await enregistrerCarte(bt.dataset.maintenant, el); const r = await K.api('/api/studio/videos/' + bt.dataset.maintenant + '/maintenant', { methode: 'POST' });
-      K.toast(r.video.statut === 'publie' ? 'Publié sur Instagram' : r.video.statut === 'erreur' ? 'Pas publié : ' + r.video.erreur : 'Envoyé à Instagram, publication dans un instant'); await recharger(); }
+      K.toast(r.video.statut === 'publie' ? 'Publié sur Instagram' : r.video.statut === 'erreur' ? 'Pas publié : ' + r.video.erreur
+        : r.video.statut === 'programme' ? 'Instagram bloque pour le moment : le reel reste programmé et partira dès que c\'est rétabli.' : 'Envoyé à Instagram, publication dans un instant'); await recharger(); }
     catch (er) { K.toast(er.message); bt.disabled = false; }
   });
   document.querySelectorAll('[data-modifier]').forEach(bt => bt.onclick = async () => {

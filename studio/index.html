@@ -98,6 +98,7 @@
 .s-cal-c{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;box-shadow:var(--ombre)}
 .s-cal-v{position:relative;aspect-ratio:4/5;width:100%;background:#000}
 .s-cal-v video,.s-cal-v img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block}
+.s-cal-h,.s-cal-e{z-index:1}
 .s-cal-h{position:absolute;left:8px;top:8px;background:rgba(0,0,0,.72);color:#fff;font:600 12.5px var(--titre);padding:4px 8px;border-radius:7px;font-variant-numeric:tabular-nums}
 .s-cal-e{position:absolute;right:8px;top:8px;background:var(--violet-soft);color:var(--violet);font-size:11px;font-weight:600;padding:3px 7px;border-radius:999px}
 .s-cal-b{padding:12px 12px 4px}
@@ -295,10 +296,41 @@ function ecranAccueil() {
       '<div style="text-align:right"><b style="font:600 15px var(--titre)">' + court(S(x).views) + '</b><span class="muted" style="display:block;font-size:12px">vues</span></div></a>').join('') : '<div class="vide">' + i.image + 'Pas encore de reel sur la période.</div>') + '</div>';
   return h + '</div>';
 }
+// ---------- les miniatures des vidéos du Studio ----------
+// Une image tirée de la vidéo une seule fois (deux à la fois, en arrière-plan), gardée dans ce navigateur :
+// la page n'a plus des dizaines de vidéos à recharger à chaque clic, elle reste fluide.
+const MINIS = new Map();
+try { const o = JSON.parse(localStorage.getItem('studio-minis') || '{}'); Object.keys(o).forEach(k => MINIS.set(k, o[k])); } catch (e) {}
+const sauverMinis = () => { try { const o = {}; [...MINIS].slice(-120).forEach(([k, u]) => { o[k] = u; }); localStorage.setItem('studio-minis', JSON.stringify(o)); } catch (e) {} };
+const A_FAIRE = new Map(); let minisEnCours = 0;
+const miniVideo = (v, cls) => { const u = MINIS.get(v.id); if (!u) A_FAIRE.set(v.id, v.apercu);
+  return '<img class="' + cls + '" data-vmini="' + v.id + '" alt=""' + (u ? ' src="' + u + '"' : '') + '>'; };
+function genererMinis() {
+  while (minisEnCours < 2 && A_FAIRE.size) {
+    const [id, src] = A_FAIRE.entries().next().value; A_FAIRE.delete(id);
+    if (MINIS.has(id)) continue;
+    minisEnCours++;
+    const vd = document.createElement('video'); let fini = false;
+    const finir = () => { if (fini) return; fini = true; minisEnCours--; vd.removeAttribute('src'); vd.load(); genererMinis(); };
+    vd.muted = true; vd.playsInline = true; vd.preload = 'auto';
+    vd.onloadeddata = () => { try { vd.currentTime = Math.min(0.5, (vd.duration || 1) / 2); } catch (e) { finir(); } };
+    vd.onseeked = () => {
+      try {
+        const w = 270, h = Math.round(w * (vd.videoHeight || 16) / (vd.videoWidth || 9)), c = document.createElement('canvas');
+        c.width = w; c.height = h; c.getContext('2d').drawImage(vd, 0, 0, w, h);
+        const u = c.toDataURL('image/jpeg', 0.72); MINIS.set(id, u); sauverMinis();
+        document.querySelectorAll('[data-vmini="' + id + '"]').forEach(im => { im.src = u; });
+      } catch (e) {}
+      finir();
+    };
+    vd.onerror = finir; setTimeout(finir, 20000);
+    vd.src = src;
+  }
+}
 const mini = (x, sm) => x.miniature ? '<img class="s-mini' + (sm ? ' sm' : '') + '" src="' + esc(x.miniature) + '" alt="" loading="lazy">' : '<span class="s-mini' + (sm ? ' sm' : '') + '"></span>';
 const typeReel = v => v.essai ? '<span class="pill v"><i></i>Essai</span>' : '<span class="pill"><i></i>Normal</span>';
 function ligneProg(v, court_) {
-  return '<div class="s-prog"><div class="h">' + esc(heureDe(v.publier_le)) + '</div><video class="s-mini sm" src="' + esc(v.apercu) + '#t=0.5" muted preload="metadata"></video>' +
+  return '<div class="s-prog"><div class="h">' + esc(heureDe(v.publier_le)) + '</div>' + miniVideo(v, 's-mini sm') + '' +
     '<div class="t"><b>' + esc(v.legende || 'Sans légende') + '</b><span>' + (court_ ? esc(K.date(v.publier_le, { weekday: 'short', year: undefined })) + ' · ' : '') + (v.format ? esc(v.format) + ' · ' : '') + (v.essai ? 'essai' : 'normal') + '</span></div>' +
     (court_ ? '' : '<div class="s-actions"><button class="btn btn-s btn-sm" data-modifier="' + v.id + '">' + i.crayon + 'Modifier</button><button class="btn btn-s btn-sm" data-maintenant="' + v.id + '">Publier maintenant</button>' +
       '<button class="btn btn-g btn-sm" data-suppr="' + v.id + '" title="Supprimer" aria-label="Supprimer">' + i.poubelle + '</button></div>') + '</div>';
@@ -314,7 +346,8 @@ function champsDate(v) {
 }
 function carteBrouillon(v) {
   const d = champsDate(v), F = D.formats;
-  return '<div class="card s-carte" data-carte="' + v.id + '"><video src="' + esc(v.apercu) + '#t=0.5" controls muted preload="metadata" playsinline></video><div>' +
+  if (!MINIS.has(v.id)) A_FAIRE.set(v.id, v.apercu);   // son image servira d'aperçu (poster) aux rendus suivants
+  return '<div class="card s-carte" data-carte="' + v.id + '"><video src="' + esc(v.apercu) + '#t=0.5" controls muted playsinline' + (MINIS.has(v.id) ? ' preload="none" poster="' + MINIS.get(v.id) + '"' : ' preload="metadata"') + '></video><div>' +
     (v.statut === 'erreur' ? '<div class="s-alerte" style="margin-bottom:12px">' + i.cloche + '<div><b>Pas publié.</b> ' + esc(v.erreur || '') + '</div></div>' : '') +
     '<div class="champ"><label>Légende</label><textarea class="in" rows="4" data-champ="legende" maxlength="2200" placeholder="Le texte sous le reel, avec vos hashtags…">' + esc(v.legende) + '</textarea>' +
     '<div class="s-compte"><span data-compte>' + (v.legende || '').length + '</span> / 2 200</div></div>' +
@@ -334,7 +367,7 @@ function ecranProgrammer() {
   h += alerteCompte();
   if (!D.compte.connecte) h += '<div style="margin-bottom:14px">' + nonConnecte() + '</div>';
   h += '<div class="depot" id="s-depot">' + i.telecharger + '<b>Glissez vos vidéos ici, ou cliquez pour les choisir</b><small>MP4 ou MOV, 9:16, 95 Mo au maximum par vidéo. Plusieurs d\'un coup, c\'est possible.</small><input type="file" id="s-fichiers" accept="video/mp4,video/quicktime,.mp4,.mov" multiple hidden></div>';
-  if (ENVOIS.length) h += '<div class="card pad" style="margin-top:12px;padding:10px 18px">' + ENVOIS.map(e => '<div class="s-envoi"><span>' + esc(e.nom) + '</span><div class="barre' + (e.ok ? ' g' : '') + '"><i style="width:' + e.pc + '%"></i></div><small class="muted" style="width:90px;text-align:right">' + esc(e.etat) + '</small></div>').join('') + '</div>';
+  if (ENVOIS.length) h += '<div class="card pad" style="margin-top:12px;padding:10px 18px">' + ENVOIS.map((e, n) => '<div class="s-envoi" data-envoi="' + n + '"><span>' + esc(e.nom) + '</span><div class="barre' + (e.ok ? ' g' : '') + '"><i style="width:' + e.pc + '%"></i></div><small class="muted" style="width:90px;text-align:right">' + esc(e.etat) + '</small></div>').join('') + '</div>';
   const B = D.videos.filter(v => v.statut === 'brouillon' || v.statut === 'erreur').sort((x, y) => (x.cree_le || 0) - (y.cree_le || 0));
   if (B.length) {
     h += '<div class="sec"><div><h2>À programmer</h2><p>' + B.length + ' vidéo' + (B.length > 1 ? 's' : '') + '. Chaque changement est enregistré tout seul.</p></div>' + (B.length > 1 ? '<button class="btn btn-p" id="s-tout">' + i.calendrier + 'Tout programmer</button>' : '') + '</div>';
@@ -351,10 +384,10 @@ function ecranProgrammer() {
   }
   const EC = D.videos.filter(v => v.statut === 'envoi' || v.statut === 'traitement');
   if (EC.length) h += '<div class="sec"><div><h2>En cours de publication</h2><p>Instagram prépare la vidéo, ça prend en général moins de 2 minutes.</p></div></div><div class="card">' +
-    EC.map(v => '<div class="s-prog"><div class="h">' + esc(heureDe(v.publier_le)) + '</div><video class="s-mini sm" src="' + esc(v.apercu) + '#t=0.5" muted preload="metadata"></video><div class="t"><b>' + esc(v.legende || 'Sans légende') + '</b><span>' + (v.essai ? 'essai' : 'normal') + '</span></div><span class="pill b"><i></i>Publication en cours</span></div>').join('') + '</div>';
+    EC.map(v => '<div class="s-prog"><div class="h">' + esc(heureDe(v.publier_le)) + '</div>' + miniVideo(v, 's-mini sm') + '<div class="t"><b>' + esc(v.legende || 'Sans légende') + '</b><span>' + (v.essai ? 'essai' : 'normal') + '</span></div><span class="pill b"><i></i>Publication en cours</span></div>').join('') + '</div>';
   h += blocProgrammes();
   const pub = D.videos.filter(v => v.statut === 'publie').sort((x, y) => y.publie_le - x.publie_le).slice(0, 8);
-  if (pub.length) h += '<div class="sec"><div><h2>Publiés récemment</h2><p>Par le Studio.</p></div></div><div class="card">' + pub.map(v => '<div class="s-prog"><div class="h">' + esc(heureDe(v.publie_le)) + '</div><video class="s-mini sm" src="' + esc(v.apercu) + '#t=0.5" muted preload="metadata"></video><div class="t"><b>' + esc(v.legende || 'Sans légende') + '</b><span>' + esc(K.date(v.publie_le, { weekday: 'short', year: undefined })) + (v.format ? ' · ' + esc(v.format) : '') + ' · ' + (v.essai ? 'essai' : 'normal') + '</span></div>' +
+  if (pub.length) h += '<div class="sec"><div><h2>Publiés récemment</h2><p>Par le Studio.</p></div></div><div class="card">' + pub.map(v => '<div class="s-prog"><div class="h">' + esc(heureDe(v.publie_le)) + '</div>' + miniVideo(v, 's-mini sm') + '<div class="t"><b>' + esc(v.legende || 'Sans légende') + '</b><span>' + esc(K.date(v.publie_le, { weekday: 'short', year: undefined })) + (v.format ? ' · ' + esc(v.format) : '') + ' · ' + (v.essai ? 'essai' : 'normal') + '</span></div>' +
     (v.permalink ? '<a class="btn btn-s btn-sm" href="' + esc(v.permalink) + '" target="_blank" rel="noopener">' + i.externe + 'Voir sur Instagram</a>' : '<span class="pill g"><i></i>Publié</span>') + '</div>').join('') + '</div>';
   return h;
 }
@@ -381,14 +414,14 @@ function reelsSemaine(lundi) {
 const ETATS_CAL = { prog: ['b', 'Programmé'], encours: ['a', 'En cours'], erreur: ['r', 'Pas publié'], publie: ['g', 'Publié'] };
 function carteCal(x) {
   const v = x.v, m = x.m, leg = (v ? v.legende : m.legende) || 'Sans légende', essai = v ? v.essai : m.essai, fmt = (v && v.format) || (m && m.format) || '';
-  const visuel = m && m.miniature ? '<img src="' + esc(m.miniature) + '" alt="" loading="lazy">' : v ? '<video src="' + esc(v.apercu) + '#t=0.5" muted loop playsinline preload="metadata"></video>' : '';
+  const visuel = m && m.miniature ? '<img src="' + esc(m.miniature) + '" alt="" loading="lazy">' : v ? miniVideo(v, '') : '';
   const [cl, lab] = ETATS_CAL[x.etat], lien = (v && v.permalink) || (m && m.permalink);
   let actions = '';
   if (x.etat === 'prog') actions = '<div class="s-cal-a"><button class="btn btn-s btn-sm" data-modifier="' + v.id + '" title="Modifier la légende, le jour ou l\'heure">' + i.crayon + 'Modifier</button>' +
     '<button class="btn btn-g btn-sm" data-suppr="' + v.id + '" title="Supprimer" aria-label="Supprimer">' + i.poubelle + '</button></div>';
   else if (x.etat === 'erreur') actions = '<div class="s-cal-a"><a class="btn btn-s btn-sm" href="#/programmer" data-haut>Voir et réessayer</a></div>';
   else if (lien) actions = '<div class="s-cal-a"><a class="btn btn-g btn-sm" href="' + esc(lien) + '" target="_blank" rel="noopener">' + i.externe + 'Instagram</a>' + (m && S(m).views != null ? '<span class="s-cal-vues">' + court(S(m).views) + ' vues</span>' : '') + '</div>';
-  return '<div class="s-cal-c ' + x.etat + '"><div class="s-cal-v">' + visuel + '<span class="s-cal-h">' + esc(heureDe(x.t)) + '</span>' + (essai ? '<span class="s-cal-e">Essai</span>' : '') + '</div>' +
+  return '<div class="s-cal-c ' + x.etat + '"><div class="s-cal-v"' + (v && !(m && m.miniature) ? ' data-lire="' + esc(v.apercu) + '"' : '') + '>' + visuel + '<span class="s-cal-h">' + esc(heureDe(x.t)) + '</span>' + (essai ? '<span class="s-cal-e">Essai</span>' : '') + '</div>' +
     '<div class="s-cal-b"><span class="pill ' + cl + '"><i></i>' + lab + '</span><b title="' + esc(leg) + '">' + esc(leg) + '</b>' + (fmt ? '<span class="s-cal-f">' + esc(fmt) + '</span>' : '') + '</div>' + actions + '</div>';
 }
 function vueSemaine() {
@@ -420,7 +453,7 @@ function blocProgrammes() {
     return h + Object.entries(jours).map(([k, L]) => '<div class="s-jour">' + esc(K.date(Date.parse(k + 'T12:00:00'), { weekday: 'long', month: 'long', year: undefined })) + ' · ' + L.length + '</div><div class="card">' + L.map(v => ligneProg(v)).join('') + '</div>').join('');
   }
   return h + '<div class="card"><div class="tbl-wrap"><table class="tbl s-tprog"><thead><tr><th>Reel</th><th>Jour</th><th>Heure</th><th>Format</th><th>Type</th><th></th></tr></thead><tbody>' +
-    P.map(v => '<tr><td><div class="s-reel"><video class="s-mini sm" src="' + esc(v.apercu) + '#t=0.5" muted preload="metadata"></video><div class="t"><b title="' + esc(v.legende) + '">' + esc(v.legende || 'Sans légende') + '</b><span>' + esc(v.nom || '') + '</span></div></div></td>' +
+    P.map(v => '<tr><td><div class="s-reel">' + miniVideo(v, 's-mini sm') + '<div class="t"><b title="' + esc(v.legende) + '">' + esc(v.legende || 'Sans légende') + '</b><span>' + esc(v.nom || '') + '</span></div></div></td>' +
       '<td class="s-tj">' + esc(K.date(v.publier_le, { weekday: 'long', year: undefined })) + '</td><td class="num"><b>' + esc(heureDe(v.publier_le)) + '</b></td>' +
       '<td>' + (v.format ? esc(v.format) : '<span class="muted">Sans format</span>') + '</td><td>' + typeReel(v) + '</td>' +
       '<td class="fin"><div class="s-actions" style="margin:0;flex-wrap:nowrap;justify-content:flex-end"><button class="btn btn-s btn-sm" data-modifier="' + v.id + '">' + i.crayon + 'Modifier</button><button class="btn btn-s btn-sm" data-maintenant="' + v.id + '">Publier maintenant</button>' +
@@ -431,8 +464,10 @@ function brancherProgrammes() {
   document.querySelectorAll('[data-vprog]').forEach(b => b.onclick = () => { VP.vue = b.dataset.vprog; try { localStorage.setItem('studio-vue-prog', VP.vue); } catch (e) {} K.rendre(); });
   document.querySelectorAll('[data-sem]').forEach(b => b.onclick = () => { const n = Number(b.dataset.sem); VP.lundi = n ? plusJours(VP.lundi, 7 * n) : lundiDe(Date.now()); K.rendre(); });
   document.querySelectorAll('[data-haut]').forEach(a => a.onclick = () => enHaut());
-  // au survol, la vidéo programmée se lit (sans le son)
-  document.querySelectorAll('.s-cal-v video').forEach(vd => { const c = vd.closest('.s-cal-c'); c.onmouseenter = () => vd.play().catch(() => {}); c.onmouseleave = () => { vd.pause(); }; });
+  // au survol, la vidéo programmée se lit (sans le son) ; elle n'est chargée qu'à ce moment-là
+  document.querySelectorAll('.s-cal-v[data-lire]').forEach(z => { const c = z.closest('.s-cal-c');
+    c.onmouseenter = () => { if (z.querySelector('video')) return; const vd = document.createElement('video'); Object.assign(vd, { muted: true, loop: true, playsInline: true, src: z.dataset.lire }); z.appendChild(vd); vd.play().catch(() => {}); };
+    c.onmouseleave = () => { const vd = z.querySelector('video'); if (vd) { vd.pause(); vd.removeAttribute('src'); vd.load(); vd.remove(); } }; });
 }
 // ---------- CHOISIR UN JOUR : un calendrier maison (celui du navigateur est illisible) ----------
 // Le champ caché garde la date AAAA-MM-JJ (lue comme avant) ; le bouton l'affiche en clair.
@@ -538,7 +573,9 @@ async function envoyerFichier(f, e) {
     const x = new XMLHttpRequest();
     x.open('PUT', '/api/studio/videos?nom=' + encodeURIComponent(f.name));
     x.setRequestHeader('Content-Type', f.type || (/\.mov$/i.test(f.name) ? 'video/quicktime' : 'video/mp4'));
-    x.upload.onprogress = ev => { if (ev.lengthComputable) { e.pc = Math.round(ev.loaded * 100 / ev.total); e.etat = e.pc + ' %'; const b = document.querySelector('#racine'); if (b && K.route().ecran === 'programmer') K.rendre(); } };
+    // la barre avance sans redessiner toute la page
+    x.upload.onprogress = ev => { if (ev.lengthComputable) { e.pc = Math.round(ev.loaded * 100 / ev.total); e.etat = e.pc + ' %';
+      const l = document.querySelector('[data-envoi="' + ENVOIS.indexOf(e) + '"]'); if (l) { l.querySelector('i').style.width = e.pc + '%'; l.querySelector('small').textContent = e.etat; } } };
     x.onload = () => { let r = {}; try { r = JSON.parse(x.responseText); } catch (er) {} if (x.status < 300) ok(r); else ko(new Error(r.erreur || 'Envoi impossible (' + x.status + ')')); };
     x.onerror = () => ko(new Error('Connexion perdue'));
     x.send(f);
@@ -814,13 +851,15 @@ K.rendreEcran = (r, e) => {
   K.brancherCoquille(c);
   if (e[4]) e[4](r.params);
   document.title = 'Studio · Kreative';
+  genererMinis();
 };
 // la page fait avancer les publications en cours, et se relit sans écraser ce qu'on est en train de taper
 const occupe = () => ENVOIS.some(e => !e.ok && e.etat !== 'Échec') || document.querySelector('#k-fen') || !!DP || (document.activeElement && /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName));
 async function veille() {
   if (document.visibilityState !== 'visible' || occupe()) return;
   const enCours = D.videos.some(v => v.statut === 'envoi' || v.statut === 'traitement' || (v.statut === 'programme' && v.publier_le <= Date.now()));
-  try { if (enCours) await K.api('/api/studio/avancer', { methode: 'POST' }); await charger(); if (!occupe()) K.rendre(); } catch (e) {}
+  // on ne redessine que si quelque chose a vraiment changé (sinon la page clignoterait toutes les 15 s)
+  try { const avant = JSON.stringify(D); if (enCours) await K.api('/api/studio/avancer', { methode: 'POST' }); await charger(); if (!occupe() && JSON.stringify(D) !== avant) K.rendre(); } catch (e) {}
 }
 (async () => {
   try { await charger(); K.rendre(); setInterval(veille, 15000); }

@@ -172,7 +172,15 @@ const mo = n => n > 1e6 ? (n / 1e6).toFixed(1).replace('.', ',') + ' Mo' : Math.
 const jourDe = ms => new Intl.DateTimeFormat('fr-CA', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'Europe/Paris' }).format(new Date(ms));
 const heureDe = ms => new Intl.DateTimeFormat('fr-FR', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Paris' }).format(new Date(ms));
 const S = x => (x && x.stats) || {};
-async function charger() { D = await K.api('/api/studio'); }
+// Dario ne suit que les reels à partir du vendredi 23 octobre 2026 : tout ce qui est publié avant (reels, abonnés
+// du jour) est caché partout dans le Studio. Rien n'est effacé, ni dans le Studio ni sur Instagram.
+const DEPUIS = Date.parse('2026-10-23T00:00:00+02:00'), DEPUIS_JOUR = '2026-10-23';
+async function charger() {
+  D = await K.api('/api/studio');
+  D.medias = D.medias.filter(x => (x.publie_le || 0) >= DEPUIS);
+  D.videos = D.videos.filter(v => v.statut !== 'publie' || (v.publie_le || 0) >= DEPUIS);
+  D.jours = D.jours.filter(j => j.jour >= DEPUIS_JOUR);
+}
 async function recharger() { await charger(); K.rendre(); }
 
 // ---------- la période (vue d'ensemble, vidéos, formats) ----------

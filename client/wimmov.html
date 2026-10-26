@@ -279,10 +279,10 @@ function ecranCommander() {
   const T = D.tarifs;
   let h = apercu() + '<div class="ph"><div><h1>Commander des créatives</h1><p>Si vous manquez de créatives, vous pouvez en prendre en plus.</p></div></div>';
   h += '<div class="w-offres">' + T.packs.map(p => '<div class="card w-offre"><h3>Pack ' + esc(p.nom) + '</h3><div class="prix">' + K.euros(p.prix) + '</div>' +
-    '<div class="unit">' + p.nb + ' créatives · ' + Math.floor(p.prix / p.nb) + ' € la créative<br>Livrées en 1:1, 4:5 et 9:16</div>' +
+    '<div class="unit">' + p.nb + ' créatives · ' + Math.floor(p.prix / p.nb) + ' € la créative</div>' +
     '<button class="btn btn-p btn-bloc" data-commander="' + p.nb + '">Commander</button></div>').join('') +
-    '<div class="card w-offre"><h3>Pack Sur mesure</h3><div class="prix">Sur mesure</div>' +
-    '<div class="unit">De ' + LIBRE.min + ' à ' + LIBRE.max + ' créatives · ' + T.au_dela + ' € la créative<br>Livrées en 1:1, 4:5 et 9:16</div>' +
+    '<div class="card w-offre"><h3>Pack Custom</h3><div class="prix" id="w-libre-prix">' + K.euros(libre * T.au_dela) + '</div>' +
+    '<div class="unit">De ' + LIBRE.min + ' à ' + LIBRE.max + ' créatives · ' + T.au_dela + ' € la créative</div>' +
     '<select class="in" id="w-libre" aria-label="Nombre de créatives">' + Array.from({ length: (LIBRE.max - LIBRE.min) / LIBRE.pas + 1 }, (_, n) => LIBRE.min + n * LIBRE.pas)
       .map(n => '<option value="' + n + '"' + (n === libre ? ' selected' : '') + '>' + n + ' créatives</option>').join('') + '</select>' +
     '<button class="btn btn-p btn-bloc" data-commander="libre">Commander</button></div></div>';
@@ -291,7 +291,7 @@ function ecranCommander() {
 }
 function brancherCommander() {
   const champ = document.getElementById('w-libre');
-  if (champ) champ.onchange = () => { libre = Number(champ.value) || LIBRE.min; };
+  if (champ) champ.onchange = () => { libre = Number(champ.value) || LIBRE.min; const px = document.getElementById('w-libre-prix'); if (px) px.textContent = K.euros(libre * D.tarifs.au_dela); };
   document.querySelectorAll('[data-commander]').forEach(b => b.onclick = async () => {
     if (D.apercu) return K.toast('Aperçu : le paiement s\'ouvre seulement pour le client.');
     const nb = b.dataset.commander === 'libre' ? libre : Number(b.dataset.commander);
@@ -337,6 +337,9 @@ document.addEventListener('click', e => {
   if (!b || !D) return;
   const f = (D.factures || []).find(x => x.id === b.dataset.fdl); if (!f) return;
   const c = D.commandes.find(x => x.id === f.commande_id);
+  // une facture payée s'ouvre sur la page Stripe qui affiche « Payée » (facture + reçu) : le PDF d'une facture
+  // d'abonnement garde « à régler », car Stripe l'émet une seconde avant de prélever la carte
+  if (f.lien && f.statut === 'payee') { const a = document.createElement('a'); a.href = f.lien; a.target = '_blank'; a.rel = 'noopener'; document.body.appendChild(a); a.click(); a.remove(); return; }
   K.telechargerFacture(f, { client: D.client.marque, email: D.client.email, commande: c ? c.ref : '', projet: c ? nomCmd(c) : '' });
 });
 

@@ -2585,7 +2585,7 @@ function prixWimmov(nb) {
   nb = Math.round(Number(nb) || 0);
   const p = WIMMOV.packs.find(x => x.nb === nb);
   if (p) return { nb, total: p.prix, nom: 'Pack ' + p.nom };
-  if (nb >= WIMMOV.min_libre && nb <= WIMMOV.max_libre) return { nb, total: nb * WIMMOV.au_dela, nom: 'Pack sur mesure' };
+  if (nb >= WIMMOV.min_libre && nb <= WIMMOV.max_libre) return { nb, total: nb * WIMMOV.au_dela, nom: 'Pack Custom' };
   return null;
 }
 // l'espace Wimmov (le plus ancien client à une adresse @wimmov.com) : tous les paiements y arrivent

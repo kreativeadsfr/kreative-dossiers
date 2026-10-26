@@ -86,7 +86,7 @@ function conf() {
     ] }, { titre: 'Kreative', liens: [
       { id: 'acces', texte: 'Partager l\'accès', icone: 'gens', href: '#/acces' },
       { id: 'contact', texte: 'Nous contacter', icone: 'telephone', href: '#/contact' }
-    ] }],
+    ].concat(APP.mobile() ? [{ id: 'app', texte: 'App', icone: 'telephone', href: '#/app' }] : []) }],
     qui: { nom: D.client.marque, role: D.client.contact || D.client.email || 'Client', tuile: true, photo: urlPhoto() },
     menu: ['<a href="#/acces">' + i.gens + 'Partager l\'accès</a>'],
     sansTheme: true,
@@ -381,6 +381,44 @@ function ecranContact() {
     '<a class="btn btn-lg btn-wa" href="' + wa('Bonjour Kreative, ') + '" target="_blank" rel="noopener">Nous écrire</a></div>';
 }
 
+// ---------- L'APP : l'espace sur l'écran d'accueil du téléphone (comme les autres clients) ----------
+const APP = {
+  installation: null,
+  mobile: () => matchMedia('(max-width: 860px)').matches || /iPhone|iPad|Android/i.test(navigator.userAgent),
+  installee: () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true,
+  ios: () => /iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1),
+  safari: () => /Safari/i.test(navigator.userAgent) && !/CriOS|FxiOS|EdgiOS|GSA|Instagram|FBAN|FBAV/i.test(navigator.userAgent)
+};
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); APP.installation = e; if (/^#\/app/.test(location.hash)) K.rendre(); });
+window.addEventListener('appinstalled', () => { APP.installation = null; K.toast('L\'app Kreative est sur votre écran d\'accueil'); if (/^#\/app/.test(location.hash)) K.rendre(); });
+function ecranApp() {
+  const ios = APP.ios();
+  let h = apercu() + '<div class="ph"><div><h1>L\'app Kreative</h1><p>Votre espace ' + esc(D.client.marque) + ' sur l\'écran d\'accueil de votre téléphone, en un geste.</p></div></div>';
+  h += '<div class="card app-carte"><div class="app-icone"><img src="/app-icon-192.png" alt=""><span>Kreative</span></div>';
+  if (APP.installee()) {
+    h += '<div class="app-etat ok">' + i.coche + 'L\'app est installée</div>';
+  } else if (APP.installation) {
+    h += '<button class="btn btn-d btn-bloc btn-lg" id="app-installer">Installer l\'app</button><p class="aide">Gratuit, sans passer par un store. Elle s\'ajoute à votre écran d\'accueil.</p>';
+  } else if (ios && !APP.safari()) {
+    h += '<p class="aide fort">Ouvrez cette page dans Safari pour installer l\'app.</p><button class="btn btn-s btn-bloc" id="app-copier">' + i.copier + 'Copier le lien</button>';
+  } else if (ios) {
+    h += '<button class="btn btn-d btn-bloc btn-lg" id="app-guide">Installer l\'app</button><p class="aide">Gratuit, sans passer par l\'App Store.</p>' +
+      '<ol class="app-etapes" id="app-etapes" hidden><li><span>' + i.partager + '</span><div>Touchez <b>Partager</b>, en bas de Safari</div></li><li><span>' + i.plusCarre + '</span><div>Choisissez <b>Sur l\'écran d\'accueil</b></div></li><li><span>' + i.coche + '</span><div>Touchez <b>Ajouter</b> : l\'app Kreative est installée</div></li></ol>';
+  } else {
+    h += '<p class="aide fort">Ouvrez votre espace sur votre téléphone pour installer l\'app.</p><p class="aide">Sur Android : le menu ⋮ de Chrome, puis « Installer l\'application ».</p>';
+  }
+  return h + '</div>';
+}
+function brancherApp() {
+  if (APP.installee() && !D.apercu && !sessionStorage.getItem('k-app')) { try { sessionStorage.setItem('k-app', '1'); } catch (e) {} K.api('/api/client/app', { methode: 'POST' }).catch(() => {}); }
+  const b = document.getElementById('app-installer');
+  if (b) b.onclick = async () => { const p = APP.installation; if (!p) return; p.prompt(); const r = await p.userChoice.catch(() => ({})); APP.installation = null; if (r.outcome === 'accepted') K.toast('C\'est installé !'); K.rendre(); };
+  const g = document.getElementById('app-guide');
+  if (g) g.onclick = () => { const e = document.getElementById('app-etapes'); e.hidden = false; g.hidden = true; e.classList.add('montre'); };
+  const c = document.getElementById('app-copier');
+  if (c) c.onclick = () => K.copier(location.origin + '/client/#/app', 'Lien copié : collez-le dans Safari');
+}
+
 // ---------- RENDU ----------
 const ECRANS = {
   '': ['accueil', 'accueil', () => ['Accueil'], () => ecranAccueil()],
@@ -390,7 +428,8 @@ const ECRANS = {
   merci: ['commander', 'panier', () => ['Commander des créatives', 'Paiement reçu'], () => ecranMerci()],
   factures: ['factures', 'recu', () => ['Factures'], () => ecranFactures()],
   acces: ['acces', 'gens', () => ['Partager l\'accès'], () => ecranAcces(), () => brancherAcces()],
-  contact: ['contact', 'telephone', () => ['Nous contacter'], () => ecranContact()]
+  contact: ['contact', 'telephone', () => ['Nous contacter'], () => ecranContact()],
+  app: ['app', 'telephone', () => ['App'], () => ecranApp(), () => brancherApp()]
 };
 K.rendre = () => {
   if (!D) return;

@@ -84,8 +84,7 @@ function conf() {
       { id: 'commander', texte: 'Commander des créatives', icone: 'panier', href: '#/commander' },
       { id: 'factures', texte: 'Factures', icone: 'recu', href: '#/factures', nb: payees(D.factures).length || '' }
     ] }, { titre: 'Kreative', liens: [
-      { id: 'acces', texte: 'Partager l\'accès', icone: 'gens', href: '#/acces' },
-      { id: 'contact', texte: 'Nous contacter', icone: 'telephone', href: '#/contact' }
+      { id: 'acces', texte: 'Partager l\'accès', icone: 'gens', href: '#/acces' }
     ].concat(APP.mobile() ? [{ id: 'app', texte: 'App', icone: 'telephone', href: '#/app' }] : []) }],
     qui: { nom: D.client.marque, role: D.client.contact || D.client.email || 'Client', tuile: true, photo: urlPhoto() },
     menu: ['<a href="#/acces">' + i.gens + 'Partager l\'accès</a>'],
@@ -376,14 +375,6 @@ function brancherAcces() {
   if (c) c.onclick = () => K.copier(D.lien, 'Lien copié');
 }
 
-// ---------- CONTACT ----------
-function ecranContact() {
-  return apercu() + '<div class="ph"><div><h1>Nous contacter</h1><p>Une question, une urgence, un ajustement : on répond sur WhatsApp, en général dans l\'heure.</p></div></div>' +
-    '<div class="card pad" style="max-width:640px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">' +
-    '<div><div class="lab">WhatsApp</div><b style="font-size:18px">07 56 92 10 42</b></div>' +
-    '<a class="btn btn-lg btn-wa" href="' + wa('Bonjour Kreative, ') + '" target="_blank" rel="noopener">Nous écrire</a></div>';
-}
-
 // ---------- L'APP : l'espace sur l'écran d'accueil du téléphone (comme les autres clients) ----------
 const APP = {
   installation: null,
@@ -431,7 +422,6 @@ const ECRANS = {
   merci: ['commander', 'panier', () => ['Commander des créatives', 'Paiement reçu'], () => ecranMerci()],
   factures: ['factures', 'recu', () => ['Factures'], () => ecranFactures()],
   acces: ['acces', 'gens', () => ['Partager l\'accès'], () => ecranAcces(), () => brancherAcces()],
-  contact: ['contact', 'telephone', () => ['Nous contacter'], () => ecranContact()],
   app: ['app', 'telephone', () => ['App'], () => ecranApp(), () => brancherApp()]
 };
 K.rendre = () => {

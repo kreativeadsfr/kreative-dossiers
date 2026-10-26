@@ -33,6 +33,7 @@ const lid = r.d.id; const L = cookie(await get(r.d.lien.replace(B, '')));
 let h = await (await get('/client/', { headers: { Cookie: W } })).text();
 t('Wimmov arrive sur son propre espace', h.includes('<title>Espace Wimmov · Kreative</title>') && h.includes('/api/client/wimmov'));
 t('Wimmov a l\'onglet App pour installer l\'espace sur son téléphone', h.includes("href: '#/app'") && h.includes('function ecranApp') && h.includes('Sur l\\\'écran d\\\'accueil'));
+t('Wimmov n\'a pas de section « Nous contacter »', !h.includes('Nous contacter') && !h.includes('#/contact'));
 h = await (await get('/client/', { headers: { Cookie: L } })).text();
 t('un autre client garde l\'espace classique', h.includes('<title>Espace client · Kreative</title>') && !h.includes('/api/client/wimmov'));
 h = await (await get('/client/?client=' + wid, { headers: { Cookie: A } })).text();

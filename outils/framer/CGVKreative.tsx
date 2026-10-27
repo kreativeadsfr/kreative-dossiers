@@ -40,7 +40,7 @@ const STYLE = `
 `
 
 const TEXTE = `
-<p class="maj">Dernière mise à jour : 22/10/2026</p>
+<p class="maj">Dernière mise à jour : 27/10/2026</p>
 
 <h2>Article 1 - Objet et champ d'application</h2>
 <p>Les présentes Conditions Générales de Vente (« CGV ») régissent les relations contractuelles entre Kreative, auto-entreprise immatriculée au nom de Dario Crespo (SIRET : 103 346 003 00017), dont le siège est situé 47 Rue Vivienne, 75002 Paris, ci-après « le Prestataire », et tout client souhaitant acquérir une prestation de création de visuels publicitaires statiques, ci-après « le Client ».</p>

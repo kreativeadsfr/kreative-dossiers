@@ -44,7 +44,7 @@ const MOIS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 
 const moisDe = ms => { const d = new Date(ms || Date.now()); return MOIS[d.getMonth()] + ' ' + d.getFullYear(); };
 const nomCmd = c => c.formule === 'mensuel' ? 'Abonnement · ' + moisDe(c.cree_le) : 'Créatives en plus · ' + c.nb_creas + ' créatives';
 const NOMS_F = { '1x1': '1:1', '4x5': '4:5', '9x16': '9:16', autre: 'Autre' };
-const ST = { brouillon: ['Pas encore envoyée', 'a'], envoyee: ['Chez Wimmov', 'b'], review_terminee: ['Chez Wimmov', 'b'], approuvee: ['Chez Wimmov', 'g'], a_verifier: ['À vérifier', 'a'], a_corriger: ['À corriger', 'r'] };
+const ST = { brouillon: ['Pas encore envoyée', 'a'], envoyee: ['Chez Wimmov', 'b'], review_terminee: ['Retours de Wimmov', 'a'], approuvee: ['Validée par Wimmov', 'g'], a_verifier: ['À vérifier', 'a'], a_corriger: ['À corriger', 'r'] };
 const pill = st => { const x = ST[st] || [st, '']; return '<span class="pill ' + x[1] + '"><i></i>' + esc(x[0]) + '</span>'; };
 const taille = n => n > 1e6 ? (n / 1e6).toFixed(1).replace('.', ',') + ' Mo' : Math.max(1, Math.round((n || 0) / 1e3)) + ' ko';
 async function charger() { D = await K.api('/api/admin/wimmov'); }

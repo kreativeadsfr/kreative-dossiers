@@ -2032,7 +2032,10 @@ async function apiClientLivraisons(req, env, ctx, url, chemin, methode, cl, aper
     if (!t.reste) {
       await db.prepare("UPDATE livraisons SET statut = 'approuvee', review_le = ? WHERE id = ?").bind(now, l.id).run();
       let valide = false;
-      if (k && await estDerniereLivraison(env, l.dossier) && !['valide', 'annule'].includes(k.statut)) {
+      // Wimmov : son mois (60 créas) n'est terminé qu'à la 4e livraison ; des créas en plus, dès la 1re
+      const derniere = DOSSIER_WIMMOV.test(l.dossier) ? !k || k.formule !== 'mensuel' || Number((l.dossier.match(/_L(\d+)$/) || [])[1] || 0) >= WIMMOV.livraisons_mois
+        : await estDerniereLivraison(env, l.dossier);
+      if (k && derniere && !['valide', 'annule'].includes(k.statut)) {
         await db.prepare("UPDATE commandes SET statut = 'valide', valide_le = ? WHERE id = ?").bind(now, k.id).run();
         await noter(db, cl.id, k.id, 'valide', 'Créatives validées · projet terminé');
         valide = true;
@@ -2050,10 +2053,11 @@ async function apiClientLivraisons(req, env, ctx, url, chemin, methode, cl, aper
     if (k && !['valide', 'annule'].includes(k.statut)) await db.prepare("UPDATE commandes SET statut = 'revisions' WHERE id = ?").bind(k.id).run();
     if (k) await noter(db, cl.id, k.id, 'revisions', 'Vos retours sont transmis · retouches en cours');
     // Kreative est prévenu par email
-    const envoi = envoyerEmail(env, { type: 'review', a: env.EMAIL_KREATIVE || 'contact@kreativeads.fr', marque: cl.marque, contact: 'Kreative', lien: url.origin + '/admin/#/livraisons/' + l.dossier,
+    const lienAdmin = DOSSIER_WIMMOV.test(l.dossier) ? url.origin + '/admin/wimmov.html#/livraison/' + l.dossier : url.origin + '/admin/#/livraisons/' + l.dossier;
+    const envoi = envoyerEmail(env, { type: 'review', a: env.EMAIL_KREATIVE || 'contact@kreativeads.fr', marque: cl.marque, contact: 'Kreative', lien: lienAdmin,
       sujet: cl.marque + ' · retours du client sur la version ' + l.version,
       html: emailHtml(url.origin, { titre: cl.marque + ' a terminé sa review', paragraphes: [(t.n - t.reste) + ' fichier' + (t.n - t.reste > 1 ? 's' : '') + ' approuvé' + (t.n - t.reste > 1 ? 's' : '') + ' sur ' + t.n + ', ' + t.coms + ' commentaire' + (t.coms > 1 ? 's' : '') + '. ' + (pour === 'strategiste' ? 'Les retours parlent des textes : le stratégiste corrige d\'abord, puis la designer fait la nouvelle version.' : 'La designer voit les retours dans son espace et prépare la nouvelle version.') + ' Vous pouvez changer qui s\'en occupe depuis la livraison.'],
-        bouton: ['Voir les retours', url.origin + '/admin/#/livraisons/' + l.dossier] }) });
+        bouton: ['Voir les retours', lienAdmin] }) });
     if (ctx && ctx.waitUntil) ctx.waitUntil(envoi); else await envoi;
     return json({ ok: true, approuvee: false });
   }

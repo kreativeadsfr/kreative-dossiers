@@ -164,14 +164,42 @@ function ecranCreatives(p) {
   if (!CR.donnees) return h + '<div class="card"><div class="vide">Chargement de vos créatives…</div></div>';
   const l = livraisonOuverte(p);
   if (!l) return h + '<div class="card"><div class="vide">Livraison introuvable.</div></div>';
-  return h + K.rv.grille(l, { mode: 'client', sansCompte: true, titre: nomCmd(c) + ' · Livraison ' + numero(l.dossier),
-    sousTitre: l.fichiers.length + ' fichier' + (l.fichiers.length > 1 ? 's' : '') + ' · envoyée le ' + K.date(l.envoye_le, { month: 'long' }) });
+  // la review, comme l'espace normal : commenter, approuver une par une ou tout, puis valider ou envoyer ses retours
+  const enReview = l.statut === 'envoyee' && !D.apercu;
+  if (l.statut === 'review_terminee') h += '<div class="rv-note">' + i.coche + '<div><b>Retours envoyés' + (l.review_le ? ' le ' + esc(K.date(l.review_le, { year: undefined })) : '') + '.</b> Vos retours sont chez Kreative : la nouvelle version arrive ici.</div></div>';
+  if (l.statut === 'approuvee') h += '<div class="rv-note">' + i.coche + '<div><b>Livraison validée.</b> Vos créatives sont définitives, téléchargez-les quand vous voulez.</div></div>';
+  return h + K.rv.grille(l, { mode: 'client', sansCompte: true, titre: nomCmd(c) + ' · Livraison ' + numero(l.dossier) + (l.version > 1 ? ' · version ' + l.version : ''),
+    sousTitre: l.fichiers.length + ' fichier' + (l.fichiers.length > 1 ? 's' : '') + ' · envoyée le ' + K.date(l.envoye_le, { month: 'long' }),
+    actions: enReview ? '<button class="btn btn-s" data-tout-ok>' + i.coche + 'Tout approuver</button><button class="btn btn-d" data-terminer>' + i.envoi + 'Review terminée</button>' : '' });
 }
 function brancherCreatives(p) {
   const c = D.commandes.find(x => x.id === p[0]), l = c && livraisonOuverte(p);
   if (!l) return;
   K.rv.brancher(l, { mode: 'client', nomZip: (D.client.marque + '-' + nomCmd(c) + '-livraison-' + numero(l.dossier)).replace(/[^A-Za-z0-9]+/g, '-'), rendre: () => K.rendre(),
-    auteur: D.client.contact || D.client.marque, peutCommenter: () => false, peutApprouver: () => false, api: {} });
+    auteur: D.client.contact || D.client.marque,
+    peutCommenter: x => x.statut === 'envoyee' && !D.apercu, peutApprouver: x => x.statut === 'envoyee' && !D.apercu,
+    api: {
+      commenter: (f, texte, forme, couleur) => K.api('/api/client/commentaires', { methode: 'POST', corps: { fichier_id: f.id, texte, forme, couleur } }),
+      supprimer: id => K.api('/api/client/commentaires/' + id, { methode: 'DELETE' }),
+      approuver: (f, oui) => K.api('/api/client/fichiers/' + f.id + '/approuver', { methode: 'POST', corps: { oui } })
+    } });
+  const t = document.querySelector('[data-tout-ok]');
+  if (t) t.onclick = async () => {
+    if (!await K.confirmer('Tout approuver ?', 'Les ' + l.fichiers.length + ' fichiers de cette livraison sont marqués comme approuvés. Vous terminez ensuite votre review.', 'Tout approuver')) return;
+    try { await K.api('/api/client/livraisons/' + l.id + '/tout-approuver', { methode: 'POST' }); l.fichiers.forEach(f => { f.approuve_le = f.approuve_le || Date.now(); }); K.rendre(); K.toast('Tout est approuvé'); } catch (e) { K.toast(e.message); }
+  };
+  const fin = document.querySelector('[data-terminer]');
+  if (fin) fin.onclick = async () => {
+    const reste = l.fichiers.filter(f => !f.approuve_le).length, coms = l.fichiers.reduce((s, f) => s + f.commentaires.length, 0), ok = l.fichiers.length - reste;
+    const oui = reste ? await K.confirmer('Envoyer vos retours ?', coms + ' commentaire' + (coms > 1 ? 's' : '') + ', ' + ok + ' fichier' + (ok > 1 ? 's' : '') + ' approuvé' + (ok > 1 ? 's' : '') + ' sur ' + l.fichiers.length + '. Kreative prépare une nouvelle version.', 'Envoyer mes retours')
+      : await K.confirmer('Tout est approuvé', 'Vous validez cette livraison : vos créatives deviennent définitives.', 'Valider la livraison');
+    if (!oui) return;
+    try {
+      const r = await K.api('/api/client/livraisons/' + l.id + '/terminer', { methode: 'POST' });
+      K.toast(r.approuvee ? 'Livraison validée' : 'Retours envoyés à Kreative');
+      CR.commande = null; K.rendre();
+    } catch (e) { K.toast(e.message); }
+  };
 }
 
 // ---------- RETOURS DE LA SEMAINE ----------

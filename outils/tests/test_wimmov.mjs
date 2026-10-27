@@ -85,6 +85,20 @@ const fic = r.d.livraisons[0].fichiers[0];
 t('… et ses fichiers', r.d.livraisons.length === 1 && r.d.livraisons[0].fichiers.length === 3);
 t('… qu\'il peut télécharger', (await get(fic.url, { headers: { Cookie: W } })).status === 200);
 t('un autre client ne peut pas les ouvrir', (await get(fic.url, { headers: { Cookie: L } })).status === 403);
+// ---------- Wimmov fait sa review : commenter, approuver, envoyer ses retours ----------
+r = await api('/api/client/commentaires', W, 'POST', { fichier_id: fic.id, texte: 'Le titre plus gros, svp', forme: { type: 'rect', x: 0.1, y: 0.1, l: 0.3, h: 0.2 }, couleur: '#e5484d' });
+t('Wimmov commente une créative', r.s === 200 && r.d.ok, JSON.stringify(r.d));
+const fic2 = (await api('/api/client/commandes/' + k.id + '/creatives', W)).d.livraisons[0].fichiers[1];
+r = await api('/api/client/fichiers/' + fic2.id + '/approuver', W, 'POST', { oui: true });
+t('… en approuve une autre', r.s === 200);
+const tgR = lignes("livraison.log").length, nRv = emails().length;
+r = await api('/api/client/livraisons/' + l1.id + '/terminer', W, 'POST'); await pause(400);
+t('… et envoie ses retours (review terminée, retouches)', r.s === 200 && r.d.approuvee === false, JSON.stringify(r.d));
+const ER = emails().slice(nRv).filter(e => e.type === 'review');
+t('… Kreative est prévenu par email, avec le lien de l\'admin Wimmov', ER.length === 1 && /admin\/wimmov\.html#\/livraison\//.test(ER[0].lien || ''), JSON.stringify(ER).slice(0, 300));
+t('… aucun Telegram', lignes('livraison.log').length === tgR);
+r = await api('/api/admin/wimmov/livraisons/' + l1.dossier, A);
+t('… l\'admin voit son commentaire', r.d.versions[0].statut === 'review_terminee' && r.d.versions[0].fichiers.some(f => f.commentaires.some(c => /titre plus gros/.test(c.texte))), JSON.stringify(r.d.versions[0]).slice(0, 300));
 
 // ---------- l'équipe ne voit jamais Wimmov ----------
 for (const [qui, ck] of [['stratégiste', S], ['designer', DZ]]) {
@@ -107,6 +121,12 @@ await deposer(A, r.d.id, 'WIMMOV_STANDARD_01.png', 1080, 1080, '1x1');
 await api('/api/admin/wimmov/livraisons/' + r.d.id + '/envoyer', A, 'POST'); await pause(400);
 E = emails().filter(e => e.type === 'creatives');
 t('… email « nouvelle version »', /Livraison 1 : nouvelle version/.test(E[E.length - 1].sujet), E[E.length - 1].sujet);
+// la nouvelle version : Wimmov approuve tout et valide la livraison ; le mois continue (1 livraison sur 4)
+const v2 = (await api('/api/client/commandes/' + k.id + '/creatives', W)).d.livraisons.find(x => x.dossier === l1.dossier && x.version === 2);
+r = await api('/api/client/livraisons/' + v2.id + '/tout-approuver', W, 'POST');
+const fV = await api('/api/client/livraisons/' + v2.id + '/terminer', W, 'POST');
+t('Wimmov approuve tout et valide la livraison 1', r.s === 200 && fV.s === 200 && fV.d.approuvee === true && fV.d.valide === false, JSON.stringify(fV.d));
+t('… le mois n\'est pas terminé pour autant (livraison 1 sur 4)', (await api('/api/admin/wimmov', A)).d.commandes.find(x => x.id === k.id).statut !== 'valide');
 r = await api('/api/admin/wimmov/livraisons', A, 'POST', { commande_id: k.id });
 t('livraison suivante : « _L2 »', r.d.dossier === k.dossier + '_L2', r.d.dossier);
 

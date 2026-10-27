@@ -43,8 +43,8 @@ function conf() {
     { id: 'fiche', texte: 'Fiches créas', icone: 'doc', href: '#/fiche' },
     { id: 'dossier', texte: 'Dossiers de production', icone: 'calques', href: '#/dossier' },
     { id: 'brief', texte: 'Briefs suivants', icone: 'message', href: '#/brief', nb: L.filter(x => x.retour && !x.envoye).length || '' }] });
-  const nom = E.moi && E.moi.nom ? E.moi.nom.charAt(0).toUpperCase() + E.moi.nom.slice(1) : 'Stratégiste';
-  return { sections, clair: true, qui: { nom, role: admin ? 'Fondateur · admin' : 'Stratégiste' }, sortie: '/_deconnexion', recherche: rechercher, cherche: 'Rechercher un projet…' };
+  const qui = Object.assign(K.profil(E.moi && E.moi.nom, 'Stratégiste'), { role: admin ? 'Fondateur · admin' : 'Stratégiste' });
+  return { sections, clair: true, qui, sortie: '/_deconnexion', recherche: rechercher, cherche: 'Rechercher un projet…' };
 }
 function rechercher(q) {
   q = q.toLowerCase(); if (!q) return [];

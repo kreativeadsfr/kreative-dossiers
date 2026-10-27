@@ -144,6 +144,13 @@
     if (s < 86400) return 'il y a ' + Math.floor(s / 3600) + ' h'; if (s < 86400 * 30) return 'il y a ' + Math.floor(s / 86400) + ' j';
     return K.date(ms);
   };
+  // profils de l'équipe : nom complet et photo, retrouvés par le prénom de connexion
+  K.PROFILS = { dario: { nom: 'Dario Crespo', photo: '/ui/profil-dario.jpg' } };
+  K.profil = (nom, defaut) => {
+    const p = K.PROFILS[String(nom || '').trim().toLowerCase()];
+    const n = nom ? String(nom).charAt(0).toUpperCase() + String(nom).slice(1) : defaut;
+    return p ? { nom: p.nom, photo: p.photo, rond: true } : { nom: n };
+  };
   K.initiales = t => String(t || '?').replace(/\([^)]*\)/g, ' ').trim().split(/\s+/).slice(0, 2).map(x => x[0]).join('').toUpperCase() || '?';
   const TEINTES = ['#4d94ff', '#1f1f1f', '#e8834a', '#1e9e57', '#7c5cff', '#d6453d', '#c27a06', '#0f8b8d'];
   K.teinte = t => { let h = 0; for (const c of String(t || '')) h = (h * 31 + c.charCodeAt(0)) >>> 0; return TEINTES[h % TEINTES.length]; };
@@ -298,7 +305,7 @@
       (conf.sansTheme || conf.clair ? '' : '<button id="k-theme2">' + (sombre ? K.i.soleil : K.i.lune) + (sombre ? 'Thème clair' : 'Thème sombre') + '</button>') +
       '<a href="' + K.esc(conf.sortie) + '">' + K.i.sortie + (conf.anglais ? 'Log out' : 'Se déconnecter') + '</a></div>' +
       '<button class="compte" id="k-menu-btn" aria-label="Menu du compte" aria-expanded="false">' +
-      (conf.qui.photo ? '<img class="av-img" src="' + K.esc(conf.qui.photo) + '" alt="">' : conf.qui.tuile ? K.tuile(conf.qui.nom) : '<span class="av">' + K.esc(K.initiales(conf.qui.nom)) + '</span>') +
+      (conf.qui.photo ? '<img class="av-img' + (conf.qui.rond ? ' rond' : '') + '" src="' + K.esc(conf.qui.photo) + '" alt="">' : conf.qui.tuile ? K.tuile(conf.qui.nom) : '<span class="av">' + K.esc(K.initiales(conf.qui.nom)) + '</span>') +
       '<span class="qui"><b>' + K.esc(conf.qui.nom) + '</b><small>' + K.esc(conf.qui.role) + '</small></span>' + K.i.hautBas + '</button></div></aside>' +
       '<div class="main"><div class="panel"><header class="top">' +
       '<button class="icon-btn burger" id="k-burger" aria-label="Menu">' + K.i.menu + '</button>' +

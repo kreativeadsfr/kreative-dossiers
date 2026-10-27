@@ -10,6 +10,16 @@
   var KC = window.KC || {};
   var EN = KC.langue === 'en';
   var $ = function (id) { return document.getElementById(id); };
+
+  // profil de l'équipe : nom complet et photo (le Worker n'écrit que le prénom)
+  var PROFILS = { dario: { nom: 'Dario Crespo', photo: '/ui/profil-dario.jpg' } };
+  (function () {
+    var b = document.querySelector('#kc-mb .kc-qui b'), av = document.querySelector('#kc-mb .kc-av');
+    var pr = b && PROFILS[b.textContent.trim().toLowerCase()];
+    if (!pr) return;
+    b.textContent = pr.nom;
+    if (av) av.innerHTML = '<img src="' + pr.photo + '" alt="">';
+  })();
   var esc = function (t) { return String(t == null ? '' : t).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
   var lire = function (u) { return fetch(u + (u.indexOf('?') < 0 ? '?' : '&') + 't=' + Date.now(), { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }); };
   var p = function (d) { return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + d + '</svg>'; };

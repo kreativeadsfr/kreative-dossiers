@@ -115,7 +115,7 @@ function conf() {
         { id: 'livraisons', texte: 'Livraisons', icone: 'envoi', href: '#/livraisons', nb: (S.livraisons || []).filter(l => l.statut === 'a_verifier' && estDerniere(l)).length || '' }] },
       { titre: '', liens: [{ id: 'equipe', texte: 'Équipe', icone: 'bouclier', href: '#/equipe' }] }
     ],
-    qui: { nom: S.moi && S.moi.nom ? S.moi.nom.charAt(0).toUpperCase() + S.moi.nom.slice(1) : 'Admin', role: 'Fondateur · admin' },
+    qui: Object.assign(K.profil(S.moi && S.moi.nom, 'Admin'), { role: 'Fondateur · admin' }),
     sortie: '/_deconnexion',
     recherche: rechercher
   };

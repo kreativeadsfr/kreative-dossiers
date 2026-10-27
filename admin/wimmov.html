@@ -62,7 +62,7 @@ function conf() {
         { id: 'commandes', texte: 'Mois et commandes', icone: 'sac', href: '#/commandes' },
         { id: 'acces', texte: 'Accès et emails', icone: 'gens', href: '#/acces' }] }],
     clair: true,
-    qui: { nom: MOI && MOI.nom ? MOI.nom.charAt(0).toUpperCase() + MOI.nom.slice(1) : 'Admin', role: 'Fondateur · admin' },
+    qui: Object.assign(K.profil(MOI && MOI.nom, 'Admin'), { role: 'Fondateur · admin' }),
     sortie: '/_deconnexion'
   };
 }

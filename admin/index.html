@@ -646,7 +646,7 @@ async function ecranClient(id) {
   h += '<div class="sec"><div><h2>Commandes</h2><p>Reliez chaque commande à son dossier de production dès que le brief est arrivé.</p></div></div>';
   h += cmds.length ? '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Commande</th><th>Pack</th><th class="num">Prix</th><th>Dossier de production</th><th>Statut</th><th>Avancement</th><th></th></tr></thead><tbody>' +
     cmds.map(k => '<tr><td><b>' + esc(K.nomCommande(k)) + '</b><span class="sub">#' + esc(k.ref) + ' · ' + esc(K.date(k.cree_le)) + (k.stripe_session ? ' · payée en ligne' : '') + '</span></td><td>' + k.nb_creas + ' créas<span class="sub">' + esc(FORMULES[k.formule] || '') + '</span></td>' +
-      '<td class="num">' + K.euros(k.prix) + '</td><td>' + choixDossier(k) + '</td><td>' + choixStatut(k) + '</td>' +
+      '<td class="num">' + K.euros(k.prix) + '</td><td>' + choixDossier(k, c.marque) + '</td><td>' + choixStatut(k) + '</td>' +
       '<td style="min-width:120px"><div class="barre"><i style="width:' + k.progression + '%"></i></div><span class="sub">' + k.progression + ' %</span></td>' +
       '<td class="fin"><button class="btn btn-g btn-sm" data-suppr="' + esc(k.id) + '" title="Supprimer">' + i.poubelle + '</button></td></tr>').join('') + '</tbody></table></div></div>'
     : '<div class="card"><div class="vide">' + i.sac + 'Aucune commande. <a href="#" id="b-cmd2">Enregistrer sa première commande</a></div></div>';
@@ -660,8 +660,15 @@ async function ecranClient(id) {
     '<button class="btn btn-r btn-sm" id="b-suppr">' + i.poubelle + 'Supprimer le client</button></div></div></div>';
   return h;
 }
-function choixDossier(k) {
-  const opts = (S.dossiers || []).filter(d => !/^TEST|^REDO/.test(d));
+// seulement les dossiers de ce client (même nom de marque, ex. « Laboratoire Kot » → LABORATOIREKOT_10_7236) et celui déjà relié
+// (Wimmov) : les dossiers des autres clients n'ont rien à faire ici. n8n relie tout seul le dossier quand le brief arrive.
+const cleMarque = m => String(m || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+function dossierDuClient(d, marque) {
+  const cle = cleMarque(marque), pre = String(d).split('_')[0];
+  return cle.length >= 3 && pre.length >= 3 && (cle.startsWith(pre) || pre.startsWith(cle));
+}
+function choixDossier(k, marque) {
+  const opts = (S.dossiers || []).filter(d => !/^TEST|^REDO|_TEST/.test(d) && dossierDuClient(d, marque));
   return '<select class="in" style="height:34px;font-size:13px;min-width:190px" data-dossier="' + esc(k.id) + '"><option value="">Pas encore de dossier</option>' +
     opts.map(d => '<option' + (d === k.dossier ? ' selected' : '') + '>' + esc(d) + '</option>').join('') + (k.dossier && !opts.includes(k.dossier) ? '<option selected>' + esc(k.dossier) + '</option>' : '') + '</select>';
 }
@@ -722,7 +729,7 @@ function nouvelleCommande(c, apres) {
     '<div class="grid g2" style="gap:12px"><div class="champ"><label>Nombre de créatives</label><input class="in" id="c-nb" type="number" min="1"></div>' +
     '<div class="champ"><label>Prix (€)</label><input class="in" id="c-prix" type="number" min="0"></div></div>' +
     '<div class="aide" id="c-aide" style="margin:-4px 0 14px;font-size:12.5px;color:var(--tx3)"></div>' +
-    '<div class="champ"><label>Dossier de production</label>' + choixDossier({ id: 'nouveau', dossier: '' }).replace('data-dossier="nouveau"', 'id="c-dossier"') + '<div class="aide">Laissez vide si le client n\'a pas encore envoyé son brief : il le remplira depuis son espace.</div></div>' +
+    '<div class="champ"><label>Dossier de production</label>' + choixDossier({ id: 'nouveau', dossier: '' }, c.marque).replace('data-dossier="nouveau"', 'id="c-dossier"') + '<div class="aide">Laissez vide si le client n\'a pas encore envoyé son brief : il le remplira depuis son espace.</div></div>' +
     '</div><div class="fen-f"><button class="btn btn-s" data-n>Annuler</button><button class="btn btn-p" data-o>Enregistrer la commande</button></div>');
   // Starter, Growth et Scale ont un prix fixe : seul le pack Custom se règle à la main
   const maj = () => {

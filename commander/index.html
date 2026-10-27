@@ -109,7 +109,7 @@ html{scrollbar-width:none;overscroll-behavior:auto}html::-webkit-scrollbar{displ
   // les prix du portail (gardés ici aussi, au cas où le portail ne répond pas)
   var D = { packs: { starter: { nom: 'Starter', creas: 6, unique: 280, delai: 48 }, growth: { nom: 'Growth', creas: 12, unique: 490, delai: 48 }, scale: { nom: 'Scale', creas: 24, unique: 890, delai: 72 }, custom: { nom: 'Custom', creas: 30, delai: 72 } },
     custom: { min: 30, max: 100, pas: 5, delais: [[30, 72], [50, 96], [70, 120], [100, 168]], paliers: [[30, 35], [50, 32], [75, 29]] },
-    options: [{ id: 'express', nom: 'Livraison express', detail: 'Livrée 2 fois plus vite', type: 'fixe', valeur: 390, par_pack: { starter: 90, growth: 190, scale: 290, custom: 390 } },
+    options: [{ id: 'express', nom: 'Livraison express', detail: 'Livrée 2 fois plus vite', type: 'fixe', valeur: 390, par_pack: { starter: 90, growth: 190, scale: 290, custom: 390 }, par_volume: { custom: [[70, 490]] } },
       { id: 'variations', nom: 'Variations de texte', detail: 'Le même visuel avec 2 ou 3 textes, sur chaque créa', type: 'variations', valeur: 15, prix: [15, 10], max: 2 }] };
   var INCLUS = { starter: ['6 visuels Ads', 'Tous les formats Meta', '2 cycles de révisions', 'Livraison en 48 h', 'Contact WhatsApp inclus'],
     growth: ['12 visuels Ads', 'Tous les formats Meta', 'Révisions illimitées', 'Livraison en 48 h', 'Contact WhatsApp inclus', 'Angles marketing variés'],
@@ -120,6 +120,11 @@ html{scrollbar-width:none;overscroll-behavior:auto}html::-webkit-scrollbar{displ
   var eur = function (n) { return new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 }).format(n).replace(/[\u202f\u00a0 ]/g, '\u00a0') + '€'; };
   var q = function (k) { return racine.querySelector('[data-kc="' + k + '"]'); };
   var nb = function () { return pack === 'custom' ? C.nb : D.packs[pack].creas; };
+  // prix d'une option fixe : selon le pack, et l'express du Custom passe à 490 € dès 70 créas (par_volume)
+  function prixFixe(o, n) {
+    var t = o.par_volume && o.par_volume[pack], p = t ? t.filter(function (x) { return (n || 0) >= x[0]; }).pop() : null;
+    return p ? p[1] : (o.par_pack && o.par_pack[pack] != null ? o.par_pack[pack] : o.valeur);
+  }
   var parCrea = function () { return D.options.filter(function (o) { return o.type === 'par_crea' && C.options.indexOf(o.id) >= 0; }).map(function (o) { return o.id; }); };
   // les A/B tests ensemble ne dépassent jamais le nombre de créas
   function normaliser() { var ids = parCrea(), reste = nb(); ids.forEach(function (id, k) { var max = Math.max(1, reste - (ids.length - k - 1)); C.qte[id] = Math.min(max, Math.max(1, Math.round(C.qte[id] || 1))); reste -= C.qte[id]; }); }
@@ -139,7 +144,7 @@ html{scrollbar-width:none;overscroll-behavior:auto}html::-webkit-scrollbar{displ
     D.options.forEach(function (o) {
       if (C.options.indexOf(o.id) < 0) return;
       if (estVar(o)) { var qv = qVar(o), pc = pcVar(o, qv); lignes.push([nomVar(qv) + ' · ' + n + ' × ' + pc + '€', n * pc]); base += n * pc; return; }
-      var v = o.type === 'par_crea' ? C.qte[o.id] * o.valeur : (o.par_pack && o.par_pack[pack] != null ? o.par_pack[pack] : o.valeur);
+      var v = o.type === 'par_crea' ? C.qte[o.id] * o.valeur : prixFixe(o, n);
       lignes.push([o.nom + (o.type === 'par_crea' ? ' · ' + C.qte[o.id] + ' × ' + o.valeur + '€' : ''), v]); base += v;
     });
     return { lignes: lignes, total: Math.round(base), n: n };
@@ -168,7 +173,7 @@ html{scrollbar-width:none;overscroll-behavior:auto}html::-webkit-scrollbar{displ
     var P = D.packs[pack], d = devis(), n = racine.querySelector('.kc-nb b'); if (n) n.textContent = C.nb;
     q('opts').innerHTML = D.options.map(function (o) {
       var on = C.options.indexOf(o.id) >= 0, vr = estVar(o), pc = o.type === 'par_crea' || vr, qo = vr ? qVar(o) : C.qte[o.id], un = vr ? 'variation' : 'créa';
-      var px = pc ? '+' + (vr ? pcVar(o, on ? qo : 1) : o.valeur) + '€<small>par créa</small>' : '+' + eur(o.par_pack && o.par_pack[pack] != null ? o.par_pack[pack] : o.valeur);
+      var px = pc ? '+' + (vr ? pcVar(o, on ? qo : 1) : o.valeur) + '€<small>par créa</small>' : '+' + eur(prixFixe(o, nb()));
       return '<div class="kc-opt' + (on ? ' on' : '') + '" data-opt="' + o.id + '" role="checkbox" aria-checked="' + on + '" tabindex="0"><span class="kc-case">' + COCHE + '</span><div class="kc-opt-t"><b>' + o.nom + '</b><small>' + (vr && on ? detailVar(qo) : o.detail) + '</small></div>' +
         (on && pc ? '<div class="kc-qte"><button type="button" data-m aria-label="Une ' + un + ' de moins"' + (qo <= 1 ? ' disabled' : '') + '>−</button><b>' + qo + '</b><button type="button" data-p aria-label="Une ' + un + ' de plus"' + (qo >= maxDe(o.id) ? ' disabled' : '') + '>+</button></div>' : '') +
         '<span class="kc-px">' + px + '</span></div>';

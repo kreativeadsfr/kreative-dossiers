@@ -68,7 +68,7 @@ const TEXTE = `
 <h3>2.2 - Les options</h3>
 <p>Le Client peut ajouter à sa commande les options suivantes :</p>
 <ul>
-  <li>Livraison express : le délai de livraison du pack (de chaque livraison pour le Pack Custom) est divisé par deux. 90 € pour le Pack Starter, 190 € pour le Pack Growth, 290 € pour le Pack Scale et 390 € pour le Pack Custom.</li>
+  <li>Livraison express : le délai de livraison du pack (de chaque livraison pour le Pack Custom) est divisé par deux. 90 € pour le Pack Starter, 190 € pour le Pack Growth, 290 € pour le Pack Scale, et pour le Pack Custom 390 € jusqu'à 65 créatives, 490 € à partir de 70 créatives.</li>
   <li>Variations de texte : chaque ad du pack est déclinée sur le même visuel avec un ou deux textes supplémentaires. Une variation (2 textes par visuel) : 15 € par ad. Deux variations (3 textes par visuel) : 25 € par ad.</li>
 </ul>
 <p>L'option Variations de texte s'applique à toutes les ads du pack commandé (de chaque livraison pour le Pack Custom). Chaque variation est livrée aux mêmes formats que l'ad d'origine.</p>

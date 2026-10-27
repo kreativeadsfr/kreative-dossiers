@@ -136,6 +136,13 @@ r = await api('/api/admin/factures', A); t('liste des factures admin', r.s === 2
 // ---- la landing : un lien de paiement pour chaque pack, Custom compris ----
 const lignesBrutes = () => fs.existsSync('stripe.log') ? fs.readFileSync('stripe.log', 'utf8').trim().split('\n').filter(Boolean) : [];
 const avantS = lignesBrutes().length;
+// express du Custom : 390 € jusqu'à 65 créas, 490 € dès 70 créas incluses
+for (const [n, prix] of [[65, 65 * 32 + 390], [70, 70 * 32 + 490], [100, 100 * 29 + 490]]) {
+  r = await api('/api/client/paiement', CK, 'POST', { pack: 'custom', formule: 'unique', nb_creas: n, options: ['express'] }); L = lignesStripe().pop();
+  t('Custom ' + n + ' créas + express : ' + prix + ' €', r.d.total === prix && L['line_items[0][price_data][unit_amount]'] === String(prix * 100), JSON.stringify(r.d));
+}
+r = await api('/api/offres'); const exO = ((r.d && r.d.options) || []).find(o => o.id === 'express');
+t('/api/offres expose le prix express du Custom par volume (490 € dès 70)', exO && exO.par_volume && JSON.stringify(exO.par_volume.custom) === '[[70,490]]', JSON.stringify(exO));
 r = await get('/payer/custom?creas=45&options=express,variations:1', { headers: { Referer: 'https://kreativeads.fr/tarifs' } });
 const LS = Object.fromEntries(new URLSearchParams(lignesBrutes().slice(avantS).pop() || ''));
 t('lien Custom de la landing → page Stripe (303)', r.status === 303 && /checkout\.stripe\.com/.test(r.headers.get('location') || ''), r.status);

@@ -616,7 +616,8 @@ const packDuLien = id => { for (const [pack, f] of Object.entries(LIENS_PAIEMENT
 // jamais pris dans ce qu'envoie le navigateur.
 const OPTIONS = [
   // l'express : un prix fixe selon le pack
-  { id: 'express', nom: 'Livraison express', detail: 'Livrée 2 fois plus vite', type: 'fixe', valeur: 390, par_pack: { starter: 90, growth: 190, scale: 290, custom: 390 } },
+  { id: 'express', nom: 'Livraison express', detail: 'Livrée 2 fois plus vite', type: 'fixe', valeur: 390, par_pack: { starter: 90, growth: 190, scale: 290, custom: 390 },
+    par_volume: { custom: [[70, 490]] } },   // Custom : 490 € à partir de 70 créas incluses
   // les variations de texte (22/10/2026, remplacent les A/B tests) : sur TOUTES les créas, le même visuel avec
   // 1 ou 2 textes en plus ; la 1re variation 15 € par créa, la 2e 10 € (donc 25 € par créa pour 2 variations)
   { id: 'variations', nom: 'Variations de texte', detail: 'Le même visuel avec 2 ou 3 textes, sur chaque créa', type: 'variations', valeur: 15, prix: [15, 10], max: 2 }
@@ -624,7 +625,12 @@ const OPTIONS = [
 // « 1 variation de texte (2 textes par visuel) »
 const nomVariations = q => (q > 1 ? q + ' variations' : '1 variation') + ' de texte (' + (q + 1) + ' textes par visuel)';
 // Le pack Custom se configure dans l'espace client : nombre de créas et options.
-const prixOption = (o, pack) => (o.par_pack && o.par_pack[pack] != null) ? o.par_pack[pack] : o.valeur;
+// prix d'une option fixe : selon le pack, et pour certaines selon le volume (express du Custom : 490 € dès 70 créas)
+const prixOption = (o, pack, nb) => {
+  const palier = o.par_volume && o.par_volume[pack] && o.par_volume[pack].filter(x => (nb || 0) >= x[0]).pop();
+  if (palier) return palier[1];
+  return (o.par_pack && o.par_pack[pack] != null) ? o.par_pack[pack] : o.valeur;
+};
 const CUSTOM = {
   min: 30, max: 100, pas: 5,
   // délai de livraison selon le volume : [jusqu'à N créas, heures]
@@ -666,7 +672,7 @@ function devis(pack, formule, nbDemande, optionsDemandees) {
   }
   if (pack === 'custom' && m) base = base * (1 - CUSTOM.remise_mensuel);
   for (const o of options) if (o.type === 'pct') base += base * o.valeur / 100;
-  for (const o of options) if (o.type === 'fixe') base += prixOption(o, pack);
+  for (const o of options) if (o.type === 'fixe') base += prixOption(o, pack, nb);
   const total = Math.round(base);
   const P = PACKS[pack];
   const nomOpt = o => o.type === 'variations' ? nomVariations(o.qte) : o.nom + (o.type === 'par_crea' ? ' × ' + o.qte : '');

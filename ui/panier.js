@@ -20,7 +20,11 @@
     ENGAGEMENT: 'Les tarifs mensuels supposent un engagement de 3 mois, puis sans engagement. Résiliable à tout moment ensuite depuis votre espace.'
   };
   const C = () => PN.cfg, D = () => PN.d;
-  PN.prixOpt = (o, pack) => (o.par_pack && o.par_pack[pack] != null) ? o.par_pack[pack] : o.valeur;
+  // express du Custom : 490 € dès 70 créas (par_volume), sinon le prix du pack
+  PN.prixOpt = (o, pack, nb) => {
+    const palier = o.par_volume && o.par_volume[pack] && o.par_volume[pack].filter(x => (nb || 0) >= x[0]).pop();
+    return palier ? palier[1] : (o.par_pack && o.par_pack[pack] != null) ? o.par_pack[pack] : o.valeur;
+  };
   PN.nb = () => C().pack === 'custom' ? C().nb : D().packs[C().pack].creas;
   // les A/B tests ensemble ne dépassent jamais le nombre de créas (12 sur un Growth : 7 + 5, par exemple)
   const parCrea = () => D().options.filter(o => o.type === 'par_crea' && C().options.includes(o.id)).map(o => o.id);
@@ -58,7 +62,7 @@
     opts.filter(estVar).forEach(x => { const q = PN.qte(x.id), pc = PN.parCreaVar(x, q), v = nb * pc; lignes.push([PN.nomVar(q) + ' · ' + nb + ' × ' + pc + ' €', v]); base += v; });
     if (c.pack === 'custom' && m) { lignes.push(['Remise mensuelle −' + Math.round(r * 100) + ' %', -base * r]); base *= 1 - r; }
     opts.filter(x => x.type === 'pct').forEach(x => { const v = base * x.valeur / 100; lignes.push([x.nom + ' (+' + x.valeur + ' %)', v]); base += v; });
-    opts.filter(x => x.type === 'fixe').forEach(x => { const v = PN.prixOpt(x, c.pack); lignes.push([x.nom, v]); base += v; });
+    opts.filter(x => x.type === 'fixe').forEach(x => { const v = PN.prixOpt(x, c.pack, nb); lignes.push([x.nom, v]); base += v; });
     return { lignes, total: Math.round(base), nb, unitaire: u };
   };
   // le délai de livraison après le brief : celui du pack, ou selon le volume pour le Custom ; l'express le divise par deux
@@ -105,7 +109,7 @@
     const c = C(), nb = PN.nb();
     return D().options.map(o => {
       const on = c.options.includes(o.id), vr = estVar(o), parCrea = o.type === 'par_crea' || vr, q = PN.qte(o.id), max = PN.max(o.id);
-      const px = o.type === 'pct' ? '+' + o.valeur + ' %' : o.type === 'fixe' ? '+' + K.euros(PN.prixOpt(o, c.pack)) : '+' + (vr ? PN.parCreaVar(o, on ? q : 1) : o.valeur) + ' €<small>par créa</small>';
+      const px = o.type === 'pct' ? '+' + o.valeur + ' %' : o.type === 'fixe' ? '+' + K.euros(PN.prixOpt(o, c.pack, PN.nb())) : '+' + (vr ? PN.parCreaVar(o, on ? q : 1) : o.valeur) + ' €<small>par créa</small>';
       const un = vr ? 'variation' : 'créa';
       return '<div class="opt' + (on ? ' on' : '') + (on && parCrea ? ' avec-qte' : '') + '" data-cf-opt="' + esc(o.id) + '" role="checkbox" aria-checked="' + on + '" tabindex="0"><span class="case">' + i.coche + '</span>' +
         '<div class="opt-t"><b>' + esc(o.nom) + '</b><small>' + esc(vr && on ? PN.detailVar(q) : o.detail) + '</small></div>' +

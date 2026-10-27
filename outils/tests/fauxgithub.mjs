@@ -35,6 +35,8 @@ http.createServer((req, res) => {
     // archiver un reel dans l'app : il disparaît de /media (POST /ig/_archiver id=… on=1 / on=0)
     // un reel dont Instagram refuse toutes les statistiques (reel d'essai…) : POST /ig/_illisible id=… on=1 ; media_ill… est ajouté à la liste
     if (p === '/_illisible') { IG.illisibles = IG.illisibles || {}; IG.illisibles[q.id] = q.on === '1'; return rep(200, { ok: true }); }
+    // Cloudflare refuse les appels en trop (« Too many subrequests ») : POST /ig/_limite on=1 ; les statistiques des reels échouent
+    if (p === '/_limite') { IG.limite = q.on === '1'; return rep(200, { ok: true }); }
     if (p === '/_archiver') { IG.archives = IG.archives || {}; IG.archives[q.id] = q.on === '1'; return rep(200, { ok: true }); }
     if (IG.bloque) return rep(400, { error: { message: 'API access blocked.', type: 'OAuthException', code: 200 } });
     if (p === '/refresh_access_token') return rep(200, { access_token: 'tok_rafraichi', token_type: 'bearer', expires_in: 5184000 });
@@ -53,6 +55,7 @@ http.createServer((req, res) => {
     if (p === '/1789/insights') return rep(200, { data: [{ name: 'follower_count', period: 'day', values: [{ value: 12, end_time: '2026-10-19T07:00:00+0000' }, { value: 8, end_time: '2026-10-20T07:00:00+0000' }] }] });
     if ((m = p.match(/^\/(media_[a-z]*\d+)\/insights$/))) { const demande = String(q.metric || '').split(','), s = stats(m[1]);
       fs.appendFileSync('ig.log', JSON.stringify({ quoi: 'stats', id: m[1], metric: q.metric }) + '\n');
+      if (IG.limite) return rep(500, { error: { message: 'Too many subrequests by single Worker invocation.' } });
       if ((IG.illisibles || {})[m[1]]) return rep(400, { error: { message: '(#100) Insights are not available for this media', code: 100 } });
       if (m[1] === 'media_ext90' && demande.length > 1 && demande.includes('follows')) return rep(400, { error: { message: '(#100) Incompatible metric (follows) with media type', code: 100 } });
       if (m[1] === 'media_ext90' && demande.length === 1 && demande[0] === 'follows') return rep(400, { error: { message: '(#100) Incompatible metric', code: 100 } });

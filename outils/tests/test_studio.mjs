@@ -150,6 +150,13 @@ t('… la raison d\'Instagram est affichée', /Insights are not available/.test(
 await illisible('media_ill95', false); await illisible(V.media_id, false);
 await api('/api/studio/actualiser', A, 'POST');
 t('… et disparaît quand tout se relit', !(await api('/api/studio', A)).d.compte.stats_erreur);
+// Cloudflare limite les appels d'un passage : on s'arrête sans rien effacer, la suite au passage suivant
+const limite = on => fetch('http://127.0.0.1:9911/ig/_limite', { method: 'POST', body: 'on=' + (on ? 1 : 0) });
+await limite(true); r = await api('/api/studio/actualiser', A, 'POST'); await limite(false);
+r = await api('/api/studio', A);
+t('« Too many subrequests » : aucune statistique effacée, pas d\'erreur affichée', r.d.medias.filter(m => m.id !== 'media_ill95').every(m => m.stats.views > 0) && !r.d.compte.stats_erreur && !r.d.compte.erreur, JSON.stringify(r.d.compte));
+fs.rmSync('ig.log', { force: true }); await api('/api/studio/actualiser', A, 'POST');
+t('une mise à jour fait au plus 40 appels à Instagram', lignes('ig.log').length <= 40);
 r = await api('/api/studio/medias/media_ext90', A, 'PATCH', { format: 'Voix off', essai: false });
 t('on donne un format à un reel publié depuis l\'app', r.s === 200 && (await api('/api/studio', A)).d.medias.find(m => m.id === 'media_ext90').format === 'Voix off');
 r = await api('/api/studio/formats', A, 'PUT', { formats: ['Face cam', 'Narration'], renomme: { de: 'Voix off', vers: 'Narration' } });

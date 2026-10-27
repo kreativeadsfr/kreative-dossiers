@@ -2954,7 +2954,7 @@ async function apiWimmovAdmin(env, ctx, url, chemin, methode, b) {
 const STUDIO = { version: 'v23.0', max_octets: 95e6, sync_toutes: 55 * 60e3, rafraichir_apres: 20 * 864e5,
   // métriques demandées pour chaque reel ; celles qu'Instagram refuse sont retenues et plus redemandées
   metriques: ['views', 'reach', 'likes', 'comments', 'shares', 'saved', 'total_interactions', 'ig_reels_avg_watch_time', 'follows', 'profile_visits'],
-  stats_par_passe: 30 };
+  stats_par_passe: 30, appels_par_passe: 40 };
 // l'app « Kreative Studio » : K blanc sur fond noir (arrondi sur ordinateur, plein sur téléphone)
 const MANIFESTE_STUDIO = { name: 'Kreative Studio', short_name: 'Studio', description: 'Programmer et suivre les reels Instagram de Kreative', id: '/', start_url: '/', scope: '/',
   display: 'standalone', background_color: '#f8f6f3', theme_color: '#ffffff', lang: 'fr',
@@ -3240,22 +3240,27 @@ async function masquerMedia(db, env, mediaId, raison) {
     await db.prepare("UPDATE studio_videos SET statut = 'supprime' WHERE id = ?").bind(v.id).run();
   }
 }
-async function synchroStudio(env, force) {
+// Cloudflare (offre gratuite) limite un passage du Worker à 50 appels vers l'extérieur : au-delà, tout appel échoue
+// (« Too many subrequests »). La mise à jour se donne donc un budget d'appels à Instagram et lit le reste au passage suivant.
+async function synchroStudio(env, force, budget) {
   const db = await baseStudio(env);
+  let appels = 0; const BUDGET = budget || STUDIO.appels_par_passe;
+  const ig = (chemin, params) => { if (++appels > BUDGET) { const e = new Error('budget'); e.budget = true; throw e; } return appelIG(env, chemin, params); };
+  const horsBudget = e => !!e && (e.budget || /too many subrequests/i.test(String(e.message || '')));
   let R = await reglageStudio(db);
   if (!R.token || !R.user_id) return { ok: false, connecte: false };
   if (!force && R.sync_le && maintenant() - R.sync_le < STUDIO.sync_toutes) return { ok: true, attendu: true };
   await enregistrerStudio(db, { sync_le: maintenant() });
   const T = R.token, jour = new Date().toISOString().slice(0, 10);
   try {
-    const moi = await appelIG(env, '/me', { fields: 'user_id,username,name,profile_picture_url,followers_count', access_token: T });
+    const moi = await ig('/me', { fields: 'user_id,username,name,profile_picture_url,followers_count', access_token: T });
     R = await enregistrerStudio(db, { username: moi.username || R.username, nom: moi.name || R.nom, photo: moi.profile_picture_url || R.photo, abonnes: moi.followers_count || 0, erreur: '' });
     await db.prepare('INSERT INTO studio_jours (jour, abonnes) VALUES (?, ?) ON CONFLICT(jour) DO UPDATE SET abonnes = excluded.abonnes').bind(jour, moi.followers_count || 0).run();
   } catch (e) { if (bloqueIG(e)) { await enregistrerStudio(db, { erreur: messageIG(e) }); return { ok: false, connecte: e.code !== 190, erreur: messageIG(e) }; } throw e; }
   // les nouveaux abonnés par jour (30 derniers jours ; Instagram ne le donne qu'à partir de 100 abonnés)
   try {
     const depuis = Math.floor((Date.now() - 29 * 864e5) / 1000), jusque = Math.floor(Date.now() / 1000);
-    const ins = await appelIG(env, '/' + R.user_id + '/insights', { metric: 'follower_count', period: 'day', since: depuis, until: jusque, access_token: T });
+    const ins = await ig('/' + R.user_id + '/insights', { metric: 'follower_count', period: 'day', since: depuis, until: jusque, access_token: T });
     const vals = ((ins.data || []).find(x => x.name === 'follower_count') || {}).values || [];
     for (const x of vals) {
       const j = new Date(new Date(x.end_time).getTime() - 864e5).toISOString().slice(0, 10);
@@ -3268,7 +3273,7 @@ async function synchroStudio(env, force) {
   do {
     const p = suite ? Object.fromEntries(new URL(suite).searchParams) : { fields: 'id,caption,media_type,media_product_type,permalink,thumbnail_url,media_url,timestamp,like_count,comments_count', limit: 50, access_token: T };
     p.access_token = T;
-    const page = await appelIG(env, '/' + R.user_id + '/media', p);
+    const page = await ig('/' + R.user_id + '/media', p);
     for (const x of page.data || []) {
       if (x.media_type !== 'VIDEO' && x.media_product_type !== 'REELS') continue;
       await db.prepare(`INSERT INTO studio_medias (media_id, legende, type, permalink, miniature, publie_le, vu_le) VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -3297,14 +3302,17 @@ async function synchroStudio(env, force) {
   const KO = R.metriques_ko_v === 2 && R.metriques_ko && !Array.isArray(R.metriques_ko) ? R.metriques_ko : {};
   let nouvellesRefusees = R.metriques_ko_v !== 2, lus = 0, erreurStats = null;
   for (const x of aLire) {
+    if (appels >= BUDGET) break;   // le reste sera lu au prochain passage
     const t = x.type || 'REELS', refusees = new Set(KO[t] || []);
     const voulues = STUDIO.metriques.filter(k => !refusees.has(k)), stats = {};
     const lire = async liste => {
-      const d = await appelIG(env, '/' + x.media_id + '/insights', { metric: liste.join(','), access_token: T });
+      const d = await ig('/' + x.media_id + '/insights', { metric: liste.join(','), access_token: T });
       for (const e of d.data || []) stats[e.name] = e.total_value ? e.total_value.value : ((e.values || [])[0] || {}).value;
     };
     try { if (voulues.length) await lire(voulues); }
     catch (e) {
+      // plus d'appels possibles dans ce passage : on s'arrête sans rien écrire, ce reel sera lu au prochain
+      if (horsBudget(e)) break;
       // le compte est coupé ou limité : on arrête là, sans rien effacer (on relira au prochain passage)
       if (e.code === 190 || e.code === 200 || [4, 17, 32, 613].includes(e.code) || /access blocked|request limit|too many calls/i.test(String(e.message || ''))) {
         await enregistrerStudio(db, { erreur: messageIG(e) }); break;
@@ -3312,7 +3320,9 @@ async function synchroStudio(env, force) {
       // une métrique refusée fait échouer tout l'appel : on les lit une par une. Une métrique n'est retenue comme refusée
       // que si d'autres marchent pour ce reel ; si aucune ne marche, c'est le reel qui est illisible (pas les métriques)
       const ok = [], ko = [];
-      for (const k of voulues) { try { await lire([k]); ok.push(k); } catch (e2) { ko.push([k, e2]); } }
+      let coupe = false;
+      for (const k of voulues) { try { await lire([k]); ok.push(k); } catch (e2) { if (horsBudget(e2)) { coupe = true; break; } ko.push([k, e2]); } }
+      if (coupe) break;
       if (ok.length) { for (const [k, e2] of ko) if (e2.code === 100 || /metric/i.test(e2.message)) { refusees.add(k); nouvellesRefusees = true; } KO[t] = [...refusees]; }
       else erreurStats = String(e.message || e).slice(0, 200);
     }
@@ -3342,5 +3352,5 @@ async function prolongerTokenStudio(env) {
 async function cronStudio(env) {
   try { await avancerStudio(env, 40000); } catch (e) {}
   try { await prolongerTokenStudio(env); } catch (e) {}
-  try { await synchroStudio(env, false); } catch (e) {}
+  try { await synchroStudio(env, false, 25); } catch (e) {}
 }

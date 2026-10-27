@@ -126,11 +126,11 @@
       const f = liste[n], video = /^video\//.test(f.type);
       const coms = f.commentaires.filter(c => opt.mode !== 'client' || !c.interne);
       const peutCom = opt.peutCommenter && opt.peutCommenter(l), peutOk = opt.peutApprouver && opt.peutApprouver(l);
-      v.innerHTML = '<div class="rv-vb"><button class="rv-retour" data-x>' + I.gauche + T('Retour') + '</button><b class="rv-nom">' + esc(f.nom) + ' <span>(' + (n + 1) + '/' + liste.length + ')</span></b>' +
+      v.innerHTML = '<div class="rv-vb"><button class="rv-retour" data-x aria-label="' + T('Retour') + '">' + I.gauche + '<span>' + T('Retour') + '</span></button><b class="rv-nom">' + esc(f.nom) + ' <span>(' + (n + 1) + '/' + liste.length + ')</span></b>' +
         (video ? '' : '<div class="rv-outils">' + [['curseur', 'Sélection'], ['rect', 'Rectangle'], ['cercle', 'Cercle'], ['trait', 'Flèche']].map(([k, t]) =>
           '<button class="' + (outil === k ? 'on' : '') + '" data-outil="' + k + '" title="' + T(t) + '"' + (!peutCom && k !== 'curseur' ? ' disabled' : '') + '>' + I[k] + '</button>').join('') +
           '<i></i><button class="' + (visibles ? '' : 'barre') + '" data-oeil title="Afficher les annotations">' + I.oeil + '</button></div>') +
-        '<div class="rv-nav"><button data-prec' + (n === 0 ? ' disabled' : '') + ' title="Précédente">' + I.gauche + '</button><button data-suiv' + (n === liste.length - 1 ? ' disabled' : '') + ' title="Suivante">' + I.droite + '</button></div></div>' +
+        '<div class="rv-nav"><button data-prec' + (n === 0 ? ' disabled' : '') + ' title="Précédente">' + I.gauche + '</button><span class="rv-compte">' + (n + 1) + '/' + liste.length + '</span><button data-suiv' + (n === liste.length - 1 ? ' disabled' : '') + ' title="Suivante">' + I.droite + '</button></div></div>' +
         '<div class="rv-vc"><div class="rv-scene"><div class="rv-cadre' + (outil !== 'curseur' ? ' dessin' : '') + '">' +
         (video ? '<video src="' + esc(f.url) + '" controls playsinline></video>' : '<img src="' + esc(f.url) + '" alt="' + esc(f.nom) + '" draggable="false">' +
           '<svg viewBox="0 0 1000 1000" preserveAspectRatio="none" class="rv-svg">' + (visibles ? coms.map(c => svgForme(c.forme, c.couleur, survol === c.id ? 'actif' : '')).join('') : '') + svgForme(forme, couleur, 'neuf') + '</svg>') +

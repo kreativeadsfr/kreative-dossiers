@@ -635,9 +635,12 @@ a.lien-kpi:hover{border-color:var(--line2)}
 .rv-nav button:disabled{opacity:.35;cursor:default}
 .rv-nav svg{width:16px;height:16px}
 .rv-vc{flex:1;display:flex;min-height:0}
-.rv-scene{flex:1;background:#151515;display:grid;place-items:center;padding:22px;min-width:0;overflow:auto}
+.rv-scene{flex:1;background:#151515;display:grid;place-items:center;padding:22px;min-width:0;min-height:0;overflow:auto;container-type:size}
 .rv-cadre{position:relative;display:inline-block;line-height:0;user-select:none;-webkit-user-select:none;touch-action:none}
 .rv-cadre img,.rv-cadre video{max-width:100%;max-height:calc(100vh - 110px);display:block}
+/* l'image tient toujours en entier dans la zone qui lui reste (téléphone compris, sous le panneau) */
+@supports (height:1cqh){.rv-cadre img,.rv-cadre video{max-width:calc(100cqw - 44px);max-height:calc(100cqh - 44px)}}
+.rv-compte{display:none}
 .rv-cadre.dessin{cursor:crosshair}
 .rv-svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 .rv-svg .actif{stroke-width:5}
@@ -685,10 +688,40 @@ a.lien-kpi:hover{border-color:var(--line2)}
 .envoi-l .barre{width:140px;flex:none}
 .compte-formats{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
 @media(max-width:860px){
+  .rv-v{height:100dvh}
   .rv-vc{flex-direction:column}
-  .rv-panneau{width:auto;border-left:0;border-top:1px solid var(--line);max-height:46vh}
+  .rv-panneau{width:auto;flex:none;border-left:0;border-top:1px solid var(--line);max-height:48dvh;padding-bottom:env(safe-area-inset-bottom)}
   .rv-outils{margin:0}
   .rv-nom{display:none}
+}
+/* téléphone : une barre compacte, l'image en grand, un panneau léger en bas */
+@media(max-width:640px){
+  .rv-vb{height:54px;gap:8px;padding:0 8px;justify-content:space-between}
+  .rv-retour{padding:8px;gap:0}
+  .rv-retour span{display:none}
+  .rv-retour svg{width:20px;height:20px}
+  .rv-outils{padding:3px;gap:0;border-radius:11px;box-shadow:none}
+  .rv-outils button{width:34px;height:32px}
+  .rv-outils i{margin:0 2px}
+  .rv-nav{margin-left:0;align-items:center;gap:4px}
+  .rv-nav button{width:32px;height:32px}
+  .rv-compte{display:block;font-size:12.5px;color:var(--tx3);min-width:34px;text-align:center;font-variant-numeric:tabular-nums}
+  .rv-scene{padding:12px}
+  @supports (height:1cqh){.rv-cadre img,.rv-cadre video{max-width:calc(100cqw - 24px);max-height:calc(100cqh - 24px)}}
+  .rv-ph{display:none}
+  .rv-appr{padding:10px 12px 0;border-bottom:0}
+  .rv-appr .btn{height:40px;font-size:14px;border-radius:999px}
+  .rv-appr .etat{padding:8px}
+  .rv-coms-l{flex:0 1 auto;max-height:24dvh;padding:0}
+  .rv-coms-l:has(.rv-vide){display:none}
+  .rv-com{padding:10px 14px}
+  .rv-ecrire{border-top:0;padding:10px 12px 12px}
+  .rv-coms-l:not(:has(.rv-vide)) + .rv-ecrire{border-top:1px solid var(--line)}
+  .rv-ecrire textarea{font-size:16px;height:46px;min-height:46px;padding:11px 12px;resize:none}
+  .rv-eb{margin-top:8px}
+  .rv-couleurs{gap:10px}
+  .rv-couleurs button{width:22px;height:22px}
+  .rv-eb .btn{height:36px;padding:0 16px}
 }
 
 /* ---------- tableau de bord : période et graphique ---------- */

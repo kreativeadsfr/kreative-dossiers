@@ -146,7 +146,13 @@ const ILL = r.d.medias.find(m => m.id === 'media_ill95'), M1b = r.d.medias.find(
 t('un reel sans statistiques : likes et commentaires lus avec la liste', ILL && ILL.stats.likes === 7 && ILL.stats.comments === 2 && ILL.stats.views == null, JSON.stringify(ILL));
 t('… ses statistiques déjà lues ne sont pas effacées', M1b && M1b.stats.views > 0 && M1b.stats.likes > 0, JSON.stringify(M1b));
 t('… les autres reels gardent toutes leurs statistiques (rien n\'est retenu comme refusé)', AUTRE && AUTRE.stats.views > 0 && lignes('ig.log').filter(x => x.quoi === 'stats' && x.id === AUTRE.id).every(x => x.metric.split(',').includes('views')), JSON.stringify(AUTRE));
-t('… la raison d\'Instagram est affichée', /Insights are not available/.test(r.d.compte.stats_erreur) && !r.d.compte.erreur, JSON.stringify(r.d.compte));
+t('… pas d\'alerte quand les autres reels se lisent', !r.d.compte.stats_erreur && !r.d.compte.erreur, JSON.stringify(r.d.compte));
+t('… un reel introuvable ne coûte qu\'un appel par passage', lignes('ig.log').filter(x => x.quoi === 'stats' && x.id === 'media_ill95').length <= 2, JSON.stringify(lignes('ig.log').filter(x => x.id === 'media_ill95')));
+// tous les reels illisibles : là, on affiche la raison d'Instagram
+const tous = r.d.medias.map(m => m.id); for (const id of tous) await illisible(id, true);
+await api('/api/studio/actualiser', A, 'POST');
+t('… la raison d\'Instagram est affichée quand aucun reel ne se lit', /does not exist/.test((await api('/api/studio', A)).d.compte.stats_erreur));
+for (const id of tous) if (id !== 'media_ill95' && id !== V.media_id) await illisible(id, false);
 await illisible('media_ill95', false); await illisible(V.media_id, false);
 await api('/api/studio/actualiser', A, 'POST');
 t('… et disparaît quand tout se relit', !(await api('/api/studio', A)).d.compte.stats_erreur);

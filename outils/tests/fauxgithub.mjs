@@ -56,7 +56,7 @@ http.createServer((req, res) => {
     if ((m = p.match(/^\/(media_[a-z]*\d+)\/insights$/))) { const demande = String(q.metric || '').split(','), s = stats(m[1]);
       fs.appendFileSync('ig.log', JSON.stringify({ quoi: 'stats', id: m[1], metric: q.metric }) + '\n');
       if (IG.limite) return rep(500, { error: { message: 'Too many subrequests by single Worker invocation.' } });
-      if ((IG.illisibles || {})[m[1]]) return rep(400, { error: { message: '(#100) Insights are not available for this media', code: 100 } });
+      if ((IG.illisibles || {})[m[1]]) return rep(400, { error: { message: "Unsupported get request. Object with ID '" + m[1] + "' does not exist, cannot be loaded due to missing permissions, or does not support this operation", code: 100, error_subcode: 33 } });
       if (m[1] === 'media_ext90' && demande.length > 1 && demande.includes('follows')) return rep(400, { error: { message: '(#100) Incompatible metric (follows) with media type', code: 100 } });
       if (m[1] === 'media_ext90' && demande.length === 1 && demande[0] === 'follows') return rep(400, { error: { message: '(#100) Incompatible metric', code: 100 } });
       return rep(200, { data: demande.filter(x => x in s).map(name => ({ name, period: 'lifetime', values: [{ value: s[name] }] })) }); }

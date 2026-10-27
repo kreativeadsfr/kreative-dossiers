@@ -3295,12 +3295,13 @@ async function synchroStudio(env, force, budget) {
   // prudence : jamais si Instagram n'a rien renvoyé, ni plus de 10 d'un coup (une réponse incomplète ne doit rien cacher)
   if (vus > 0 && partis.length <= 10) for (const x of partis) await masquerMedia(db, env, x.media_id, 2);
   // les statistiques : jamais lues d'abord, puis les reels des 60 derniers jours, les moins à jour d'abord
-  const aLire = (await db.prepare(`SELECT media_id, type, stats FROM studio_medias WHERE stats_le IS NULL OR publie_le > ? ORDER BY CASE WHEN stats_le IS NULL THEN 0 ELSE 1 END, stats_le LIMIT ?`)
+  // (et ceux qui n'ont pas encore leurs vues, quel que soit leur âge)
+  const aLire = (await db.prepare(`SELECT media_id, type, stats FROM studio_medias WHERE COALESCE(masque, 0) = 0 AND (stats_le IS NULL OR publie_le > ? OR json_extract(COALESCE(stats, '{}'), '$.views') IS NULL) ORDER BY CASE WHEN stats_le IS NULL THEN 0 ELSE 1 END, stats_le LIMIT ?`)
     .bind(maintenant() - 60 * 864e5, STUDIO.stats_par_passe).all()).results;
   // les métriques refusées sont retenues par type de publication (un reel n'a pas les mêmes qu'une vidéo du fil).
   // v60 : l'ancienne liste pouvait contenir TOUTES les métriques (un reel illisible les faisait toutes refuser) : on repart de zéro
   const KO = R.metriques_ko_v === 2 && R.metriques_ko && !Array.isArray(R.metriques_ko) ? R.metriques_ko : {};
-  let nouvellesRefusees = R.metriques_ko_v !== 2, lus = 0, erreurStats = null;
+  let nouvellesRefusees = R.metriques_ko_v !== 2, lus = 0, reussis = 0, erreurStats = null;
   for (const x of aLire) {
     if (appels >= BUDGET) break;   // le reste sera lu au prochain passage
     const t = x.type || 'REELS', refusees = new Set(KO[t] || []);
@@ -3321,7 +3322,12 @@ async function synchroStudio(env, force, budget) {
       // que si d'autres marchent pour ce reel ; si aucune ne marche, c'est le reel qui est illisible (pas les métriques)
       const ok = [], ko = [];
       let coupe = false;
-      for (const k of voulues) { try { await lire([k]); ok.push(k); } catch (e2) { if (horsBudget(e2)) { coupe = true; break; } ko.push([k, e2]); } }
+      // un reel qu'Instagram ne trouve pas (supprimé, reel d'essai retiré…) : inutile d'essayer chaque métrique
+      const introuvable = /does not exist|unsupported get request|cannot be loaded/i.test(String(e.message || ''));
+      if (!introuvable) for (const k of voulues) {
+        try { await lire([k]); ok.push(k); } catch (e2) { if (horsBudget(e2)) { coupe = true; break; } ko.push([k, e2]); }
+        if (!ok.length && ko.length >= 3) break;   // trois refus d'affilée : c'est le reel, pas les métriques
+      }
       if (coupe) break;
       if (ok.length) { for (const [k, e2] of ko) if (e2.code === 100 || /metric/i.test(e2.message)) { refusees.add(k); nouvellesRefusees = true; } KO[t] = [...refusees]; }
       else erreurStats = String(e.message || e).slice(0, 200);
@@ -3329,10 +3335,10 @@ async function synchroStudio(env, force, budget) {
     // on complète les statistiques déjà connues, on ne les efface jamais
     let avant = {}; try { avant = x.stats ? JSON.parse(x.stats) : {}; } catch (e) {}
     await db.prepare('UPDATE studio_medias SET stats = ?, stats_le = ? WHERE media_id = ?').bind(JSON.stringify({ ...avant, ...stats }), maintenant(), x.media_id).run();
-    lus++;
+    lus++; if (Object.keys(stats).length) reussis++;
   }
-  // la dernière raison donnée par Instagram quand un reel n'a aucune statistique (affichée dans Réglages)
-  await enregistrerStudio(db, { stats_erreur: erreurStats || '' });
+  // la raison d'Instagram, affichée seulement quand AUCUN reel n'a pu être lu (un reel supprimé à part ne doit pas alerter)
+  await enregistrerStudio(db, { stats_erreur: lus && !reussis ? (erreurStats || '') : '' });
   // une métrique refusée pour un reel peut marcher pour un autre : on oublie la liste chaque semaine
   if (nouvellesRefusees) await enregistrerStudio(db, { metriques_ko: KO, metriques_ko_v: 2, metriques_ko_le: R.metriques_ko_v === 2 && R.metriques_ko_le || maintenant() });
   else if (R.metriques_ko_le && maintenant() - R.metriques_ko_le > 7 * 864e5) await enregistrerStudio(db, { metriques_ko: {}, metriques_ko_le: null });

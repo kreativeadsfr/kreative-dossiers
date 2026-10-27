@@ -220,7 +220,7 @@ const nonConnecte = () => '<div class="card pad" style="max-width:680px"><h3 sty
   '<a class="btn btn-p" style="margin-top:14px" href="#/reglages">Connecter Instagram</a></div>';
 const alerteCompte = () => D.compte.erreur ? '<div class="s-alerte">' + i.cadenas + '<div><b>Instagram ne répond plus.</b> ' + esc(D.compte.erreur) + ' <a href="#/reglages" style="color:inherit;text-decoration:underline">Réglages</a></div></div>'
   // Instagram refuse les statistiques de certains reels : on montre sa raison telle quelle (likes et commentaires restent comptés)
-  : D.compte.stats_erreur ? '<div class="s-alerte">' + i.cloche + '<div><b>Instagram ne donne pas les vues de certains reels.</b> Raison donnée par Instagram : « ' + esc(D.compte.stats_erreur) + ' ». Les likes et commentaires sont quand même comptés.</div></div>' : '';
+  : D.compte.stats_erreur ? '<div class="s-alerte">' + i.cloche + '<div><b>Instagram ne donne aucune vue pour le moment.</b> Raison donnée par Instagram : « ' + esc(D.compte.stats_erreur) + ' ». Les likes et commentaires sont quand même comptés.</div></div>' : '';
 
 // ---------- VUE D'ENSEMBLE ----------
 let COURBE = null;

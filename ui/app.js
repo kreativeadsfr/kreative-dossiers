@@ -145,7 +145,7 @@
     return K.date(ms);
   };
   // profils de l'équipe : nom complet et photo, retrouvés par le prénom de connexion
-  K.PROFILS = { dario: { nom: 'Dario Crespo', photo: '/ui/profil-dario.jpg' } };
+  K.PROFILS = { dario: { nom: 'Dario Crespo', photo: '/ui/profil-dario.jpg?v=2' } };
   K.profil = (nom, defaut) => {
     const p = K.PROFILS[String(nom || '').trim().toLowerCase()];
     const n = nom ? String(nom).charAt(0).toUpperCase() + String(nom).slice(1) : defaut;

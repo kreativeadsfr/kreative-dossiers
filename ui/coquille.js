@@ -12,7 +12,7 @@
   var $ = function (id) { return document.getElementById(id); };
 
   // profil de l'équipe : nom complet et photo (le Worker n'écrit que le prénom)
-  var PROFILS = { dario: { nom: 'Dario Crespo', photo: '/ui/profil-dario.jpg' } };
+  var PROFILS = { dario: { nom: 'Dario Crespo', photo: '/ui/profil-dario.jpg?v=2' } };
   (function () {
     var b = document.querySelector('#kc-mb .kc-qui b'), av = document.querySelector('#kc-mb .kc-av');
     var pr = b && PROFILS[b.textContent.trim().toLowerCase()];

@@ -218,7 +218,9 @@ function conf() {
 const nonConnecte = () => '<div class="card pad" style="max-width:680px"><h3 style="font-size:17px">Connectez votre Instagram</h3>' +
   '<p class="muted" style="font-size:14px;margin-top:6px;line-height:1.6">Le Studio a besoin d\'un token de votre app Meta pour programmer vos reels et lire leurs statistiques. Une seule fois : il se prolonge ensuite tout seul.</p>' +
   '<a class="btn btn-p" style="margin-top:14px" href="#/reglages">Connecter Instagram</a></div>';
-const alerteCompte = () => D.compte.erreur ? '<div class="s-alerte">' + i.cadenas + '<div><b>Instagram ne répond plus.</b> ' + esc(D.compte.erreur) + ' <a href="#/reglages" style="color:inherit;text-decoration:underline">Réglages</a></div></div>' : '';
+const alerteCompte = () => D.compte.erreur ? '<div class="s-alerte">' + i.cadenas + '<div><b>Instagram ne répond plus.</b> ' + esc(D.compte.erreur) + ' <a href="#/reglages" style="color:inherit;text-decoration:underline">Réglages</a></div></div>'
+  // Instagram refuse les statistiques de certains reels : on montre sa raison telle quelle (likes et commentaires restent comptés)
+  : D.compte.stats_erreur ? '<div class="s-alerte">' + i.cloche + '<div><b>Instagram ne donne pas les vues de certains reels.</b> Raison donnée par Instagram : « ' + esc(D.compte.stats_erreur) + ' ». Les likes et commentaires sont quand même comptés.</div></div>' : '';
 
 // ---------- VUE D'ENSEMBLE ----------
 let COURBE = null;

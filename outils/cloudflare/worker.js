@@ -3063,7 +3063,7 @@ async function apiStudio(req, env, ctx, url, chemin, methode) {
       db.prepare("SELECT * FROM studio_videos WHERE statut != 'supprime' ORDER BY COALESCE(publier_le, cree_le) DESC LIMIT 500").all(),
       db.prepare('SELECT * FROM studio_medias WHERE COALESCE(masque, 0) = 0 ORDER BY publie_le DESC LIMIT 1000').all(),
       db.prepare('SELECT * FROM studio_jours ORDER BY jour DESC LIMIT 400').all()]);
-    return json({ compte: { connecte: !!R.token, username: R.username || '', nom: R.nom || '', photo: R.photo || '', abonnes: R.abonnes || 0, token_le: R.token_le || null, erreur: R.erreur || '' },
+    return json({ compte: { connecte: !!R.token, username: R.username || '', nom: R.nom || '', photo: R.photo || '', abonnes: R.abonnes || 0, token_le: R.token_le || null, erreur: R.erreur || '', stats_erreur: R.stats_erreur || '' },
       formats: Array.isArray(R.formats) ? R.formats : [], sync_le: R.sync_le || null, videos: V.results.map(VIDEO_PUBLIQUE), medias: M.results.map(MEDIA_PUBLIC), jours: J.results });
   }
   // ---- la connexion Instagram : le token est collé ici, vérifié, gardé ; jamais renvoyé ----
@@ -3266,7 +3266,7 @@ async function synchroStudio(env, force) {
   const debutListe = maintenant();
   let suite = null, n = 0, plusAncien = Infinity, vus = 0;
   do {
-    const p = suite ? Object.fromEntries(new URL(suite).searchParams) : { fields: 'id,caption,media_type,media_product_type,permalink,thumbnail_url,media_url,timestamp', limit: 50, access_token: T };
+    const p = suite ? Object.fromEntries(new URL(suite).searchParams) : { fields: 'id,caption,media_type,media_product_type,permalink,thumbnail_url,media_url,timestamp,like_count,comments_count', limit: 50, access_token: T };
     p.access_token = T;
     const page = await appelIG(env, '/' + R.user_id + '/media', p);
     for (const x of page.data || []) {
@@ -3275,6 +3275,10 @@ async function synchroStudio(env, force) {
         ON CONFLICT(media_id) DO UPDATE SET legende = excluded.legende, type = excluded.type, permalink = excluded.permalink, miniature = COALESCE(excluded.miniature, studio_medias.miniature), publie_le = COALESCE(studio_medias.publie_le, excluded.publie_le), vu_le = excluded.vu_le,
           masque = CASE WHEN studio_medias.masque = 2 THEN 0 ELSE studio_medias.masque END`)
         .bind(String(x.id), x.caption || '', x.media_product_type || x.media_type, x.permalink || null, x.thumbnail_url || null, x.timestamp ? Date.parse(x.timestamp) : null, maintenant()).run();
+      // likes et commentaires : donnés avec la liste, même quand Instagram refuse les statistiques détaillées d'un reel
+      if (x.like_count != null || x.comments_count != null)
+        await db.prepare("UPDATE studio_medias SET stats = json_set(COALESCE(stats, '{}'), '$.likes', ?, '$.comments', ?) WHERE media_id = ?")
+          .bind(Number(x.like_count) || 0, Number(x.comments_count) || 0, String(x.id)).run();
     }
     for (const x of page.data || []) { vus++; if (x.timestamp) plusAncien = Math.min(plusAncien, Date.parse(x.timestamp)); }
     suite = page.paging && page.paging.next; n++;
@@ -3286,11 +3290,12 @@ async function synchroStudio(env, force) {
   // prudence : jamais si Instagram n'a rien renvoyé, ni plus de 10 d'un coup (une réponse incomplète ne doit rien cacher)
   if (vus > 0 && partis.length <= 10) for (const x of partis) await masquerMedia(db, env, x.media_id, 2);
   // les statistiques : jamais lues d'abord, puis les reels des 60 derniers jours, les moins à jour d'abord
-  const aLire = (await db.prepare(`SELECT media_id, type FROM studio_medias WHERE stats_le IS NULL OR publie_le > ? ORDER BY CASE WHEN stats_le IS NULL THEN 0 ELSE 1 END, stats_le LIMIT ?`)
+  const aLire = (await db.prepare(`SELECT media_id, type, stats FROM studio_medias WHERE stats_le IS NULL OR publie_le > ? ORDER BY CASE WHEN stats_le IS NULL THEN 0 ELSE 1 END, stats_le LIMIT ?`)
     .bind(maintenant() - 60 * 864e5, STUDIO.stats_par_passe).all()).results;
-  // les métriques refusées sont retenues par type de publication (un reel n'a pas les mêmes qu'une vidéo du fil)
-  const KO = R.metriques_ko && !Array.isArray(R.metriques_ko) ? R.metriques_ko : {};
-  let nouvellesRefusees = false, lus = 0;
+  // les métriques refusées sont retenues par type de publication (un reel n'a pas les mêmes qu'une vidéo du fil).
+  // v60 : l'ancienne liste pouvait contenir TOUTES les métriques (un reel illisible les faisait toutes refuser) : on repart de zéro
+  const KO = R.metriques_ko_v === 2 && R.metriques_ko && !Array.isArray(R.metriques_ko) ? R.metriques_ko : {};
+  let nouvellesRefusees = R.metriques_ko_v !== 2, lus = 0, erreurStats = null;
   for (const x of aLire) {
     const t = x.type || 'REELS', refusees = new Set(KO[t] || []);
     const voulues = STUDIO.metriques.filter(k => !refusees.has(k)), stats = {};
@@ -3298,18 +3303,28 @@ async function synchroStudio(env, force) {
       const d = await appelIG(env, '/' + x.media_id + '/insights', { metric: liste.join(','), access_token: T });
       for (const e of d.data || []) stats[e.name] = e.total_value ? e.total_value.value : ((e.values || [])[0] || {}).value;
     };
-    try { await lire(voulues); }
+    try { if (voulues.length) await lire(voulues); }
     catch (e) {
-      if (e.code === 190) { await enregistrerStudio(db, { erreur: messageIG(e) }); break; }
-      // une métrique refusée fait échouer tout l'appel : on les lit une par une, et on retient celles qui ne marchent pas
-      for (const k of voulues) { try { await lire([k]); } catch (e2) { if (/metric|#100/i.test(e2.message) || e2.code === 100) { refusees.add(k); nouvellesRefusees = true; } } }
-      KO[t] = [...refusees];
+      // le compte est coupé ou limité : on arrête là, sans rien effacer (on relira au prochain passage)
+      if (e.code === 190 || e.code === 200 || [4, 17, 32, 613].includes(e.code) || /access blocked|request limit|too many calls/i.test(String(e.message || ''))) {
+        await enregistrerStudio(db, { erreur: messageIG(e) }); break;
+      }
+      // une métrique refusée fait échouer tout l'appel : on les lit une par une. Une métrique n'est retenue comme refusée
+      // que si d'autres marchent pour ce reel ; si aucune ne marche, c'est le reel qui est illisible (pas les métriques)
+      const ok = [], ko = [];
+      for (const k of voulues) { try { await lire([k]); ok.push(k); } catch (e2) { ko.push([k, e2]); } }
+      if (ok.length) { for (const [k, e2] of ko) if (e2.code === 100 || /metric/i.test(e2.message)) { refusees.add(k); nouvellesRefusees = true; } KO[t] = [...refusees]; }
+      else erreurStats = String(e.message || e).slice(0, 200);
     }
-    await db.prepare('UPDATE studio_medias SET stats = ?, stats_le = ? WHERE media_id = ?').bind(JSON.stringify(stats), maintenant(), x.media_id).run();
+    // on complète les statistiques déjà connues, on ne les efface jamais
+    let avant = {}; try { avant = x.stats ? JSON.parse(x.stats) : {}; } catch (e) {}
+    await db.prepare('UPDATE studio_medias SET stats = ?, stats_le = ? WHERE media_id = ?').bind(JSON.stringify({ ...avant, ...stats }), maintenant(), x.media_id).run();
     lus++;
   }
+  // la dernière raison donnée par Instagram quand un reel n'a aucune statistique (affichée dans Réglages)
+  await enregistrerStudio(db, { stats_erreur: erreurStats || '' });
   // une métrique refusée pour un reel peut marcher pour un autre : on oublie la liste chaque semaine
-  if (nouvellesRefusees) await enregistrerStudio(db, { metriques_ko: KO, metriques_ko_le: R.metriques_ko_le || maintenant() });
+  if (nouvellesRefusees) await enregistrerStudio(db, { metriques_ko: KO, metriques_ko_v: 2, metriques_ko_le: R.metriques_ko_v === 2 && R.metriques_ko_le || maintenant() });
   else if (R.metriques_ko_le && maintenant() - R.metriques_ko_le > 7 * 864e5) await enregistrerStudio(db, { metriques_ko: {}, metriques_ko_le: null });
   return { ok: true, connecte: true, reels: lus };
 }

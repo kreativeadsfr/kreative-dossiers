@@ -232,4 +232,20 @@ r = await api('/api/admin/factures/' + orph.id, A, 'DELETE');
 t('facture Stripe orpheline : retirée du portail', r.s === 200 && !(await api('/api/admin/factures', A)).d.factures.some(f => f.stripe_id === 'in_orph'), r.s);
 r = await api('/api/admin/factures/' + ratt.id, A, 'DELETE');
 t('facture Stripe rattachée à un client : protégée', r.s === 409, r.s);
+// ---------- l'express raccourcit les échéances de l'équipe (et de n8n), le dossier GitHub n'est pas touché ----------
+{
+  let rx = await api('/api/admin/clients', A, 'POST', { marque: 'Simplici Express', contact: 'Sam', email: 'sam@simplici-express.fr' });
+  const cx = rx.d.id;
+  await webhook({ type: 'checkout.session.completed', data: { object: { id: 'cs_express', mode: 'payment', payment_status: 'paid', amount_total: 68000, customer: 'cus_express',
+    customer_details: { email: 'sam@simplici-express.fr' }, metadata: { kreative_client: cx, pack: 'growth', formule: 'unique', nb_creas: '12', options: 'express', total: '680' } } } });
+  const kx = (await api('/api/admin/clients/' + cx, A)).d.commandes[0];
+  await get('/api/n8n/brief', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Kreative-Cle': sec.CLE }, body: JSON.stringify({ dossier: 'SIMPLICICAR_10_bca8', commande: kx.ref, client: cx, questions: [] }) });
+  const dx = await (await get('/SIMPLICICAR_10_bca8/donnees.json', { headers: { Cookie: A } })).json();
+  t('express Growth : livraison client à 24 h au lieu de 48 h', dx.deadline === '2026-10-02T05:56:08.316Z' && dx.express === true, dx.deadline);
+  t('… fiche et designer avancées dans les mêmes proportions', dx.deadline_strategiste === '2026-10-01T13:56:08.316Z' && dx.deadline_designer === '2026-10-02T01:56:08.316Z', dx.deadline_strategiste + ' ' + dx.deadline_designer);
+  const nx = await (await get('/_n8n/' + sec.CLE + '/SIMPLICICAR_10_bca8/donnees.json')).json();
+  t('… n8n (rappels Telegram) lit les mêmes dates express', nx.deadline === dx.deadline);
+  const autre = await (await get('/LABORATOIREKOT_10_7236/donnees.json', { headers: { Cookie: A } })).json();
+  t('… un projet sans express garde ses dates', autre.deadline === '2026-10-03T05:57:45.365Z' && !autre.express, autre.deadline);
+}
 console.log('\n' + ok + ' OK, ' + ko + ' en échec');

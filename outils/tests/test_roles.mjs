@@ -16,9 +16,9 @@ d = await connecter('andrea', '/fiche/'); t('Andrea qui visait la fiche → son 
 t('racine → espace de chacun', (await statut('/', a.ck)) === '302 /admin/' && (await statut('/', s.ck)) === '302 /strategiste/' && (await statut('/', d.ck)) === '302 /designer/');
 
 // ---- Andrea (designer)
-for (const p of ['/designer/', '/TURNLY_10_bc5e/creas/', '/TURNLY_10_bc5e/creas/telecharger.html', '/projets.json', '/TURNLY_10_bc5e/donnees.json', '/TURNLY_10_bc5e/envois.json', '/signaler.js', '/ui/kreative.css'])
+for (const p of ['/designer/', '/TURNLY_10_bc5e/creas/', '/TURNLY_10_bc5e/creas/telecharger.html', '/projets.json', '/TURNLY_10_bc5e/donnees.json', '/TURNLY_10_bc5e/envois.json', '/signaler.js', '/ui/kreative.css', '/fiche/lot1/refs/AG1-01.jpg'])
   t('designer peut ouvrir ' + p, (await statut(p, d.ck)).startsWith('200'), await statut(p, d.ck));
-for (const [p, attendu] of [['/strategiste/', '302 /designer/'], ['/fiche/', '302 /designer/'], ['/TURNLY_10_bc5e/', '302 /designer/'], ['/retours/?projet=TURNLY_10_f665_L2', '302 /designer/'], ['/admin/', '302 /designer/'], ['/_admin/dossiers.json', '403'], ['/TURNLY_10_f665_L2/retour.json', '403'], ['/README.md', '403']])
+for (const [p, attendu] of [['/strategiste/', '302 /designer/'], ['/fiche/', '302 /designer/'], ['/TURNLY_10_bc5e/', '302 /designer/'], ['/retours/?projet=TURNLY_10_f665_L2', '302 /designer/'], ['/admin/', '302 /designer/'], ['/fiche/index.html', '302 /designer/'], ['/_admin/dossiers.json', '403'], ['/TURNLY_10_f665_L2/retour.json', '403'], ['/README.md', '403']])
   t('designer bloqué sur ' + p, (await statut(p, d.ck)) === attendu, await statut(p, d.ck));
 
 // ---- stratégiste

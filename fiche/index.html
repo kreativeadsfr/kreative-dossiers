@@ -960,7 +960,7 @@ function montreOptions(){
   if(o.textes>1)t.push("<b>Variations de texte : "+o.textes+" textes par créa</b> : chaque créa a déjà "+o.textes+" champs (A, "+(o.textes>2?"B et C":"B")+"). Écris un texte différent dans chacun, sur le même visuel : une autre accroche, pas une simple reformulation.");
   if(o.abt)t.push("<b>A/B test texte sur "+o.abt+" créa"+(o.abt>1?"s":"")+"</b> : "+(o.abt>1?"choisis "+o.abt+" créas":"choisis une créa")+", puis dans « Déclinaisons de texte », clique sur « 2 textes » et écris le texte B (même visuel, autre texte).");
   if(o.abv)t.push("<b>A/B test visuel sur "+o.abv+" créa"+(o.abv>1?"s":"")+"</b> : "+o.abv+" créa"+(o.abv>1?"s":"")+" en plus, qui reprennent les textes d'une autre (« Reprendre les textes ») avec une autre inspiration.");
-  if(o.express)t.push("<b>Express</b> : le client a payé une livraison deux fois plus rapide.");
+  if(o.express)t.push("<b>Express</b> : le client a payé une livraison express. Les échéances de ce projet sont déjà raccourcies : envoie la fiche avant la date indiquée.");
   b.hidden=!t.length;
   b.innerHTML=t.length?"<div class=\"ot\">Options du client · "+PRJ.nb_creas+" créas à remplir</div>"+t.map(x=>"<p>"+x+"</p>").join(""):"";
 }

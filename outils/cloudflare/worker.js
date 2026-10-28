@@ -177,7 +177,8 @@ async function telechargerFichier(url) {
 //                  projets ; ni la fiche, ni les dossiers, ni les retours
 // ============================================================
 const ACCUEILS = { admin: '/admin/', strategiste: '/strategiste/', designer: '/designer/' };
-const DESIGNER_OK = /^\/(designer\/.*|[A-Za-z0-9_-]+\/creas\/.*|projets\.json|[A-Za-z0-9_-]+\/(donnees|envois|livraison)\.json|signaler\.js|ui\/.*|favicon-\d+\.png|logo-kreative\.png)$/;
+// la designer voit aussi les créas d'inspiration de la fiche (où poser chaque texte d'une déclinaison)
+const DESIGNER_OK = /^\/(designer\/.*|[A-Za-z0-9_-]+\/creas\/.*|fiche\/lot\d+\/refs\/[A-Za-z0-9_-]+\.(?:jpe?g|png|webp)|projets\.json|[A-Za-z0-9_-]+\/(donnees|envois|livraison)\.json|signaler\.js|ui\/.*|favicon-\d+\.png|logo-kreative\.png)$/;
 function autorise(role, chemin) {
   if (role === 'admin') return true;
   if (/^\/(admin|_admin|client|studio)(\/|$)/.test(chemin)) return false;
@@ -224,6 +225,8 @@ async function servir(chemin, env, ctx, o) {
     }
   }
 
+  // un projet express : ses échéances raccourcies, pour toute l'équipe et pour n8n
+  if (derniere === 'donnees.json') { const rx = await servirDonneesExpress(fichier, env, o); if (rx) return rx; }
   const ext = (derniere.match(/\.([A-Za-z0-9]{1,5})$/) || [])[1];
   const type = TYPES[(ext || '').toLowerCase()] || 'application/octet-stream';
   const estTexte = TEXTES.test(type);
@@ -696,6 +699,46 @@ function delaiHeures(pack, nb, options) {
   return fixe != null ? fixe : Math.round(h / 2);
 }
 
+// ---------- l'express dans les échéances de l'équipe ----------
+// n8n (le Moteur) écrit les échéances du dossier (fiche, designer, client) sans connaître l'express.
+// Le portail les raccourcit à la lecture du donnees.json : pages de l'équipe, fiche créas, rappels n8n
+// (qui lisent par /_n8n/) et l'espace client voient donc tous les mêmes dates express.
+// Fenêtre normale du Moteur : 48 h (Starter, Growth), 72 h (Scale et Custom, livraison par livraison) ;
+// fenêtre express : 24 h, 24 h, 48 h, et la moitié pour le Custom. Les étapes gardent leurs proportions.
+function accelererDonnees(d, pack) {
+  if (!d || !d.deadline || d.express_applique) return d;
+  const fin = Date.parse(d.deadline); if (!isFinite(fin)) return d;
+  const normal = (PACKS[pack] || PACKS[d.pack] || PACKS.scale).delai || 72;
+  const ex = OPTIONS.find(o => o.id === 'express'), fixe = ex && ex.heures && ex.heures[pack];
+  const rapide = fixe != null ? fixe : Math.round(normal / 2);
+  if (!(rapide > 0 && rapide < normal)) return d;
+  const H = 36e5, debut = fin - normal * H, f = rapide / normal;
+  const plusTot = t => { const x = Date.parse(t || ''); return isFinite(x) ? new Date(Math.max(debut, debut + (x - debut) * f)).toISOString() : t; };
+  return { ...d, deadline: new Date(debut + rapide * H).toISOString(), deadline_strategiste: plusTot(d.deadline_strategiste), deadline_designer: plusTot(d.deadline_designer),
+    express: true, express_applique: { heures: rapide, avant: d.deadline } };
+}
+// la commande express d'un dossier (un Custom : le dossier du projet, sans « _L2 »), ou null
+async function commandeExpress(env, dossier) {
+  if (!env.DB || !/^[A-Za-z0-9_-]{3,80}$/.test(dossier)) return null;
+  const projet = dossier.replace(/_L\d+$/, '');
+  try {
+    const db = await base(env);
+    return await db.prepare("SELECT pack, nb_creas FROM commandes WHERE dossier IN (?, ?) AND options LIKE '%express%' AND statut != 'annule' LIMIT 1").bind(dossier, projet).first();
+  } catch (e) { return null; }
+}
+async function servirDonneesExpress(fichier, env, o) {
+  const m = fichier.match(/^([A-Za-z0-9_-]{3,80})\/donnees\.json$/);
+  if (!m) return null;
+  const k = await commandeExpress(env, m[1]);
+  if (!k) return null;
+  const r = await lireGithub(fichier, env, 'GET');
+  if (!r.ok) return null;
+  let d; try { d = JSON.parse(await r.text()); } catch (e) { return null; }
+  let t = JSON.stringify(accelererDonnees(d, k.pack));
+  if (!o.brut && o.origine) t = remplacer(t, o.origine + '/');
+  return new Response(t, { status: 200, headers: { 'Content-Type': TYPES.json, 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex, nofollow' } });
+}
+
 // brief = commande confirmée, le brief n'est pas encore arrivé
 const STATUTS = ['brief', 'production', 'livre', 'revisions', 'valide', 'annule'];
 
@@ -920,7 +963,7 @@ async function avancement(env, cmd) {
   let d = null, envoye = false, designer = false;
   if (cmd.dossier) {
     const [donnees, envois, liv] = await Promise.all(['donnees', 'envois', 'livraison'].map(f => lireJsonDepot(env, cmd.dossier + '/' + f + '.json')));
-    d = donnees;
+    d = String(cmd.options || '').includes('express') ? accelererDonnees(donnees, cmd.pack) : donnees;
     envoye = !!(envois && Array.isArray(envois.envois) && envois.envois.length);
     designer = !!(liv && liv.livre);
     // les versions déposées dans le portail et le Kanban de Kreative disent la même chose au client

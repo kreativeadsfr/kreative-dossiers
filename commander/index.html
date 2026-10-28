@@ -108,8 +108,8 @@ html{scrollbar-width:none;overscroll-behavior:auto}html::-webkit-scrollbar{displ
   var APP = 'https://app.kreativeads.fr', pack = racine.getAttribute('data-pack') || 'growth';
   // les prix du portail (gardés ici aussi, au cas où le portail ne répond pas)
   var D = { packs: { starter: { nom: 'Starter', creas: 6, unique: 280, delai: 48 }, growth: { nom: 'Growth', creas: 12, unique: 490, delai: 48 }, scale: { nom: 'Scale', creas: 24, unique: 890, delai: 72 }, custom: { nom: 'Custom', creas: 30, delai: 72 } },
-    custom: { min: 30, max: 100, pas: 5, delais: [[30, 72], [50, 96], [70, 120], [100, 168]], paliers: [[30, 35], [50, 32], [75, 29]] },
-    options: [{ id: 'express', nom: 'Livraison express', detail: 'Livrée 2 fois plus vite', type: 'fixe', valeur: 390, par_pack: { starter: 90, growth: 190, scale: 290, custom: 390 }, par_volume: { custom: [[70, 490]] } },
+    custom: { min: 30, max: 100, pas: 5, delais: [[30, 72], [50, 96], [70, 120], [100, 168]], lots: [[30, 1], [55, 2], [100, 4]], paliers: [[30, 35], [50, 32], [75, 29]] },
+    options: [{ id: 'express', nom: 'Livraison express', detail: 'Livrée 2 fois plus vite', heures: { starter: 24, growth: 24, scale: 48 }, type: 'fixe', valeur: 390, par_pack: { starter: 90, growth: 190, scale: 290, custom: 390 }, par_volume: { custom: [[70, 490]] } },
       { id: 'variations', nom: 'Variations de texte', detail: 'Le même visuel avec 2 ou 3 textes, sur chaque créa', type: 'variations', valeur: 15, prix: [15, 10], max: 2 }] };
   var INCLUS = { starter: ['6 visuels Ads', 'Tous les formats Meta', '2 cycles de révisions', 'Livraison en 48 h', 'Contact WhatsApp inclus'],
     growth: ['12 visuels Ads', 'Tous les formats Meta', 'Révisions illimitées', 'Livraison en 48 h', 'Contact WhatsApp inclus', 'Angles marketing variés'],
@@ -149,9 +149,15 @@ html{scrollbar-width:none;overscroll-behavior:auto}html::-webkit-scrollbar{displ
     });
     return { lignes: lignes, total: Math.round(base), n: n };
   }
-  function delai() { var h = pack === 'custom' ? (D.custom.delais.filter(function (x) { return C.nb <= x[0]; })[0] || D.custom.delais[D.custom.delais.length - 1])[1] : D.packs[pack].delai; if (C.options.indexOf('express') >= 0) h = Math.round(h / 2); return h <= 72 ? h + ' h' : Math.round(h / 24) + ' jours'; }
+  // l'express : Starter et Growth en 24 h, Scale en 48 h, Custom : la moitié du délai de chaque livraison
+  function heuresBase() { return pack === 'custom' ? (D.custom.delais.filter(function (x) { return C.nb <= x[0]; })[0] || D.custom.delais[D.custom.delais.length - 1])[1] : D.packs[pack].delai; }
+  function heuresExpress(h) { var o = D.options.filter(function (x) { return x.id === 'express'; })[0], f = o && o.heures && o.heures[pack]; return f != null ? f : Math.round(h / 2); }
+  function duree(h) { return h > 72 && h % 24 === 0 ? h / 24 + ' jours' : h + ' h'; }
+  function lots(n) { var L = (D.custom && D.custom.lots) || [[30, 1], [55, 2], [100, 4]]; return (L.filter(function (x) { return n <= x[0]; })[0] || L[L.length - 1])[1]; }
+  function delai() { var h = heuresBase(); if (C.options.indexOf('express') >= 0) h = heuresExpress(h); return duree(h); }
+  function detailExpress() { var t = duree(heuresExpress(heuresBase())); return pack === 'custom' && lots(C.nb) > 1 ? 'Chaque livraison en ' + t : 'Livrée en ' + t; }
   // le Custom est livré en plusieurs fois au-delà de 30 créas : le délai vaut pour chaque livraison
-  function texteDelai(n) { var lots = pack !== 'custom' || n <= 30 ? 1 : n <= 60 ? 2 : 4; return lots === 1 ? 'Livrée en ' + delai() + ' après votre brief' : 'Livrée en ' + lots + ' fois, ' + (lots === 2 ? 'à 15 jours d\'intervalle' : 'une par semaine') + ' : chaque livraison en ' + delai(); }
+  function texteDelai(n) { var nl = pack !== 'custom' ? 1 : lots(n); return nl === 1 ? 'Livrée en ' + delai() + ' après votre brief' : 'Livrée en ' + nl + ' fois, ' + (nl === 2 ? 'à 15 jours d\'intervalle' : 'une par semaine') + ' : chaque livraison en ' + delai(); }
   function lien() {
     var p = [], opts = C.options.filter(function (id) { return opt(id); }).map(function (id) { return parCrea().indexOf(id) >= 0 ? id + ':' + C.qte[id] : estVar(opt(id)) ? id + ':' + qVar(opt(id)) : id; });
     if (pack === 'custom') p.push('creas=' + C.nb);
@@ -174,7 +180,7 @@ html{scrollbar-width:none;overscroll-behavior:auto}html::-webkit-scrollbar{displ
     q('opts').innerHTML = D.options.map(function (o) {
       var on = C.options.indexOf(o.id) >= 0, vr = estVar(o), pc = o.type === 'par_crea' || vr, qo = vr ? qVar(o) : C.qte[o.id], un = vr ? 'variation' : 'créa';
       var px = pc ? '+' + (vr ? pcVar(o, on ? qo : 1) : o.valeur) + '€<small>par créa</small>' : '+' + eur(prixFixe(o, nb()));
-      return '<div class="kc-opt' + (on ? ' on' : '') + '" data-opt="' + o.id + '" role="checkbox" aria-checked="' + on + '" tabindex="0"><span class="kc-case">' + COCHE + '</span><div class="kc-opt-t"><b>' + o.nom + '</b><small>' + (vr && on ? detailVar(qo) : o.detail) + '</small></div>' +
+      return '<div class="kc-opt' + (on ? ' on' : '') + '" data-opt="' + o.id + '" role="checkbox" aria-checked="' + on + '" tabindex="0"><span class="kc-case">' + COCHE + '</span><div class="kc-opt-t"><b>' + o.nom + '</b><small>' + (vr && on ? detailVar(qo) : o.id === 'express' ? detailExpress() : o.detail) + '</small></div>' +
         (on && pc ? '<div class="kc-qte"><button type="button" data-m aria-label="Une ' + un + ' de moins"' + (qo <= 1 ? ' disabled' : '') + '>−</button><b>' + qo + '</b><button type="button" data-p aria-label="Une ' + un + ' de plus"' + (qo >= maxDe(o.id) ? ' disabled' : '') + '>+</button></div>' : '') +
         '<span class="kc-px">' + px + '</span></div>';
     }).join('');

@@ -142,6 +142,7 @@ for (const [n, prix] of [[65, 65 * 32 + 390], [70, 70 * 32 + 490], [100, 100 * 2
   t('Custom ' + n + ' créas + express : ' + prix + ' €', r.d.total === prix && L['line_items[0][price_data][unit_amount]'] === String(prix * 100), JSON.stringify(r.d));
 }
 r = await api('/api/offres'); const exO = ((r.d && r.d.options) || []).find(o => o.id === 'express');
+t('/api/offres : express en 24 h (Starter, Growth), 48 h (Scale) ; Custom en 4 livraisons dès 60 créas', exO && JSON.stringify(exO.heures) === '{"starter":24,"growth":24,"scale":48}' && JSON.stringify(r.d.custom.lots) === '[[30,1],[55,2],[100,4]]', JSON.stringify([exO && exO.heures, r.d.custom.lots]));
 t('/api/offres expose le prix express du Custom par volume (490 € dès 70)', exO && exO.par_volume && JSON.stringify(exO.par_volume.custom) === '[[70,490]]', JSON.stringify(exO));
 r = await get('/payer/custom?creas=45&options=express,variations:1', { headers: { Referer: 'https://kreativeads.fr/tarifs' } });
 const LS = Object.fromEntries(new URLSearchParams(lignesBrutes().slice(avantS).pop() || ''));

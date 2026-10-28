@@ -69,12 +69,24 @@
   PN.delai = () => {
     const c = C(), d = D();
     let h = c.pack === 'custom' ? (d.custom.delais.find(x => c.nb <= x[0]) || d.custom.delais[d.custom.delais.length - 1])[1] : d.packs[c.pack].delai;
-    if (c.options.includes('express')) h = Math.round(h / 2);
-    return h <= 72 ? h + ' h' : Math.round(h / 24) + ' jours';
+    if (c.options.includes('express')) h = PN.heuresExpress(c.pack, h);
+    return PN.duree(h);
+  };
+  // 36 h, 84 h, 4 jours, 7 jours
+  PN.duree = h => h > 72 && h % 24 === 0 ? h / 24 + ' jours' : h + ' h';
+  // l'express : Starter et Growth en 24 h, Scale en 48 h, Custom : la moitié du délai de chaque livraison
+  PN.heuresExpress = (pack, h) => { const o = D().options.find(x => x.id === 'express'), f = o && o.heures && o.heures[pack]; return f != null ? f : Math.round(h / 2); };
+  PN.lots = nb => { const L = (D().custom && D().custom.lots) || [[30, 1], [55, 2], [100, 4]]; return (L.find(x => nb <= x[0]) || L[L.length - 1])[1]; };
+  // le texte de l'option express, avec le vrai délai du pack choisi
+  PN.detailExpress = () => {
+    const c = C(), d = D();
+    const h = c.pack === 'custom' ? (d.custom.delais.find(x => c.nb <= x[0]) || d.custom.delais[d.custom.delais.length - 1])[1] : d.packs[c.pack].delai;
+    const t = PN.duree(PN.heuresExpress(c.pack, h));
+    return c.pack === 'custom' && PN.lots(c.nb) > 1 ? 'Chaque livraison en ' + t : 'Livrée en ' + t;
   };
   // le Custom est livré en plusieurs fois au-delà de 30 créas (comme n8n le découpe) : le délai vaut pour chaque livraison
   PN.texteDelai = nb => {
-    const lots = C().pack !== 'custom' || nb <= 30 ? 1 : nb <= 60 ? 2 : 4;
+    const lots = C().pack !== 'custom' ? 1 : PN.lots(nb);
     return lots === 1 ? 'Livrée en ' + PN.delai() + ' après votre brief'
       : 'Livrée en ' + lots + ' fois, ' + (lots === 2 ? 'à 15 jours d\'intervalle' : 'une par semaine') + ' : chaque livraison en ' + PN.delai();
   };
@@ -112,7 +124,7 @@
       const px = o.type === 'pct' ? '+' + o.valeur + ' %' : o.type === 'fixe' ? '+' + K.euros(PN.prixOpt(o, c.pack, PN.nb())) : '+' + (vr ? PN.parCreaVar(o, on ? q : 1) : o.valeur) + ' €<small>par créa</small>';
       const un = vr ? 'variation' : 'créa';
       return '<div class="opt' + (on ? ' on' : '') + (on && parCrea ? ' avec-qte' : '') + '" data-cf-opt="' + esc(o.id) + '" role="checkbox" aria-checked="' + on + '" tabindex="0"><span class="case">' + i.coche + '</span>' +
-        '<div class="opt-t"><b>' + esc(o.nom) + '</b><small>' + esc(vr && on ? PN.detailVar(q) : o.detail) + '</small></div>' +
+        '<div class="opt-t"><b>' + esc(o.nom) + '</b><small>' + esc(vr && on ? PN.detailVar(q) : o.id === 'express' ? PN.detailExpress() : o.detail) + '</small></div>' +
         (on && parCrea ? '<div class="qte" data-qte="' + esc(o.id) + '"><button type="button" data-moins aria-label="Une ' + un + ' de moins"' + (q <= 1 ? ' disabled' : '') + '>−</button>' +
           '<span><b>' + q + '</b></span><button type="button" data-plus aria-label="Une ' + un + ' de plus"' + (q >= max ? ' disabled' : '') + '>+</button></div>' : '') +
         '<span class="px">' + px + '</span></div>';

@@ -616,7 +616,8 @@ const packDuLien = id => { for (const [pack, f] of Object.entries(LIENS_PAIEMENT
 // jamais pris dans ce qu'envoie le navigateur.
 const OPTIONS = [
   // l'express : un prix fixe selon le pack
-  { id: 'express', nom: 'Livraison express', detail: 'Livrée 2 fois plus vite', type: 'fixe', valeur: 390, par_pack: { starter: 90, growth: 190, scale: 290, custom: 390 },
+  // l'express : Starter et Growth en 24 h, Scale en 48 h, Custom : la moitié du délai de chaque livraison
+  { id: 'express', nom: 'Livraison express', detail: 'Livrée 2 fois plus vite', heures: { starter: 24, growth: 24, scale: 48 }, type: 'fixe', valeur: 390, par_pack: { starter: 90, growth: 190, scale: 290, custom: 390 },
     par_volume: { custom: [[70, 490]] } },   // Custom : 490 € à partir de 70 créas incluses
   // les variations de texte (22/10/2026, remplacent les A/B tests) : sur TOUTES les créas, le même visuel avec
   // 1 ou 2 textes en plus ; la 1re variation 15 € par créa, la 2e 10 € (donc 25 € par créa pour 2 variations)
@@ -635,6 +636,8 @@ const CUSTOM = {
   min: 30, max: 100, pas: 5,
   // délai de livraison selon le volume : [jusqu'à N créas, heures]
   delais: [[30, 72], [50, 96], [70, 120], [100, 168]],
+  // nombre de livraisons selon le volume (comme n8n) : 1 jusqu'à 30, 2 (à 15 jours) jusqu'à 55, 4 (une par semaine) dès 60
+  lots: [[30, 1], [55, 2], [100, 4]],
   paliers: [[30, 35], [50, 32], [75, 29]],          // à partir de N créas : prix par créa
   remise_mensuel: 0.15,
   options: OPTIONS
@@ -688,7 +691,9 @@ function devis(pack, formule, nbDemande, optionsDemandees) {
 // pour le Custom ; l'express le divise par deux
 function delaiHeures(pack, nb, options) {
   const h = pack === 'custom' ? (CUSTOM.delais.find(x => (nb || 0) <= x[0]) || CUSTOM.delais[CUSTOM.delais.length - 1])[1] : (PACKS[pack] || PACKS.growth).delai;
-  return String(options || '').includes('express') ? Math.round(h / 2) : h;
+  if (!String(options || '').includes('express')) return h;
+  const ex = OPTIONS.find(o => o.id === 'express'), fixe = ex && ex.heures && ex.heures[pack];
+  return fixe != null ? fixe : Math.round(h / 2);
 }
 
 // brief = commande confirmée, le brief n'est pas encore arrivé

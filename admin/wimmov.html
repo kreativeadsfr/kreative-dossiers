@@ -145,11 +145,27 @@ function ecranLivraison(d) {
       '<button class="btn btn-g" id="lv-jeter">' + i.poubelle + 'Supprimer ce brouillon</button></div>' +
       '<p class="muted" style="font-size:12.5px;margin-top:10px">Wimmov la voit tout de suite dans son espace. Hugo et les adresses ajoutées reçoivent un email.</p></div>';
   } else if (der) {
-    h += '<div class="etat-envoi" style="margin:0 0 18px"><span class="pastille">' + i.coche + '</span><div style="flex:1"><b>Envoyée à Wimmov' + (der.envoye_le ? ' le ' + esc(K.dateHeure(der.envoye_le)) : '') + '</b><small>Version ' + der.version + ' · ' + der.fichiers.length + ' fichiers.</small></div>' +
+    // la review de Wimmov, en direct : approuvées, commentaires, retours envoyés ou livraison validée
+    const nOk = der.fichiers.filter(f => f.approuve_le).length, nCom = der.fichiers.reduce((s, f) => s + f.commentaires.filter(c => c.role === 'client').length, 0);
+    const bilan = nOk + ' sur ' + der.fichiers.length + ' approuvée' + (nOk > 1 ? 's' : '') + ' · ' + nCom + ' commentaire' + (nCom > 1 ? 's' : '');
+    const [titre, detail, fond, coul] = der.statut === 'approuvee'
+      ? ['Validée par Wimmov' + (der.review_le ? ' le ' + esc(K.dateHeure(der.review_le)) : ''), 'Version ' + der.version + ' · ' + der.fichiers.length + ' fichiers, tout est approuvé.', '', '']
+      : der.statut === 'review_terminee'
+        ? ['Retours de Wimmov reçus' + (der.review_le ? ' le ' + esc(K.dateHeure(der.review_le)) : ''), 'Version ' + der.version + ' · ' + bilan + '. Corrigez, puis envoyez une nouvelle version.', 'var(--amber-soft,#fff4e0)', 'var(--amber,#e08a00)']
+        : ['Chez Wimmov depuis le ' + esc(K.dateHeure(der.envoye_le)), 'Version ' + der.version + ' · ' + bilan + '. Sa review n\'est pas encore terminée.', 'var(--blue-soft,#eaf2ff)', 'var(--blue,#4d94ff)'];
+    h += '<div class="etat-envoi" style="margin:0 0 18px' + (fond ? ';background:' + fond : '') + '"><span class="pastille"' + (coul ? ' style="background:' + coul + ';box-shadow:none"' : '') + '>' + (der.statut === 'approuvee' ? i.coche : i.message) + '</span><div style="flex:1"><b>' + titre + '</b><small>' + detail + '</small></div>' +
       '<button class="btn btn-s" id="lv-version">' + i.crayon + 'Nouvelle version</button></div>';
   }
   const vue = V.find(v => v.id === LV.choix) || der;
-  if (vue) h += (V.length > 1 ? K.rv.puces(V, vue.id, v => 'Version ' + v.version) : '') + K.rv.grille(vue, { mode: 'admin', sansCompte: true, titre: 'Version ' + vue.version, sousTitre: vue.fichiers.length + ' fichiers', supprimer: vue.statut === 'brouillon' });
+  // les commentaires de Wimmov sur la version affichée : un clic ouvre la créa concernée
+  const comsW = vue && vue.statut !== 'brouillon' ? vue.fichiers.flatMap(f => f.commentaires.filter(c => c.role === 'client').map(c => ({ f, c }))).sort((a, b) => b.c.cree_le - a.c.cree_le) : [];
+  let blocComs = '';
+  if (comsW.length) blocComs = '<div class="sec"><div><h2>Commentaires de Wimmov</h2><p>' + comsW.length + ' commentaire' + (comsW.length > 1 ? 's' : '') + ' sur la version ' + vue.version + '. Cliquez pour ouvrir la créative.</p></div></div>' +
+    '<div class="card" style="margin-bottom:22px"><div class="liste">' + comsW.map(({ f, c }) => '<div class="li clic" data-rv-voir="' + esc(f.id) + '" style="cursor:pointer;align-items:flex-start;padding:12px 16px;gap:12px">' +
+      '<img src="' + esc(f.mini) + '" alt="" style="width:52px;height:52px;object-fit:cover;border-radius:8px;flex:none;background:var(--soft)">' +
+      '<span class="t" style="white-space:normal"><b style="display:block;font-size:13px">' + esc(f.nom) + '</b><span style="font-size:13.5px">' + esc(c.texte) + '</span></span>' +
+      '<small style="white-space:nowrap">' + esc(K.dateHeure(c.cree_le)) + '</small></div>').join('') + '</div></div>';
+  if (vue) h += (V.length > 1 ? K.rv.puces(V, vue.id, v => 'Version ' + v.version) : '') + blocComs + K.rv.grille(vue, { mode: 'admin', sansCompte: true, titre: 'Version ' + vue.version, sousTitre: vue.fichiers.length + ' fichiers', supprimer: vue.statut === 'brouillon' });
   return h;
 }
 function dimensions(f) {
@@ -325,7 +341,11 @@ K.rendre = () => {
   document.title = 'Wimmov · Kreative';
 };
 (async () => {
-  try { MOI = await K.lireJson('/_moi'); await charger(); K.rendre(); setInterval(async () => { if (document.visibilityState === 'visible' && !document.querySelector('#k-fen, .rv-v') && !LV.envois.length && K.route().ecran !== 'livraison') { try { await recharger(); } catch (e) {} } }, 30000); }
+  try { MOI = await K.lireJson('/_moi'); await charger(); K.rendre(); setInterval(async () => { if (document.visibilityState !== 'visible' || document.querySelector('#k-fen, .rv-v') || LV.envois.length) return;
+    if (K.route().ecran !== 'livraison') { try { await recharger(); } catch (e) {} return; }
+    // la livraison ouverte : les commentaires et validations de Wimmov arrivent tout seuls (pas pendant un brouillon)
+    const v0 = LV.donnees && LV.donnees.versions && LV.donnees.versions[0];
+    if (LV.dossier && v0 && v0.statut !== 'brouillon') { const y = window.scrollY; try { await chargerLivraison(LV.dossier); window.scrollTo(0, y); } catch (e) {} } }, 30000); }
   catch (e) { document.getElementById('racine').innerHTML = '<div class="chargement">Impossible de charger la page Wimmov. ' + esc(e.message) + '</div>'; }
 })();
 </script>

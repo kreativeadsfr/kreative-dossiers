@@ -67,7 +67,7 @@
     const titre = k ? (k.formule === 'mensuel' ? 'Abonnement ' : 'Pack ') + ({ starter: 'Starter', growth: 'Growth', scale: 'Scale', custom: 'Custom' }[k.pack] || k.pack) : (o.projet || 'Créatives publicitaires Kreative');
     const detail = detailFacture(k), G = 20, D = 190, gris = () => doc.setTextColor(95), noir = () => doc.setTextColor(0);
     doc.setFont('helvetica', 'bold'); doc.setFontSize(22); noir(); doc.text('Facture', G, 30);
-    if (logo) { try { doc.addImage(logo, 'PNG', D - 52, 20, 52, 52 * 104 / 528);   // logo du 30/10 (528 × 104), recadré au plus juste } catch (x) { doc.text('kreative', D, 30, { align: 'right' }); } }
+    if (logo) { try { doc.addImage(logo, 'PNG', D - 52, 20, 52, 52 * 104 / 528); /* logo du 30/10 (528 × 104) */ } catch (x) { doc.text('kreative', D, 30, { align: 'right' }); } }
     else doc.text('kreative', D, 30, { align: 'right' });
     // numéro et dates
     doc.setFontSize(10);

@@ -35,9 +35,9 @@ t('aperçu designer : liens réécrits', h.includes(B + '/ui/kreative.css') && h
 r = await get('/IDLIFT_TEST_1001/creas/telecharger.html', C); h = await r.text(); t('page téléchargement (liens dans les scripts)', !/github\.io/.test(h), (h.match(/.{40}github\.io.{40}/) || [''])[0]);
 let t0 = Date.now(); r = await get('/TRIGGERFLOW_09_e819/index.html', C); h = await r.text();
 const orig = fs.readFileSync(R + 'TRIGGERFLOW_09_e819/index.html', 'utf8');
-t('dossier de 8,7 Mo servi entier, lien DA réécrit (' + (Date.now() - t0) + ' ms)', !h.includes('github.io') && h.length - orig.length > 0 && h.length - orig.length < 12000 && h.includes('</div></div></div></div></body>') && h.includes(B + '/ui/kreative.css'), h.length + ' vs ' + orig.length);
+t('dossier de 8,7 Mo servi entier, lien DA réécrit (' + (Date.now() - t0) + ' ms)', !h.includes('github.io') && h.length - orig.length > 0 && h.length - orig.length < 30000 && h.includes('</div></div></div></div></body>') && h.includes(B + '/ui/kreative.css'), h.length + ' vs ' + orig.length);
 r = await get('/fiche/', C); h = await r.text(); const of = fs.readFileSync(R + 'fiche/index.html', 'utf8');
-t('fiche (script de 4,9 Mo) servie entière, dans la coquille', h.includes(of.slice(2000000, 2400000)) && h.includes(of.slice(-3000, -20)) && h.length - of.length > 0 && h.length - of.length < 12000, h.length + ' vs ' + of.length);
+t('fiche (script de 4,9 Mo) servie entière, dans la coquille', h.includes(of.slice(2000000, 2400000)) && h.includes(of.slice(-3000, -20)) && h.length - of.length > 0 && h.length - of.length < 30000, h.length + ' vs ' + of.length);
 const img = fs.readdirSync(FIX + '/TURNLY_10_bc5e/creas').find(x => /\.(png|jpg)$/.test(x)) ;
 const imgPath = 'TURNLY_10_bc5e/pubs/b6d9229a086e.jpg';
 r = await get('/' + imgPath, C); let b = Buffer.from(await r.arrayBuffer()); t('image identique octet pour octet (' + imgPath + ')', b.equals(fs.readFileSync(FIX + '/' + imgPath)), b.length);

@@ -284,7 +284,8 @@ function brancherPeriode() {
 const variation = (x, avant) => !avant ? (x ? 'nouveau sur la période' : 'rien sur la période précédente') : ((x - avant) / avant * 100 >= 0 ? '+' : '') + Math.round((x - avant) / avant * 100) + ' % vs période précédente';
 function tableauDeBord(retards) {
   const [a, b] = bornes(), duree = b - a + 1, pa = a - duree, pb = a - 1;
-  const F = facturesPayees((S.factures && S.factures.factures) || []), quand = f => f.payee_le || f.emise_le || 0;
+  // une facture à 0 € (test, essai gratuit) n'est pas une vente : elle ne compte ni dans les paiements, ni dans le panier moyen
+  const F = facturesPayees((S.factures && S.factures.factures) || []).filter(f => (f.montant || 0) > 0), quand = f => f.payee_le || f.emise_le || 0;
   const dans = (t, x, y) => t >= x && t <= y;
   const ventes = F.filter(f => dans(quand(f), a, b)), avant = F.filter(f => dans(quand(f), pa, pb));
   const total = ventes.reduce((t, f) => t + (f.montant || 0), 0), totalAvant = avant.reduce((t, f) => t + (f.montant || 0), 0);

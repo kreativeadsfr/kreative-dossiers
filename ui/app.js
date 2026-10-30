@@ -67,7 +67,7 @@
     const titre = k ? (k.formule === 'mensuel' ? 'Abonnement ' : 'Pack ') + ({ starter: 'Starter', growth: 'Growth', scale: 'Scale', custom: 'Custom' }[k.pack] || k.pack) : (o.projet || 'Créatives publicitaires Kreative');
     const detail = detailFacture(k), G = 20, D = 190, gris = () => doc.setTextColor(95), noir = () => doc.setTextColor(0);
     doc.setFont('helvetica', 'bold'); doc.setFontSize(22); noir(); doc.text('Facture', G, 30);
-    if (logo) { try { doc.addImage(logo, 'PNG', D - 46, 19, 46, 46 * 372 / 1311); } catch (x) { doc.text('kreative', D, 30, { align: 'right' }); } }
+    if (logo) { try { doc.addImage(logo, 'PNG', D - 52, 20, 52, 52 * 104 / 528);   // logo du 30/10 (528 × 104), recadré au plus juste } catch (x) { doc.text('kreative', D, 30, { align: 'right' }); } }
     else doc.text('kreative', D, 30, { align: 'right' });
     // numéro et dates
     doc.setFontSize(10);
@@ -420,6 +420,8 @@
   const P = K.prod = { liste: null };
   P.charger = async force => {
     if (P.liste && !force) return P.liste;
+    // l'état des projets part en même temps que la liste (il n'en dépend pas)
+    const etats = K.api('/api/equipe/etats').catch(() => ({ etats: {}, commandes: {} }));
     let projets = await K.lireJson('/projets.json');
     if (!Array.isArray(projets)) projets = [];
     P.sigListe = projets.map(x => x && x.dossier).filter(Boolean).sort().join(',');
@@ -438,7 +440,7 @@
         livre: !!(liv && liv.livre), livreLe: Date.parse(der.le || '') || 0, zip: der.lien || '', livraisons: livs,
         strat: Date.parse(d.deadline_strategiste || '') || 0, desi: Date.parse(d.deadline_designer || '') || 0, client: Date.parse(d.deadline || '') || 0 };
     }))).filter(Boolean);
-    await P.chargerEtats();
+    await P.chargerEtats(await etats);
     return P.liste;
   };
   // Les options payées par le client. Variations de texte (depuis le 22/10/2026) : sur chaque créa, le même

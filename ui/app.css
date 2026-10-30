@@ -52,7 +52,7 @@ p{margin:0}
 .side-logo{display:flex;align-items:center;gap:10px;padding:6px 10px 18px}
 .k-marque{display:block;height:auto;color:#000}
 :root[data-theme="dark"] .k-marque{color:#fff}
-.side-logo .k-marque{width:85px}
+.side-logo .k-marque{height:24px;width:auto}
 .side-cta{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 2px 18px;padding:12px 16px;border-radius:12px;
   background:var(--blue);color:#fff;font-weight:600;font-size:14px;text-decoration:none;box-shadow:0 8px 20px -8px rgba(77,148,255,.7);transition:background .15s}
 .side-cta:hover{background:var(--blue-h)}
@@ -385,7 +385,7 @@ textarea.in{height:auto;min-height:90px;padding:11px 13px;resize:vertical}
 /* ---------- connexion client ---------- */
 .seul{min-height:100vh;display:grid;place-items:center;padding:24px 16px}
 .seul .card{width:100%;max-width:420px;padding:36px 32px;border-radius:24px}
-.seul .k-marque{width:92px;margin-bottom:28px}
+.seul .k-marque{height:26px;width:auto;margin-bottom:28px}
 .seul h1{font-size:30px;letter-spacing:-.035em}
 .seul p{color:var(--tx2);margin:8px 0 22px;font-size:14.5px}
 

@@ -53,6 +53,7 @@ export default {
   async fetch(req, env, ctx) {
     try { return await traiter(req, env, ctx); }
     catch (e) { return new Response('Erreur : ' + (e && e.message || e), { status: 500, headers: { 'Content-Type': 'text/plain; charset=utf-8' } }); }
+    finally { if (EN_FOND.size && ctx && ctx.waitUntil) ctx.waitUntil(Promise.allSettled([...EN_FOND])); }  // les copies revérifiées en fond vont au bout
   }
 };
 
@@ -217,10 +218,12 @@ function json(o, statut) {
 // Une modification poussée sur main est donc vue à la 1re ouverture après ~20 s (au plus tard à la 2e).
 // Mémoire de l'isolat + cache Cloudflare du centre (partagé entre isolats). Jamais pour n8n (lecture brute).
 const COPIES = new Map();
+const HTML_PRET = new Map();   // pages déjà réécrites (fichier + adresse du site → { id de la copie, html })
 let DEPOT_TAILLE = 0;
-function depotReponse(e) {
-  if (e.flux) return new Response(e.flux.body, { status: 200, headers: { 'content-length': e.flux.headers.get('content-length') || '' } });
-  return new Response(e.s === 200 ? e.b.slice(0) : 'Introuvable', { status: e.s, headers: e.s === 200 ? { 'content-length': String(e.b.byteLength) } : {} });
+const EN_FOND = new Set();   // revérifications lancées sans ctx : le gestionnaire fetch les attend après la réponse
+function depotReponse(e, d) {
+  if (e.flux) return new Response(e.flux.body, { status: 200, headers: { 'content-length': e.flux.headers.get('content-length') || '', 'x-copie': 'directe' } });
+  return new Response(e.s === 200 ? e.b.slice(0) : 'Introuvable', { status: e.s, headers: e.s === 200 ? { 'content-length': String(e.b.byteLength), 'x-copie': d || '', 'x-copie-id': e.etag || '' } : { 'x-copie': d || '' } });
 }
 function depotGarder(fichier, e) {
   const ancien = COPIES.get(fichier);
@@ -230,7 +233,8 @@ function depotGarder(fichier, e) {
   COPIES.set(fichier, e);
   if (e.b) DEPOT_TAILLE += e.b.byteLength;
 }
-function depotCle(fichier) { return new Request('https://cache.kreative/depot/' + encodeURI(fichier)); }
+// clé sur le domaine Kreative (le cache de Cloudflare ne garde que les adresses de la zone)
+function depotCle(fichier) { return new Request('https://app.kreativeads.fr/_copie/' + encodeURI(fichier)); }
 async function depotRelire(fichier, env, e) {
   const api = (env.GITHUB_API || 'https://api.github.com').replace(/\/$/, '');
   const encode = fichier.split('/').map(encodeURIComponent).join('/');
@@ -259,23 +263,25 @@ function depotMaj(fichier, env, e) {
   return DEPOT_EN_COURS.get(fichier);
 }
 async function lireDepot(fichier, env, ctx, frais, max) {
-  let e = COPIES.get(fichier);
+  let e = COPIES.get(fichier), d = 'memoire';
   if (!e) {
+    d = 'cache';
     try {
       const c = await caches.default.match(depotCle(fichier));
       if (c) { e = { s: 200, b: await c.arrayBuffer(), etag: c.headers.get('X-Etag') || '', lu: Number(c.headers.get('X-Lu')) || 0 }; depotGarder(fichier, e); }
     } catch (x) {}
   }
   const age = e ? Date.now() - e.lu : Infinity;
-  if (e && age < frais) return depotReponse(e);
+  if (e && age < frais) return depotReponse(e, d);
   if (e && age < max) {
     const maj = depotMaj(fichier, env, e);
     if (ctx && ctx.waitUntil) ctx.waitUntil(maj);
-    return depotReponse(e);
+    else { EN_FOND.add(maj); maj.finally(() => EN_FOND.delete(maj)); }
+    return depotReponse(e, d + '-revue');
   }
   const n = await depotMaj(fichier, env, e);
-  if (n && !n.erreur) return depotReponse(n);
-  if (e) return depotReponse(e);
+  if (n && !n.erreur) return depotReponse(n, 'github');
+  if (e) return depotReponse(e, 'secours');
   return new Response('GitHub ne répond pas', { status: (n && n.s) || 502 });
 }
 async function servir(chemin, env, ctx, o) {
@@ -343,7 +349,20 @@ async function servir(chemin, env, ctx, o) {
 
   // les pages : les anciens liens GitHub deviennent ce site
   const base = o.origine + '/';
-  if (/^text\/html/.test(type)) return reecrireHtml(new Response(r.body, { status: 200, headers: entetes }), base, coquille(o.qui, '/' + chemin, o.req));
+  if (r.headers.get('x-copie')) entetes.set('X-Copie', r.headers.get('x-copie'));
+  if (/^text\/html/.test(type)) {
+    const coq = coquille(o.qui, '/' + chemin, o.req), id = r.headers.get('x-copie-id');
+    // les portails (admin, client, Studio...) : la page déjà réécrite est gardée tant que le fichier ne change pas
+    if (!coq && id) {
+      const cle = fichier + '|' + base, vu = HTML_PRET.get(cle);
+      if (vu && vu.id === id) { if (r.body) r.body.cancel(); return new Response(vu.t, { status: 200, headers: entetes }); }
+      const h = await reecrireHtml(new Response(r.body, { status: 200, headers: entetes }), base, null).text();
+      if (HTML_PRET.size > 60) HTML_PRET.clear();
+      if (h.length < 2e6) HTML_PRET.set(cle, { id, t: h });
+      return new Response(h, { status: 200, headers: entetes });
+    }
+    return reecrireHtml(new Response(r.body, { status: 200, headers: entetes }), base, coq);
+  }
   const longueur = Number(r.headers.get('content-length') || 0);
   if (longueur > LIMITE_REECRITURE) return new Response(r.body, { status: 200, headers: entetes });
   let t = await r.text();
@@ -627,7 +646,7 @@ async function connexion(req, env, url) {
 *{box-sizing:border-box}html,body{margin:0;min-height:100%}html{caret-color:transparent}input{caret-color:auto}
 body{background:#f9f6f4;color:#000;font:400 16px/1.5 Inter,system-ui,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px 16px}
 .c{width:100%;max-width:400px;background:#fff;border:1px solid #ebe5df;border-radius:28px;padding:36px 32px;box-shadow:0 12px 40px rgba(31,31,31,.06)}
-.k-marque{width:92px;height:auto;display:block;margin:0 0 30px;color:#000}
+.k-marque{height:26px;width:auto;display:block;margin:0 0 30px;color:#000}
 h1{font:600 32px/1.05 "Inter Tight",Inter,sans-serif;letter-spacing:-.035em;margin:0 0 8px}
 p{margin:0 0 24px;color:#5b5752;font-size:15px}
 label{display:block;font-size:13px;font-weight:600;margin:0 0 8px}
@@ -848,9 +867,29 @@ async function servirDonneesExpress(fichier, env, o) {
 const STATUTS = ['brief', 'production', 'livre', 'revisions', 'valide', 'annule'];
 
 let BASE_PRETE = false;
+// v70 : la base est vérifiée une seule fois par version. Avant, chaque démarrage du Worker refaisait
+// ~25 allers-retours (tables, colonnes, index) : près d'une seconde sur la 1re ouverture.
+// Augmenter SCHEMA_V à chaque nouvelle table ou colonne : la vérification complète repasse une fois.
+const SCHEMA_V = 70;
+let SCHEMA_EN_COURS = null;
 async function base(env) {
   if (!env.DB) throw new Error('Base de données absente : liez une base D1 au Worker sous le nom DB.');
   if (!BASE_PRETE) {
+    if (!SCHEMA_EN_COURS) SCHEMA_EN_COURS = env.DB.prepare("SELECT v FROM kreative_schema WHERE nom = 'base'").first().then(r => !!r && r.v === SCHEMA_V).catch(() => false);
+    if (await SCHEMA_EN_COURS) { BASE_PRETE = LIV_PRETE = WIMMOV_PRET = STUDIO_PRET = true; return env.DB; }
+    SCHEMA_EN_COURS = null;
+    await migrerBase(env);
+    // les autres parties de la base, puis la version notée
+    await baseLiv(env); await baseWimmov(env); await baseStudio(env);
+    try {
+      await env.DB.batch([env.DB.prepare('CREATE TABLE IF NOT EXISTS kreative_schema (nom TEXT PRIMARY KEY, v INTEGER)'),
+        env.DB.prepare("INSERT OR REPLACE INTO kreative_schema (nom, v) VALUES ('base', ?)").bind(SCHEMA_V)]);
+    } catch (e) {}
+  }
+  return env.DB;
+}
+async function migrerBase(env) {
+  {
     await env.DB.batch([
       env.DB.prepare(`CREATE TABLE IF NOT EXISTS clients (id TEXT PRIMARY KEY, marque TEXT NOT NULL, contact TEXT, email TEXT UNIQUE,
         telephone TEXT, site TEXT, statut TEXT DEFAULT 'actif', jeton TEXT UNIQUE, notes TEXT, cree_le INTEGER, vu_le INTEGER)`),
@@ -1052,7 +1091,8 @@ async function lireJsonDepot(env, chemin) {
   const vu = CACHE_JSON.get(chemin);
   if (vu && vu.fin > Date.now()) return vu.v;
   let v = null;
-  try { const r = await lireGithub(chemin, env, 'GET'); v = r.ok ? await r.json() : null; } catch (e) { v = null; }
+  // la copie gardée par le Worker (v70) : revérifiée en fond après 20 s, GitHub attendu seulement après 10 min sans lecture
+  try { const r = await lireDepot(chemin, env, null, 20000, 6e5); v = r.ok ? await r.json() : null; } catch (e) { v = null; }
   if (CACHE_JSON.size > 300) CACHE_JSON.clear();
   CACHE_JSON.set(chemin, { v: v && JSON.stringify(v).length > 300000 ? { dossier: v.dossier, deadline: v.deadline, brand_name: v.brand_name, envois: v.envois, livre: v.livre, livraison: v.livraison, nb_creas: v.nb_creas, pack: v.pack, abonnement: v.abonnement, deadline_strategiste: v.deadline_strategiste, deadline_designer: v.deadline_designer } : v, fin: Date.now() + 20000 });
   return v;

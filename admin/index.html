@@ -1495,10 +1495,10 @@ K.rendre = async () => {
   if (e.prod && r.params[0] && derniereProd === location.hash && document.querySelector('.vp-cadre')) return;
   derniereProd = e.prod ? location.hash : '';
   const n = ++rendu;
-  await charger('moi');
+  // la session et les données partent ensemble (pas l'une après l'autre)
   const enAttente = e.besoins.filter(q => S[q] == null);
   if (enAttente.length && !document.querySelector('.app')) document.getElementById('racine').innerHTML = '<div class="chargement">Chargement…</div>';
-  await Promise.all(e.besoins.map(q => charger(q)));
+  await Promise.all(['moi'].concat(e.besoins).map(q => charger(q)));
   const contenu = await e.f(r.params);
   if (n !== rendu) return;
   const c = e.wimmov ? W.conf() : conf();

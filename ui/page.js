@@ -71,6 +71,23 @@
       setTimeout(function () { URL.revokeObjectURL(u); }, 4000);
     }).finally(function () { bouton.textContent = lab; bouton.disabled = false; });
   }
+  // un fichier intégré dans la page (data:) : son vrai type, lu dans ses premiers octets (le Moteur marque
+  // tout en image/jpeg, même un logo SVG ou PNG), transformé en fichier local (blob:) pour le téléchargement
+  var EXT = { 'image/png': 'png', 'image/jpeg': 'jpg', 'image/gif': 'gif', 'image/webp': 'webp', 'image/svg+xml': 'svg', 'video/mp4': 'mp4' };
+  function depuisData(href) {
+    try {
+      var m = href.match(/^data:([^;,]*)(;base64)?,(.*)$/); if (!m) return null;
+      var bin = m[2] ? atob(m[3]) : decodeURIComponent(m[3]), o = new Uint8Array(bin.length);
+      for (var k = 0; k < bin.length; k++) o[k] = bin.charCodeAt(k);
+      var debut = bin.slice(0, 300), type = m[1] || 'application/octet-stream';
+      if (debut.slice(0, 4) === '\x89PNG') type = 'image/png';
+      else if (debut.slice(0, 3) === '\xFF\xD8\xFF') type = 'image/jpeg';
+      else if (debut.slice(0, 4) === 'GIF8') type = 'image/gif';
+      else if (debut.slice(0, 4) === 'RIFF' && debut.slice(8, 12) === 'WEBP') type = 'image/webp';
+      else if (/^\s*(<\?xml[\s\S]*?)?<svg|<svg[\s>]/i.test(debut)) type = 'image/svg+xml';
+      return { url: URL.createObjectURL(new Blob([o], { type: type })), type: type, ext: EXT[type] || 'bin' };
+    } catch (x) { return null; }
+  }
   function assets() {
     var section = document.getElementById('assets');
     if (!section) return;
@@ -88,6 +105,15 @@
       Array.prototype.forEach.call(grille.querySelectorAll('.asset a[href]'), function (a, n) {
         var href = a.getAttribute('href'); if (!href || href === '#') return;
         var b = a.querySelector('.cap b'), code = b ? b.textContent.trim() : (site ? 'WS' : 'PJ') + String(n + 1).padStart(2, '0');
+        if (/^data:/i.test(href)) {
+          // intégré dans la page : téléchargé tel quel, avec la bonne extension, et l'aperçu réparé (SVG)
+          var f = depuisData(href); if (!f) return;
+          var nomD = code + '.' + f.ext, im = a.querySelector('img');
+          a.setAttribute('href', f.url); a.setAttribute('download', nomD); a.removeAttribute('target');
+          if (im && /^data:/i.test(im.getAttribute('src') || '')) im.setAttribute('src', f.url);
+          liens.push({ url: f.url, nom: nomD, source: code + ' (fichier du client)' });
+          return;
+        }
         var ext = ((href.split('?')[0].match(/\.(png|jpe?g|webp|gif|svg|mp4)$/i) || [])[1] || 'png').toLowerCase();
         var nom = a.getAttribute('download') || (code + '.' + ext);
         var abs = new URL(href, location.href);

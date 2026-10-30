@@ -367,8 +367,7 @@ const reponse = x => x.fichiers ? '<div class="fics">' + x.fichiers.map(f => '<a
 const qr = rep => {
   const groupes = THEMES_BRIEF.map(([t]) => ({ t, l: [] })), autre = { t: 'Autres précisions', l: [] };
   rep.forEach(x => { const k = THEMES_BRIEF.findIndex(([, re]) => re.test(x.q)); (k >= 0 ? groupes[k] : autre).l.push(x); });
-  const nFic = rep.reduce((n, x) => n + ((x.fichiers || []).length), 0);
-  return '<div class="brief-qr"><p class="brief-resume">' + rep.length + ' réponse' + (rep.length > 1 ? 's' : '') + (nFic ? ' · ' + nFic + ' fichier' + (nFic > 1 ? 's' : '') : '') + ', telles que vous les avez envoyées.</p>' +
+  return '<div class="brief-qr">' +
     groupes.concat([autre]).filter(g => g.l.length).map(g => '<section class="bq-groupe"><h4>' + esc(g.t) + '</h4><div class="bq-grille">' +
       g.l.map(x => { const court = !!x.fichiers || (String(x.texte).length <= 70 && !/\n/.test(x.texte));
         return '<div class="qr' + (court ? ' court' : '') + '"><div class="q">' + esc(x.q) + '</div><div class="r">' + reponse(x) + '</div></div>'; }).join('') +

@@ -42,7 +42,8 @@ async function charger(quoi, force) {
     resume: () => K.api('/api/admin/resume'),
     equipe: () => K.api('/api/admin/equipe'),
     factures: () => K.api('/api/admin/factures'),
-    livraisons: () => K.api('/api/equipe/livraisons'),
+    // Wimmov est à part : ses livraisons ne sont que dans sa section (#/wimmov)
+    livraisons: async () => (await K.api('/api/equipe/livraisons')).filter(l => !/^WIMMOV_/.test(l.dossier)),
     moi: () => K.lireJson('/_moi'),
     dossiers: async () => { const l = await K.lireJson('/_admin/dossiers.json'); return Array.isArray(l) ? l.sort((a, b) => (/^TEST|^REDO/.test(a) - /^TEST|^REDO/.test(b)) || a.localeCompare(b)) : []; },
     prod: chargerProduction
@@ -104,16 +105,16 @@ function conf() {
     cta: { texte: 'Nouveau client', href: '#/clients/nouveau' },
     sections: [
       { titre: '', liens: [{ id: 'accueil', texte: 'Vue d\'ensemble', icone: 'accueil', href: '#/' }] },
-      { titre: 'Commercial', liens: [
+      { titre: 'Gestion', liens: [
         { id: 'clients', texte: 'Clients', icone: 'gens', href: '#/clients', nb: S.clients ? S.clients.length || '' : '' },
         { id: 'commandes', texte: 'Commandes', icone: 'sac', href: '#/commandes' },
         { id: 'factures', texte: 'Factures', icone: 'recu', href: '#/factures' },
-        { id: 'wimmov', texte: 'Wimmov', icone: 'etoile', href: '#/wimmov' }] },
+        { id: 'wimmov', texte: 'Wimmov', icone: 'etoile', href: '#/wimmov' },
+        { id: 'equipe', texte: 'Équipe', icone: 'bouclier', href: '#/equipe' }] },
       { titre: 'Production', liens: [
         { id: 'projets', texte: 'Projets', icone: 'colonnes', href: '#/projets', nb: enCours || '' },
         { id: 'production', texte: 'Dossiers et fiches', icone: 'calques', href: '#/dossiers' },
-        { id: 'livraisons', texte: 'Livraisons', icone: 'envoi', href: '#/livraisons', nb: (S.livraisons || []).filter(l => l.statut === 'a_verifier' && estDerniere(l)).length || '' }] },
-      { titre: '', liens: [{ id: 'equipe', texte: 'Équipe', icone: 'bouclier', href: '#/equipe' }] }
+        { id: 'livraisons', texte: 'Livraisons', icone: 'envoi', href: '#/livraisons', nb: (S.livraisons || []).filter(l => l.statut === 'a_verifier' && estDerniere(l)).length || '' }] }
     ],
     qui: Object.assign(K.profil(S.moi && S.moi.nom, 'Admin'), { role: 'Fondateur · admin' }),
     sortie: '/_deconnexion',
@@ -878,16 +879,29 @@ function brancherSupprFactures() {
 }
 
 // ---------- DOSSIERS ----------
+// les dossiers des projets des clients : ceux reliés à une commande (projet terminé compris) et ceux en production
+// Les anciens dossiers de test du dépôt n'y sont pas ; Wimmov a sa propre section.
+function dossiersClients() {
+  const D = S.dossiers || [], K2 = (S.commandes || []).filter(c => c.dossier && !/^WIMMOV_/.test(c.dossier) && c.statut !== 'annule'), vus = new Map();
+  const ajouter = (d, c) => { if (!d || /^WIMMOV_|^TEST|^REDO|_TEST/.test(d) || vus.has(d)) return; vus.set(d, c || null); };
+  K2.forEach(c => { const base = c.dossier.replace(/_L\d+$/, ''); ajouter(c.dossier, c); D.filter(d => d.startsWith(base + '_L')).forEach(d => ajouter(d, c)); });
+  (S.prod || []).filter(x => !x.demo).forEach(x => ajouter(x.dossier, commandeDe(x)));
+  return [...vus.entries()].map(([dossier, c]) => ({ dossier, c, x: (S.prod || []).find(y => y.dossier === dossier) }))
+    .sort((a, b) => ((b.c && b.c.cree_le) || 0) - ((a.c && a.c.cree_le) || 0) || a.dossier.localeCompare(b.dossier));
+}
 function ecranDossiers() {
-  const D = S.dossiers || [], q = S.chDossiers.toUpperCase().replace(/\s+/g, '');
-  const l = D.filter(d => !q || d.includes(q));
-  const MOIS = { '01': 'janv.', '02': 'févr.', '03': 'mars', '04': 'avr.', '05': 'mai', '06': 'juin', '07': 'juil.', '08': 'août', '09': 'sept.', '10': 'oct.', '11': 'nov.', '12': 'déc.' };
-  let h = '<div class="ph"><div><h1>Tous les dossiers</h1><p>' + D.length + ' dossiers dans le dépôt, y compris ceux qui ne sont plus en production.</p></div></div>' +
-    '<div class="filtres"><div class="champ-r">' + i.chercher + '<input id="ch-dossiers" placeholder="Chercher une marque ou un code…" value="' + esc(S.chDossiers) + '"></div></div>';
-  return h + '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Dossier</th><th>Mois</th><th></th></tr></thead><tbody>' +
-    (l.map(d => { const m = d.match(/_(\d{2})_/); return '<tr><td><div class="nom">' + K.tuile(d.split('_')[0]) + '<b>' + esc(d) + '</b>' + (/^TEST|^REDO/.test(d) ? '<span class="pill">test</span>' : '') + '</div></td><td class="muted">' + (m && MOIS[m[1]] || '') + '</td>' +
-      '<td class="fin"><div style="display:flex;gap:6px;justify-content:flex-end">' + [['#/dossier/' + d, 'Dossier'], ['#/fiche/' + d, 'Fiche'], ['#/visuels/' + d, 'Visuels']].map(([u, t]) => '<a class="btn btn-s btn-sm" href="' + esc(u) + '">' + t + '</a>').join('') + '</div></td></tr>'; }).join('')
-      || '<tr><td colspan="3"><div class="vide">Aucun dossier.</div></td></tr>') + '</tbody></table></div></div>';
+  const L = dossiersClients(), q = S.chDossiers.toLowerCase().replace(/\s+/g, '');
+  const l = L.filter(o => !q || (o.dossier + ' ' + ((o.c && o.c.marque) || '')).toLowerCase().replace(/\s+/g, '').includes(q));
+  let h = '<div class="ph"><div><h1>Tous les dossiers</h1><p>Les dossiers des projets de vos clients, en cours et terminés. Wimmov a sa propre section.</p></div></div>' +
+    '<div class="filtres"><div class="champ-r">' + i.chercher + '<input id="ch-dossiers" placeholder="Chercher un client ou un dossier…" value="' + esc(S.chDossiers) + '"></div></div>';
+  return h + '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Client</th><th>Commande</th><th>Statut</th><th></th></tr></thead><tbody>' +
+    (l.map(({ dossier: d, c, x }) => {
+      const e = x ? etatProd(x) : null, st = c ? STATUTS[c.statut] : null;
+      const pillH = e ? '<span class="pill ' + e.pill + '"><i></i>' + esc(e.texte) + '</span>' : st ? '<span class="pill ' + st[1] + '"><i></i>' + esc(st[0]) + '</span>' : '<span class="muted">Terminé</span>';
+      return '<tr><td><div class="nom">' + K.tuile((c && c.marque) || d.split('_')[0]) + '<div><b>' + esc((c && c.marque) || (x && x.marque) || d) + (x && x.d.livraison && x.d.livraison.sur > 1 ? ' · livraison ' + x.d.livraison.n + '/' + x.d.livraison.sur : '') + '</b><span class="sub">' + esc(d) + '</span></div></div></td>' +
+        '<td>' + (c ? esc(K.nomCommande(c)) + '<span class="sub">#' + esc(c.ref) + '</span>' : '<span class="muted">Pas de commande reliée</span>') + '</td><td>' + pillH + '</td>' +
+        '<td class="fin"><div style="display:flex;gap:6px;justify-content:flex-end">' + [['#/dossier/' + d, 'Dossier'], ['#/fiche/' + d, 'Fiche'], ['#/visuels/' + d, 'Visuels']].map(([u, t]) => '<a class="btn btn-s btn-sm" href="' + esc(u) + '">' + t + '</a>').join('') + '</div></td></tr>';
+    }).join('') || '<tr><td colspan="4"><div class="vide">Aucun dossier client pour l\'instant.</div></td></tr>') + '</tbody></table></div></div>';
 }
 function brancherDossiers() {
   const c = document.getElementById('ch-dossiers');
@@ -903,35 +917,65 @@ const ROLES_EQ = {
   designer: { nom: 'Designer', pill: 'v', espace: '/designer/', fait: 'Reprend les visuels générés, dépose les PNG, fait les retouches visuelles. Espace en anglais.' }
 };
 const nomEq = n => n.charAt(0).toUpperCase() + n.slice(1);
-function chargeEquipe(role) {
-  // le travail en cours de chaque rôle, d'après les projets en production
-  const P = S.prod || [];
-  if (role === 'strategiste') { const l = P.filter(x => etatProd(x).cle === 'strat'); return { n: l.length, retard: l.filter(x => etatProd(x).retard).length, t: 'fiche' }; }
-  if (role === 'designer') { const l = P.filter(x => etatProd(x).cle === 'desi'); return { n: l.length, retard: l.filter(x => etatProd(x).retard).length, t: 'projet' }; }
-  const l = P.filter(x => etatProd(x).cle === 'livrer'); return { n: l.length, retard: 0, t: 'livraison à vérifier', ts: 'livraisons à vérifier' };
+// ce que chaque personne a à faire maintenant, avec son échéance (d'après les projets en production)
+function tachesEquipe(role) {
+  const P = (S.prod || []).filter(x => !x.demo), now = Date.now(), T = [];
+  for (const x of P) {
+    const e = etatProd(x), nom = nomProjet(x);
+    if (role === 'strategiste' && e.cle === 'strat') T.push({ t: nom, quoi: e.retouche ? 'Retouches des textes' : 'Fiche créas à remplir', le: x.strat, href: '#/fiche/' + x.dossier });
+    if (role === 'designer' && e.cle === 'desi') T.push({ t: nom, quoi: e.retouche ? 'Retouches des visuels' : 'Visuels à reprendre et déposer', le: x.desi, href: '#/visuels/' + x.dossier });
+    if (role === 'admin' && e.cle === 'livrer') T.push({ t: nom, quoi: e.texte, le: x.client, href: '#/livraisons/' + x.dossier });
+  }
+  return T.map(t => ({ ...t, retard: !!(t.le && t.le < now) })).sort((a, b) => (a.le || 9e15) - (b.le || 9e15));
+}
+// ses 30 derniers jours, en trois chiffres
+function bilanEquipe(role) {
+  const depuis = Date.now() - 30 * 864e5, P = (S.prod || []).filter(x => !x.demo), L = S.livraisons || [];
+  const pc = (ok, n) => n ? Math.round(ok * 100 / n) + ' %' : '0 %';
+  if (role === 'strategiste') {
+    const f = P.filter(x => x.envoye && x.envoyeLe >= depuis), ok = f.filter(x => !x.strat || x.envoyeLe <= x.strat).length;
+    return [['Fiches envoyées', f.length], ['Dans les délais', pc(ok, f.length)], ['Retouches de textes', L.filter(l => l.retouche === 'strategiste' && (l.depose_le || l.cree_le) >= depuis).length]];
+  }
+  if (role === 'designer') {
+    const d = P.filter(x => x.livre && x.livreLe >= depuis), ok = d.filter(x => !x.desi || x.livreLe <= x.desi).length;
+    return [['Projets livrés', d.length], ['Dans les délais', pc(ok, d.length)], ['Versions corrigées', L.filter(l => l.version > 1 && (l.depose_le || 0) >= depuis).length]];
+  }
+  const env = L.filter(l => (l.envoye_le || 0) >= depuis);
+  return [['Envoyées au client', env.length], ['Validées par le client', L.filter(l => l.statut === 'approuvee' && (l.review_le || 0) >= depuis).length], ['Clients ajoutés', (S.clients || []).filter(c => (c.cree_le || 0) >= depuis).length]];
 }
 function ecranEquipe() {
-  const E = S.equipe || [];
-  const parRole = r => E.filter(p => p.role === r).length;
-  let h = '<div class="ph"><div><h1>Équipe</h1><p>' + E.length + ' personne' + (E.length > 1 ? 's' : '') + ' avec un accès aux espaces internes.</p></div>' +
+  const E = S.equipe || [], now = Date.now();
+  const toutes = E.flatMap(p => tachesEquipe(p.role).map(t => ({ ...t, p })));
+  const retards = toutes.filter(t => t.retard).length;
+  let h = '<div class="ph"><div><h1>Équipe</h1><p>' + (toutes.length ? toutes.length + ' tâche' + (toutes.length > 1 ? 's' : '') + ' en cours' + (retards ? ', dont ' + retards + ' en retard' : '') + '.' : 'Personne n\'a de tâche en attente.') + '</p></div>' +
     '<div class="act"><button class="btn btn-p" onclick="ajouterMembre()">' + i.plus + 'Ajouter une personne</button></div></div>';
-  h += '<div class="grid g3">' + Object.entries(ROLES_EQ).map(([k, r]) => kpi(r.nom + (parRole(k) > 1 ? 's' : ''), parRole(k), r.fait)).join('') + '</div>';
-  h += '<div class="sec"><div><h2>Membres</h2><p>Le lien de connexion de chacun, et ce qu\'il a en cours.</p></div></div>';
-  h += '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Personne</th><th>Rôle</th><th>En cours</th><th>Lien de connexion</th><th></th></tr></thead><tbody>' +
-    E.map(p => {
-      const r = ROLES_EQ[p.role] || { nom: p.role, pill: '', espace: p.espace }, c = chargeEquipe(p.role), lien = location.origin + (p.espace || r.espace);
-      const moi = S.moi && S.moi.nom === p.nom;
-      const charge = !S.prod ? '<span class="muted">…</span>' : c.n ? '<b>' + c.n + '</b> ' + (c.n > 1 ? (c.ts || c.t + 's') : c.t) + (c.retard ? ' <span class="pill r"><i></i>' + c.retard + ' en retard</span>' : '') : '<span class="muted">Rien en attente</span>';
-      return '<tr><td><div class="nom"><span class="av">' + esc(K.initiales(p.nom)) + '</span><b style="white-space:nowrap">' + esc(nomEq(p.nom)) + '</b>' + (moi ? '<span class="pill">vous</span>' : '') + '</div></td>' +
-        '<td><span class="pill ' + r.pill + '">' + esc(r.nom) + '</span></td><td>' + charge + '</td>' +
-        '<td><button class="btn btn-s btn-sm" title="' + esc(lien) + '" onclick="K.copier(\'' + esc(lien) + '\',\'Lien copié : ' + esc(lien) + '\')">' + i.copier + 'Copier le lien</button></td>' +
-        '<td class="fin"><div style="display:flex;gap:6px;justify-content:flex-end"><a class="btn btn-s btn-sm" href="' + esc(p.espace || r.espace) + '" title="Ouvrir son espace">' + i.oeil + 'Son espace</a>' +
-        '<button class="btn btn-s btn-sm" onclick="changerMembre(\'' + esc(p.nom) + '\',\'' + esc(p.role) + '\',\'mdp\')">Nouveau mot de passe</button>' +
-        (moi ? '' : '<button class="btn btn-g btn-sm" title="Retirer l\'accès" onclick="changerMembre(\'' + esc(p.nom) + '\',\'' + esc(p.role) + '\',\'retirer\')">' + i.poubelle + '</button>') + '</div></td></tr>';
-    }).join('') + '</tbody></table></div></div>';
-  h += '<div class="note" style="margin-top:16px;max-width:820px"><b>Comment ça marche.</b> Chaque personne se connecte avec son propre mot de passe sur le lien de son rôle. ' +
-    'Les mots de passe ne sont gardés que dans Cloudflare (secret <b>ACCES</b>), jamais dans le portail : retirer une personne coupe son accès tout de suite, même si elle est connectée.</div>';
+  h += '<div class="eq-liste">' + E.map(p => {
+    const r = ROLES_EQ[p.role] || { nom: p.role, pill: '', espace: p.espace, fait: '' }, lien = location.origin + (p.espace || r.espace), moi = S.moi && S.moi.nom === p.nom;
+    const T = tachesEquipe(p.role), B = bilanEquipe(p.role);
+    const vu = p.vu_le ? (now - p.vu_le < 6e5 ? 'En ligne' : 'Vu ' + K.ilya(p.vu_le)) : (p.vu_le === null ? 'Pas encore connecté' : '');
+    return '<div class="card eq-carte"><div class="eq-tete">' + K.tuile(nomEq(p.nom), true) +
+      '<div class="eq-qui"><div class="eq-nom"><b>' + esc(nomEq(p.nom)) + '</b><span class="pill ' + r.pill + '">' + esc(r.nom) + '</span>' + (moi ? '<span class="muted">vous</span>' : '') + '</div>' +
+      (vu ? '<small><span class="eq-vu' + (vu === 'En ligne' ? ' on' : '') + '"></span>' + esc(vu) + '</small>' : '') + '</div>' +
+      '<div class="eq-act"><button class="btn btn-g btn-sm" title="Copier son lien de connexion : ' + esc(lien) + '" onclick="K.copier(\'' + esc(lien) + '\',\'Lien copié\')">' + i.copier + 'Lien</button>' +
+      '<a class="btn btn-g btn-sm" href="' + esc(p.espace || r.espace) + '" title="Ouvrir son espace">' + i.oeil + 'Son espace</a>' +
+      '<button class="btn btn-g btn-sm" onclick="gererAcces(\'' + esc(p.nom) + '\',\'' + esc(p.role) + '\',' + (moi ? 1 : 0) + ')" title="Mot de passe, retirer l\'accès">' + i.bouclier + 'Accès</button></div></div>' +
+      '<div class="eq-corps"><div><div class="eq-lab">À faire' + (T.length ? ' · ' + T.length : '') + '</div>' +
+      (T.length ? T.slice(0, 6).map(t => '<a class="eq-tache" href="' + esc(t.href) + '"><span><b>' + esc(t.t) + '</b><small>' + esc(t.quoi) + '</small></span>' +
+        (t.le ? '<span class="pill ' + (t.retard ? 'r' : '') + '"><i></i>' + (t.retard ? 'En retard · ' : 'Avant ') + esc(K.dateHeure(t.le)) + '</span>' : '') + '</a>').join('') +
+        (T.length > 6 ? '<small class="muted">et ' + (T.length - 6) + ' autre' + (T.length > 7 ? 's' : '') + '</small>' : '')
+        : '<p class="muted eq-rien">' + i.coche + 'Rien en attente.</p>') + '</div>' +
+      '<div><div class="eq-lab">30 derniers jours</div><div class="eq-bilan">' + B.map(([l, v]) => '<div><b>' + esc(v) + '</b><small>' + esc(l) + '</small></div>').join('') + '</div></div></div></div>';
+  }).join('') + '</div>';
   return h;
+}
+// l'accès d'une personne : nouveau mot de passe ou retrait (Cloudflare garde les mots de passe, le portail prépare la valeur)
+function gererAcces(nom, role, moi) {
+  const v = K.fenetre('<div class="fen-h"><h2>Accès de ' + esc(nomEq(nom)) + '</h2><p>Les mots de passe sont gardés dans Cloudflare (secret ACCES), jamais dans le portail.</p></div>' +
+    '<div class="fen-b"><div class="eq-choix"><button class="eq-opt" data-q="mdp"><b>Nouveau mot de passe</b><small>Si le sien a fuité ou est oublié. L\'ancien ne marche plus dès le déploiement.</small></button>' +
+    (moi ? '' : '<button class="eq-opt" data-q="retirer"><b>Retirer son accès</b><small>Il ne peut plus se connecter, même s\'il est en ligne.</small></button>') + '</div></div>' +
+    '<div class="fen-f"><button class="btn btn-s" data-n>Fermer</button></div>');
+  v.querySelector('[data-n]').onclick = K.fermer;
+  v.querySelectorAll('[data-q]').forEach(b => b.onclick = () => { K.fermer(); changerMembre(nom, role, b.dataset.q); });
 }
 // un mot de passe solide, facile à dicter (sans 0/O, 1/l)
 function motDePasseEq() {
@@ -1107,8 +1151,7 @@ function conf() {
       { titre: 'Admin', liens: [{ id: 'admin', texte: 'Retour au tableau de bord', icone: 'gauche', href: '#/' }] },
       { titre: 'Wimmov', liens: [
         { id: 'accueil', texte: 'Vue d\'ensemble', icone: 'accueil', href: '#/wimmov' },
-        { id: 'livraisons', texte: 'Livraisons', icone: 'envoi', href: '#/wimmov/livraisons' },
-        { id: 'revisions', texte: 'Révisions', icone: 'crayon', href: '#/wimmov/revisions', nb: rv || '' },
+        { id: 'livraisons', texte: 'Livraisons et révisions', icone: 'envoi', href: '#/wimmov/livraisons', nb: rv || '' },
         { id: 'retours', texte: 'Retours de Wimmov', icone: 'message', href: '#/wimmov/retours', nb: n || '' },
         { id: 'commandes', texte: 'Mois et commandes', icone: 'sac', href: '#/wimmov/commandes' },
         { id: 'acces', texte: 'Accès et emails', icone: 'gens', href: '#/wimmov/acces' }] }],
@@ -1136,7 +1179,7 @@ function ecranAccueil() {
     '<a class="card kpi lien-kpi" href="#/wimmov/retours"><div class="lab">Derniers retours</div><div class="v s">' + (dernier ? esc(K.date(dernier.envoye_le, { year: undefined })) : 'Aucun') + '</div><div class="d">' + (dernier ? (dernier.auteur ? 'de ' + esc(dernier.auteur) : 'de Wimmov') : 'rien pour l\'instant') + '</div></a>' +
     '<a class="card kpi lien-kpi" href="#/wimmov/acces"><div class="lab">Emails</div><div class="v s">' + (1 + (D.emails || []).length) + '</div><div class="d">Hugo' + ((D.emails || []).length ? ' + ' + D.emails.length + ' autre' + (D.emails.length > 1 ? 's' : '') : '') + '</div></a></div>';
   const rv = enRevision();
-  if (rv.length) h += '<div class="note" style="margin-top:18px"><b>' + rv.length + ' livraison' + (rv.length > 1 ? 's' : '') + ' à corriger.</b> Wimmov a demandé des retouches : <a href="#/wimmov/revisions" style="color:var(--blue-tx)">voir les révisions</a>.</div>';
+  if (rv.length) h += '<div class="note" style="margin-top:18px"><b>' + rv.length + ' livraison' + (rv.length > 1 ? 's' : '') + ' à corriger.</b> Wimmov a demandé des retouches : <a href="#/wimmov/livraisons" style="color:var(--blue-tx)">les corriger</a>.</div>';
   h += '<div class="sec"><div><h2>Livraisons</h2><p>Les dernières, tous mois confondus.</p></div><a class="btn btn-g btn-sm" href="#/wimmov/livraisons">Tout voir</a></div>' + tableLivraisons(D.commandes.flatMap(k => k.livraisons.map(l => ({ ...l, k }))).sort((a, b) => (b.envoye_le || b.cree_le || 0) - (a.envoye_le || a.cree_le || 0)).slice(0, 6));
   if (dernier) h += '<div class="sec"><div><h2>Derniers retours de Wimmov</h2></div><a class="btn btn-g btn-sm" href="#/wimmov/retours">Tous les retours</a></div>' + carteRetour(dernier);
   return h;
@@ -1152,7 +1195,15 @@ function tableLivraisons(L) {
 // ---------- LIVRER ----------
 function ecranLivrer() {
   if (!D.client) return sansClient();
-  let h = '<div class="ph"><div><h1>Livraisons</h1><p>Les livraisons de chaque mois. Créez la suivante, déposez les PNG, envoyez : Wimmov la voit tout de suite. Les retouches se font dans Révisions.</p></div></div>';
+  let h = '<div class="ph"><div><h1>Livraisons et révisions</h1><p>Créez la livraison suivante, déposez les PNG, envoyez : Wimmov la voit tout de suite. Quand il demande des retouches dans sa review, la livraison remonte dans « À corriger ».</p></div></div>';
+  const A = enRevision();
+  if (A.length) h += '<div class="sec"><div><h2>À corriger</h2><p>Wimmov a terminé sa review avec des retouches : faites la version suivante, puis envoyez-la.</p></div></div>' +
+    '<div class="card" style="border-color:var(--amber,#e08a00)"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Livraison</th><th>Version</th><th>Statut</th><th>Envoyée le</th><th></th></tr></thead><tbody>' +
+    A.map(l => '<tr class="clic" onclick="W.ouvrir(\'' + esc(l.dossier) + '\')"><td><b>Livraison ' + l.n + '</b><span class="sub">' + esc(nomCmd(l.k)) + '</span></td>' +
+      '<td>' + (l.statut === 'brouillon' ? 'Version ' + l.version + ' en préparation' : 'Version ' + l.version) + '</td>' +
+      '<td>' + (l.statut === 'brouillon' ? '<span class="pill b"><i></i>À envoyer</span>' : pill(l.statut)) + '</td>' +
+      '<td>' + (l.envoye_le ? esc(K.dateHeure(l.envoye_le)) : '<span class="muted">Pas encore</span>') + '</td>' +
+      '<td class="fin"><span class="btn btn-p btn-sm">' + (l.statut === 'brouillon' ? 'Reprendre' : 'Faire la version ' + (l.version + 1)) + '</span></td></tr>').join('') + '</tbody></table></div></div>';
   if (!D.commandes.length) return h + '<div class="card pad"><p style="font-size:14px">Aucun mois pour l\'instant. Il se crée au paiement de son lien Stripe, ou à la main dans <a href="#/wimmov/commandes" style="color:var(--blue-tx)">Mois et commandes</a>.</p></div>';
   for (const k of D.commandes.filter(x => x.statut !== 'annule')) {
     const brouillon = k.livraisons.find(l => l.statut === 'brouillon');
@@ -1181,7 +1232,7 @@ async function chargerLivraison(d) {
 const numero = d => Number((String(d).match(/_L(\d+)$/) || [])[1]) || 1;
 function ecranLivraison(d) {
   const k = D.commandes.find(x => x.dossier && d.startsWith(x.dossier + '_L'));
-  let h = '<a class="retour" href="' + (LV.depuis === 'revisions' ? '#/wimmov/revisions">' + i.gauche + 'Révisions' : '#/wimmov/livraisons">' + i.gauche + 'Livraisons') + '</a>';
+  let h = '<a class="retour" href="#/wimmov/livraisons">' + i.gauche + 'Livraisons et révisions</a>';
   if (!k) return h + '<div class="card"><div class="vide">Livraison introuvable.</div></div>';
   if (LV.dossier !== d) { LV.dossier = d; LV.donnees = null; LV.envois = []; setTimeout(() => chargerLivraison(d), 0); }
   h += '<div class="ph"><div><h1>Livraison ' + numero(d) + '</h1><p>' + esc(nomCmd(k)) + ' · PNG en 1:1, 4:5 et 9:16, le format est reconnu à la taille.</p></div></div>';
@@ -1308,28 +1359,7 @@ function brancherLivraison(d) {
   };
 }
 
-// ---------- RÉVISIONS : les retouches demandées par Wimmov dans sa review ----------
-function ecranRevisions() {
-  if (!D.client) return sansClient();
-  const A = enRevision(), toutes = (D.commandes || []).flatMap(k => k.livraisons.map(l => ({ ...l, k })));
-  const passees = toutes.filter(l => l.version > 1 && !['brouillon', 'review_terminee'].includes(l.statut)).sort((a, b) => (b.envoye_le || 0) - (a.envoye_le || 0));
-  let h = '<div class="ph"><div><h1>Révisions</h1><p>Quand Wimmov termine sa review avec des commentaires, la livraison arrive ici. Faites la version suivante avec ses retouches, puis envoyez-la.</p></div></div>';
-  h += '<div class="sec"><div><h2>À corriger</h2></div></div>';
-  h += A.length ? '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Livraison</th><th>Version</th><th>Statut</th><th>Envoyée le</th><th></th></tr></thead><tbody>' +
-    A.map(l => '<tr class="clic" onclick="W.ouvrir(\'' + esc(l.dossier) + '\',\'revisions\')"><td><b>Livraison ' + l.n + '</b><span class="sub">' + esc(nomCmd(l.k)) + '</span></td>' +
-      '<td>' + (l.statut === 'brouillon' ? 'Version ' + l.version + ' en préparation' : 'Version ' + l.version) + '</td>' +
-      '<td>' + (l.statut === 'brouillon' ? '<span class="pill b"><i></i>À envoyer</span>' : pill(l.statut)) + '</td>' +
-      '<td>' + (l.envoye_le ? esc(K.dateHeure(l.envoye_le)) : '<span class="muted">Pas encore</span>') + '</td>' +
-      '<td class="fin"><span class="btn btn-p btn-sm">' + (l.statut === 'brouillon' ? 'Reprendre' : 'Faire la version ' + (l.version + 1)) + '</span></td></tr>').join('') + '</tbody></table></div></div>'
-    : '<div class="card"><div class="vide">' + i.coche + 'Rien à corriger : Wimmov n\'a demandé aucune retouche.</div></div>';
-  if (passees.length) h += '<div class="sec"><div><h2>Déjà corrigées</h2><p>Les versions envoyées après des retouches.</p></div></div>' +
-    '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Livraison</th><th>Version</th><th>Statut</th><th>Envoyée le</th><th></th></tr></thead><tbody>' +
-    passees.map(l => '<tr class="clic" onclick="W.ouvrir(\'' + esc(l.dossier) + '\',\'revisions\')"><td><b>Livraison ' + l.n + '</b><span class="sub">' + esc(nomCmd(l.k)) + '</span></td><td>Version ' + l.version + '</td><td>' + pill(l.statut) + '</td>' +
-      '<td>' + (l.envoye_le ? esc(K.dateHeure(l.envoye_le)) : '<span class="muted">Pas encore</span>') + '</td><td class="fin"><span class="btn btn-s btn-sm">Ouvrir</span></td></tr>').join('') + '</tbody></table></div></div>';
-  return h;
-}
-
-// ---------- RETOURS DE LA SEMAINE (formulaire de Wimmov) ----------
+// ---------- RETOURS DE WIMMOV (son formulaire de la semaine) ----------
 function carteRetour(r) {
   return '<div class="card w-retour"><div class="tete"><b>' + esc(K.dateHeure(r.envoye_le)) + '</b><span class="muted" style="font-size:13px">' + (r.auteur ? 'De ' + esc(r.auteur) : 'De Wimmov') + '</span></div>' +
     (r.texte ? '<div class="texte">' + esc(r.texte) + '</div>' : '') +
@@ -1338,7 +1368,7 @@ function carteRetour(r) {
 }
 function ecranRetours() {
   if (!D.client) return sansClient();
-  return '<div class="ph"><div><h1>Retours de Wimmov</h1><p>Le formulaire que Hugo ou son media buyer remplissent chaque semaine : ce qui marche, texte, liens et fichiers. Les commentaires sur les créatives sont dans Révisions.</p></div></div>' +
+  return '<div class="ph"><div><h1>Retours de Wimmov</h1><p>Le formulaire que Hugo ou son media buyer remplissent chaque semaine : ce qui marche, texte, liens et fichiers. Les commentaires sur les créatives sont dans Livraisons et révisions.</p></div></div>' +
     ((D.retours || []).length ? D.retours.map(carteRetour).join('') : '<div class="card"><div class="vide">' + i.message + 'Aucun retour pour l\'instant.</div></div>');
 }
 
@@ -1399,9 +1429,9 @@ function brancherAcces() {
 
 const VUES = {
   '': ['accueil', 'accueil', () => ['Wimmov'], () => ecranAccueil()],
-  livraisons: ['livraisons', 'envoi', () => ['Wimmov', 'Livraisons'], () => ecranLivrer(), () => brancherLivrer()],
-  revisions: ['revisions', 'crayon', () => ['Wimmov', 'Révisions'], () => ecranRevisions()],
-  livraison: [null, 'envoi', p => ['Wimmov', LV.depuis === 'revisions' ? 'Révisions' : 'Livraisons', 'Livraison ' + numero(p[0] || '')], p => ecranLivraison(p[0] || ''), p => brancherLivraison(p[0] || '')],
+  livraisons: ['livraisons', 'envoi', () => ['Wimmov', 'Livraisons et révisions'], () => ecranLivrer(), () => brancherLivrer()],
+  revisions: ['livraisons', 'envoi', () => ['Wimmov', 'Livraisons et révisions'], () => ecranLivrer(), () => brancherLivrer()],
+  livraison: ['livraisons', 'envoi', p => ['Wimmov', 'Livraisons et révisions', 'Livraison ' + numero(p[0] || '')], p => ecranLivraison(p[0] || ''), p => brancherLivraison(p[0] || '')],
   retours: ['retours', 'message', () => ['Wimmov', 'Retours de Wimmov'], () => ecranRetours()],
   commandes: ['commandes', 'sac', () => ['Wimmov', 'Mois et commandes'], () => ecranCommandes(), () => brancherCommandes()],
   acces: ['acces', 'gens', () => ['Wimmov', 'Accès et emails'], () => ecranAcces(), () => brancherAcces()]
@@ -1427,7 +1457,7 @@ return {
     return vue(p)[3](p.slice(1));
   },
   brancher(p) { const v = vue(p); if (D && v[4]) v[4](p.slice(1)); },
-  conf, actif: p => vue(p)[0] || (LV.depuis === 'revisions' ? 'revisions' : 'livraisons'),
+  conf, actif: p => vue(p)[0],
   ariane: p => { const v = vue(p); return K.ariane(v[1], ...v[2](p.slice(1))); },
   ouvrir(d, depuis) { LV.depuis = depuis || 'livraisons'; K.aller('#/wimmov/livraison/' + d); },
   prechargement() { if (!D) charger().catch(() => {}); }
@@ -1437,13 +1467,13 @@ return {
 // ---------- RENDU ----------
 const ECRANS = {
   '': { id: 'accueil', t: 'Vue d\'ensemble', a: 'accueil', b: [], besoins: ['resume', 'clients', 'commandes', 'prod', 'livraisons', 'factures'], f: ecranAccueil, ap: brancherPeriode },
-  factures: { id: 'factures', t: 'Factures', a: 'recu', b: ['Commercial'], besoins: ['factures', 'clients', 'commandes'], f: ecranFactures, ap: brancherFactures },
+  factures: { id: 'factures', t: 'Factures', a: 'recu', b: ['Gestion'], besoins: ['factures', 'clients', 'commandes'], f: ecranFactures, ap: brancherFactures },
   projets: { id: 'projets', t: 'Projets', a: 'dossier', b: ['Production'], besoins: ['commandes', 'prod'], f: ecranProjets, ap: brancherKanban, large: true },
-  clients: { id: 'clients', t: 'Clients', a: 'gens', b: ['Commercial'], besoins: ['clients', 'resume', 'dossiers'], f: p => p[0] === 'nouveau' ? (setTimeout(nouveauClient, 0), ecranClients()) : p[0] ? ecranClient(p[0]) : ecranClients(), ap: p => p[0] && p[0] !== 'nouveau' ? brancherClient() : brancherClients() },
-  commandes: { id: 'commandes', t: 'Commandes', a: 'sac', b: ['Commercial'], besoins: ['commandes'], f: ecranCommandes },
-  dossiers: { id: 'production', t: 'Tous les dossiers', a: 'calques', b: ['Production'], besoins: ['dossiers'], f: () => ongletsProd('dossiers') + ecranDossiers(), ap: brancherDossiers },
+  clients: { id: 'clients', t: 'Clients', a: 'gens', b: ['Gestion'], besoins: ['clients', 'resume', 'dossiers'], f: p => p[0] === 'nouveau' ? (setTimeout(nouveauClient, 0), ecranClients()) : p[0] ? ecranClient(p[0]) : ecranClients(), ap: p => p[0] && p[0] !== 'nouveau' ? brancherClient() : brancherClients() },
+  commandes: { id: 'commandes', t: 'Commandes', a: 'sac', b: ['Gestion'], besoins: ['commandes'], f: ecranCommandes },
+  dossiers: { id: 'production', t: 'Tous les dossiers', a: 'calques', b: ['Production'], besoins: ['dossiers', 'commandes', 'prod'], f: () => ongletsProd('dossiers') + ecranDossiers(), ap: brancherDossiers },
   wimmov: { id: 'wimmov', t: 'Wimmov', a: 'etoile', b: [], besoins: [], wimmov: true, f: p => W.ecran(p), ap: p => W.brancher(p) },
-  equipe: { id: 'equipe', t: 'Équipe', a: 'bouclier', b: [], besoins: ['equipe', 'prod', 'commandes', 'livraisons'], f: ecranEquipe },
+  equipe: { id: 'equipe', t: 'Équipe', a: 'bouclier', b: ['Gestion'], besoins: ['equipe', 'prod', 'commandes', 'livraisons', 'clients'], f: ecranEquipe },
   livraisons: { id: 'livraisons', t: 'Livraisons', a: 'envoi', b: ['Production'], besoins: ['livraisons', 'prod'], f: p => p[0] ? ecranLivraison(p[0]) : (LIV.dossier = null, ecranLivraisons()), ap: p => { if (p[0]) brancherLivraison(); } }
 };
 // les pages de production s'ouvrent dans l'admin (K.prod : liste des projets, ou la page en cadre)

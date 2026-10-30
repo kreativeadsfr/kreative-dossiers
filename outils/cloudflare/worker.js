@@ -126,6 +126,7 @@ async function traiter(req, env, ctx) {
   // ---------- tout le reste : connecté seulement ----------
   const page = /\.html?$|\/$/.test(chemin) || !/\.[a-z0-9]{1,5}$/i.test(chemin);
   const qui = await session(req, env);
+  if (qui) vuEquipe(env, ctx, qui.nom);
   if (!qui) {
     if (page) return redirection('/_connexion?suite=' + encodeURIComponent(chemin + url.search));
     return texte('Connexion requise', 401);
@@ -494,6 +495,16 @@ function personnes(env) {
     if (/^[a-z0-9_-]{1,40}$/.test(nom) && mdp.length >= 8 && ACCUEILS[role]) liste.push({ nom, mdp, role });
   }
   return liste;
+}
+
+// la dernière connexion de chaque membre de l'équipe (page Équipe de l'admin) : au plus une écriture toutes les 5 min
+const VU_EQUIPE = new Map();
+function vuEquipe(env, ctx, nom) {
+  const now = maintenant();
+  if (now - (VU_EQUIPE.get(nom) || 0) < 3e5) return;
+  VU_EQUIPE.set(nom, now);
+  const w = (async () => { try { const db = await baseLiv(env); await db.prepare('INSERT OR REPLACE INTO reglages (cle, valeur) VALUES (?, ?)').bind('vu_equipe:' + nom, String(now)).run(); } catch (e) {} })();
+  if (ctx && ctx.waitUntil) ctx.waitUntil(w);
 }
 
 async function signer(env, texteASigner) {
@@ -1488,7 +1499,10 @@ async function apiAdmin(req, env, ctx, url, chemin, methode) {
   if (chemin === '/demo' && methode === 'DELETE') return json(await retirerDemo(db, env));
 
   if (chemin === '/equipe' && methode === 'GET') {
-    return json(personnes(env).map(x => ({ nom: x.nom, role: x.role, espace: ACCUEILS[x.role] })));
+    const ldb = await baseLiv(env);
+    const { results: V } = await ldb.prepare("SELECT cle, valeur FROM reglages WHERE cle LIKE 'vu_equipe:%'").all();
+    const vu = Object.fromEntries(V.map(r => [r.cle.slice(10), Number(r.valeur) || 0]));
+    return json(personnes(env).map(x => ({ nom: x.nom, role: x.role, espace: ACCUEILS[x.role], vu_le: vu[x.nom] || null })));
   }
   if (chemin === '/resume' && methode === 'GET') {
     await synchroStatuts(db);

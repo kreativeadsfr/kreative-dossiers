@@ -66,4 +66,9 @@ t('l\'admin reste fermé sans connexion', [302, 303].includes((await get('/admin
 // 30/10 : une facture payée ne renvoie plus au PDF Stripe (« à régler », « Payer en ligne ») mais à un PDF « payée » fait ici
 const appjs = await (await get('/ui/app.js', { headers: { Cookie: A } })).text();
 t('facture payée : PDF du portail marqué payée, pas le PDF Stripe', /if \(f\.pdf && !payee\)/.test(appjs) && /payés le/.test(appjs) && /Reste à payer/.test(appjs) && /TVA non applicable, art\. 293 B du CGI/.test(appjs));
+// 30/10 : la page Équipe montre la dernière connexion de chacun (au plus une écriture toutes les 5 min)
+await get('/admin/', { headers: { Cookie: A } }); await new Promise(z => setTimeout(z, 300));
+const eq = (await api('/api/admin/equipe', A)).d, dario = eq.find(p => p.nom === 'dario');
+t('équipe : dernière connexion de Dario connue', dario && dario.vu_le > Date.now() - 6e4, JSON.stringify(dario));
+t('équipe : pas de mot de passe dans la réponse', !JSON.stringify(eq).includes(sec.ACCES.dario), 'mdp visible');
 console.log('\n' + ok + ' ok, ' + ko + ' en échec');

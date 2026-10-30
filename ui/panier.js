@@ -15,6 +15,8 @@
     AVANTAGES: {
       starter: [['6 visuels Ads', 1], ['Tous les formats Meta', 1], ['2 cycles de révisions', 1], ['Livraison en 48 h', 1], ['Contact WhatsApp inclus', 1], ['Angles marketing variés', 0], ['Support prioritaire', 0], ['Stratégie personnalisée', 0]],
       growth: [['12 visuels Ads', 1], ['Tous les formats Meta', 1], ['Révisions illimitées', 1], ['Livraison en 48 h', 1], ['Contact WhatsApp inclus', 1], ['Angles marketing variés', 1], ['Support prioritaire', 0], ['Stratégie personnalisée', 0]],
+      // comme la carte Pack Custom du site (deux colonnes, dans le même ordre)
+      custom: [['Volume de créatives illimité', 1], ['Tous les formats Meta', 1], ['Révisions illimitées', 1], ['Délai de livraison optimisé', 1], ['Contact WhatsApp inclus', 1], ['Angles marketing variés', 1], ['Support prioritaire', 1], ['Stratégie personnalisée', 1], ['Interlocuteur dédié', 1], ['Rythme de livraison personnalisé', 1]],
       scale: [['24 visuels Ads', 1], ['Tous les formats Meta', 1], ['Révisions illimitées', 1], ['Livraison en 72 h', 1], ['Contact WhatsApp inclus', 1], ['Angles marketing variés', 1], ['Support prioritaire', 1], ['Stratégie personnalisée', 1]]
     },
     ENGAGEMENT: 'Les tarifs mensuels supposent un engagement de 3 mois, puis sans engagement. Résiliable à tout moment ensuite depuis votre espace.'
@@ -111,7 +113,7 @@
       '<div class="nb-creas"><b id="cf-nb">' + c.nb + '</b><span>créatives' + (m ? ' par mois' : '') + '</span></div>' +
       '<input class="curseur" type="range" id="cf-range" min="' + CU.min + '" max="' + CU.max + '" step="' + CU.pas + '" value="' + c.nb + '">' +
       '<div class="reperes"><span>' + CU.min + '</span><span>' + CU.max + '</span></div></div>';
-    else h += '<div class="card bloc"><h3>Inclus dans le pack ' + esc(P.nom) + '</h3><ul class="inclus">' + PN.AVANTAGES[c.pack].filter(a => a[1]).map(a => '<li>' + i.coche + '<span>' + esc(a[0]) + '</span></li>').join('') + '</ul></div>';
+    h += '<div class="card bloc"><h3>Inclus dans le pack ' + (custom ? 'Custom' : esc(P.nom)) + '</h3><ul class="inclus">' + PN.AVANTAGES[c.pack].filter(a => a[1]).map(a => '<li>' + i.coche + '<span>' + esc(a[0]) + '</span></li>').join('') + '</ul></div>';
     if (o.formules !== false) h += '<div class="card bloc"><h3>Formule</h3><div class="onglets" style="margin-top:14px"><button class="' + (m ? 'on' : '') + '" data-cf-formule="mensuel">Mensuel · ' + Math.round(CU.remise_mensuel * 100) + ' % de moins</button>' +
       '<button class="' + (!m ? 'on' : '') + '" data-cf-formule="unique">Commande unique</button></div>' +
       '<p class="aide" style="margin-top:12px">' + (m ? 'Prélevé chaque mois. ' + PN.ENGAGEMENT : 'Payé en une fois, sans engagement.') + '</p></div>';

@@ -95,7 +95,7 @@ const tgR = lignes("livraison.log").length, nRv = emails().length;
 r = await api('/api/client/livraisons/' + l1.id + '/terminer', W, 'POST'); await pause(400);
 t('… et envoie ses retours (review terminée, retouches)', r.s === 200 && r.d.approuvee === false, JSON.stringify(r.d));
 const ER = emails().slice(nRv).filter(e => e.type === 'review');
-t('… Kreative est prévenu par email, avec le lien de l\'admin Wimmov', ER.length === 1 && /admin\/wimmov\.html#\/livraison\//.test(ER[0].lien || ''), JSON.stringify(ER).slice(0, 300));
+t('… Kreative est prévenu par email, avec le lien de l\'admin Wimmov', ER.length === 1 && /admin\/#\/wimmov\/livraison\//.test(ER[0].lien || ''), JSON.stringify(ER).slice(0, 300));
 t('… aucun Telegram', lignes('livraison.log').length === tgR);
 r = await api('/api/admin/wimmov/livraisons/' + l1.dossier, A);
 t('… l\'admin voit son commentaire', r.d.versions[0].statut === 'review_terminee' && r.d.versions[0].fichiers.some(f => f.commentaires.some(c => /titre plus gros/.test(c.texte))), JSON.stringify(r.d.versions[0]).slice(0, 300));
@@ -220,7 +220,7 @@ t('le bouton « Envoyer le lien » de la fiche client envoie le lien Wimmov', r.
 const nL3 = emails().length;
 await api('/api/admin/clients/' + lid + '/envoyer-lien', A, 'POST'); await pause(400);
 t('… et pour un autre client, l\'email classique', emails().slice(nL3).length === 1 && /votre brief/.test(emails().slice(nL3)[0].html));
-t('la page admin Wimmov s\'ouvre', /Wimmov · Kreative/.test(await (await get('/admin/wimmov.html', { headers: { Cookie: A } })).text()));
+t('l\'ancienne page admin Wimmov renvoie vers la section de l\'admin', /admin\/#\/wimmov/.test(await (await get('/admin/wimmov.html', { headers: { Cookie: A } })).text()));
 t('… pas pour le stratégiste', (await get('/admin/wimmov.html', { headers: { Cookie: S } })).status === 302);
 t('l\'admin Wimmov est refusé aux autres', (await api('/api/admin/wimmov', S)).s === 403 && (await api('/api/admin/wimmov', W)).s === 403);
 console.log('\n' + ok + ' OK, ' + ko + ' en échec');

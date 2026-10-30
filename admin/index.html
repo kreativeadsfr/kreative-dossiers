@@ -108,7 +108,7 @@ function conf() {
         { id: 'clients', texte: 'Clients', icone: 'gens', href: '#/clients', nb: S.clients ? S.clients.length || '' : '' },
         { id: 'commandes', texte: 'Commandes', icone: 'sac', href: '#/commandes' },
         { id: 'factures', texte: 'Factures', icone: 'recu', href: '#/factures' },
-        { id: 'wimmov', texte: 'Wimmov', icone: 'etoile', href: '/admin/wimmov.html' }] },
+        { id: 'wimmov', texte: 'Wimmov', icone: 'etoile', href: '#/wimmov' }] },
       { titre: 'Production', liens: [
         { id: 'projets', texte: 'Projets', icone: 'colonnes', href: '#/projets', nb: enCours || '' },
         { id: 'production', texte: 'Dossiers et fiches', icone: 'calques', href: '#/dossiers' },
@@ -1078,6 +1078,362 @@ function brancherLivraison() {
   };
 }
 
+
+// ============================================================
+//  WIMMOV (client à part) : sa section s'ouvre dans l'admin, sans changer de page.
+//  Kreative fait et livre ses créatives elle-même ; le stratégiste et la designer ne le voient jamais.
+//  Livraisons (créer, déposer, envoyer), Révisions (les retouches demandées dans sa review),
+//  Retours de la semaine (son formulaire), Mois et commandes, Accès et emails.
+// ============================================================
+const W = (() => {
+
+let D = null;
+const MOIS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+const moisDe = ms => { const d = new Date(ms || Date.now()); return MOIS[d.getMonth()] + ' ' + d.getFullYear(); };
+const nomCmd = c => c.formule === 'mensuel' ? 'Abonnement · ' + moisDe(c.cree_le) : 'Créatives en plus · ' + c.nb_creas + ' créatives';
+const NOMS_F = { '1x1': '1:1', '4x5': '4:5', '9x16': '9:16', autre: 'Autre' };
+const ST = { brouillon: ['Pas encore envoyée', 'a'], envoyee: ['Chez Wimmov', 'b'], review_terminee: ['Retouches demandées', 'a'], approuvee: ['Validée par Wimmov', 'g'], a_verifier: ['À vérifier', 'a'], a_corriger: ['À corriger', 'r'] };
+const pill = st => { const x = ST[st] || [st, '']; return '<span class="pill ' + x[1] + '"><i></i>' + esc(x[0]) + '</span>'; };
+const taille = n => n > 1e6 ? (n / 1e6).toFixed(1).replace('.', ',') + ' Mo' : Math.max(1, Math.round((n || 0) / 1e3)) + ' ko';
+async function charger() { D = await K.api('/api/admin/wimmov'); }
+async function recharger() { await charger(); K.rendre(); }
+
+// les livraisons dont Wimmov a demandé des retouches (sa review terminée avec des commentaires) ou dont la nouvelle version est en cours
+const enRevision = () => (D && D.commandes || []).flatMap(k => k.livraisons.map(l => ({ ...l, k }))).filter(l => l.statut === 'review_terminee' || (l.statut === 'brouillon' && l.version > 1));
+function conf() {
+  const n = D && D.client ? (D.retours || []).filter(r => Date.now() - r.envoye_le < 7 * 864e5).length : 0, rv = D && D.client ? enRevision().length : 0;
+  return {
+    sections: [
+      { titre: 'Admin', liens: [{ id: 'admin', texte: 'Retour au tableau de bord', icone: 'gauche', href: '#/' }] },
+      { titre: 'Wimmov', liens: [
+        { id: 'accueil', texte: 'Vue d\'ensemble', icone: 'accueil', href: '#/wimmov' },
+        { id: 'livraisons', texte: 'Livraisons', icone: 'envoi', href: '#/wimmov/livraisons' },
+        { id: 'revisions', texte: 'Révisions', icone: 'crayon', href: '#/wimmov/revisions', nb: rv || '' },
+        { id: 'retours', texte: 'Retours de Wimmov', icone: 'message', href: '#/wimmov/retours', nb: n || '' },
+        { id: 'commandes', texte: 'Mois et commandes', icone: 'sac', href: '#/wimmov/commandes' },
+        { id: 'acces', texte: 'Accès et emails', icone: 'gens', href: '#/wimmov/acces' }] }],
+    clair: true,
+    qui: Object.assign(K.profil(S.moi && S.moi.nom, 'Admin'), { role: 'Fondateur · admin' }),
+    sortie: '/_deconnexion'
+  };
+}
+const sansClient = () => '<div class="ph"><div><h1>Wimmov</h1><p>L\'espace Wimmov n\'existe pas encore.</p></div></div>' +
+  '<div class="card pad" style="max-width:640px"><p style="font-size:14px;line-height:1.6">Créez le client depuis <b>Clients</b>, puis <b>Nouveau client</b>, avec son adresse <b>@wimmov.com</b> (Hugo). ' +
+  'L\'espace Wimmov s\'active tout seul pour cette adresse. Il se crée aussi au premier paiement de son lien Stripe.</p>' +
+  '<a class="btn btn-p" style="margin-top:14px" href="#/clients/nouveau">' + i.plus + 'Nouveau client</a></div>';
+
+// ---------- VUE D'ENSEMBLE ----------
+function ecranAccueil() {
+  if (!D.client) return sansClient();
+  const c = D.client, mois = D.commandes.find(x => x.formule === 'mensuel');
+  const abo = (D.abonnements || [])[0], dernier = (D.retours || [])[0];
+  let h = '<div class="ph"><div><h1>Wimmov</h1><p>' + esc(c.contact || '') + (c.contact ? ' · ' : '') + esc(c.email) + ' · ' + D.contrat.creas_mois + ' créatives par mois, ' + K.euros(D.contrat.prix_mois) + ', livrées en ' + D.contrat.livraisons_mois + ' fois.</p></div>' +
+    '<div class="act"><a class="btn btn-s" href="/client/?client=' + esc(c.id) + '" target="_blank" rel="noopener">' + i.oeil + 'Voir son espace</a><a class="btn btn-p" href="#/wimmov/livraisons">' + i.envoi + 'Livrer</a></div></div>';
+  const envoyees = mois ? mois.livraisons.filter(l => l.statut !== 'brouillon').length : 0;
+  h += '<div class="grid g4">' +
+    '<div class="card kpi"><div class="lab">Ce mois-ci</div><div class="v s">' + (mois ? envoyees + ' / ' + D.contrat.livraisons_mois : '0') + '</div><div class="d">' + (mois ? (mois.livrees || 0) + ' créatives livrées sur ' + mois.nb_creas : 'aucun mois en cours') + '</div></div>' +
+    '<div class="card kpi"><div class="lab">Abonnement Stripe</div><div class="v s">' + (abo ? { actif: 'Actif', resiliation: 'S\'arrête bientôt', termine: 'Terminé' }[abo.statut] || 'Actif' : 'Pas encore') + '</div><div class="d">' + (abo ? abo.mois_payes + ' mois payé' + (abo.mois_payes > 1 ? 's' : '') + ' par le portail' : 'au premier paiement du lien') + '</div></div>' +
+    '<a class="card kpi lien-kpi" href="#/wimmov/retours"><div class="lab">Derniers retours</div><div class="v s">' + (dernier ? esc(K.date(dernier.envoye_le, { year: undefined })) : 'Aucun') + '</div><div class="d">' + (dernier ? (dernier.auteur ? 'de ' + esc(dernier.auteur) : 'de Wimmov') : 'rien pour l\'instant') + '</div></a>' +
+    '<a class="card kpi lien-kpi" href="#/wimmov/acces"><div class="lab">Emails</div><div class="v s">' + (1 + (D.emails || []).length) + '</div><div class="d">Hugo' + ((D.emails || []).length ? ' + ' + D.emails.length + ' autre' + (D.emails.length > 1 ? 's' : '') : '') + '</div></a></div>';
+  const rv = enRevision();
+  if (rv.length) h += '<div class="note" style="margin-top:18px"><b>' + rv.length + ' livraison' + (rv.length > 1 ? 's' : '') + ' à corriger.</b> Wimmov a demandé des retouches : <a href="#/wimmov/revisions" style="color:var(--blue-tx)">voir les révisions</a>.</div>';
+  h += '<div class="sec"><div><h2>Livraisons</h2><p>Les dernières, tous mois confondus.</p></div><a class="btn btn-g btn-sm" href="#/wimmov/livraisons">Tout voir</a></div>' + tableLivraisons(D.commandes.flatMap(k => k.livraisons.map(l => ({ ...l, k }))).sort((a, b) => (b.envoye_le || b.cree_le || 0) - (a.envoye_le || a.cree_le || 0)).slice(0, 6));
+  if (dernier) h += '<div class="sec"><div><h2>Derniers retours de Wimmov</h2></div><a class="btn btn-g btn-sm" href="#/wimmov/retours">Tous les retours</a></div>' + carteRetour(dernier);
+  return h;
+}
+function tableLivraisons(L) {
+  if (!L.length) return '<div class="card"><div class="vide">' + i.envoi + 'Aucune livraison pour l\'instant.</div></div>';
+  return '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Livraison</th><th class="num">Créatives</th><th>Statut</th><th>Envoyée le</th><th></th></tr></thead><tbody>' +
+    L.map(l => '<tr class="clic" onclick="W.ouvrir(\'' + esc(l.dossier) + '\',\'livraisons\')"><td><b>Livraison ' + l.n + (l.version > 1 ? ' · version ' + l.version : '') + '</b><span class="sub">' + esc(nomCmd(l.k)) + '</span></td>' +
+      '<td class="num">' + (l.creatives || 0) + '</td><td>' + pill(l.statut) + '</td><td>' + (l.envoye_le ? esc(K.dateHeure(l.envoye_le)) : '<span class="muted">Pas encore</span>') + '</td>' +
+      '<td class="fin"><span class="btn btn-s btn-sm">Ouvrir</span></td></tr>').join('') + '</tbody></table></div></div>';
+}
+
+// ---------- LIVRER ----------
+function ecranLivrer() {
+  if (!D.client) return sansClient();
+  let h = '<div class="ph"><div><h1>Livraisons</h1><p>Les livraisons de chaque mois. Créez la suivante, déposez les PNG, envoyez : Wimmov la voit tout de suite. Les retouches se font dans Révisions.</p></div></div>';
+  if (!D.commandes.length) return h + '<div class="card pad"><p style="font-size:14px">Aucun mois pour l\'instant. Il se crée au paiement de son lien Stripe, ou à la main dans <a href="#/wimmov/commandes" style="color:var(--blue-tx)">Mois et commandes</a>.</p></div>';
+  for (const k of D.commandes.filter(x => x.statut !== 'annule')) {
+    const brouillon = k.livraisons.find(l => l.statut === 'brouillon');
+    h += '<div class="sec"><div><h2>' + esc(nomCmd(k)) + '</h2><p>#' + esc(k.ref) + ' · ' + k.nb_creas + ' créatives · ' + (k.livrees || 0) + ' livrées</p></div>' +
+      '<button class="btn ' + (brouillon ? 'btn-s' : 'btn-p') + ' btn-sm" data-nouvelle="' + esc(k.id) + '">' + i.plus + (brouillon ? 'Reprendre la livraison ' + brouillon.n : 'Livraison ' + (k.livraisons.reduce((n, l) => Math.max(n, l.n), 0) + 1)) + '</button></div>' +
+      tableLivraisons(k.livraisons.map(l => ({ ...l, k })));
+  }
+  return h;
+}
+function brancherLivrer() {
+  document.querySelectorAll('[data-nouvelle]').forEach(b => b.onclick = async () => {
+    b.disabled = true;
+    try { const l = await K.api('/api/admin/wimmov/livraisons', { methode: 'POST', corps: { commande_id: b.dataset.nouvelle } }); await charger(); K.aller('#/wimmov/livraison/' + l.dossier); }
+    catch (e) { K.toast(e.message); b.disabled = false; }
+  });
+}
+
+// ---------- UNE LIVRAISON : dépôt des PNG, envoi ----------
+const LV = { dossier: null, donnees: null, envois: [], choix: null, depuis: 'livraisons' };
+async function chargerLivraison(d) {
+  LV.dossier = d;
+  try { LV.donnees = await K.api('/api/admin/wimmov/livraisons/' + d); } catch (e) { LV.donnees = { versions: [], erreur: e.message }; }
+  if (!LV.donnees.versions.find(v => v.id === LV.choix)) LV.choix = (LV.donnees.versions[0] || {}).id;
+  K.rendre();
+}
+const numero = d => Number((String(d).match(/_L(\d+)$/) || [])[1]) || 1;
+function ecranLivraison(d) {
+  const k = D.commandes.find(x => x.dossier && d.startsWith(x.dossier + '_L'));
+  let h = '<a class="retour" href="' + (LV.depuis === 'revisions' ? '#/wimmov/revisions">' + i.gauche + 'Révisions' : '#/wimmov/livraisons">' + i.gauche + 'Livraisons') + '</a>';
+  if (!k) return h + '<div class="card"><div class="vide">Livraison introuvable.</div></div>';
+  if (LV.dossier !== d) { LV.dossier = d; LV.donnees = null; LV.envois = []; setTimeout(() => chargerLivraison(d), 0); }
+  h += '<div class="ph"><div><h1>Livraison ' + numero(d) + '</h1><p>' + esc(nomCmd(k)) + ' · PNG en 1:1, 4:5 et 9:16, le format est reconnu à la taille.</p></div></div>';
+  if (!LV.donnees) return h + '<div class="card"><div class="vide">Chargement…</div></div>';
+  const V = LV.donnees.versions, der = V[0], travail = der && der.statut === 'brouillon' ? der : null, F = travail ? travail.fichiers : [];
+  if (travail) {
+    const par = f => F.filter(x => x.format === f).length;
+    h += '<div class="card pad"><h3 style="font-size:16px">Déposer les fichiers' + (travail.version > 1 ? ' · version ' + travail.version : '') + '</h3>' +
+      (travail.version > 1 ? '<p class="muted" style="font-size:13px;margin-top:4px">Cette version reprend les fichiers de la précédente : un fichier du même nom remplace l\'ancien.</p>' : '') +
+      '<div class="depot" id="lv-depot" style="margin-top:14px">' + i.telecharger + '<b>Glissez les PNG ici, ou cliquez pour les choisir</b><small>PNG seulement. 1080 × 1080, 1080 × 1350 et 1080 × 1920.</small><input type="file" id="lv-fichiers" multiple accept="image/png,.png" hidden></div>' +
+      '<div class="envois" id="lv-envois"></div>' +
+      '<div class="compte-formats">' + ['1x1', '4x5', '9x16'].map(f => '<span class="pill ' + (par(f) ? 'g' : '') + '">' + NOMS_F[f] + ' · ' + par(f) + '</span>').join('') + (par('autre') ? '<span class="pill r">Autres tailles · ' + par('autre') + '</span>' : '') + '</div>' +
+      '<div style="display:flex;gap:10px;margin-top:18px;flex-wrap:wrap"><button class="btn btn-p btn-lg" id="lv-envoyer"' + (F.length ? '' : ' disabled') + '>' + i.envoi + 'Envoyer à Wimmov' + (F.length ? ' (' + F.length + ' fichiers)' : '') + '</button>' +
+      '<button class="btn btn-g" id="lv-jeter">' + i.poubelle + 'Supprimer ce brouillon</button></div>' +
+      '<p class="muted" style="font-size:12.5px;margin-top:10px">Wimmov la voit tout de suite dans son espace. Hugo et les adresses ajoutées reçoivent un email.</p></div>';
+  } else if (der) {
+    // la review de Wimmov, en direct : approuvées, commentaires, retours envoyés ou livraison validée
+    const nOk = der.fichiers.filter(f => f.approuve_le).length, nCom = der.fichiers.reduce((s, f) => s + f.commentaires.filter(c => c.role === 'client').length, 0);
+    const bilan = nOk + ' sur ' + der.fichiers.length + ' approuvée' + (nOk > 1 ? 's' : '') + ' · ' + nCom + ' commentaire' + (nCom > 1 ? 's' : '');
+    const [titre, detail, fond, coul] = der.statut === 'approuvee'
+      ? ['Validée par Wimmov' + (der.review_le ? ' le ' + esc(K.dateHeure(der.review_le)) : ''), 'Version ' + der.version + ' · ' + der.fichiers.length + ' fichiers, tout est approuvé.', '', '']
+      : der.statut === 'review_terminee'
+        ? ['Wimmov demande des retouches' + (der.review_le ? ' depuis le ' + esc(K.dateHeure(der.review_le)) : ''), 'Version ' + der.version + ' · ' + bilan + '. Corrigez ses commentaires dans la version ' + (der.version + 1) + ', puis envoyez-la.', 'var(--amber-soft,#fff4e0)', 'var(--amber,#e08a00)']
+        : ['Chez Wimmov depuis le ' + esc(K.dateHeure(der.envoye_le)), 'Version ' + der.version + ' · ' + bilan + '. Sa review n\'est pas encore terminée.', 'var(--blue-soft,#eaf2ff)', 'var(--blue,#4d94ff)'];
+    h += '<div class="etat-envoi" style="margin:0 0 18px' + (fond ? ';background:' + fond : '') + '"><span class="pastille"' + (coul ? ' style="background:' + coul + ';box-shadow:none"' : '') + '>' + (der.statut === 'approuvee' ? i.coche : i.message) + '</span><div style="flex:1"><b>' + titre + '</b><small>' + detail + '</small></div>' +
+      (der.statut === 'review_terminee' ? '<button class="btn btn-p" id="lv-version">' + i.crayon + 'Faire la version ' + (der.version + 1) + '</button>' : '') + '</div>';
+  }
+  const vue = V.find(v => v.id === LV.choix) || der;
+  // les commentaires de Wimmov sur la version affichée : un clic ouvre la créa concernée
+  const comsW = vue && vue.statut !== 'brouillon' ? vue.fichiers.flatMap(f => f.commentaires.filter(c => c.role === 'client').map(c => ({ f, c }))).sort((a, b) => b.c.cree_le - a.c.cree_le) : [];
+  let blocComs = '';
+  if (comsW.length) blocComs = '<div class="sec"><div><h2>Commentaires de Wimmov</h2><p>' + comsW.length + ' commentaire' + (comsW.length > 1 ? 's' : '') + ' sur la version ' + vue.version + '. Cliquez pour ouvrir la créative.</p></div></div>' +
+    '<div class="card" style="margin-bottom:22px"><div class="liste">' + comsW.map(({ f, c }) => '<div class="li clic" data-rv-voir="' + esc(f.id) + '" style="cursor:pointer;align-items:flex-start;padding:12px 16px;gap:12px">' +
+      '<img src="' + esc(f.mini) + '" alt="" style="width:52px;height:52px;object-fit:cover;border-radius:8px;flex:none;background:var(--soft)">' +
+      '<span class="t" style="white-space:normal"><b style="display:block;font-size:13px">' + esc(f.nom) + '</b><span style="font-size:13.5px">' + esc(c.texte) + '</span></span>' +
+      '<small style="white-space:nowrap">' + esc(K.dateHeure(c.cree_le)) + '</small></div>').join('') + '</div></div>';
+  if (vue) h += (V.length > 1 ? K.rv.puces(V, vue.id, v => 'Version ' + v.version) : '') + blocComs + K.rv.grille(vue, { mode: 'admin', sansCompte: true, titre: 'Version ' + vue.version, sousTitre: vue.fichiers.length + ' fichiers', supprimer: vue.statut === 'brouillon' });
+  return h;
+}
+function dimensions(f) {
+  return new Promise(ok => { const im = new Image(); im.onload = () => { ok({ l: im.naturalWidth, h: im.naturalHeight }); URL.revokeObjectURL(im.src); }; im.onerror = () => ok({ l: 0, h: 0 }); im.src = URL.createObjectURL(f); });
+}
+const formatDe = d => { if (!d.l || !d.h) return 'autre'; const r = d.l / d.h; return Math.abs(r - 1) < .03 ? '1x1' : Math.abs(r - .8) < .03 ? '4x5' : Math.abs(r - .5625) < .03 ? '9x16' : 'autre'; };
+function miniature(f) {
+  return new Promise(ok => { const im = new Image(); im.onload = () => { const c = document.createElement('canvas'), t = 480, k = Math.min(1, t / Math.max(im.naturalWidth, im.naturalHeight));
+    c.width = Math.round(im.naturalWidth * k); c.height = Math.round(im.naturalHeight * k); c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); c.toBlob(b => ok(b), 'image/jpeg', .8); }; im.onerror = () => ok(null); im.src = URL.createObjectURL(f); });
+}
+function envoyerFichier(livraison, f, format, d, suivi) {
+  return new Promise((ok, ko) => {
+    const x = new XMLHttpRequest();
+    x.open('PUT', '/api/equipe/fichiers?livraison=' + encodeURIComponent(livraison) + '&format=' + format + '&nom=' + encodeURIComponent(f.name) + '&l=' + d.l + '&h=' + d.h);
+    x.setRequestHeader('Content-Type', 'image/png');
+    x.upload.onprogress = e => { if (e.lengthComputable) suivi(Math.round(e.loaded * 100 / e.total)); };
+    x.onload = () => { let r = {}; try { r = JSON.parse(x.responseText); } catch (e) {} if (x.status < 300) ok(r); else ko(new Error(r.erreur || 'Envoi impossible (' + x.status + ')')); };
+    x.onerror = () => ko(new Error('Connexion perdue'));
+    x.send(f);
+  });
+}
+async function deposer(fichiers) {
+  const travail = LV.donnees && LV.donnees.versions[0];
+  if (!travail || travail.statut !== 'brouillon') return;
+  const refuses = Array.from(fichiers).filter(f => f.type !== 'image/png');
+  if (refuses.length) K.toast(refuses.length + ' fichier' + (refuses.length > 1 ? 's' : '') + ' ignoré' + (refuses.length > 1 ? 's' : '') + ' : PNG seulement.');
+  const file = Array.from(fichiers).filter(f => f.type === 'image/png').map(f => ({ f, nom: f.name, pc: 0, etat: 'en attente', ok: false }));
+  if (!file.length) return;
+  LV.envois = file;
+  const maj = () => { const z = document.getElementById('lv-envois'); if (z) z.innerHTML = LV.envois.map(e => '<div class="envoi-l"><span>' + esc(e.nom) + '</span><div class="barre' + (e.ok ? ' g' : '') + '"><i style="width:' + e.pc + '%"></i></div><small class="muted">' + esc(e.etat) + '</small></div>').join(''); };
+  maj();
+  let n = 0;
+  const travailleur = async () => {
+    while (n < file.length) {
+      const e = file[n++];
+      try {
+        const d = await dimensions(e.f), fmt = formatDe(d); e.etat = NOMS_F[fmt]; maj();
+        const r = await envoyerFichier(travail.id, e.f, fmt, d, pc => { e.pc = pc; maj(); });
+        const mini = await miniature(e.f);
+        if (mini && r.id) await fetch('/api/equipe/fichiers/' + r.id + '/mini', { method: 'PUT', headers: { 'Content-Type': 'image/jpeg' }, body: mini, credentials: 'same-origin' });
+        e.pc = 100; e.ok = true; e.etat = NOMS_F[fmt] + ' ✓';
+      } catch (err) { e.etat = err.message; }
+      maj();
+    }
+  };
+  await Promise.all([travailleur(), travailleur(), travailleur()]);
+  LV.envois = file.filter(e => !e.ok);
+  await chargerLivraison(LV.dossier);
+}
+function brancherLivraison(d) {
+  const V = (LV.donnees && LV.donnees.versions) || [], vue = V.find(v => v.id === LV.choix) || V[0];
+  document.querySelectorAll('[data-rv-version]').forEach(b => b.onclick = () => { LV.choix = b.dataset.rvVersion; K.rendre(); });
+  if (vue) {
+    K.rv.brancher(vue, { mode: 'admin', nomZip: ('Wimmov-livraison-' + numero(d) + '-v' + vue.version), rendre: () => K.rendre(), auteur: 'Kreative', peutCommenter: () => false, peutApprouver: () => false, api: {} });
+    document.querySelectorAll('[data-rv-suppr]').forEach(b => b.onclick = async e => {
+      e.stopPropagation();
+      try { await K.api('/api/equipe/fichiers/' + b.dataset.rvSuppr, { methode: 'DELETE' }); await chargerLivraison(d); } catch (err) { K.toast(err.message); }
+    });
+  }
+  const zone = document.getElementById('lv-depot'), champ = document.getElementById('lv-fichiers');
+  if (zone && champ) {
+    zone.onclick = () => champ.click();
+    champ.onchange = () => deposer(champ.files);
+    zone.ondragover = e => { e.preventDefault(); zone.classList.add('survol'); };
+    zone.ondragleave = () => zone.classList.remove('survol');
+    zone.ondrop = e => { e.preventDefault(); zone.classList.remove('survol'); deposer(e.dataTransfer.files); };
+  }
+  const env = document.getElementById('lv-envoyer');
+  if (env) env.onclick = async () => {
+    const t = V[0], par = f => t.fichiers.filter(x => x.format === f).length;
+    const manque = ['1x1', '4x5', '9x16'].filter(f => !par(f));
+    if (!await K.confirmer('Envoyer la livraison ' + numero(d) + ' à Wimmov ?', t.fichiers.length + ' fichiers' + (manque.length ? ', rien en ' + manque.map(f => NOMS_F[f]).join(', ') : '') + '. Wimmov la voit tout de suite, Hugo et les adresses ajoutées reçoivent un email.', 'Envoyer à Wimmov')) return;
+    env.disabled = true;
+    try { const r = await K.api('/api/admin/wimmov/livraisons/' + t.id + '/envoyer', { methode: 'POST' }); K.toast(r.message); await charger(); await chargerLivraison(d); }
+    catch (e) { K.toast(e.message); env.disabled = false; }
+  };
+  const jeter = document.getElementById('lv-jeter');
+  if (jeter) jeter.onclick = async () => {
+    if (!await K.confirmer('Supprimer ce brouillon ?', 'Les fichiers déposés dans ce brouillon sont effacés. Wimmov ne l\'a jamais vu.', 'Supprimer', true)) return;
+    try { await K.api('/api/equipe/livraisons/' + V[0].id, { methode: 'DELETE' }); await charger(); LV.dossier = null; K.aller(V.length > 1 ? '#/wimmov/livraison/' + d : '#/wimmov/livraisons'); } catch (e) { K.toast(e.message); }
+  };
+  const nv = document.getElementById('lv-version');
+  if (nv) nv.onclick = async () => {
+    nv.disabled = true;
+    try { await K.api('/api/admin/wimmov/livraisons', { methode: 'POST', corps: { dossier: d } }); await charger(); LV.depuis = 'revisions'; await chargerLivraison(d); }
+    catch (e) { K.toast(e.message); nv.disabled = false; }
+  };
+}
+
+// ---------- RÉVISIONS : les retouches demandées par Wimmov dans sa review ----------
+function ecranRevisions() {
+  if (!D.client) return sansClient();
+  const A = enRevision(), toutes = (D.commandes || []).flatMap(k => k.livraisons.map(l => ({ ...l, k })));
+  const passees = toutes.filter(l => l.version > 1 && !['brouillon', 'review_terminee'].includes(l.statut)).sort((a, b) => (b.envoye_le || 0) - (a.envoye_le || 0));
+  let h = '<div class="ph"><div><h1>Révisions</h1><p>Quand Wimmov termine sa review avec des commentaires, la livraison arrive ici. Faites la version suivante avec ses retouches, puis envoyez-la.</p></div></div>';
+  h += '<div class="sec"><div><h2>À corriger</h2></div></div>';
+  h += A.length ? '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Livraison</th><th>Version</th><th>Statut</th><th>Envoyée le</th><th></th></tr></thead><tbody>' +
+    A.map(l => '<tr class="clic" onclick="W.ouvrir(\'' + esc(l.dossier) + '\',\'revisions\')"><td><b>Livraison ' + l.n + '</b><span class="sub">' + esc(nomCmd(l.k)) + '</span></td>' +
+      '<td>' + (l.statut === 'brouillon' ? 'Version ' + l.version + ' en préparation' : 'Version ' + l.version) + '</td>' +
+      '<td>' + (l.statut === 'brouillon' ? '<span class="pill b"><i></i>À envoyer</span>' : pill(l.statut)) + '</td>' +
+      '<td>' + (l.envoye_le ? esc(K.dateHeure(l.envoye_le)) : '<span class="muted">Pas encore</span>') + '</td>' +
+      '<td class="fin"><span class="btn btn-p btn-sm">' + (l.statut === 'brouillon' ? 'Reprendre' : 'Faire la version ' + (l.version + 1)) + '</span></td></tr>').join('') + '</tbody></table></div></div>'
+    : '<div class="card"><div class="vide">' + i.coche + 'Rien à corriger : Wimmov n\'a demandé aucune retouche.</div></div>';
+  if (passees.length) h += '<div class="sec"><div><h2>Déjà corrigées</h2><p>Les versions envoyées après des retouches.</p></div></div>' +
+    '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Livraison</th><th>Version</th><th>Statut</th><th>Envoyée le</th><th></th></tr></thead><tbody>' +
+    passees.map(l => '<tr class="clic" onclick="W.ouvrir(\'' + esc(l.dossier) + '\',\'revisions\')"><td><b>Livraison ' + l.n + '</b><span class="sub">' + esc(nomCmd(l.k)) + '</span></td><td>Version ' + l.version + '</td><td>' + pill(l.statut) + '</td>' +
+      '<td>' + (l.envoye_le ? esc(K.dateHeure(l.envoye_le)) : '<span class="muted">Pas encore</span>') + '</td><td class="fin"><span class="btn btn-s btn-sm">Ouvrir</span></td></tr>').join('') + '</tbody></table></div></div>';
+  return h;
+}
+
+// ---------- RETOURS DE LA SEMAINE (formulaire de Wimmov) ----------
+function carteRetour(r) {
+  return '<div class="card w-retour"><div class="tete"><b>' + esc(K.dateHeure(r.envoye_le)) + '</b><span class="muted" style="font-size:13px">' + (r.auteur ? 'De ' + esc(r.auteur) : 'De Wimmov') + '</span></div>' +
+    (r.texte ? '<div class="texte">' + esc(r.texte) + '</div>' : '') +
+    (r.liens && r.liens.length ? '<div class="w-liens">' + r.liens.map(l => '<a href="' + esc(l) + '" target="_blank" rel="noopener">' + esc(l) + '</a>').join('') + '</div>' : '') +
+    (r.pieces && r.pieces.length ? '<div class="w-pieces">' + r.pieces.map(p => '<a class="w-piece" href="' + esc(p.url) + '?dl=1">' + i.telecharger + '<span>' + esc(p.nom) + '</span><small class="muted">' + taille(p.taille) + '</small></a>').join('') + '</div>' : '') + '</div>';
+}
+function ecranRetours() {
+  if (!D.client) return sansClient();
+  return '<div class="ph"><div><h1>Retours de Wimmov</h1><p>Le formulaire que Hugo ou son media buyer remplissent chaque semaine : ce qui marche, texte, liens et fichiers. Les commentaires sur les créatives sont dans Révisions.</p></div></div>' +
+    ((D.retours || []).length ? D.retours.map(carteRetour).join('') : '<div class="card"><div class="vide">' + i.message + 'Aucun retour pour l\'instant.</div></div>');
+}
+
+// ---------- MOIS ET COMMANDES ----------
+function ecranCommandes() {
+  if (!D.client) return sansClient();
+  let h = '<div class="ph"><div><h1>Mois et commandes</h1><p>Un mois d\'abonnement se crée seul à chaque paiement Stripe. Ajoutez-en un à la main s\'il a payé autrement.</p></div>' +
+    '<div class="act"><button class="btn btn-s" id="c-extra">' + i.plus + 'Créatives en plus</button><button class="btn btn-p" id="c-mois">' + i.plus + 'Ajouter un mois</button></div></div>';
+  h += D.commandes.length ? '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Commande</th><th class="num">Créatives</th><th class="num">Livrées</th><th class="num">Prix</th><th>Livraisons</th></tr></thead><tbody>' +
+    D.commandes.map(k => '<tr><td><b>' + esc(nomCmd(k)) + '</b><span class="sub">#' + esc(k.ref) + ' · ' + esc(K.date(k.cree_le)) + '</span></td><td class="num">' + k.nb_creas + '</td><td class="num">' + (k.livrees || 0) + '</td>' +
+      '<td class="num">' + K.euros(k.prix) + '</td><td>' + k.livraisons.filter(l => l.statut !== 'brouillon').length + (k.formule === 'mensuel' ? ' / ' + D.contrat.livraisons_mois : '') + '</td></tr>').join('') + '</tbody></table></div></div>'
+    : '<div class="card"><div class="vide">' + i.sac + 'Aucune commande pour l\'instant.</div></div>';
+  if ((D.factures || []).length) h += '<div class="sec"><div><h2>Factures</h2></div></div><div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Facture</th><th class="num">Montant</th><th>Statut</th><th>Date</th></tr></thead><tbody>' +
+    D.factures.map(f => '<tr><td><b>' + esc(f.numero || 'Facture') + '</b></td><td class="num">' + K.euros(f.montant) + '</td><td>' + esc(f.statut) + '</td><td>' + esc(K.date(f.emise_le)) + '</td></tr>').join('') + '</tbody></table></div></div>';
+  return h;
+}
+function brancherCommandes() {
+  const ajouter = async (corps, msg) => { try { await K.api('/api/admin/wimmov/commandes', { methode: 'POST', corps }); K.toast(msg); await recharger(); } catch (e) { K.toast(e.message); } };
+  const m = document.getElementById('c-mois');
+  if (m) m.onclick = async () => { if (await K.confirmer('Ajouter un mois ?', D.contrat.creas_mois + ' créatives, ' + K.euros(D.contrat.prix_mois) + '. À faire seulement s\'il a payé hors de son lien Stripe (sinon le mois se crée seul).', 'Ajouter le mois')) ajouter({ type: 'mois' }, 'Mois ajouté'); };
+  const x = document.getElementById('c-extra');
+  if (x) x.onclick = () => {
+    const v = K.fenetre('<div class="fen-h"><h2>Créatives en plus</h2><p>Une commande payée hors du portail. Ses tarifs : 6 = 180 €, 12 = 280 €, 24 = 490 €, au-delà 20 € la créative.</p></div><div class="fen-b">' +
+      '<div class="grid g2" style="gap:12px"><div class="champ"><label for="x-nb">Créatives</label><input class="in" id="x-nb" type="number" min="1" value="12"></div><div class="champ"><label for="x-prix">Prix (€)</label><input class="in" id="x-prix" type="number" min="0" placeholder="Calculé si vide"></div></div></div>' +
+      '<div class="fen-f"><button class="btn btn-s" data-n>Annuler</button><button class="btn btn-p" data-o>Ajouter</button></div>');
+    v.querySelector('[data-n]').onclick = () => K.fermer();
+    v.querySelector('[data-o]').onclick = () => { const nb = v.querySelector('#x-nb').value, prix = v.querySelector('#x-prix').value; K.fermer(); ajouter({ type: 'extra', nb_creas: nb, prix }, 'Commande ajoutée'); };
+  };
+}
+
+// ---------- ACCÈS ET EMAILS ----------
+function ecranAcces() {
+  if (!D.client) return sansClient();
+  const c = D.client;
+  return '<div class="ph"><div><h1>Accès et emails</h1><p>Un seul espace pour toute l\'équipe Wimmov. Chaque adresse reçoit le lien de l\'espace et chaque nouvelle livraison.</p></div></div>' +
+    '<div class="grid g2" style="align-items:start"><div class="card pad"><h3 style="font-size:16px">Qui reçoit les emails</h3><div style="margin-top:10px">' +
+    '<div class="w-mail"><div><b>' + esc(c.contact || c.marque) + '</b><div class="muted" style="font-size:13px">' + esc(c.email) + '</div></div><button class="btn btn-s btn-sm" data-lien-a="' + esc(c.email) + '">' + i.mail + 'Envoyer le lien</button></div>' +
+    (D.emails || []).map(m => '<div class="w-mail"><div>' + esc(m) + '</div><div style="display:flex;gap:6px"><button class="btn btn-s btn-sm" data-lien-a="' + esc(m) + '">' + i.mail + 'Envoyer le lien</button><button class="btn btn-g btn-sm" data-mail-x="' + esc(m) + '">Retirer</button></div></div>').join('') + '</div>' +
+    '<div class="champ" style="margin-top:14px"><label for="a-mail">Ajouter une adresse (le media buyer…)</label><div class="w-l"><input class="in" id="a-mail" type="email" placeholder="mediabuyer@wimmov.com"><button class="btn btn-p" id="a-ok">Ajouter</button></div></div></div>' +
+    '<div class="card pad"><h3 style="font-size:16px">Le lien de l\'espace</h3><p class="muted" style="font-size:13.5px;margin-top:6px">Le même pour toute l\'équipe Wimmov.</p>' +
+    '<div class="w-l" style="margin-top:12px"><input class="in" readonly value="' + esc(c.lien) + '"><button class="btn btn-s" id="a-copier">' + i.copier + 'Copier</button></div>' +
+    '<button class="btn btn-p" style="margin-top:14px" data-lien-a="">' + i.mail + 'Envoyer le lien à tout le monde</button></div></div>';
+}
+function brancherAcces() {
+  const enregistrer = async emails => { try { const r = await K.api('/api/admin/wimmov/acces', { methode: 'PATCH', corps: { emails } }); D.emails = r.emails; K.rendre(); return true; } catch (e) { K.toast(e.message); return false; } };
+  const ok = document.getElementById('a-ok'), champ = document.getElementById('a-mail');
+  if (ok) ok.onclick = async () => { const m = champ.value.trim().toLowerCase(); if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(m)) return K.toast('Adresse email invalide.'); if (await enregistrer((D.emails || []).concat(m))) K.toast('Adresse ajoutée. Envoyez-lui le lien quand vous voulez.'); };
+  document.querySelectorAll('[data-mail-x]').forEach(b => b.onclick = async () => { if (await enregistrer((D.emails || []).filter(x => x !== b.dataset.mailX))) K.toast('Adresse retirée'); });
+  document.querySelectorAll('[data-lien-a]').forEach(b => b.onclick = async () => {
+    b.disabled = true;
+    try { const r = await K.api('/api/admin/wimmov/lien', { methode: 'POST', corps: b.dataset.lienA ? { a: b.dataset.lienA } : {} }); K.toast(r.message); } catch (e) { K.toast(e.message); }
+    b.disabled = false;
+  });
+  const c = document.getElementById('a-copier');
+  if (c) c.onclick = () => K.copier(D.client.lien, 'Lien copié');
+}
+
+
+const VUES = {
+  '': ['accueil', 'accueil', () => ['Wimmov'], () => ecranAccueil()],
+  livraisons: ['livraisons', 'envoi', () => ['Wimmov', 'Livraisons'], () => ecranLivrer(), () => brancherLivrer()],
+  revisions: ['revisions', 'crayon', () => ['Wimmov', 'Révisions'], () => ecranRevisions()],
+  livraison: [null, 'envoi', p => ['Wimmov', LV.depuis === 'revisions' ? 'Révisions' : 'Livraisons', 'Livraison ' + numero(p[0] || '')], p => ecranLivraison(p[0] || ''), p => brancherLivraison(p[0] || '')],
+  retours: ['retours', 'message', () => ['Wimmov', 'Retours de Wimmov'], () => ecranRetours()],
+  commandes: ['commandes', 'sac', () => ['Wimmov', 'Mois et commandes'], () => ecranCommandes(), () => brancherCommandes()],
+  acces: ['acces', 'gens', () => ['Wimmov', 'Accès et emails'], () => ecranAcces(), () => brancherAcces()]
+};
+const vue = p => VUES[p[0] || ''] || VUES[''];
+// les retours et validations de Wimmov arrivent tout seuls, toutes les 30 s, tant qu'on est dans sa section
+let minuterie = 0;
+function surveiller() {
+  if (minuterie) return;
+  minuterie = setInterval(async () => {
+    const r = K.route();
+    if (r.ecran !== 'wimmov' || document.visibilityState !== 'visible' || document.querySelector('#k-fen, .rv-v') || LV.envois.length) return;
+    if (r.params[0] !== 'livraison') { try { await recharger(); } catch (e) {} return; }
+    const v0 = LV.donnees && LV.donnees.versions && LV.donnees.versions[0];
+    if (LV.dossier && v0 && v0.statut !== 'brouillon') { const y = window.scrollY; try { await chargerLivraison(LV.dossier); window.scrollTo(0, y); } catch (e) {} }
+  }, 30000);
+}
+return {
+  async ecran(p) {
+    if (!D) { try { await charger(); } catch (e) { return '<div class="card"><div class="vide">Impossible de charger Wimmov. ' + esc(e.message) + '</div></div>'; } }
+    surveiller();
+    if (!D.client && p[0]) return sansClient();
+    return vue(p)[3](p.slice(1));
+  },
+  brancher(p) { const v = vue(p); if (D && v[4]) v[4](p.slice(1)); },
+  conf, actif: p => vue(p)[0] || (LV.depuis === 'revisions' ? 'revisions' : 'livraisons'),
+  ariane: p => { const v = vue(p); return K.ariane(v[1], ...v[2](p.slice(1))); },
+  ouvrir(d, depuis) { LV.depuis = depuis || 'livraisons'; K.aller('#/wimmov/livraison/' + d); },
+  prechargement() { if (!D) charger().catch(() => {}); }
+};
+})();
+
 // ---------- RENDU ----------
 const ECRANS = {
   '': { id: 'accueil', t: 'Vue d\'ensemble', a: 'accueil', b: [], besoins: ['resume', 'clients', 'commandes', 'prod', 'livraisons', 'factures'], f: ecranAccueil, ap: brancherPeriode },
@@ -1086,6 +1442,7 @@ const ECRANS = {
   clients: { id: 'clients', t: 'Clients', a: 'gens', b: ['Commercial'], besoins: ['clients', 'resume', 'dossiers'], f: p => p[0] === 'nouveau' ? (setTimeout(nouveauClient, 0), ecranClients()) : p[0] ? ecranClient(p[0]) : ecranClients(), ap: p => p[0] && p[0] !== 'nouveau' ? brancherClient() : brancherClients() },
   commandes: { id: 'commandes', t: 'Commandes', a: 'sac', b: ['Commercial'], besoins: ['commandes'], f: ecranCommandes },
   dossiers: { id: 'production', t: 'Tous les dossiers', a: 'calques', b: ['Production'], besoins: ['dossiers'], f: () => ongletsProd('dossiers') + ecranDossiers(), ap: brancherDossiers },
+  wimmov: { id: 'wimmov', t: 'Wimmov', a: 'etoile', b: [], besoins: [], wimmov: true, f: p => W.ecran(p), ap: p => W.brancher(p) },
   equipe: { id: 'equipe', t: 'Équipe', a: 'bouclier', b: [], besoins: ['equipe', 'prod', 'commandes', 'livraisons'], f: ecranEquipe },
   livraisons: { id: 'livraisons', t: 'Livraisons', a: 'envoi', b: ['Production'], besoins: ['livraisons', 'prod'], f: p => p[0] ? ecranLivraison(p[0]) : (LIV.dossier = null, ecranLivraisons()), ap: p => { if (p[0]) brancherLivraison(); } }
 };
@@ -1114,16 +1471,17 @@ K.rendre = async () => {
   await Promise.all(e.besoins.map(q => charger(q)));
   const contenu = await e.f(r.params);
   if (n !== rendu) return;
-  const c = conf();
+  const c = e.wimmov ? W.conf() : conf();
   const xp = e.prod && r.params[0] ? K.prod.trouver(r.params[0]) : null;
   const titre = r.ecran === 'clients' && FICHE && r.params[0] === FICHE.client.id ? FICHE.client.marque : e.prod && r.params[0] ? (xp ? xp.nom : r.params[0]) : e.t;
   const fil = e.prod && r.params[0] ? [...e.b, e.t] : (e.b.length ? e.b : ['Admin']);
-  document.getElementById('racine').innerHTML = K.coquille(c, e.id, K.ariane(e.a, ...fil, titre), contenu, e.prod && r.params[0] ? 'plein' : e.large);
+  document.getElementById('racine').innerHTML = K.coquille(c, e.wimmov ? W.actif(r.params) : e.id, e.wimmov ? W.ariane(r.params) : K.ariane(e.a, ...fil, titre), contenu, e.prod && r.params[0] ? 'plein' : e.large);
   K.brancherCoquille(c);
   if (e.ap) e.ap(r.params);
   document.title = 'Admin · Kreative';
   if (S.prod) K.prod.surveiller(() => { S.livraisons = null; S.commandes = null; Promise.all([charger('livraisons'), charger('commandes')]).then(() => K.route().ecran === 'projets' ? rendreKanban() : K.rendre()); });
   // la production et les dossiers se chargent en fond pour la recherche et les compteurs
+  if (!e.wimmov) setTimeout(() => W.prechargement(), 1500);
   ['prod', 'dossiers', 'clients', 'commandes'].forEach(q => { if (S[q] == null) charger(q).then(() => { if (n === rendu && q === 'prod') { const nb = document.querySelector('.nav a[href="#/projets"] .nb'); if (!nb) K.rendre(); } }); });
 };
 K.rendre();

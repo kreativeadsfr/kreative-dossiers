@@ -2105,7 +2105,7 @@ async function apiClientLivraisons(req, env, ctx, url, chemin, methode, cl, aper
     if (k && !['valide', 'annule'].includes(k.statut)) await db.prepare("UPDATE commandes SET statut = 'revisions' WHERE id = ?").bind(k.id).run();
     if (k) await noter(db, cl.id, k.id, 'revisions', 'Vos retours sont transmis · retouches en cours');
     // Kreative est prévenu par email
-    const lienAdmin = DOSSIER_WIMMOV.test(l.dossier) ? url.origin + '/admin/wimmov.html#/livraison/' + l.dossier : url.origin + '/admin/#/livraisons/' + l.dossier;
+    const lienAdmin = DOSSIER_WIMMOV.test(l.dossier) ? url.origin + '/admin/#/wimmov/livraison/' + l.dossier : url.origin + '/admin/#/livraisons/' + l.dossier;
     const envoi = envoyerEmail(env, { type: 'review', a: env.EMAIL_KREATIVE || 'contact@kreativeads.fr', marque: cl.marque, contact: 'Kreative', lien: lienAdmin,
       sujet: cl.marque + ' · retours du client sur la version ' + l.version,
       html: emailHtml(url.origin, { titre: cl.marque + ' a terminé sa review', paragraphes: [(t.n - t.reste) + ' fichier' + (t.n - t.reste > 1 ? 's' : '') + ' approuvé' + (t.n - t.reste > 1 ? 's' : '') + ' sur ' + t.n + ', ' + t.coms + ' commentaire' + (t.coms > 1 ? 's' : '') + '. ' + (pour === 'strategiste' ? 'Les retours parlent des textes : le stratégiste corrige d\'abord, puis la designer fait la nouvelle version.' : 'La designer voit les retours dans son espace et prépare la nouvelle version.') + ' Vous pouvez changer qui s\'en occupe depuis la livraison.'],
@@ -2837,7 +2837,7 @@ async function apiWimmovClient(req, env, ctx, url, chemin, methode, cl, apercu) 
     if (!ch.meta || ch.meta.changes !== 1) return json({ erreur: 'Ces retours sont déjà envoyés.' }, 409);
     await noter(db, cl.id, null, 'brief', 'Retours de la semaine envoyés' + (auteur ? ' par ' + auteur : ''));
     // Kreative est prévenu par email (le texte, les liens, les fichiers sont dans l'admin)
-    const admin = url.origin + '/admin/wimmov.html#/retours';
+    const admin = url.origin + '/admin/#/wimmov/retours';
     const envoi = envoyerEmail(env, { type: 'wimmov_retours', a: env.EMAIL_KREATIVE || 'contact@kreativeads.fr', marque: cl.marque, contact: 'Kreative', lien: admin,
       sujet: cl.marque + ' · retours de la semaine',
       html: emailHtml(url.origin, { titre: cl.marque + ' a envoyé ses retours de la semaine', paragraphes: [

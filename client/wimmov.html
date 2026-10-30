@@ -89,13 +89,13 @@ function conf() {
     qui: { nom: D.client.marque, role: D.client.contact || D.client.email || 'Client', tuile: true, photo: urlPhoto() },
     menu: ['<a href="#/acces">' + i.gens + 'Partager l\'accès</a>'],
     sansTheme: true,
-    sortie: D.apercu ? '/admin/wimmov.html' : '/client/sortie'
+    sortie: D.apercu ? '/admin/#/wimmov' : '/client/sortie'
   };
 }
 function apercu() {
   return D.apercu ? '<div class="bandeau amb"><span class="ic">' + i.oeil + '</span><div><b>Aperçu de l\'espace de ' + esc(D.client.marque) + '</b>' +
     '<small>Vous voyez exactement ce que voit votre client. Rien de ce que vous faites ici ne lui est envoyé.</small></div>' +
-    '<a class="btn btn-sm" href="/admin/wimmov.html">Retour à l\'admin</a></div>' : '';
+    '<a class="btn btn-sm" href="/admin/#/wimmov">Retour à l\'admin</a></div>' : '';
 }
 
 // ---------- ACCUEIL ----------

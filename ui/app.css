@@ -144,6 +144,10 @@ p{margin:0}
 .pill.r{background:var(--red-soft);color:var(--red)}
 .pill.v{background:var(--violet-soft);color:var(--violet)}
 .pill.n{background:var(--ink);color:var(--panel)}
+.pills{display:flex;flex-wrap:wrap;gap:5px;align-items:center}
+.etapes-eq{margin:14px 0 0;padding-left:20px;display:grid;gap:7px;font-size:13.5px;color:var(--tx2)}
+.etapes-eq b{color:var(--ink)}
+.etapes-eq code{font:500 12px ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--soft);padding:1px 5px;border-radius:5px}
 .pill.demo{height:20px;padding:0 8px;font-size:11px;background:transparent;border:1px dashed var(--line2);color:var(--tx3);margin-left:6px;vertical-align:middle}
 .bandeau-demo{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:14px 18px;margin-bottom:18px;border:1px dashed var(--line2);border-radius:var(--r);background:var(--soft);font-size:14px;color:var(--tx2)}
 .bandeau-demo b{color:var(--ink)}

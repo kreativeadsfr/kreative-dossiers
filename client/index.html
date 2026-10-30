@@ -378,7 +378,7 @@ function ecranBrief(id) {
     '<div class="t"><h3 style="font-size:17px">Brief bien reçu</h3>' + (c.brief_le ? '<p class="muted" style="margin-top:5px;font-size:13.5px">Le ' + esc(K.dateHeure(c.brief_le)) + '.</p>' : '') + '</div>' +
     '<div class="acts"><a class="btn btn-s btn-sm" href="' + wa('Bonjour Kreative, je voudrais modifier mon brief (' + nom(c) + ', #' + c.ref + ') : ') + '" target="_blank" rel="noopener">Demander une modification</a>' +
     '<a class="btn btn-g btn-sm" href="#/projets/' + esc(c.id) + '">Voir le projet</a></div></div>' +
-    (rep.length ? qr(rep) : '<p class="muted" style="margin-top:18px;font-size:13.5px">Vos réponses apparaîtront ici pour vos prochains briefs.</p>') + '</div>';
+    (rep.length ? qr(rep) : '') + '</div>';
   // les briefs des livraisons suivantes (pack Custom en plusieurs fois)
   (c.retours || []).filter(r => r.reponses && r.reponses.length && !(c.brief_json && r.commande_id === c.id && c.formule === 'mensuel')).forEach(r => {
     const n = (String(r.suivante || '').match(/_L(\d+)$/) || [])[1];

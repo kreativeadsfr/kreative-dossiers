@@ -174,6 +174,16 @@ const brief = await r.json();
 t('brief relié à la commande (par son numéro de facture)', brief.ok === true, JSON.stringify(brief));
 const kb = (await api('/api/admin/clients/' + cland.id, A)).d.commandes[0], bj = JSON.parse(kb.brief_json || '[]');
 t('le brief est gardé : 4 réponses, fichiers et choix multiples', bj.length === 4 && bj[2].fichiers[0].nom === 'logo.png' && bj[3].texte === 'Femmes, 25-35 ans' && bj[1].texte === 'Offre 1\nOffre 2', kb.brief_json);
+// 30/10 : le brief rattrapé à la main par l'admin (n8n n'a pas prévenu le portail) : réponses et vraie heure d'envoi
+r = await api('/api/admin/commandes', A, 'POST', { client_id: cland.id, pack: 'growth', formule: 'unique' }); const kr = r.d.id || r.d.commande?.id;
+const envoiLe = Date.now() - 3600e3;
+r = await api('/api/admin/commandes/' + kr, A, 'PATCH', { dossier: 'LANDINGCO_10_bbbb', brief_le: envoiLe, questions: [{ name: 'Couleurs', type: 'ShortAnswer', value: '#0F172A' }, { name: 'Vide', value: null }] });
+let krr = (await api('/api/admin/clients/' + cland.id, A)).d.commandes.find(c => c.id === kr);
+t('brief rattrapé par l\'admin : en production, réponses gardées, heure de Fillout', r.s === 200 && krr.statut === 'production' && krr.brief_le === envoiLe && JSON.parse(krr.brief_json)[0].texte === '#0F172A', JSON.stringify(krr).slice(0, 220));
+r = await api('/api/admin/commandes/' + kr, A, 'PATCH', { brief_le: Date.now() + 864e5 });
+krr = (await api('/api/admin/clients/' + cland.id, A)).d.commandes.find(c => c.id === kr);
+t('… une heure dans le futur est refusée', krr.brief_le === envoiLe, krr.brief_le);
+r = await api('/api/admin/commandes/' + kr, '', 'PATCH', { questions: [{ name: 'x', value: 'y' }] }); t('… impossible sans être connecté en admin', [401, 403, 302].includes(r.s), r.s);
 // les variations de texte : 1 ou 2, sur toutes les créas
 r = await get('/payer/growth?options=variations:5');
 const LQ = Object.fromEntries(new URLSearchParams(lignesBrutes().pop() || ''));

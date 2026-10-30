@@ -1412,6 +1412,9 @@ async function apiAdmin(req, env, ctx, url, chemin, methode) {
       const maj = {};
       for (const x of ['dossier', 'statut', 'deadline', 'notes']) if (x in b) maj[x] = x === 'deadline' ? (b[x] === '' || b[x] == null ? null : Number(b[x])) : (propre(b[x], 2000) || null);
       if (env.PUSH_TEST && 'cree_le' in b) maj.cree_le = Number(b.cree_le);   // banc de test seulement : remonter le temps
+      // le brief rattrapé à la main (n8n n'a pas pu prévenir le portail) : ses réponses Fillout et son heure d'envoi
+      if (Array.isArray(b.questions)) { const rep = briefPropre(b.questions); if (rep.length) maj.brief_json = JSON.stringify(rep); }
+      if ('brief_le' in b && Number(b.brief_le) > 1.6e12 && Number(b.brief_le) <= maintenant() + 6e4) maj.brief_le = Math.round(Number(b.brief_le));
       if ('pack' in b || 'formule' in b || 'nb_creas' in b || 'prix' in b) {
         const pack = PACKS[b.pack] ? b.pack : k.pack, formule = ['unique', 'mensuel'].includes(b.formule) ? b.formule : k.formule;
         const p = prixPack(pack, formule, { nb_creas: 'nb_creas' in b ? b.nb_creas : k.nb_creas, prix: 'prix' in b ? b.prix : k.prix });
@@ -1424,6 +1427,7 @@ async function apiAdmin(req, env, ctx, url, chemin, methode) {
         await db.prepare("UPDATE commandes SET brief_le = COALESCE(brief_le, ?), statut = CASE WHEN statut = 'brief' THEN 'production' ELSE statut END WHERE id = ?").bind(maintenant(), k.id).run();
         await noter(db, k.client_id, k.id, 'brief', 'Brief reçu, production lancée');
       }
+      if (maj.brief_le) await db.prepare("UPDATE activite SET le = ? WHERE commande_id = ? AND type = 'brief'").bind(maj.brief_le, k.id).run();
       if ('statut' in b && b.statut !== k.statut) {
         const textes = { livre: 'Vos créatives sont livrées', revisions: 'Retouches en cours', valide: 'Projet validé', production: 'Production en cours' };
         if (textes[b.statut]) await noter(db, k.client_id, k.id, b.statut, textes[b.statut]);

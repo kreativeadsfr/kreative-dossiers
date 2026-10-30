@@ -1490,10 +1490,16 @@ async function envoie(code){
   if(PORTAIL){
     r=await fetch(ENVOI,{method:"POST",headers:{"Content-Type":"application/json"},credentials:"same-origin",body:JSON.stringify(charge)});
     if([401,403,404,405,503].includes(r.status)){
-      r=null;
-      const c=TEST?"":codeKreative();
-      if(!TEST&&!c)throw new Error("il faut le code Kreative pour envoyer la fiche");
-      charge.code=c;
+      /* 30/10 : plus jamais de fenetre qui demande le code. Un code deja garde dans ce
+         navigateur sert encore en secours ; sinon un message clair, et rien a taper. */
+      let garde="";try{garde=localStorage.getItem(CLE_CODE)||""}catch(e){}
+      if(!TEST&&!garde){
+        const e=new Error(r.status===401||r.status===403
+          ?"Ta session a expiré : reconnecte-toi au portail, puis renvoie la fiche (rien n'est perdu)."
+          :"Envoi pas encore possible : le portail n'a pas le code Kreative. Préviens Dario, puis renvoie la fiche (rien n'est perdu).");
+        e.bloque=true;throw e;
+      }
+      r=null;charge.code=garde;
     } else viaPortail=true;
   }
   if(!r)r=await fetch(WEBHOOK,{
@@ -1504,7 +1510,7 @@ async function envoie(code){
   if(r.status===413)throw new Error("envoi trop lourd pour le serveur (413) : retire quelques pieces et renvoie");
   if(r.status===409){
     let rep={};try{rep=await r.json()}catch(e){}
-    if(rep.code_invalide){if(viaPortail){const e=new Error("Envoi refusé : le code de la fiche réglé dans le portail n'est pas le bon. Préviens Kreative.");e.bloque=true;throw e;}oublieCode();const e=new Error("Code Kreative incorrect. Clique sur Envoyer et entre le bon code.");e.bloque=true;throw e;}
+    if(rep.code_invalide){if(viaPortail){const e=new Error("Envoi refusé : le code de la fiche réglé dans le portail n'est pas le bon. Préviens Kreative.");e.bloque=true;throw e;}oublieCode();const e=new Error(PORTAIL?"Envoi pas encore possible : le portail n'a pas le code Kreative. Préviens Dario, puis renvoie la fiche (rien n'est perdu).":"Code Kreative incorrect. Clique sur Envoyer et entre le bon code.");e.bloque=true;throw e;}
     const e=new Error(TEST&&rep.message?rep.message:rep.envois>=MAX_ENVOIS?MSG_BLOQUE:"Un envoi de cette fiche vient de partir. Attends quelques minutes, puis contacte Kreative si besoin.");e.bloque=true;e.envois=rep.envois;throw e;
   }
   if(!r.ok)throw new Error("le webhook a repondu "+r.status);

@@ -349,9 +349,31 @@ function briefAFaire(c) {
   return null;
 }
 const briefsAFaire = () => D.commandes.map(c => ({ c, b: briefAFaire(c) })).filter(x => x.b);
-const qr = rep => '<div class="brief-qr">' + rep.map(x => '<div class="qr"><div class="q">' + esc(x.q) + '</div><div class="r">' +
-  (x.fichiers ? '<div class="fics">' + x.fichiers.map(f => '<a href="' + esc(f.url) + '" target="_blank" rel="noopener">' + '<span class="vign">' + (/\.(png|jpe?g|webp|gif)(\?|$)/i.test(f.url + f.nom) ? '<img src="' + esc(f.url) + '" alt="" loading="lazy" onerror="this.remove()">' : '') + '</span><span>' + esc(f.nom) + '</span></a>').join('') + '</div>' : esc(x.texte)) +
-  '</div></div>').join('') + '</div>';
+// le brief du client, à relire : ses questions et ses réponses exactes, rangées par thème
+// (réponses courtes en grille, réponses longues en pleine largeur, fichiers en vignettes)
+const THEMES_BRIEF = [
+  ['Vos coordonnées', /nom et pr[ée]nom|votre nom|e-?mail|t[ée]l[ée]phone/i],
+  ['Votre entreprise', /entreprise|marque|secteur|site web|url/i],
+  ['Votre offre', /offre|produit|probl[èe]me|diff[ée]renci|concurren|prix/i],
+  ['Votre client', /client id[ée]al|freine|objectif|cible|audience/i],
+  ['Vos créatives', /promo|accroche|angle|r[ée]sultat|t[ée]moignage|preuve|ton |ton\b|tutoiement|vouvoiement|style de cr[ée]a|ads classiques|ugly/i],
+  ['Identité visuelle', /couleur|police|ambiance|identit[ée]|logo|visuel|photo|lifestyle|charte/i]
+];
+const reponse = x => x.fichiers ? '<div class="fics">' + x.fichiers.map(f => '<a href="' + esc(f.url) + '" target="_blank" rel="noopener"><span class="vign">' +
+    (/\.(png|jpe?g|webp|gif|svg)(\?|$)/i.test(f.url + ' ' + f.nom) ? '<img src="' + esc(f.url) + '" alt="" loading="lazy" onerror="this.remove()">' : '') + '</span><span>' + esc(f.nom) + '</span></a>').join('') + '</div>'
+  : /^#[0-9a-f]{3,8}(\s*,\s*#[0-9a-f]{3,8})*$/i.test(String(x.texte).trim())
+    ? '<div class="teintes">' + String(x.texte).split(',').map(c => '<span><i style="background:' + esc(c.trim()) + '"></i>' + esc(c.trim().toUpperCase()) + '</span>').join('') + '</div>'
+    : esc(x.texte);
+const qr = rep => {
+  const groupes = THEMES_BRIEF.map(([t]) => ({ t, l: [] })), autre = { t: 'Autres précisions', l: [] };
+  rep.forEach(x => { const k = THEMES_BRIEF.findIndex(([, re]) => re.test(x.q)); (k >= 0 ? groupes[k] : autre).l.push(x); });
+  const nFic = rep.reduce((n, x) => n + ((x.fichiers || []).length), 0);
+  return '<div class="brief-qr"><p class="brief-resume">' + rep.length + ' réponse' + (rep.length > 1 ? 's' : '') + (nFic ? ' · ' + nFic + ' fichier' + (nFic > 1 ? 's' : '') : '') + ', telles que vous les avez envoyées.</p>' +
+    groupes.concat([autre]).filter(g => g.l.length).map(g => '<section class="bq-groupe"><h4>' + esc(g.t) + '</h4><div class="bq-grille">' +
+      g.l.map(x => { const court = !!x.fichiers || (String(x.texte).length <= 70 && !/\n/.test(x.texte));
+        return '<div class="qr' + (court ? ' court' : '') + '"><div class="q">' + esc(x.q) + '</div><div class="r">' + reponse(x) + '</div></div>'; }).join('') +
+      '</div></section>').join('') + '</div>';
+};
 function ecranBrief(id) {
   let h = apercu();
   if (!D.commandes.length) return h + '<div class="ph"><div><h1>Mon brief</h1><p>Votre brief s\'ouvre dès votre première commande.</p></div></div><div class="card"><div class="vide">' + i.doc + 'Aucune commande pour l\'instant.</div></div>';
@@ -445,7 +467,8 @@ function ecranCommander() {
     return '<div class="card offre' + (hot ? ' hot' : '') + '">' + (hot ? '<span class="badge-hot">Le plus populaire</span>' : '') +
       '<div class="tete"><h3>Pack ' + esc(P.nom) + '</h3>' + (m ? '<span class="pill b">−15 %</span>' : '') + '</div>' +
       '<div class="prix">' + (m ? '<span class="barre-prix">' + P.unique + ' €</span>' : '') + '<span>' + prix + ' €</span>' + (m ? '<small>/ mois</small>' : '') + '</div>' +
-      '<div class="unit">' + Math.floor(prix / P.creas) + ' € la créative · ' + P.creas + ' créatives' + (m ? ' chaque mois' : '') + '</div>' +
+      // le prix par créative, comme sur le site : « 40 € / créative » (arrondi au-dessus pour l'abonnement : 760 / 24 = 32 €)
+      '<div class="unit">' + (m ? Math.ceil(prix / P.creas) : Math.floor(prix / P.creas)) + ' € / créative</div>' +
       '<a class="btn ' + (hot ? 'btn-p' : 'btn-d') + ' btn-bloc btn-lg" href="#/commander/' + k + '">Voir les options</a>' +
       '<ul>' + AVANTAGES[k].map(a => '<li class="' + (a[1] ? '' : 'off') + '">' + i.coche + '<span>' + esc(a[0]) + '</span></li>').join('') + '</ul></div>';
   }).join('') +

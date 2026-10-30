@@ -28,31 +28,78 @@
   K.estDemo = d => /^TEST_DEMO_/.test(String(d || ''));
 
   // ---------- télécharger une facture ----------
-  // La facture Stripe (PDF officiel) quand elle existe ; sinon un PDF fait ici avec ce qu'on sait
-  // (factures ajoutées à la main, ou de démonstration).
-  let jspdf = null;
+  // Une facture payée : un PDF fait ici, marqué « Payée » (le PDF de Stripe d'un paiement fait sur le site garde
+  // « à régler » et « Payer en ligne », car Stripe l'émet en « envoi de facture » au moment du paiement).
+  // Mêmes informations que la facture Stripe : numéro, dates, Kreative, client, ligne « Pack X » et son détail, mentions.
+  // Une facture pas encore payée : le PDF de Stripe s'il existe.
+  // o : { client, email, commande (numéro), projet, k (la commande, pour la ligne et son détail) }
+  let jspdf = null, logoPdf = null;
+  const NOMS_OPT = { express: 'Livraison express', ab_visuel: 'A/B test visuel', ab_texte: 'A/B test texte' };
+  const detailFacture = k => {
+    if (!k) return '';
+    const m = k.formule === 'mensuel', nb = k.nb_creas || 0;
+    const opts = String(k.options || '').split(',').map(x => x.trim()).filter(Boolean).map(x => {
+      const [id, q] = x.split(':'), n = Number(q) || 1;
+      if (id === 'variations') return (n > 1 ? n + ' variations' : '1 variation') + ' de texte (' + (n + 1) + ' textes par visuel)';
+      return NOMS_OPT[id] ? NOMS_OPT[id] + (q ? ' × ' + n : '') : '';
+    }).filter(Boolean);
+    return [nb + (k.pack === 'custom' ? ' créatives' : ' visuels statiques') + (m ? ' par mois' : ''), 'Livrés en 1:1, 4:5 et 9:16'].concat(opts).join(' • ');
+  };
   K.telechargerFacture = async (f, o) => {
-    if (f.pdf) { const a = document.createElement('a'); a.href = f.pdf; a.target = '_blank'; a.rel = 'noopener'; document.body.appendChild(a); a.click(); a.remove(); return; }
+    o = o || {};
+    const payee = f.statut === 'payee' || !!f.payee_le;
+    if (f.pdf && !payee) { const a = document.createElement('a'); a.href = f.pdf; a.target = '_blank'; a.rel = 'noopener'; document.body.appendChild(a); a.click(); a.remove(); return; }
     try {
       if (!window.jspdf) { if (!jspdf) jspdf = new Promise((ok, ko) => { const sc = document.createElement('script'); sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'; sc.onload = ok; sc.onerror = ko; document.head.appendChild(sc); }); await jspdf; }
-      const doc = new window.jspdf.jsPDF({ unit: 'mm', format: 'a4' }), e = t => String(t == null ? '' : t);
-      const euros = n => (Math.round((n || 0) * 100) / 100).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).replace(/ | /g, ' ') + ' EUR';
-      doc.setFont('helvetica', 'bold'); doc.setFontSize(22); doc.text('Kreative', 20, 28);
-      doc.setFontSize(16); doc.text('Facture ' + e(f.numero || ''), 190, 28, { align: 'right' });
-      doc.setFont('helvetica', 'normal'); doc.setFontSize(10); doc.setTextColor(110);
-      doc.text('Émise le ' + K.date(f.emise_le || Date.now()), 190, 35, { align: 'right' });
-      doc.text('Payée' + (f.payee_le ? ' le ' + K.date(f.payee_le) : ''), 190, 41, { align: 'right' });
-      if (o && o.commande && o.commande !== f.numero) doc.text('Commande n° ' + e(o.commande), 190, 47, { align: 'right' });
-      doc.setTextColor(0); doc.setFontSize(10); doc.text('Facturé à', 20, 60);
-      doc.setFont('helvetica', 'bold'); doc.setFontSize(12); doc.text(e((o && o.client) || f.marque || ''), 20, 67);
-      doc.setFont('helvetica', 'normal'); doc.setFontSize(10); if (o && o.email) doc.text(e(o.email), 20, 73);
-      doc.setDrawColor(220); doc.line(20, 90, 190, 90);
-      doc.setTextColor(110); doc.text('Description', 20, 97); doc.text('Montant TTC', 190, 97, { align: 'right' });
-      doc.line(20, 101, 190, 101); doc.setTextColor(0); doc.setFontSize(11);
-      doc.text(e((o && o.projet) || 'Créatives publicitaires Kreative'), 20, 110); doc.text(euros(f.montant), 190, 110, { align: 'right' });
-      doc.line(20, 118, 190, 118); doc.setFont('helvetica', 'bold'); doc.text('Total payé', 120, 128); doc.text(euros(f.montant), 190, 128, { align: 'right' });
-      doc.save('Facture-' + e(f.numero || 'Kreative').replace(/[^A-Za-z0-9-]+/g, '-') + '.pdf');
+      if (logoPdf === null) logoPdf = await fetch('/ui/logo-kreative-noir.png').then(r => r.ok ? r.blob() : null).then(b => b && new Promise(ok => { const l = new FileReader(); l.onload = () => ok(l.result); l.onerror = () => ok(''); l.readAsDataURL(b); })).catch(() => '') || '';
+      K.facturePdf(new window.jspdf.jsPDF({ unit: 'mm', format: 'a4' }), f, o, logoPdf).save('Facture-' + String(f.numero || 'Kreative').replace(/[^A-Za-z0-9-]+/g, '-') + '.pdf');
     } catch (err) { K.toast('La facture n\'a pas pu se préparer.'); }
+  };
+  // le dessin de la facture (séparé pour le banc de test)
+  K.facturePdf = (doc, f, o, logo) => {
+    o = o || {};
+    const e = t => String(t == null ? '' : t);
+    const euros = n => (Math.round((n || 0) * 100) / 100).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).replace(/[  ]/g, ' ') + ' €';
+    const jour = t => new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Paris' }).format(new Date(t));
+    const payee = f.statut === 'payee' || !!f.payee_le, k = o.k || null;
+    const titre = k ? (k.formule === 'mensuel' ? 'Abonnement ' : 'Pack ') + ({ starter: 'Starter', growth: 'Growth', scale: 'Scale', custom: 'Custom' }[k.pack] || k.pack) : (o.projet || 'Créatives publicitaires Kreative');
+    const detail = detailFacture(k), G = 20, D = 190, gris = () => doc.setTextColor(95), noir = () => doc.setTextColor(0);
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(22); noir(); doc.text('Facture', G, 30);
+    if (logo) { try { doc.addImage(logo, 'PNG', D - 46, 19, 46, 46 * 372 / 1311); } catch (x) { doc.text('kreative', D, 30, { align: 'right' }); } }
+    else doc.text('kreative', D, 30, { align: 'right' });
+    // numéro et dates
+    doc.setFontSize(10);
+    const lignes = [['Numéro de facture', f.numero || ''], ['Date d\'émission', jour(f.emise_le || Date.now())]];
+    if (payee) lignes.push(['Date de paiement', jour(f.payee_le || f.emise_le || Date.now())]);
+    if (o.commande && o.commande !== f.numero) lignes.push(['Commande', o.commande]);
+    lignes.forEach(([a, b], n) => { doc.setFont('helvetica', 'bold'); doc.text(a, G, 44 + n * 6); doc.setFont('helvetica', 'normal'); doc.text(e(b), G + 38, 44 + n * 6); });
+    // Kreative et le client
+    const y0 = 44 + lignes.length * 6 + 10;
+    doc.setFont('helvetica', 'bold'); doc.text('Kreative', G, y0); doc.text('Facturer à', 105, y0);
+    doc.setFont('helvetica', 'normal');
+    ['47 Rue Vivienne', '75002 Paris', 'France', 'contact@kreativeads.fr'].forEach((t, n) => doc.text(t, G, y0 + 6 + n * 5.5));
+    [o.client || f.marque || '', o.email || ''].filter(Boolean).forEach((t, n) => doc.text(e(t), 105, y0 + 6 + n * 5.5));
+    // le montant, payé
+    let y = y0 + 38;
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(15);
+    doc.text(payee ? euros(f.montant) + ' payés le ' + jour(f.payee_le || f.emise_le || Date.now()) : euros(f.montant) + ' à régler', G, y);
+    if (detail) { doc.setFont('helvetica', 'normal'); doc.setFontSize(10); const t = doc.splitTextToSize(detail, D - G); doc.text(t, G, y + 9); y += 9 + (t.length - 1) * 5; }
+    // la ligne
+    y += 16; doc.setFontSize(9); doc.setFont('helvetica', 'normal'); gris();
+    doc.text('Description', G, y); doc.text('Qté', 128, y, { align: 'right' }); doc.text('Prix unitaire', 158, y, { align: 'right' }); doc.text('Montant', D, y, { align: 'right' });
+    doc.setDrawColor(0); doc.setLineWidth(0.4); doc.line(G, y + 2.5, D, y + 2.5);
+    y += 9; noir(); doc.setFontSize(10.5);
+    doc.text(e(titre), G, y); doc.text('1', 128, y, { align: 'right' }); doc.text(euros(f.montant), 158, y, { align: 'right' }); doc.text(euros(f.montant), D, y, { align: 'right' });
+    // les totaux
+    y += 12; doc.setLineWidth(0.2); doc.setDrawColor(215);
+    const tot = [['Sous-total', euros(f.montant)], ['Total', euros(f.montant)], [payee ? 'Montant payé' : 'Montant dû', euros(f.montant)]];
+    if (payee) tot.push(['Reste à payer', euros(0)]);
+    tot.forEach(([a, b], n) => { const yy = y + n * 6.5; doc.line(118, yy - 4.5, D, yy - 4.5); doc.setFont('helvetica', n === 2 ? 'bold' : 'normal'); doc.text(a, 118, yy); doc.text(b, D, yy, { align: 'right' }); });
+    // mentions
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(9.5); noir();
+    doc.text('SIRET : 103 346 003 00017', G, 272); doc.text('TVA non applicable, art. 293 B du CGI', G, 277.5);
+    if (f.numero) { gris(); doc.setFontSize(8.5); doc.text(e(f.numero) + ' · ' + euros(f.montant) + (payee ? ' · payée' : ''), D, 277.5, { align: 'right' }); }
+    return doc;
   };
 
   // ---------- thème (clair par défaut, sombre au choix, retenu) ----------

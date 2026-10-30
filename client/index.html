@@ -423,7 +423,7 @@ document.addEventListener('click', e => {
   if (!b || !D) return;
   const f = (D.factures || []).find(x => x.id === b.dataset.fdl); if (!f) return;
   const c = D.commandes.find(x => x.id === f.commande_id);
-  K.telechargerFacture(f, { client: D.client.marque, email: D.client.email, commande: c ? c.ref : '', projet: c ? nom(c) + ' · ' + c.nb_creas + ' créatives' : '' });
+  K.telechargerFacture(f, { client: D.client.marque, email: D.client.email, commande: c ? c.ref : '', projet: c ? nom(c) + ' · ' + c.nb_creas + ' créatives' : '', k: c || null });
 });
 function ecranFactures() {
   const F = payees(D.factures);

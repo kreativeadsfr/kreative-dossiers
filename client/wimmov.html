@@ -364,10 +364,8 @@ document.addEventListener('click', e => {
   if (!b || !D) return;
   const f = (D.factures || []).find(x => x.id === b.dataset.fdl); if (!f) return;
   const c = D.commandes.find(x => x.id === f.commande_id);
-  // une facture payée s'ouvre sur la page Stripe qui affiche « Payée » (facture + reçu) : le PDF d'une facture
-  // d'abonnement garde « à régler », car Stripe l'émet une seconde avant de prélever la carte
-  if (f.lien && f.statut === 'payee') { const a = document.createElement('a'); a.href = f.lien; a.target = '_blank'; a.rel = 'noopener'; document.body.appendChild(a); a.click(); a.remove(); return; }
-  K.telechargerFacture(f, { client: D.client.marque, email: D.client.email, commande: c ? c.ref : '', projet: c ? nomCmd(c) : '' });
+  // une facture payée : le PDF fait par le portail, marqué « Payée » (voir K.telechargerFacture)
+  K.telechargerFacture(f, { client: D.client.marque, email: D.client.email, commande: c ? c.ref : '', projet: c ? nomCmd(c) : '', k: c || null });
 });
 
 // ---------- PARTAGER L'ACCÈS ----------

@@ -2,6 +2,12 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
+<script>
+/* 30/10 : l ancienne adresse GitHub (lien epingle sur Telegram) renvoie vers le portail, ou la fiche part
+   sans code Kreative a taper. Seul le mode test (recrutement, fiche/?test=...) reste ici. */
+(function(){var q=new URLSearchParams(location.search);if(/github\.io$/.test(location.hostname)&&!q.has("test")){
+var p=(q.get("projet")||"").replace(/[^A-Za-z0-9_]/g,"");location.replace("https://app.kreativeads.fr/strategiste/#/fiche"+(p?"/"+p:""));}})();
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Kreative</title>
 <link rel="icon" type="image/png" sizes="16x16" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABvklEQVR4nIWTP2sqURDFz+71b72QFA9s/QpaBAK2FkIIKWxtI9jZ5wME8xWEfIOAhWWwshBsg4VEtkiTRoN69/5e8daLGxfeKeeemTlz7owkCXgAPoAEcKSw1nI8HjmDSzkfwIPS5PtfBJIkIUkSMpnOZTgp7gV8nho65zId397eeH19ZbfbeUVpIZtSPkUOlssld3d3SEIS0+mUw+GQR0X/1Dmcc8RxzGAwoFKpIIkwDGm1WgA0m016vR6bzYYTH3A6SQNot9s+sVgsEgQBq9WK8Xjs1QyHQwA/qk6mAdze3mKMoVwuI4nHx0estURRRBiGRFHEer3mPCdToNVqIYkgCLi6umK/39Pv93330WiU6Q4QKgdBEOhwOOj7+1u1Ws3Hv76+/LvHuYKbmxuMMd7ETqcDQL1eJwxDqtUqi8XicoSTid1u18stlUpI4v39ndls5uNPT08XJvpv3G63PD8/c3197b2o1+v8/PzQ6/V4eXlhv99ntjJ3keI4pt/vY4xBEpPJJHeJAALgU9IfSYkkY61VoVCQJM3nc1lr1Wg0lCSJJMkYoxNX0ib3mJxz3pccZI/pf+f8q9DFOf8FW1jezor/knkAAAAASUVORK5CYII=">

@@ -799,7 +799,7 @@ function brancherTelechargements(F) {
     const f = F.find(x => x.id === b.dataset.fdl); if (!f) return;
     const k = (S.commandes || []).find(c => c.id === f.commande_id) || (FICHE && FICHE.commandes.find(c => c.id === f.commande_id));
     const cl = (S.clients || []).find(c => c.id === f.client_id) || (FICHE && FICHE.client);
-    K.telechargerFacture(f, { client: f.marque || (cl && cl.marque), email: cl && cl.email, projet: k ? K.nomCommande(k) + ' · ' + k.nb_creas + ' créatives' : '' });
+    K.telechargerFacture(f, { client: f.marque || (cl && cl.marque), email: cl && cl.email, projet: k ? K.nomCommande(k) + ' · ' + k.nb_creas + ' créatives' : '', k: k || null });
   });
 }
 function ecranFactures() {

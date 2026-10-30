@@ -63,4 +63,7 @@ t('… et l\'iPhone prend l\'icône noire', (await get('/app-icon-admin-apple.pn
 t('l\'app des clients garde ses icônes', mc.icons.every(i => !/admin/.test(i.src)));
 t('l\'app des clients ne change pas', mc.name === 'Kreative' && mc.start_url === '/client/?app=1' && mc.scope === '/client/', JSON.stringify(mc));
 t('l\'admin reste fermé sans connexion', [302, 303].includes((await get('/admin/')).status));
+// 30/10 : une facture payée ne renvoie plus au PDF Stripe (« à régler », « Payer en ligne ») mais à un PDF « payée » fait ici
+const appjs = await (await get('/ui/app.js', { headers: { Cookie: A } })).text();
+t('facture payée : PDF du portail marqué payée, pas le PDF Stripe', /if \(f\.pdf && !payee\)/.test(appjs) && /payés le/.test(appjs) && /Reste à payer/.test(appjs) && /TVA non applicable, art\. 293 B du CGI/.test(appjs));
 console.log('\n' + ok + ' ok, ' + ko + ' en échec');

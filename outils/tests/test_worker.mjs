@@ -8,6 +8,12 @@ r = await get('/projets.json'); t('JSON sans connexion → 401', r.status === 40
 r = await get('/TURNLY_10_bc5e/donnees.json'); t('donnees sans connexion → 401', r.status === 401, r.status);
 r = await get('/ui/kreative.css'); t('CSS public', r.status === 200, r.status);
 r = await get('/ui/logo-kreative-noir.png'); t('logo public', r.status === 200 && r.headers.get('content-type') === 'image/png', r.status);
+{ // v68 : les pages sont gardées par le Worker, GitHub n'est plus relu à chaque ouverture
+  const cpt = async () => (await (await fetch('http://127.0.0.1:9911/_compteur')).json()).raw || 0;
+  await (await get('/ui/app.css')).text(); const c0 = await cpt(); let ok3 = true;
+  for (let i = 0; i < 3; i++) { const x = await get('/ui/app.css'); ok3 = ok3 && x.status === 200 && (await x.text()).length > 1000; }
+  const c1 = await cpt(); t('app.css servi 3 fois sans relire GitHub (copie du Worker)', ok3 && c1 === c0, (c1 - c0) + ' lectures');
+  const x = await get('/ui/app.css'); t('copie identique au fichier', (await x.text()) === fs.readFileSync(R + 'ui/app.css', 'utf8'), ''); }
 r = await get('/_connexion?suite=/designer/'); let h = await r.text(); t('page de connexion en anglais pour le designer', h.includes('Sign in') && h.includes('class="k-marque"'), h.slice(0,80));
 r = await get('/_connexion?suite=/fiche/'); h = await r.text(); t('page de connexion en français', h.includes('Mot de passe'), '');
 r = await get('/_connexion?suite=//evil.com'); h = await r.text(); t('suite externe neutralisée', h.includes('name="suite" value="/"'), '');

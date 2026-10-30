@@ -209,7 +209,75 @@ function json(o, statut) {
 // ============================================================
 //  LIRE UN FICHIER DU DÉPÔT
 // ============================================================
-const CACHE_PAGES = new Map();
+// La copie des fichiers du dépôt gardée par le Worker (v68). GitHub met souvent près d'une seconde à
+// répondre : sans copie, chaque ouverture de page attendait GitHub pour la page, puis app.js, app.css,
+// projets.json, donnees.json... l'une après l'autre. Maintenant : une copie de moins de « frais » ms est
+// servie telle quelle ; plus vieille, elle est servie tout de suite et revérifiée en fond (GitHub répond
+// « rien n'a changé » sans compter dans le quota, grâce à l'ETag) ; trop vieille (« max »), on attend GitHub.
+// Une modification poussée sur main est donc vue à la 1re ouverture après ~20 s (au plus tard à la 2e).
+// Mémoire de l'isolat + cache Cloudflare du centre (partagé entre isolats). Jamais pour n8n (lecture brute).
+const COPIES = new Map();
+let DEPOT_TAILLE = 0;
+function depotReponse(e) {
+  if (e.flux) return new Response(e.flux.body, { status: 200, headers: { 'content-length': e.flux.headers.get('content-length') || '' } });
+  return new Response(e.s === 200 ? e.b.slice(0) : 'Introuvable', { status: e.s, headers: e.s === 200 ? { 'content-length': String(e.b.byteLength) } : {} });
+}
+function depotGarder(fichier, e) {
+  const ancien = COPIES.get(fichier);
+  if (ancien && ancien.b) DEPOT_TAILLE -= ancien.b.byteLength;
+  if (e.b && e.b.byteLength > 2e6) { COPIES.delete(fichier); return; }  // les gros fichiers : seulement dans le cache Cloudflare
+  if (COPIES.size > 600 || DEPOT_TAILLE > 40e6) { COPIES.clear(); DEPOT_TAILLE = 0; }
+  COPIES.set(fichier, e);
+  if (e.b) DEPOT_TAILLE += e.b.byteLength;
+}
+function depotCle(fichier) { return new Request('https://cache.kreative/depot/' + encodeURI(fichier)); }
+async function depotRelire(fichier, env, e) {
+  const api = (env.GITHUB_API || 'https://api.github.com').replace(/\/$/, '');
+  const encode = fichier.split('/').map(encodeURIComponent).join('/');
+  const h = { 'Authorization': 'Bearer ' + (env.GITHUB_TOKEN || ''), 'Accept': 'application/vnd.github.raw', 'User-Agent': 'kreative-espace', 'X-GitHub-Api-Version': '2022-11-28' };
+  if (e && e.etag) h['If-None-Match'] = e.etag;
+  const r = await fetch(api + '/repos/' + DEPOT + '/contents/' + encode + '?ref=' + BRANCHE, { headers: h });
+  const now = Date.now();
+  let n;
+  if (r.status === 304 && e) { if (r.body) r.body.cancel(); n = { ...e, lu: now }; }
+  else if (r.ok && Number(r.headers.get('content-length') || 0) > 20e6) return { s: 200, flux: r, lu: now };  // très gros fichier : servi sans copie
+  else if (r.ok) n = { s: 200, b: await r.arrayBuffer(), etag: r.headers.get('ETag') || '', lu: now };
+  else if (r.status === 404) { if (r.body) r.body.cancel(); n = { s: 404, lu: now }; }
+  else { if (r.body) r.body.cancel(); return e ? null : { s: r.status, lu: now, erreur: true }; }  // GitHub en panne : on garde la copie
+  depotGarder(fichier, n);
+  if (n.s === 200 && n.b.byteLength < 10e6) {
+    try {
+      await caches.default.put(depotCle(fichier), new Response(n.b.slice(0), { headers: { 'Cache-Control': 'max-age=86400', 'X-Lu': String(n.lu), 'X-Etag': n.etag } }));
+    } catch (x) {}
+  } else if (n.s === 404) { try { await caches.default.delete(depotCle(fichier)); } catch (x) {} }
+  return n;
+}
+const DEPOT_EN_COURS = new Map();
+function depotMaj(fichier, env, e) {
+  if (!e) return depotRelire(fichier, env, e).catch(() => null);   // première lecture : chacun la sienne (un très gros fichier ne se partage pas)
+  if (!DEPOT_EN_COURS.has(fichier)) DEPOT_EN_COURS.set(fichier, depotRelire(fichier, env, e).catch(() => null).finally(() => DEPOT_EN_COURS.delete(fichier)));
+  return DEPOT_EN_COURS.get(fichier);
+}
+async function lireDepot(fichier, env, ctx, frais, max) {
+  let e = COPIES.get(fichier);
+  if (!e) {
+    try {
+      const c = await caches.default.match(depotCle(fichier));
+      if (c) { e = { s: 200, b: await c.arrayBuffer(), etag: c.headers.get('X-Etag') || '', lu: Number(c.headers.get('X-Lu')) || 0 }; depotGarder(fichier, e); }
+    } catch (x) {}
+  }
+  const age = e ? Date.now() - e.lu : Infinity;
+  if (e && age < frais) return depotReponse(e);
+  if (e && age < max) {
+    const maj = depotMaj(fichier, env, e);
+    if (ctx && ctx.waitUntil) ctx.waitUntil(maj);
+    return depotReponse(e);
+  }
+  const n = await depotMaj(fichier, env, e);
+  if (n && !n.erreur) return depotReponse(n);
+  if (e) return depotReponse(e);
+  return new Response('GitHub ne répond pas', { status: (n && n.s) || 502 });
+}
 async function servir(chemin, env, ctx, o) {
   if (INTERDITS.test(chemin)) return texte('Introuvable', 404);
   let fichier = chemin;
@@ -227,33 +295,25 @@ async function servir(chemin, env, ctx, o) {
   }
 
   // un projet express : ses échéances raccourcies, pour toute l'équipe et pour n8n
-  if (derniere === 'donnees.json') { const rx = await servirDonneesExpress(fichier, env, o); if (rx) return rx; }
+  if (derniere === 'donnees.json') { const rx = await servirDonneesExpress(fichier, env, { ...o, ctx }); if (rx) return rx; }
   const ext = (derniere.match(/\.([A-Za-z0-9]{1,5})$/) || [])[1];
   const type = TYPES[(ext || '').toLowerCase()] || 'application/octet-stream';
   const estTexte = TEXTES.test(type);
 
-  // les fichiers lourds (images, polices...) : cache de 5 minutes
+  // n8n (lecture brute) : les fichiers lourds en cache 5 minutes, le reste lu sur GitHub à chaque fois
   const cache = caches.default;
-  const cleCache = new Request('https://cache.kreative/' + (o.brut ? 'b/' : 'p/') + encodeURI(fichier) + new URL(o.req.url).search);
-  if (!estTexte) {
+  const cleCache = new Request('https://cache.kreative/b/' + encodeURI(fichier) + new URL(o.req.url).search);
+  if (o.brut && !estTexte) {
     const vu = await cache.match(cleCache);
     if (vu) return vu;
   }
 
-  // les petits JSON lus par les pages de l'équipe (projets.json, donnees.json...) :
-  // 15 s en mémoire, pour ne pas relire GitHub à chaque ouverture de page
+  // les pages (portail, équipe, clients) : la copie gardée par le Worker, servie tout de suite et revérifiée
+  // en fond (lireDepot) ; les données JSON (projets.json, donnees.json...) revérifiées toutes les 15 s
   const jsonPage = !o.brut && /\.json$/i.test(fichier);
-  if (jsonPage) {
-    const vu = CACHE_PAGES.get(fichier);
-    if (vu && vu.fin > Date.now()) return new Response(vu.t, { status: vu.s, headers: { 'Content-Type': TYPES.json, 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex, nofollow' } });
-  }
-  const r = await lireGithub(fichier, env, 'GET');
+  const r = o.brut ? await lireGithub(fichier, env, 'GET') : await lireDepot(fichier, env, ctx, jsonPage ? 15000 : 20000, jsonPage ? 6e5 : 864e5);
   if (jsonPage && (r.ok || r.status === 404)) {
     const t = r.ok ? remplacer(await r.text(), o.origine + '/') : 'Introuvable';
-    if (t.length < 300000) {                       // les gros fichiers ne restent pas en mémoire
-      if (CACHE_PAGES.size > 400) CACHE_PAGES.clear();
-      CACHE_PAGES.set(fichier, { t, s: r.ok ? 200 : 404, fin: Date.now() + 15000 });
-    }
     return new Response(t, { status: r.ok ? 200 : 404, headers: { 'Content-Type': r.ok ? TYPES.json : 'text/plain; charset=utf-8', 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex, nofollow' } });
   }
   if (r.status === 404) {
@@ -276,7 +336,7 @@ async function servir(chemin, env, ctx, o) {
 
   if (!estTexte) {
     const rep = new Response(r.body, { status: 200, headers: entetes });
-    if (ctx && ctx.waitUntil) ctx.waitUntil(cache.put(cleCache, rep.clone()));
+    if (o.brut && ctx && ctx.waitUntil) ctx.waitUntil(cache.put(cleCache, rep.clone()));
     return rep;
   }
   if (o.brut) return new Response(r.body, { status: 200, headers: entetes });
@@ -776,7 +836,7 @@ async function servirDonneesExpress(fichier, env, o) {
   if (!m) return null;
   const k = await commandeExpress(env, m[1]);
   if (!k) return null;
-  const r = await lireGithub(fichier, env, 'GET');
+  const r = o.brut ? await lireGithub(fichier, env, 'GET') : await lireDepot(fichier, env, o.ctx, 15000, 6e5);
   if (!r.ok) return null;
   let d; try { d = JSON.parse(await r.text()); } catch (e) { return null; }
   let t = JSON.stringify(k.pack === 'custom' ? await calerCustom(env, d, k, m[1]) : accelererDonnees(d, k.pack));

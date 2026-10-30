@@ -1,8 +1,12 @@
-import http from 'node:http'; import fs from 'node:fs'; import path from 'node:path';
+import http from 'node:http'; import fs from 'node:fs'; import path from 'node:path'; import crypto from 'node:crypto';
+const require_hash = b => crypto.createHash('sha1').update(b).digest('hex');
 const RACINE = process.argv[2], PORT = Number(process.argv[3] || 9911), JETON = 'jeton-test';
 export const compteur = { n: 0 };
-http.createServer((req, res) => {
+http.createServer(async (req, res) => {
+  // LATENCE_GITHUB=800 : simule un GitHub lent (mesure de la copie gardée par le Worker)
+  if (process.env.LATENCE_GITHUB && req.url.includes('/contents/')) await new Promise(ok => setTimeout(ok, Number(process.env.LATENCE_GITHUB)));
   const u = new URL(req.url, 'http://x');
+  if (u.pathname === '/_compteur') { res.writeHead(200, {'content-type':'application/json'}); return res.end(JSON.stringify(compteur)); }
   if (u.pathname.startsWith('/push/')) { fs.appendFileSync('push.log', JSON.stringify({ chemin: u.pathname, auth: req.headers.authorization, ttl: req.headers.ttl }) + '\n'); res.writeHead(u.pathname.includes('perime') ? 410 : 201); return res.end(); }
   if (u.pathname === '/n8n-livraison') { let b=''; req.on('data', c => b += c); req.on('end', () => { fs.appendFileSync('livraison.log', b + '\n'); res.writeHead(200,{'content-type':'application/json'}); res.end('{"ok":true}'); }); return; }
   if (u.pathname === '/n8n-fiche') { let b=''; req.on('data', c => b += c); req.on('end', () => { const j = JSON.parse(b || '{}'); res.writeHead(j.code === 'code-fiche-test' ? 200 : 409, {'content-type':'application/json'}); if (j.code !== 'code-fiche-test') return res.end('{"code_invalide":true}'); fs.appendFileSync('fiche.log', b + '\n'); res.end('{"ok":true,"envoi":1}'); }); return; }
@@ -70,7 +74,10 @@ http.createServer((req, res) => {
     const rel = decodeURIComponent(m[1]); const OV = process.argv[4]; let f = path.join(RACINE, rel); if (OV && rel && fs.existsSync(path.join(OV, rel)) && fs.statSync(path.join(OV, rel)).isFile()) f = path.join(OV, rel);
     if ((!f.startsWith(RACINE) && !(process.argv[4] && f.startsWith(process.argv[4]))) || !fs.existsSync(f)) { res.writeHead(404); return res.end('{"message":"Not Found"}'); }
     if (fs.statSync(f).isDirectory()) { res.writeHead(200, {'content-type':'application/json'}); return res.end(JSON.stringify(fs.readdirSync(f).map(n=>({name:n,type:fs.statSync(path.join(f,n)).isDirectory()?'dir':'file'})))); }
-    if ((req.headers.accept||'').includes('raw')) { const b = fs.readFileSync(f); res.writeHead(200, {'content-type':'application/vnd.github.raw', 'content-length': b.length}); return res.end(b); }
+    if ((req.headers.accept||'').includes('raw')) { const b = fs.readFileSync(f); const etag = '"' + require_hash(b) + '"';
+      compteur.raw = (compteur.raw || 0) + 1;
+      if (req.headers['if-none-match'] === etag) { compteur.r304 = (compteur.r304 || 0) + 1; res.writeHead(304, { etag }); return res.end(); }
+      res.writeHead(200, {'content-type':'application/vnd.github.raw', 'content-length': b.length, etag}); return res.end(b); }
     res.writeHead(200, {'content-type':'application/json'}); return res.end(JSON.stringify({ sha: 'sha-'+rel, content: fs.readFileSync(f).toString('base64') }));
   }
   if (u.pathname === '/repos/kreativeadsfr/kreative-dossiers/git/ref/heads/main') { res.writeHead(200,{'content-type':'application/json'}); return res.end('{"object":{"sha":"abc123"}}'); }

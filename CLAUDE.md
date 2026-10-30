@@ -112,6 +112,7 @@ Ce fichier est lu automatiquement par Claude quand il ouvre ce dépôt. Il conti
 - Framer « Embed » = iframe à hauteur fixe → contenu coupé ou défilement coincé sur téléphone. Solution retenue : composant de code PanierKreative à hauteur automatique.
 - Menu mobile : il se ferme par un voile cliquable, pas par un écouteur « une seule fois ».
 - Un paiement test avec un email déjà client va dans ce compte et n'envoie pas d'email d'accès.
+- 30/10/2026 : le brief de Devlynx n'a pas relié sa commande (restée « brief attendu ») : dans les 4 workflows de brief, le nœud « Prévenir le portail » avait un JSON Body commençant par `=={{` au lieu de `={{` (« not valid JSON »), erreur ignorée en silence (`continueRegularOutput`). Commande reliée à la main dans l'admin (menu « Dossier de production »). Si une commande reste « brief attendu » alors que le dossier existe : vérifier ce nœud dans l'exécution n8n.
 - Synchronisation : admin, stratégiste et designer lisent la même liste (`projets.json` + `/api/equipe/etats`, `K.prod`), relue toutes les 20 s, nouveaux projets compris ; l'espace client relit `/api/client/moi` toutes les 30 s. Une version de livraison de test se supprime dans l'admin (corbeille sur la page de la livraison).
 
 ## 11. Ouvert / à décider

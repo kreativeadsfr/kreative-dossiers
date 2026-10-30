@@ -65,30 +65,33 @@
     opts.filter(x => x.type === 'fixe').forEach(x => { const v = PN.prixOpt(x, c.pack, nb); lignes.push([x.nom, v]); base += v; });
     return { lignes, total: Math.round(base), nb, unitaire: u };
   };
-  // le délai de livraison après le brief : celui du pack, ou selon le volume pour le Custom ; l'express le divise par deux
-  PN.delai = () => {
-    const c = C(), d = D();
-    let h = c.pack === 'custom' ? (d.custom.delais.find(x => c.nb <= x[0]) || d.custom.delais[d.custom.delais.length - 1])[1] : d.packs[c.pack].delai;
-    if (c.options.includes('express')) h = PN.heuresExpress(c.pack, h);
-    return PN.duree(h);
-  };
-  // 36 h, 84 h, 4 jours, 7 jours
-  PN.duree = h => h > 72 && h % 24 === 0 ? h / 24 + ' jours' : h + ' h';
-  // l'express : Starter et Growth en 24 h, Scale en 48 h, Custom : la moitié du délai de chaque livraison
-  PN.heuresExpress = (pack, h) => { const o = D().options.find(x => x.id === 'express'), f = o && o.heures && o.heures[pack]; return f != null ? f : Math.round(h / 2); };
+  // Le Custom (30/10/2026) : livré en 1, 2 ou 4 fois ; le délai dépend de la taille de CHAQUE livraison
+  // (jusqu'à 12 créas : 48 h, jusqu'à 25 : 72 h, jusqu'à 30 : 4 jours). Le calendrier part de la 1re livraison,
+  // puis tous les 15 jours (2 fois) ou chaque semaine (4 fois). L'express ne porte que sur la 1re livraison (délai divisé par deux).
+  const DELAIS_LOT = [[12, 48], [25, 72], [30, 96]];
   PN.lots = nb => { const L = (D().custom && D().custom.lots) || [[30, 1], [55, 2], [100, 4]]; return (L.find(x => nb <= x[0]) || L[L.length - 1])[1]; };
+  const delaiLot = t => { const L = (D().custom && D().custom.delais_lot) || DELAIS_LOT; return (L.find(x => t <= x[0]) || L[L.length - 1])[1]; };
+  // le délai de la 1re livraison (ou du pack), sans l'express
+  PN.heures = () => { const c = C(), d = D(); if (c.pack !== 'custom') return d.packs[c.pack].delai; const sur = PN.lots(c.nb); return delaiLot(Math.floor(c.nb / sur) + (c.nb % sur ? 1 : 0)); };
+  // en heures jusqu'à 72 h, en jours au-delà : 36 h, 48 h, 72 h, 4 jours
+  PN.duree = h => h > 72 && h % 24 === 0 ? h / 24 + ' jours' : h + ' h';
+  // l'express : Starter et Growth en 24 h, Scale en 48 h, Custom : la 1re livraison en la moitié du temps
+  PN.heuresExpress = (pack, h) => { const o = D().options.find(x => x.id === 'express'), f = o && o.heures && o.heures[pack]; return f != null ? f : Math.round(h / 2); };
+  PN.delai = () => { const c = C(), h = PN.heures(); return PN.duree(c.options.includes('express') ? PN.heuresExpress(c.pack, h) : h); };
   // le texte de l'option express, avec le vrai délai du pack choisi
-  PN.detailExpress = () => {
-    const c = C(), d = D();
-    const h = c.pack === 'custom' ? (d.custom.delais.find(x => c.nb <= x[0]) || d.custom.delais[d.custom.delais.length - 1])[1] : d.packs[c.pack].delai;
-    const t = PN.duree(PN.heuresExpress(c.pack, h));
-    return c.pack === 'custom' && PN.lots(c.nb) > 1 ? 'Chaque livraison en ' + t : 'Livrée en ' + t;
-  };
-  // le Custom est livré en plusieurs fois au-delà de 30 créas (comme n8n le découpe) : le délai vaut pour chaque livraison
+  PN.detailExpress = () => { const c = C(), t = PN.duree(PN.heuresExpress(c.pack, PN.heures())); return c.pack === 'custom' && PN.lots(c.nb) > 1 ? '1re livraison en ' + t : 'Livrée en ' + t; };
   PN.texteDelai = nb => {
     const lots = C().pack !== 'custom' ? 1 : PN.lots(nb);
     return lots === 1 ? 'Livrée en ' + PN.delai() + ' après votre brief'
-      : 'Livrée en ' + lots + ' fois, ' + (lots === 2 ? 'à 15 jours d\'intervalle' : 'une par semaine') + ' : chaque livraison en ' + PN.delai();
+      : 'Livré en ' + lots + ' fois : 1re livraison en ' + PN.delai() + ' après votre brief, ' + (lots === 2 ? 'la 2e 15 jours plus tard' : 'puis une chaque semaine');
+  };
+  // le prix d'une créative, sans les options (elles ne changent pas le prix de la créative) ;
+  // l'abonnement arrondi au-dessus (760 / 24 = 32 €), la commande unique au-dessous, comme sur le site (280 / 6 = 46 €)
+  PN.prixCrea = () => {
+    const c = C(), d = D(), m = c.formule === 'mensuel';
+    if (c.pack !== 'custom') { const P = d.packs[c.pack], b = m ? P.mensuel : P.unique; return m ? Math.ceil(b / P.creas) : Math.floor(b / P.creas); }
+    const u = d.custom.paliers.filter(x => c.nb >= x[0]).pop()[1];
+    return m ? Math.ceil(u * (1 - d.custom.remise_mensuel)) : u;
   };
   PN.corps = () => {
     const c = C(), P = D().packs[c.pack], noms = D().options.filter(o => c.options.includes(o.id)).map(o => estVar(o) ? PN.nomVar(PN.qte(o.id)) : o.nom + (o.type === 'par_crea' ? ' × ' + PN.qte(o.id) : ''));
@@ -137,7 +140,7 @@
       '<p class="muted" style="font-size:13px;margin-top:3px">' + (m ? 'Abonnement mensuel' : 'Commande unique') + '</p>' +
       '<div style="margin-top:14px">' + d.lignes.map(l => '<div class="ligne"><span>' + esc(l[0]) + '</span><b>' + (l[1] < 0 ? '−' : '') + K.euros(Math.abs(Math.round(l[1]))) + '</b></div>').join('') + '</div>' +
       '<div class="total"><span class="muted">Total' + (m ? ' par mois' : '') + '</span><b>' + K.euros(d.total) + '</b></div>' +
-      '<div class="unitaire">' + K.euros(Math.floor(d.total / d.nb)) + ' <span>la créative</span></div>' +
+      '<div class="unitaire">' + K.euros(PN.prixCrea()) + ' <span>la créative</span></div>' +
       '<div class="delai">' + i.horloge + esc(PN.texteDelai(d.nb)) + '</div>' +
       '<a class="btn btn-d btn-bloc btn-lg" id="cf-payer" href="#" target="_blank" rel="noopener">' + esc((o.bouton && o.bouton.texte) || 'Commander') + '</a>' +
       '<p class="confiance petit"><span>' + i.cadenas + 'Paiement sécurisé par Stripe</span></p>';

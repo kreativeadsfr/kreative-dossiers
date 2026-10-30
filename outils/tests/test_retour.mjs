@@ -18,10 +18,12 @@ let moi = (await api('/api/client/moi', CK)).d, k = moi.commandes[0];
 t('pas de brief suivant avant la livraison 1', !k.brief_suivant, JSON.stringify(k.brief_suivant));
 r = await api('/api/equipe/livraisons', DE, 'POST', { dossier: 'SPLIT_10_aaaa_L1' }); const v1 = r.d; await deposer(v1.id, 'S_01.png', '1x1');
 await api('/api/equipe/livraisons/' + v1.id + '/envoyer', DE, 'POST', {}); await api('/api/equipe/livraisons/' + v1.id + '/decision', A, 'POST', { action: 'envoyer' });
+const t1 = Date.now();
 moi = (await api('/api/client/moi', CK)).d; k = moi.commandes[0];
-// 40 créas = 2 livraisons, une période de 15 jours chacune : le brief de la 2 est demandé la veille de J+15, à part
-const prevu2 = k.cree_le + 14 * 864e5;
-t('livraison 1 chez le client : le brief de la 2 n\'est pas encore demandé, il est annoncé pour J+14', !k.brief_suivant && k.brief_prochain && k.brief_prochain.n === 2 && k.brief_prochain.sur === 2 && Math.abs(k.brief_prochain.le - prevu2) < 1000, JSON.stringify([k.brief_suivant, k.brief_prochain]));
+// 30/10/2026 : 40 créas = 2 livraisons de 20 (72 h chacune) ; la 2e arrive 15 jours après la réception de la 1re,
+// l'équipe la démarre 72 h avant : le brief de la 2 est demandé la veille, soit 11 jours après la livraison 1, à part
+const prevu2 = t1 + 11 * 864e5;
+t('livraison 1 chez le client : le brief de la 2 n\'est pas encore demandé, il est annoncé 11 jours après la livraison 1', !k.brief_suivant && k.brief_prochain && k.brief_prochain.n === 2 && k.brief_prochain.sur === 2 && Math.abs(k.brief_prochain.le - prevu2) < 5000, JSON.stringify([k.brief_suivant, k.brief_prochain]));
 let nq = (await api('/api/client/notifications/derniere', CK)).d;
 t('… notification « Livraison 1 sur 2 disponible », sans parler du brief', nq.titre === 'Livraison 1 sur 2 disponible' && nq.texte === 'Les créatives de votre livraison 1 sont disponibles dans votre espace Kreative.', JSON.stringify(nq));
 const rappels = a => n8n('rappels', { a });
@@ -32,7 +34,11 @@ t('à sa date : notification « Votre brief pour la livraison 2 » vers Mon brie
 const ml = fs.readFileSync('emails.log', 'utf8').trim().split('\n').filter(Boolean).slice(mails0).map(l => JSON.parse(l).corps);
 t('… et l\'email « Remplir mon brief »', ml.length === 1 && ml[0].sujet === 'Splitco · Votre brief pour la livraison 2' && /Faites-nous part de vos retours pour lancer la prochaine livraison/.test(ml[0].html) && /Remplir mon brief/.test(ml[0].html), JSON.stringify(ml.map(x => x.sujet)));
 r = await rappels(prevu2 + 120000); t('… une seule fois', r.envoyes === 0, JSON.stringify(r));
-await api('/api/admin/commandes/' + kid, A, 'PATCH', { cree_le: Date.now() - 15 * 864e5 });
+await api('/api/admin/commandes/' + kid, A, 'PATCH', { decaler_livraisons: 12 * 864e5 });
+// le calendrier servi à l'équipe (fiche, rappels n8n) : la livraison 2 tombe 15 jours après la RÉCEPTION de la 1re, en 72 h
+const dL2 = await (await get('/SPLIT_10_aaaa_L2/donnees.json', { headers: { Cookie: A } })).json(), finL2 = Date.parse(dL2.deadline);
+t('livraison 2 : 15 jours après la réception de la livraison 1, préparée en 72 h', Math.abs(finL2 - (t1 - 12 * 864e5 + 15 * 864e5)) < 5000 && dL2.calendrier && dL2.calendrier.n === 2 && dL2.calendrier.heures === 72
+  && Math.abs(Date.parse(dL2.deadline_designer) - (finL2 - 8 * 36e5)) < 1000 && Math.abs(Date.parse(dL2.deadline_strategiste) - (finL2 - 72 * 36e5 + 24 * 36e5)) < 1000, JSON.stringify([dL2.deadline, dL2.calendrier, dL2.deadline_strategiste]));
 moi = (await api('/api/client/moi', CK)).d; k = moi.commandes[0];
 t('à sa date, le formulaire de la livraison 2 s\'ouvre dans l\'espace', k.brief_suivant && k.brief_suivant.n === 2 && k.brief_suivant.dossier === 'SPLIT_10_aaaa_L1' && !k.brief_prochain, JSON.stringify(k.brief_suivant));
 r = await n8n('retour', { dossier: 'SPLIT_10_aaaa_L1', client: cid, questions: [{ name: 'Les créas qui ont le mieux marché', value: 'La 3 et la 7' }, { name: 'Répartition', value: '60 % dérivés' }] });
@@ -63,8 +69,9 @@ for (let n = 1; n <= 3; n++) {
   const nq = (await api('/api/client/notifications/derniere', QK)).d;
   // chaque semaine : le brief de la livraison suivante n'est jamais envoyé avec la livraison, mais la veille de la semaine suivante
   t('livraison ' + n + '/4 : message de livraison seul, brief de la ' + (n + 1) + ' pas encore demandé', !qk.brief_suivant && qk.brief_prochain && qk.brief_prochain.n === n + 1 && nq.titre === 'Livraison ' + n + ' sur 4 disponible' && nq.texte === 'Les créatives de votre livraison ' + n + ' sont disponibles dans votre espace Kreative.', JSON.stringify([qk.brief_prochain, nq]));
-  t('… prévu la veille de J+' + (n * 7), Math.abs(qk.brief_prochain.le - (qk.cree_le + (n * 7 - 1) * 864e5)) < 1000 || qk.brief_prochain.le > Date.now(), qk.brief_prochain.le);
-  await api('/api/admin/commandes/' + q1.id, A, 'PATCH', { cree_le: Date.now() - n * 7 * 864e5 });
+  // la livraison n+1 arrive n semaines après la livraison 1, démarrée 72 h avant : brief demandé la veille, plus tard
+  t('… prévu plus tard, la veille du début de la livraison ' + (n + 1), qk.brief_prochain.le > Date.now() + 864e5, qk.brief_prochain.le);
+  await api('/api/admin/commandes/' + q1.id, A, 'PATCH', { decaler_livraisons: 7 * 864e5 });
   const rr = await n8n('rappels', { a: Date.now() + 40 * 864e5 }); qk = await etatQ();
   t('… le jour venu : un message à part « Votre brief pour la livraison ' + (n + 1) + ' », formulaire ouvert', rr.envoyes === 1 && (await api('/api/client/notifications/derniere', QK)).d.titre === 'Votre brief pour la livraison ' + (n + 1) && qk.brief_suivant && qk.brief_suivant.n === n + 1, JSON.stringify([rr, qk.brief_suivant]));
   r = await n8n('retour', { dossier: 'QUAD_10_bbbb_L' + n, client: qid, questions: [{ name: 'Pour la suite', value: 'Retour ' + n }] });
@@ -77,4 +84,20 @@ await new Promise(z => setTimeout(z, 20));
 r = await api('/api/admin/commandes', A, 'POST', { client_id: qid, pack: 'custom', formule: 'mensuel', nb_creas: 80 }); const q2 = r.d;
 const km = (await api('/api/client/moi', QK)).d.commandes.find(x => x.id === q2.id);
 t('mois suivant : formulaire de retour du mois (pas le brief complet)', !!(km && km.brief_mois && km.brief_mois.dossier), JSON.stringify(km && km.brief_mois));
+// ---- 30/10/2026 : le délai du Custom dépend de la taille de chaque livraison, l'express ne porte que sur la 1re ----
+const offres = await (await get('/api/offres')).json();
+t('offres : délais par taille de livraison (12 → 48 h, 25 → 72 h, 30 → 4 jours)', JSON.stringify(offres.custom.delais_lot) === '[[12,48],[25,72],[30,96]]', JSON.stringify(offres.custom.delais_lot));
+r = await api('/api/admin/clients', A, 'POST', { marque: 'Delaico', email: 'delai@co.fr' }); const did = r.d.id; const DK = cookie(await get(new URL(r.d.lien).pathname));
+const echeance = async (nb, options) => {
+  const k = (await api('/api/admin/commandes', A, 'POST', { client_id: did, pack: 'custom', formule: 'unique', nb_creas: nb })).d;
+  if (options) await api('/api/admin/commandes/' + k.id, A, 'PATCH', { notes: '' });
+  const brief = Date.now() - 1000;
+  await api('/api/admin/commandes/' + k.id, A, 'PATCH', { dossier: 'DELAI_' + nb + '_' + (options ? 'x' : 'n'), brief_le: brief });
+  const c = (await api('/api/client/moi', DK)).d.commandes.find(x => x.id === k.id);
+  return Math.round((c.deadline - brief) / 36e5);
+};
+t('Custom 30 créas : 1 livraison de 30, en 4 jours', await echeance(30) === 96);
+t('Custom 40 créas : 2 livraisons de 20, la 1re en 72 h', await echeance(40) === 72);
+t('Custom 55 créas : 2 livraisons de 28 et 27, la 1re en 4 jours', await echeance(55) === 96);
+t('Custom 100 créas : 4 livraisons de 25, la 1re en 72 h', await echeance(100) === 72);
 console.log('\n' + ok + ' ok, ' + ko + ' en échec');

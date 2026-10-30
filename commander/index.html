@@ -108,7 +108,7 @@ html{scrollbar-width:none;overscroll-behavior:auto}html::-webkit-scrollbar{displ
   var APP = 'https://app.kreativeads.fr', pack = racine.getAttribute('data-pack') || 'growth';
   // les prix du portail (gardés ici aussi, au cas où le portail ne répond pas)
   var D = { packs: { starter: { nom: 'Starter', creas: 6, unique: 280, delai: 48 }, growth: { nom: 'Growth', creas: 12, unique: 490, delai: 48 }, scale: { nom: 'Scale', creas: 24, unique: 890, delai: 72 }, custom: { nom: 'Custom', creas: 30, delai: 72 } },
-    custom: { min: 30, max: 100, pas: 5, delais: [[30, 72], [50, 96], [70, 120], [100, 168]], lots: [[30, 1], [55, 2], [100, 4]], paliers: [[30, 35], [50, 32], [75, 29]] },
+    custom: { min: 30, max: 100, pas: 5, delais_lot: [[12, 48], [25, 72], [30, 96]], lots: [[30, 1], [55, 2], [100, 4]], paliers: [[30, 35], [50, 32], [75, 29]] },
     options: [{ id: 'express', nom: 'Livraison express', detail: 'Livrée 2 fois plus vite', heures: { starter: 24, growth: 24, scale: 48 }, type: 'fixe', valeur: 390, par_pack: { starter: 90, growth: 190, scale: 290, custom: 390 }, par_volume: { custom: [[70, 490]] } },
       { id: 'variations', nom: 'Variations de texte', detail: 'Le même visuel avec 2 ou 3 textes, sur chaque créa', type: 'variations', valeur: 15, prix: [15, 10], max: 2 }] };
   var INCLUS = { starter: ['6 visuels Ads', 'Tous les formats Meta', '2 cycles de révisions', 'Livraison en 48 h', 'Contact WhatsApp inclus'],
@@ -140,24 +140,25 @@ html{scrollbar-width:none;overscroll-behavior:auto}html::-webkit-scrollbar{displ
     normaliser();
     var P = D.packs[pack], n = nb(), u, base, lignes = [];
     if (pack === 'custom') { u = D.custom.paliers.filter(function (x) { return n >= x[0]; }).pop()[1]; base = n * u; lignes.push([n + ' créatives × ' + u + '€', base]); }
-    else { base = P.unique; u = Math.round(base / n); lignes.push([n + ' créatives', base]); }
+    else { base = P.unique; u = Math.floor(base / n); lignes.push([n + ' créatives', base]); }
     D.options.forEach(function (o) {
       if (C.options.indexOf(o.id) < 0) return;
       if (estVar(o)) { var qv = qVar(o), pc = pcVar(o, qv); lignes.push([nomVar(qv) + ' · ' + n + ' × ' + pc + '€', n * pc]); base += n * pc; return; }
       var v = o.type === 'par_crea' ? C.qte[o.id] * o.valeur : prixFixe(o, n);
       lignes.push([o.nom + (o.type === 'par_crea' ? ' · ' + C.qte[o.id] + ' × ' + o.valeur + '€' : ''), v]); base += v;
     });
-    return { lignes: lignes, total: Math.round(base), n: n };
+    return { lignes: lignes, total: Math.round(base), n: n, u: u };
   }
   // l'express : Starter et Growth en 24 h, Scale en 48 h, Custom : la moitié du délai de chaque livraison
-  function heuresBase() { return pack === 'custom' ? (D.custom.delais.filter(function (x) { return C.nb <= x[0]; })[0] || D.custom.delais[D.custom.delais.length - 1])[1] : D.packs[pack].delai; }
+  // le Custom (30/10/2026) : le délai dépend de la taille de chaque livraison ; l'express ne porte que sur la 1re
+  function lots(n) { var L = (D.custom && D.custom.lots) || [[30, 1], [55, 2], [100, 4]]; return (L.filter(function (x) { return n <= x[0]; })[0] || L[L.length - 1])[1]; }
+  function delaiLot(t) { var L = (D.custom && D.custom.delais_lot) || [[12, 48], [25, 72], [30, 96]]; return (L.filter(function (x) { return t <= x[0]; })[0] || L[L.length - 1])[1]; }
+  function heuresBase() { if (pack !== 'custom') return D.packs[pack].delai; var s = lots(C.nb); return delaiLot(Math.floor(C.nb / s) + (C.nb % s ? 1 : 0)); }
   function heuresExpress(h) { var o = D.options.filter(function (x) { return x.id === 'express'; })[0], f = o && o.heures && o.heures[pack]; return f != null ? f : Math.round(h / 2); }
   function duree(h) { return h > 72 && h % 24 === 0 ? h / 24 + ' jours' : h + ' h'; }
-  function lots(n) { var L = (D.custom && D.custom.lots) || [[30, 1], [55, 2], [100, 4]]; return (L.filter(function (x) { return n <= x[0]; })[0] || L[L.length - 1])[1]; }
   function delai() { var h = heuresBase(); if (C.options.indexOf('express') >= 0) h = heuresExpress(h); return duree(h); }
-  function detailExpress() { var t = duree(heuresExpress(heuresBase())); return pack === 'custom' && lots(C.nb) > 1 ? 'Chaque livraison en ' + t : 'Livrée en ' + t; }
-  // le Custom est livré en plusieurs fois au-delà de 30 créas : le délai vaut pour chaque livraison
-  function texteDelai(n) { var nl = pack !== 'custom' ? 1 : lots(n); return nl === 1 ? 'Livrée en ' + delai() + ' après votre brief' : 'Livrée en ' + nl + ' fois, ' + (nl === 2 ? 'à 15 jours d\'intervalle' : 'une par semaine') + ' : chaque livraison en ' + delai(); }
+  function detailExpress() { var t = duree(heuresExpress(heuresBase())); return pack === 'custom' && lots(C.nb) > 1 ? '1re livraison en ' + t : 'Livrée en ' + t; }
+  function texteDelai(n) { var nl = pack !== 'custom' ? 1 : lots(n); return nl === 1 ? 'Livrée en ' + delai() + ' après votre brief' : 'Livré en ' + nl + ' fois : 1re livraison en ' + delai() + ' après votre brief, ' + (nl === 2 ? 'la 2e 15 jours plus tard' : 'puis une chaque semaine'); }
   function lien() {
     var p = [], opts = C.options.filter(function (id) { return opt(id); }).map(function (id) { return parCrea().indexOf(id) >= 0 ? id + ':' + C.qte[id] : estVar(opt(id)) ? id + ':' + qVar(opt(id)) : id; });
     if (pack === 'custom') p.push('creas=' + C.nb);
@@ -185,7 +186,7 @@ html{scrollbar-width:none;overscroll-behavior:auto}html::-webkit-scrollbar{displ
         '<span class="kc-px">' + px + '</span></div>';
     }).join('');
     q('recap').innerHTML = '<h3>Pack ' + P.nom + '</h3><p class="kc-sous">Paiement unique, sans engagement</p><div class="kc-lignes">' + d.lignes.map(function (l) { return '<div class="kc-ligne"><span>' + l[0] + '</span><b>' + eur(l[1]) + '</b></div>'; }).join('') + '</div>' +
-      '<div class="kc-total"><span>Total</span><b' + (dernierTotal !== null && dernierTotal !== d.total ? ' class="kc-pulse"' : '') + '>' + eur(d.total) + '</b></div><div class="kc-unit">' + eur(Math.floor(d.total / d.n)) + ' la créative</div>' +
+      '<div class="kc-total"><span>Total</span><b' + (dernierTotal !== null && dernierTotal !== d.total ? ' class="kc-pulse"' : '') + '>' + eur(d.total) + '</b></div><div class="kc-unit">' + eur(d.u) + ' la créative</div>' +
       '<div class="kc-delai"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>' + texteDelai(d.n) + '</div>' +
       '<a class="kc-go" href="' + lien() + '" target="_blank" rel="noopener">Commander<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>' +
       '<div class="kc-sur"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="4.5" y="10.5" width="15" height="10" rx="2.5"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></svg>Paiement sécurisé par Stripe</span><span class="bleu">100 % satisfait ou remboursé</span></div>';

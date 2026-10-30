@@ -40,7 +40,7 @@ const STYLE = `
 `
 
 const TEXTE = `
-<p class="maj">Dernière mise à jour : 28/10/2026</p>
+<p class="maj">Dernière mise à jour : 30/10/2026</p>
 
 <h2>Article 1 - Objet et champ d'application</h2>
 <p>Les présentes Conditions Générales de Vente (« CGV ») régissent les relations contractuelles entre Kreative, auto-entreprise immatriculée au nom de Dario Crespo (SIRET : 103 346 003 00017), dont le siège est situé 47 Rue Vivienne, 75002 Paris, ci-après « le Prestataire », et tout client souhaitant acquérir une prestation de création de visuels publicitaires statiques, ci-après « le Client ».</p>
@@ -62,13 +62,13 @@ const TEXTE = `
     </ul>
   </li>
 </ul>
-<p>Pour le Pack Custom, les ads sont livrées en plusieurs fois selon le volume commandé : en une seule livraison jusqu'à 30 ads, en 2 livraisons à 15 jours d'intervalle de 31 à 55 ads, et en 4 livraisons, une par semaine, de 60 à 100 ads. Chaque livraison intervient sous 72 h jusqu'à 30 ads commandées, sous 4 jours jusqu'à 50 ads, sous 5 jours jusqu'à 70 ads et sous 7 jours jusqu'à 100 ads. Au-delà de 100 ads, ou pour un volume, un rythme ou un délai particulier, la prestation fait l'objet d'un devis.</p>
+<p>Pour le Pack Custom, les ads sont livrées en plusieurs fois selon le volume commandé : en une seule livraison jusqu'à 30 ads, en 2 livraisons à 15 jours d'intervalle de 31 à 55 ads, et en 4 livraisons, une par semaine, de 60 à 100 ads. Le délai de chaque livraison dépend du nombre d'ads qu'elle contient : sous 48 h jusqu'à 12 ads, sous 72 h jusqu'à 25 ads et sous 4 jours jusqu'à 30 ads. La première livraison intervient dans ce délai après la réception du brief ; les suivantes interviennent 15 jours (en 2 livraisons) ou 7 jours (en 4 livraisons) après la précédente, en partant du jour où la première livraison a été reçue. Au-delà de 100 ads, ou pour un volume, un rythme ou un délai particulier, la prestation fait l'objet d'un devis.</p>
 <p>Chaque ad est livrée aux formats 1:1, 4:5 et 9:16.</p>
 
 <h3>2.2 - Les options</h3>
 <p>Le Client peut ajouter à sa commande les options suivantes :</p>
 <ul>
-  <li>Livraison express : le Pack Starter et le Pack Growth sont livrés en 24 h, le Pack Scale en 48 h, et pour le Pack Custom le délai de chaque livraison est divisé par deux. 90 € pour le Pack Starter, 190 € pour le Pack Growth, 290 € pour le Pack Scale, et pour le Pack Custom 390 € jusqu'à 65 créatives, 490 € à partir de 70 créatives.</li>
+  <li>Livraison express : le Pack Starter et le Pack Growth sont livrés en 24 h, le Pack Scale en 48 h, et pour le Pack Custom le délai de la première livraison est divisé par deux (les livraisons suivantes gardent leur rythme). 90 € pour le Pack Starter, 190 € pour le Pack Growth, 290 € pour le Pack Scale, et pour le Pack Custom 390 € jusqu'à 65 créatives, 490 € à partir de 70 créatives.</li>
   <li>Variations de texte : chaque ad du pack est déclinée sur le même visuel avec un ou deux textes supplémentaires. Une variation (2 textes par visuel) : 15 € par ad. Deux variations (3 textes par visuel) : 25 € par ad.</li>
 </ul>
 <p>L'option Variations de texte s'applique à toutes les ads du pack commandé (de chaque livraison pour le Pack Custom). Chaque variation est livrée aux mêmes formats que l'ad d'origine.</p>

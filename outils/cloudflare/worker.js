@@ -648,8 +648,9 @@ const prixOption = (o, pack, nb) => {
 };
 const CUSTOM = {
   min: 30, max: 100, pas: 5,
-  // délai de livraison selon le volume : [jusqu'à N créas, heures]
-  delais: [[30, 72], [50, 96], [70, 120], [100, 168]],
+  // 30/10/2026 : le délai dépend de la taille de CHAQUE livraison (pas du total) : [jusqu'à N créas, heures]
+  // 100 créas = 4 livraisons de 25, chacune en 72 h. Le calendrier part de la 1re livraison (voir calendrierLot).
+  delais_lot: [[12, 48], [25, 72], [30, 96]],
   // nombre de livraisons selon le volume (comme n8n) : 1 jusqu'à 30, 2 (à 15 jours) jusqu'à 55, 4 (une par semaine) dès 60
   lots: [[30, 1], [55, 2], [100, 4]],
   paliers: [[30, 35], [50, 32], [75, 29]],          // à partir de N créas : prix par créa
@@ -703,8 +704,13 @@ function devis(pack, formule, nbDemande, optionsDemandees) {
 
 // le délai de livraison (en heures, après le brief) : celui du pack, ou selon le volume
 // pour le Custom ; l'express le divise par deux
+// le Custom : nombre de livraisons, taille de la livraison n, et son délai
+const lotsCustom = nb => (CUSTOM.lots.find(x => (nb || 0) <= x[0]) || CUSTOM.lots[CUSTOM.lots.length - 1])[1];
+const tailleLot = (nb, n, sur) => Math.floor((nb || 0) / sur) + ((n - 1) < (nb || 0) % sur ? 1 : 0);
+const delaiLot = taille => (CUSTOM.delais_lot.find(x => taille <= x[0]) || CUSTOM.delais_lot[CUSTOM.delais_lot.length - 1])[1];
+// le délai de la 1re livraison (le Custom : selon sa taille ; l'express, sur la 1re livraison seulement, le divise par deux)
 function delaiHeures(pack, nb, options) {
-  const h = pack === 'custom' ? (CUSTOM.delais.find(x => (nb || 0) <= x[0]) || CUSTOM.delais[CUSTOM.delais.length - 1])[1] : (PACKS[pack] || PACKS.growth).delai;
+  const h = pack === 'custom' ? delaiLot(tailleLot(nb, 1, lotsCustom(nb))) : (PACKS[pack] || PACKS.growth).delai;
   if (!String(options || '').includes('express')) return h;
   const ex = OPTIONS.find(o => o.id === 'express'), fixe = ex && ex.heures && ex.heures[pack];
   return fixe != null ? fixe : Math.round(h / 2);
@@ -728,13 +734,41 @@ function accelererDonnees(d, pack) {
   return { ...d, deadline: new Date(debut + rapide * H).toISOString(), deadline_strategiste: plusTot(d.deadline_strategiste), deadline_designer: plusTot(d.deadline_designer),
     express: true, express_applique: { heures: rapide, avant: d.deadline } };
 }
+// ---------- le calendrier d'un Custom (30/10/2026) ----------
+// Livraison 1 : son délai après le brief (selon sa taille, divisé par deux en express).
+// Les suivantes : 15 jours (en 2 fois) ou 7 jours (en 4 fois) après la PRÉCÉDENTE date prévue, à partir du jour
+// où le client a VRAIMENT reçu la livraison 1 (sinon sa date prévue). Chaque livraison suivante garde son délai
+// (selon sa taille) : l'équipe la démarre ce délai avant sa date. Comme le Moteur : fiche au tiers du délai,
+// designer 8 h avant la livraison.
+function calendrierLot(k, n, sur, l1Recue) {
+  const H = 36e5, ex = String(k.options || '').includes('express');
+  const h1 = delaiLot(tailleLot(k.nb_creas, 1, sur)) / (ex ? 2 : 1);
+  const debut1 = k.brief_le || k.cree_le || maintenant();
+  const d1 = l1Recue || (debut1 + h1 * H);
+  const fin = n === 1 ? d1 : d1 + (n - 1) * intervalleJours(sur) * 864e5;
+  const h = n === 1 ? h1 : delaiLot(tailleLot(k.nb_creas, n, sur));
+  const debut = n === 1 && !l1Recue ? debut1 : fin - h * H;
+  return { debut, fin, heures: h, strategiste: debut + (fin - debut) / 3, designer: Math.max(debut, fin - 8 * H) };
+}
+// la livraison n d'un dossier de Custom (…_L2), et quand le client a reçu la livraison 1 (version 1 envoyée)
+async function premiereRecue(env, projet) {
+  try { const db = await baseLiv(env); const r = await db.prepare("SELECT MIN(envoye_le) AS le FROM livraisons WHERE dossier IN (?, ?) AND version = 1 AND envoye_le IS NOT NULL").bind(projet + '_L1', projet).first(); return (r && r.le) || null; } catch (e) { return null; }
+}
+async function calerCustom(env, d, k, dossier) {
+  if (!d || !k || k.pack !== 'custom') return d;
+  const sur = lotsCustom(k.nb_creas), m = String(dossier || d.dossier || '').match(/_L(\d+)$/), n = Math.min(sur, Number((d.livraison && d.livraison.n) || (m && m[1]) || 1));
+  const projet = String(dossier || d.dossier || '').replace(/_L\d+$/, '');
+  const c = calendrierLot(k, n, sur, n > 1 ? await premiereRecue(env, projet) : null), iso = t => new Date(t).toISOString();
+  return { ...d, deadline: iso(c.fin), deadline_strategiste: iso(c.strategiste), deadline_designer: iso(c.designer), deadline_heures: c.heures,
+    express: n === 1 && String(k.options || '').includes('express'), calendrier: { n, sur, heures: c.heures, debut: iso(c.debut) }, express_applique: true };
+}
 // la commande express d'un dossier (un Custom : le dossier du projet, sans « _L2 »), ou null
 async function commandeExpress(env, dossier) {
   if (!env.DB || !/^[A-Za-z0-9_-]{3,80}$/.test(dossier)) return null;
   const projet = dossier.replace(/_L\d+$/, '');
   try {
     const db = await base(env);
-    return await db.prepare("SELECT pack, nb_creas FROM commandes WHERE dossier IN (?, ?) AND options LIKE '%express%' AND statut != 'annule' LIMIT 1").bind(dossier, projet).first();
+    return await db.prepare("SELECT pack, nb_creas, options, brief_le, cree_le FROM commandes WHERE (dossier IN (?, ?) OR dossier LIKE ?) AND (options LIKE '%express%' OR pack = 'custom') AND statut != 'annule' ORDER BY cree_le DESC LIMIT 1").bind(dossier, projet, projet + '_L%').first();
   } catch (e) { return null; }
 }
 async function servirDonneesExpress(fichier, env, o) {
@@ -745,7 +779,7 @@ async function servirDonneesExpress(fichier, env, o) {
   const r = await lireGithub(fichier, env, 'GET');
   if (!r.ok) return null;
   let d; try { d = JSON.parse(await r.text()); } catch (e) { return null; }
-  let t = JSON.stringify(accelererDonnees(d, k.pack));
+  let t = JSON.stringify(k.pack === 'custom' ? await calerCustom(env, d, k, m[1]) : accelererDonnees(d, k.pack));
   if (!o.brut && o.origine) t = remplacer(t, o.origine + '/');
   return new Response(t, { status: 200, headers: { 'Content-Type': TYPES.json, 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex, nofollow' } });
 }
@@ -974,7 +1008,7 @@ async function avancement(env, cmd) {
   let d = null, envoye = false, designer = false;
   if (cmd.dossier) {
     const [donnees, envois, liv] = await Promise.all(['donnees', 'envois', 'livraison'].map(f => lireJsonDepot(env, cmd.dossier + '/' + f + '.json')));
-    d = String(cmd.options || '').includes('express') ? accelererDonnees(donnees, cmd.pack) : donnees;
+    d = cmd.pack === 'custom' ? await calerCustom(env, donnees, cmd, cmd.dossier) : String(cmd.options || '').includes('express') ? accelererDonnees(donnees, cmd.pack) : donnees;
     envoye = !!(envois && Array.isArray(envois.envois) && envois.envois.length);
     designer = !!(liv && liv.livre);
     // les versions déposées dans le portail et le Kanban de Kreative disent la même chose au client
@@ -1423,6 +1457,8 @@ async function apiAdmin(req, env, ctx, url, chemin, methode) {
       const maj = {};
       for (const x of ['dossier', 'statut', 'deadline', 'notes']) if (x in b) maj[x] = x === 'deadline' ? (b[x] === '' || b[x] == null ? null : Number(b[x])) : (propre(b[x], 2000) || null);
       if (env.PUSH_TEST && 'cree_le' in b) maj.cree_le = Number(b.cree_le);   // banc de test seulement : remonter le temps
+      // banc de test seulement : reculer les dates d'envoi des livraisons de la commande (le calendrier du Custom en part)
+      if (env.PUSH_TEST && b.decaler_livraisons && k.dossier) { const p0 = k.dossier.replace(/_L\d+$/, ''); await (await baseLiv(env)).prepare('UPDATE livraisons SET envoye_le = envoye_le - ? WHERE envoye_le IS NOT NULL AND (dossier = ? OR dossier LIKE ?)').bind(Number(b.decaler_livraisons), p0, p0 + '_L%').run(); }
       // le brief rattrapé à la main (n8n n'a pas pu prévenir le portail) : ses réponses Fillout et son heure d'envoi
       if (Array.isArray(b.questions)) { const rep = briefPropre(b.questions); if (rep.length) maj.brief_json = JSON.stringify(rep); }
       if ('brief_le' in b && Number(b.brief_le) > 1.6e12 && Number(b.brief_le) <= maintenant() + 6e4) maj.brief_le = Math.round(Number(b.brief_le));
@@ -1621,7 +1657,8 @@ async function envoyerAuClient(env, ctx, url, db, l) {
   const partie = await partieDe(env, l.dossier), v2 = l.version > 1;
   if (partie && !v2 && partie.n < partie.sur) {
     // au moins une heure après la livraison, même si la date est déjà passée : jamais dans le même message
-    const le = Math.max(briefSuivantLe(k, partie.n + 1, partie.sur, now), now + 36e5);
+    const l1 = partie.n === 1 ? now : await premiereRecue(env, l.dossier.replace(/_L\d+$/, ''));
+    const le = Math.max(briefSuivantLe(k, partie.n + 1, partie.sur, now, l1), now + 36e5);
     await db.prepare(`INSERT OR IGNORE INTO rappels (cle, client_id, commande_id, type, n, sur, dossier, le) VALUES (?,?,?,?,?,?,?,?)`)
       .bind('brief:' + l.dossier, k.client_id, k.id, 'brief_suivant', partie.n + 1, partie.sur, l.dossier, le).run();
   }
@@ -2185,14 +2222,14 @@ function briefPropre(questions) {
 }
 // Le « brief suivant » (formulaire de retour) : après la livraison 1 d'un projet en plusieurs fois
 // (pour préparer la 2), et pour un abonnement, sur la commande du mois suivant.
-// Le rythme d'un Custom livré en plusieurs fois, calé sur la date de commande : une période de 15 jours (en 2 fois)
-// ou d'une semaine (en 4 fois) par livraison. Le brief de la livraison n est demandé à la fin de la période n - 1,
-// la veille de la date du rythme (commande + (n - 1) × intervalle - 1 jour), jamais avant que la livraison
+// Le rythme d'un Custom livré en plusieurs fois (30/10/2026) : calé sur le jour où le client a reçu la livraison 1,
+// puis tous les 15 jours (en 2 fois) ou chaque semaine (en 4 fois), voir calendrierLot. Le brief de la livraison n
+// est demandé la veille du jour où l'équipe la démarre (sa date moins son délai), jamais avant que la livraison
 // précédente soit chez le client, et toujours dans un message à part. Un brief rempli en retard ne décale pas les suivants.
 const intervalleJours = sur => sur >= 4 ? 7 : 15;
-function briefSuivantLe(k, n, sur, livreLe) {
-  const prevu = (k.cree_le || 0) + ((n - 1) * intervalleJours(sur) - 1) * 864e5;
-  return Math.max(livreLe || 0, prevu);
+function briefSuivantLe(k, n, sur, livreLe, l1Recue) {
+  const c = calendrierLot(k, n, sur, l1Recue || null);
+  return Math.max(livreLe || 0, c.debut - 864e5);
 }
 // la partie (n sur sur) d'un dossier livré en plusieurs fois
 async function partieDe(env, dossier) {
@@ -2219,7 +2256,8 @@ async function briefsSuivants(env, cl, commandes, L) {
         if (!partie) break;
         if (!faits.has(partie)) {
           const livre = Math.min(...L.filter(x => x.dossier === partie).map(x => x.envoye_le || Infinity));
-          const le = briefSuivantLe(c, n + 1, l.sur, isFinite(livre) ? livre : 0);
+          const l1 = Math.min(...L.filter(x => x.dossier === base + '_L1' || (n === 1 && x.dossier === partie)).map(x => x.envoye_le || Infinity));
+          const le = briefSuivantLe(c, n + 1, l.sur, isFinite(livre) ? livre : 0, isFinite(l1) ? l1 : null);
           if (maintenant() >= le) c.brief_suivant = { dossier: partie, n: n + 1, sur: l.sur };
           else c.brief_prochain = { n: n + 1, sur: l.sur, le };
           break;

@@ -24,7 +24,7 @@
    Les données viennent du dépôt (projets.json et les JSON de chaque projet).
    ============================================================ */
 const { i, esc } = K;
-const E = { moi: null, filtre: 'afaire' };
+const E = { moi: null, filtre: 'tous' };   // 31/10 : « Tous » par défaut et en premier
 const SECS = ['fiche', 'dossier', 'brief'];
 // à faire pour le stratégiste : une fiche à remplir, ou des textes à corriger après les retours du client
 const aFaire = x => x.etape ? x.etape.cle === 'strat' : !x.envoye;
@@ -102,7 +102,7 @@ function ecranProjets() {
   const chip = (k, t, c) => '<button class="chip' + (f === k ? ' on' : '') + '" onclick="E.filtre=\'' + k + '\';K.rendre(true)">' + (c ? '<i style="color:' + c + '"></i>' : '') + t + '<span class="c">' + L.filter(F[k]).length + '</span></button>';
   const l = L.filter(F[f]).sort((a, b) => (aFaire(b) - aFaire(a)) || (a.envoye - b.envoye) || (a.envoye ? b.envoyeLe - a.envoyeLe : (a.strat || 9e15) - (b.strat || 9e15)));
   let h = '<div class="ph"><div><h1>Projets</h1><p>Tes fiches : à remplir, en retard, envoyées.</p></div></div>' +
-    '<div class="filtres">' + chip('afaire', 'À faire', 'var(--blue)') + chip('retard', 'En retard', 'var(--red)') + chip('envoyees', 'Envoyées', 'var(--green)') + chip('tous', 'Tous') + '</div>';
+    '<div class="filtres">' + chip('tous', 'Tous') + chip('afaire', 'À faire', 'var(--blue)') + chip('retard', 'En retard', 'var(--red)') + chip('envoyees', 'Envoyées', 'var(--green)') + '</div>';
   return h + (l.length ? '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead>' + tete() + '</thead><tbody>' + l.map(ligne).join('') +
     '</tbody></table></div></div>' : '<div class="card"><div class="vide">Aucun projet ici.</div></div>');
 }

@@ -1,0 +1,31 @@
+Créa 5 · Devlynx
+
+1. Titre : Encore une longue réponse à rédiger ?
+2. Libellé cercle de gauche : Votre contexte
+3. Libellé cercle de droite : Assistant IA
+4. CTA : Découvrir Couria
+
+Idée du visuel : Reprendre la structure de l'inspiration AG1-18 : fond sombre, logo en haut, titre principal, deux cercles qui se chevauchent au centre, logo à leur intersection et bouton CTA en bas.
+
+Logos :
+- En haut : remplacer le logo Softriver par le logo complet Couria fourni en asset, en conservant son emplacement centré et des proportions comparables. Veiller à sa lisibilité sur le fond sombre.
+- Au centre : remplacer le second logo Softriver, situé à l'intersection des deux cercles, par le pictogramme Couria seul (sans le nom), extrait du logo fourni. Conserver sa position et ses dimensions visuelles.
+
+1 — Titre : remplacer le titre original par « Encore une réponse à rédiger ? », en grand, centré au-dessus du diagramme. Mettre « réponse » en évidence avec un accent turquoise, tout en respectant la typographie et les proportions de l'inspiration.
+
+2 — Cercle gauche : afficher « Votre contexte » à la place du texte original, en blanc, au centre de la partie gauche du cercle. Ce cercle représente les informations présentes dans les échanges professionnels.
+
+3 — Cercle droit : afficher « Assistant IA » à la place du texte original, en blanc, au centre de la partie droite du cercle. Ce cercle représente l'assistance de Couria pour suggérer des réponses adaptées.
+
+Intersection des cercles : conserver le chevauchement et y placer uniquement le pictogramme Couria. Cette intersection symbolise l'association du contexte professionnel et de l'intelligence artificielle pour faciliter la rédaction des réponses. Ne pas ajouter d'autre bloc de texte.
+
+4 — CTA : remplacer le bouton original par un bouton bleu Couria avec « Découvrir Couria », en conservant son emplacement et ses proportions.
+
+Direction artistique : conserver l'ambiance sombre, premium et technologique de l'inspiration. Adapter les accents violets aux couleurs de Couria (bleu et turquoise), tout en conservant les contours fins des cercles et la hiérarchie graphique d'origine.
+
+Le message doit être immédiatement compréhensible : Couria exploite le contexte des échanges pour proposer une assistance à la rédaction des réponses.
+
+Ne pas ajouter de captures d'interface, de statistiques ou de fonctionnalités non confirmées. Respecter les dimensions, les emplacements et la structure de l'inspiration AG1-18.
+Référence      : AG1-18 · diagramme de Venn en profondeur
+
+Alerte : 1. Asset joint : le fichier logo-brand.png annoncé comme le logo Devlynx est en réalité le logo Couria. Le logo Devlynx n'est pas joint, et aucune mention « devlynx.fr » n'a été ajoutée, faute d'emplacement dans la fiche et pour ne pas ajouter de bloc. Ajouter un emplacement Mention pour respecter la consigne du client. 2. Titre : l'emplacement 1 dit « Encore une longue réponse à rédiger ? » et l'idée du visuel « Encore une réponse à rédiger ? ». C'est le texte de l'emplacement qui a été gardé. 3. Couleurs : la charte du pack met l'accent et le fond du CTA en #0f172a, une couleur invisible sur le fond sombre #0f172a. Le mot pivot passe donc en turquoise (celui de la coche du logo, demandé par le stratégiste) et le bouton en bleu #2563eb (bouton bleu Couria demandé par le stratégiste). 4. Panneaux de fond : les interfaces floues de la structure deviennent des panneaux abstraits en verre dépoli, sans contenu, pour ne pas inventer d'interface.

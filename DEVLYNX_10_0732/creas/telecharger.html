@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" type="image/png" sizes="16x16" href="https://kreativeadsfr.github.io/kreative-dossiers/favicon-16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://kreativeadsfr.github.io/kreative-dossiers/favicon-32.png">
+<link rel="icon" type="image/png" sizes="48x48" href="https://kreativeadsfr.github.io/kreative-dossiers/favicon-48.png">
+<link rel="stylesheet" href="https://kreativeadsfr.github.io/kreative-dossiers/ui/kreative.css">
+<title>Devlynx</title>
+<style>
+.c .tx h2:empty{display:none}
+.vref{display:flex;gap:12px;align-items:center;margin:10px 0}
+.vref img{width:84px;height:84px;object-fit:cover;border-radius:10px;border:1px solid #e6e1dc;flex:none}
+.vref span{font-size:12.5px;line-height:1.45;color:#5d5852}
+.vref b{display:block;color:#1f1f1f;font-size:13px}</style></head><body class="k k-telech">
+<div class="boite">
+  <h1>Devlynx</h1>
+  <p>12 creatives, 5 visuals and 12 assets</p>
+  <button class="tout" id="tout" type="button">Download the folder</button>
+  <div class="etat" id="etat">Preparing automatically…</div>
+  <a class="lien" href="./">See the preview</a>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script>
+
+const PLAN = [{"ad":"AD01","visuel":"","nom":"DEVLYN_STANDARD_01.jpg","assets":[{"url":"https://kreativeadsfr.github.io/kreative-dossiers/DEVLYNX_10_0732/creas/_fichiers/76edecb9asbk.png","nom":"logo-brand.png"}],"textes":""},{"ad":"AD02","visuel":"","nom":"DEVLYN_STANDARD_02.jpg","assets":[{"url":"https://kreativeadsfr.github.io/kreative-dossiers/DEVLYNX_10_0732/creas/_fichiers/76edecb9asbk.png","nom":"logo-brand.png"}],"textes":""},{"ad":"AD03","visuel":"https://kreativeadsfr.github.io/kreative-dossiers/DEVLYNX_10_0732/creas/AD03/visuel.jpg","nom":"DEVLYN_STANDARD_03.jpg","assets":[{"url":"https://kreativeadsfr.github.io/kreative-dossiers/DEVLYNX_10_0732/creas/_fichiers/76edecb9asbk.png","nom":"logo-brand.png"}],"textes":""},{"ad":"AD04","visuel":"","nom":"DEVLYN_STANDARD_04.jpg","assets":[{"url":"https://kreativeadsfr.github.io/kreative-dossiers/DEVLYNX_10_0732/creas/_fichiers/76edecb9asbk.png","nom":"logo-brand.png"}],"textes":""},{"ad":"AD05","visuel":"https://kreativeadsfr.github.io/kreative-dossiers/DEVLYNX_10_0732/creas/AD05/visuel.jpg","nom":"DEVLYN_STANDARD_05.jpg","assets":[{"url":"https://kreativeadsfr.github.io/kreative-dossiers/DEVLYNX_10_0732/creas/_fichiers/76edecb9asbk.png","nom":"logo-brand.png"}],"textes":""},{"ad":"AD06","visuel":"","nom":"DEVLYN_STANDARD_06.jpg","assets":[{"url":"https://kreativeadsfr.github.io/kreative-dossiers/DEVLYNX_10_0732/creas/_fichiers/76edecb9asbk.png","nom":"logo-brand.png"}],"textes":""},{"ad":"AD07","visuel":"","nom":"DEVLYN_STANDARD_07.jpg","assets":[{"url":"https://kreativeadsfr.github.io/kreative-dossiers/DEVLYNX_10_0732/creas/_fichiers/76edecb9asbk.png","nom":"logo-brand.png"}],"textes":""},{"ad":"AD08","visuel":"","nom":"DEVLYN_STANDARD_08.jpg","assets":[{"url":"https://kreativeadsfr.github.io/kreative-dossiers/DEVLYNX_10_0732/creas/_fichiers/76edecb9asbk.png","nom":"logo-brand.png"}],"textes":""},{"ad":"AD09","visuel":"https://kreativeadsfr.github.io/kreative-dossiers/DEVLYNX_10_0732/creas/AD09/visuel.jpg","nom":"DEVLYN_STANDARD_09.jpg","assets":[{"url":"https://kreativeadsfr.github.io/kreative-dossiers/DEVLYNX_10_0732/creas/_fichiers/76edecb9asbk.png","nom":"logo-brand.png"}],"textes":""},{"ad":"AD10","visuel":"https://kreativeadsfr.github.io/kreative-dossiers/DEVLYNX_10_0732/creas/AD10/visuel.jpg","nom":"DEVLYN_STANDARD_10.jpg","assets":[{"url":"https://kreativeadsfr.github.io/kreative-dossiers/DEVLYNX_10_0732/creas/_fichiers/76edecb9asbk.png","nom":"logo-brand.png"}],"textes":""},{"ad":"AD11","visuel":"https://kreativeadsfr.github.io/kreative-dossiers/DEVLYNX_10_0732/creas/AD11/visuel.jpg","nom":"DEVLYN_STANDARD_11.jpg","assets":[{"url":"https://kreativeadsfr.github.io/kreative-dossiers/DEVLYNX_10_0732/creas/_fichiers/76edecb9asbk.png","nom":"logo-brand.png"}],"textes":""},{"ad":"AD12","visuel":"","nom":"DEVLYN_STANDARD_12.jpg","assets":[{"url":"https://kreativeadsfr.github.io/kreative-dossiers/DEVLYNX_10_0732/creas/_fichiers/76edecb9asbk.png","nom":"logo-brand.png"}],"textes":""}];
+const RACINE = "DEVLYN";
+const KIT_TXT = "BRAND KIT - Devlynx\n\nAlways use these exact fonts and colors.\n\nFONTS\n\nCOLORS\n- #0F172A  Dark navy\n- #2563EB  Royal blue\n- #FFFFFF  White";
+
+function enregistre(blob, nom){
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = nom;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+}
+
+/* ---------------------------------------------------------------
+   RECUPERER LES FICHIERS
+
+   Deux defauts corriges ici.
+
+   1. fetch REUSSIT sur un 404 : la version d origine rangeait la
+      page d erreur HTML de GitHub dans le zip sous le nom
+      « Logo-Only.png ». Bon nom, bon dossier, contenu illisible.
+      On verifie donc le code de reponse ET le type renvoye.
+
+   2. Les reessais etaient faits fichier apres fichier : 13 assets
+      absents x 6 essais x 2,5 s, plus de trois minutes d attente.
+      Maintenant tout part EN PARALLELE, et on ne fait que trois
+      tours, en ne redemandant que ce qui manque encore. Pire cas :
+      une dizaine de secondes.
+--------------------------------------------------------------- */
+const TOURS = 3;
+const ATTENTE = 3000;
+const EN_VOL = 6;          /* requetes simultanees, pour ne pas saturer */
+
+async function unFichier(url){
+  try{
+    const r = await fetch(url, { cache: 'no-store' });
+    if (!r.ok) return null;
+    const type = (r.headers.get('content-type') || '').toLowerCase();
+    if (type.includes('text/html')) return null;   /* page d erreur */
+    const b = await r.blob();
+    return b.size > 0 ? b : null;
+  }catch(e){ return null; }
+}
+
+async function enParallele(liste, avance, tour){
+  const restants = [];
+  let fait = 0;
+  for (let i = 0; i < liste.length; i += EN_VOL){
+    const tranche = liste.slice(i, i + EN_VOL);
+    const blobs = await Promise.all(tranche.map(f => unFichier(f.url)));
+    tranche.forEach((f, k) => {
+      fait++;
+      if (blobs[k]) f.blob = blobs[k]; else restants.push(f);
+    });
+    //  On ne parle PAS des reessais au designer : ca ne le concerne
+    //  pas, et « 13 fichiers pas encore publies » ressemble a une
+    //  panne alors que c est le fonctionnement normal.
+    avance('Preparing the folder…');
+  }
+  return restants;
+}
+
+async function faireLeZip(avance){
+  /* la liste plate de tout ce qu il faut aller chercher */
+  const aPrendre = [];
+  for (const p of PLAN){
+    if (p.visuel) aPrendre.push({ url: p.visuel, ad: p.ad, nom: p.nom, dans: '' });
+    for (const a of p.assets) aPrendre.push({ url: a.url, ad: p.ad, nom: a.nom, dans: 'assets' });
+  }
+
+  let restants = aPrendre;
+  for (let tour = 1; tour <= TOURS && restants.length; tour++){
+    if (tour > 1){
+      avance('Preparing the folder…');
+      await new Promise(r => setTimeout(r, ATTENTE));
+    }
+    restants = await enParallele(restants, avance, tour);
+  }
+
+  const pris = aPrendre.filter(f => f.blob);
+  const manques = aPrendre.filter(f => !f.blob);
+
+  if (typeof JSZip === 'undefined'){
+    avance('Compression could not load, downloading the files one by one');
+    for (const f of pris){ enregistre(f.blob, f.nom); await new Promise(r => setTimeout(r, 400)); }
+    return manques.length === 0;
+  }
+
+  avance('Preparing the folder…');
+  const zip = new JSZip();
+  const racine = zip.folder(RACINE);
+
+  if (KIT_TXT) racine.file('BRAND_KIT.txt', KIT_TXT);
+  for (const p of PLAN) if (p.textes) racine.folder(p.ad).file('TEXTS.txt', p.textes);
+
+  for (const f of pris){
+    const d = racine.folder(f.ad);
+    (f.dans ? d.folder(f.dans) : d).file(f.nom, f.blob);
+  }
+
+  /* Un fichier introuvable n entre PAS dans le zip : mieux vaut une
+     absence visible qu un fichier qui ne s ouvre pas. On dit lesquels. */
+  if (manques.length){
+    racine.file('MISSING_FILES.txt', [
+      'These files could not be retrieved when you downloaded the folder.',
+      'Publishing sometimes takes a minute: come back to this page',
+      'in two minutes and download the folder again.',
+      ''
+    ].concat(manques.map(f => f.ad + (f.dans ? ' / ' + f.dans : '') + ' / ' + f.nom + '  ->  ' + f.url))
+     .join(String.fromCharCode(10)));
+  }
+
+  enregistre(await zip.generateAsync({ type: 'blob' }), RACINE + '_creatives.zip');
+  return manques.length === 0;
+}
+const b = document.getElementById('tout'), e = document.getElementById('etat');
+async function lance(){
+  b.disabled = true;
+  const ok = await faireLeZip(t => { e.textContent = t; });
+  e.textContent = ok ? 'Downloaded. The folder is in your Downloads.'
+                     : 'Done.';
+  b.disabled = false;
+  b.textContent = 'Download again';
+}
+b.onclick = lance;
+/* On ne depend PAS de l evenement « load » : il attend toutes les
+   ressources, polices Google comprises, et une police lente suffit a
+   ce que le telechargement ne parte jamais tout seul. On part des que
+   le document est lisible, et JSZip a de toute facon son repli. */
+if (document.readyState === 'loading'){
+  document.addEventListener('DOMContentLoaded', () => setTimeout(lance, 600));
+} else {
+  setTimeout(lance, 600);
+}
+</script>
+</body></html>

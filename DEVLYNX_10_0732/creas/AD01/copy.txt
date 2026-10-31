@@ -1,0 +1,34 @@
+Créa 1 · Devlynx
+
+1. Titre : Passez du chaos des e-mails à une gestion plus claire.
+2. Carte 1, titre : Messages clients
+3. Carte 1, sous-ligne : Support, relances, devis
+4. Carte 2, titre : Résumé IA
+5. Carte 2, sous-ligne : Priorités en un coup d’œil
+6. Heure : 09:41
+7. Bouton : Découvrir
+
+Idée du visuel : Reprendre la structure de l'inspiration AG1-51 : logo centré en haut, grand titre principal, superposition de cartes d'interface et petite bulle secondaire à droite.
+
+Logo : remplacer le logo Asana par le logo complet Couria, centré au-dessus du titre, en conservant des proportions comparables.
+
+1 — Titre : afficher « Passez du chaos des e-mails à une gestion plus claire. » en grand, au centre haut du visuel. Conserver une hiérarchie forte et une excellente lisibilité sur mobile.
+
+2 — Carte 1, titre : afficher « Messages clients » dans la grande carte de gauche, en conservant son emplacement et ses proportions.
+
+3 — Carte 1, sous-ligne : afficher « Support, relances, devis » sous le titre de la première carte. Conserver l'esprit d'une interface sobre, claire et moderne.
+
+4 — Carte 2, titre : afficher « Résumé IA » dans la petite carte superposée au premier plan, à la place du titre original.
+
+5 — Carte 2, sous-ligne : afficher « Priorités en un coup d'œil » sous « Résumé IA ». Cette carte doit évoquer l'assistance intelligente et la simplification de la lecture des informations.
+
+6 — Heure : afficher « 09:41 » dans la petite bulle située à droite, en conservant son emplacement.
+
+7 — Bouton : remplacer le texte du bouton bleu de cette même bulle par « Découvrir ».
+
+Direction artistique : conserver une esthétique premium, sobre et élégante, dans l'esprit SaaS de l'inspiration. Privilégier les couleurs de Couria : bleu nuit, bleu et turquoise, tout en respectant la composition originale.
+
+Les cartes d'interface doivent rester des illustrations conceptuelles, sans être présentées comme des captures authentiques du logiciel. Ne pas ajouter de statistiques ou de fonctionnalités non confirmées.
+Référence      : AG1-51 · cartes d'interface superposées en profondeur
+
+Alerte : VISUEL NON GÉNÉRÉ : {"error":"aborted"} | La pièce jointe 1 est le logo Couria et non celui de Devlynx : aucun logo Devlynx n'a été joint. La mention Devlynx demandée par le client a donc été ajoutée en texte discret ("Un produit Devlynx · devlynx.fr"), une formulation à valider. La photo de personne et les avatars ont été retirés et remplacés par des formes graphiques, faute d'asset. Le titre reste blanc et sans mot d'accent, comme dans la structure d'origine : l'accent #0f172a de la charte serait invisible sur le fond bleu nuit, il ne s'applique donc qu'au bouton.

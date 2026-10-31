@@ -26,6 +26,10 @@ Direction artistique : conserver l'ambiance sombre, premium et technologique de 
 Le message doit être immédiatement compréhensible : Couria exploite le contexte des échanges pour proposer une assistance à la rédaction des réponses.
 
 Ne pas ajouter de captures d'interface, de statistiques ou de fonctionnalités non confirmées. Respecter les dimensions, les emplacements et la structure de l'inspiration AG1-18.
-Référence      : AG1-18 · diagramme de Venn en profondeur
+Référence      : AG1-18 · diagramme de Venn centré
 
-Alerte : 1. Asset joint : le fichier logo-brand.png annoncé comme le logo Devlynx est en réalité le logo Couria. Le logo Devlynx n'est pas joint, et aucune mention « devlynx.fr » n'a été ajoutée, faute d'emplacement dans la fiche et pour ne pas ajouter de bloc. Ajouter un emplacement Mention pour respecter la consigne du client. 2. Titre : l'emplacement 1 dit « Encore une longue réponse à rédiger ? » et l'idée du visuel « Encore une réponse à rédiger ? ». C'est le texte de l'emplacement qui a été gardé. 3. Couleurs : la charte du pack met l'accent et le fond du CTA en #0f172a, une couleur invisible sur le fond sombre #0f172a. Le mot pivot passe donc en turquoise (celui de la coche du logo, demandé par le stratégiste) et le bouton en bleu #2563eb (bouton bleu Couria demandé par le stratégiste). 4. Panneaux de fond : les interfaces floues de la structure deviennent des panneaux abstraits en verre dépoli, sans contenu, pour ne pas inventer d'interface.
+Alerte : Plusieurs écarts à vérifier :
+- La pièce jointe 1 est le logo Couria et non celui de Devlynx, annoncé dans la consigne du client. Le logo Devlynx n'est pas joint, donc la mention Devlynx est faite en texte discret en bas du cadre ("Un produit Devlynx · devlynx.fr"), seul ajout à la structure.
+- Le titre suit l'emplacement de la fiche, "Encore une longue réponse à rédiger ?", et non la version de l'idée sans "longue".
+- La charte impose #0f172a pour l'accent et le CTA, mais cette couleur serait invisible sur le fond sombre. J'ai donc suivi l'idée du stratégiste : "réponse" en turquoise #2BB59A, tiré de la coche du logo, et un bouton bleu Couria #2563eb.
+- Les cartes d'interface floues du fond sont remplacées par des panneaux de verre vides, pour n'inventer aucun écran.

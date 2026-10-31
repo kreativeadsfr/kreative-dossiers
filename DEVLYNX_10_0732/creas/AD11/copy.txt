@@ -1,0 +1,27 @@
+Créa 11 · Devlynx
+
+1. Titre : Votre activité grandit. Mais pas vos outils ?
+2. Sous-titre : E-mails, support client et assistance IA réunis dans Couria.
+3. Titre affiché à l'écran : Votre activité. Mieux organisée.
+4. CTA : Découvrir Couria
+
+Idée du visuel : Reprendre la structure de l'inspiration AG1-83 : fond bleu dégradé, logo centré en haut, titre principal, sous-titre, ordinateur portable au centre et bouton CTA en bas.
+
+Logo : remplacer le logo d'origine par le logo complet Couria, en conservant son emplacement et ses proportions.
+
+1 — Titre : afficher « Votre activité grandit. Mais pas vos outils ? » en grande typographie blanche, centrée dans la partie supérieure du visuel. Conserver la hiérarchie du titre original.
+
+2 — Sous-titre : afficher « E-mails, support client et assistance IA réunis dans Couria. » juste sous le titre.
+
+Ordinateur central : conserver exactement le cadrage et les proportions de l'ordinateur de l'inspiration. Remplacer le contenu de son écran par un fond bleu nuit épuré, sans reproduire d'interface fictive.
+
+3 — Texte sur l'écran : afficher « Votre activité. Mieux organisée. » en blanc, au centre de l'écran, avec une légère mise en évidence turquoise.
+
+4 — CTA : conserver le bouton inférieur et remplacer son texte par « Découvrir Couria ».
+
+Direction artistique : conserver l'ambiance technologique premium, le fond bleu dégradé, les contrastes et les espaces de l'inspiration. Utiliser les couleurs Couria : bleu nuit, bleu électrique et turquoise.
+
+Ne pas ajouter de statistiques, de captures d'interface fictives ou de promesses de performances non vérifiées.
+Référence      : AG1-83 · ordinateur héro, écran typographique
+
+Alerte : La pièce jointe 1 est le logo Couria, et non le logo Devlynx annoncé par le nom du fichier. Le logo Devlynx n'est donc pas joint. La mention demandée par le client est faite en texte discret en bas ("Un produit Devlynx · devlynx.fr") : ce libellé n'est pas dans la fiche, il est à valider. Sur ce fond sombre, la couleur d'accent #0f172a ne peut pas servir au mot pivot du titre, qui reste entièrement blanc comme demandé par le stratégiste. Le CTA en #0f172a se détache grâce à une lumière bleue ajoutée derrière lui, en bas du cadre. Le turquoise #2BB59A est tiré de la coche du logo, car il est absent des couleurs données par le client.

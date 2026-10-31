@@ -1,0 +1,35 @@
+Créa 7 · Devlynx
+
+1. Titre : Vos clients vous écrivent. Gardez le fil.
+2. CTA : Découvrir Couria
+3. Libellé de l’interface : Suivi client
+4. Bloc 1 du schéma : E-mails clients
+5. Bloc 2 du schéma : Suivi automatisé
+6. Titre du tableau : Demandes clients
+
+Idée du visuel : Reprendre la structure de l'inspiration AG1-69 : fond clair, logo centré en haut, titre principal, CTA et composition d'interface dans la moitié inférieure.
+
+Logo : remplacer le logo HubSpot supérieur par le logo complet Couria fourni en asset.
+
+1 — Titre : afficher « Vos clients vous écrivent. Gardez le fil. » en grande typographie bleu nuit, sur deux lignes. Mettre « Gardez le fil. » en turquoise.
+
+2 — CTA : remplacer le bouton orange par un bouton bleu Couria avec « Découvrir Couria », en conservant son emplacement.
+
+3 — Libellé de l'interface : remplacer « Configure » par « Suivi client » dans l'en-tête de la grande carte blanche.
+
+4 — Bloc gauche : remplacer « Claude connector » par « E-mails clients », avec un pictogramme d'enveloppe à la place du logo Claude.
+
+5 — Bloc droit : remplacer « HubSpot contacts » par « Tickets de support », avec un pictogramme de ticket à la place du logo HubSpot.
+
+Conserver la flèche entre les deux blocs : elle représente le passage logique entre la réception d'un message et le suivi de la demande, sans suggérer de création automatique de tickets.
+
+6 — Tableau inférieur : remplacer « Contacts » par « Demandes clients ». Conserver le tableau à son emplacement et dans les mêmes proportions. Utiliser des lignes illustratives avec des intitulés neutres et des statuts tels que « À traiter », « En cours » et « Terminé ».
+
+Ce tableau est une représentation conceptuelle, pas une capture authentique de l'interface Couria.
+
+Direction artistique : conserver la structure, les cartes superposées et les espacements de l'inspiration. Adapter les couleurs à Couria : fond blanc cassé, bleu nuit, bleu et turquoise. Ensemble sobre, premium et lisible sur mobile.
+
+Ne pas ajouter de logos tiers, de statistiques ou de fonctionnalités non confirmées.
+Référence      : AG1-69 · interface produit en cartes superposées
+
+Alerte : VISUEL NON GÉNÉRÉ : {"error":"aborted"} | Le fichier logo-brand.png annoncé comme logo Devlynx montre en réalité le logo Couria, et aucun logo Devlynx n'est joint : la consigne client est donc rendue par une petite mention texte "Un produit Devlynx · devlynx.fr", à valider. L'emplacement 5 porte "Suivi automatisé" alors que l'idée du visuel dit "Tickets de support" : le texte numéroté a été retenu, à confirmer avec le stratégiste. Le bouton suit la charte du pack (#0F172A) et non le bleu demandé dans l'idée. Le turquoise de "Gardez le fil." vient de l'idée et du logo, pas des couleurs données par le client. Les intitulés du tableau sont volontairement abstraits pour éviter tout faux texte.

@@ -1984,7 +1984,9 @@ async function apiEquipe(req, env, ctx, url, chemin, methode, qui) {
     try { charge = await req.json(); } catch (e) { return json({ erreur: 'Fiche illisible.' }, 400); }
     if (!charge || typeof charge !== 'object' || !/^[A-Za-z0-9_-]{3,80}$/.test(String(charge.dossier || ''))) return json({ erreur: 'Projet inconnu.' }, 400);
     if (!env.CODE_FICHE) return json({ erreur: 'Le code de la fiche n\'est pas réglé dans Cloudflare (secret CODE_FICHE).', code_manquant: true }, 503);
-    charge.code = env.CODE_FICHE;
+    // v71 : le code tel que collé dans Cloudflare, même copié avec ses guillemets, sa virgule ou le commentaire de la ligne n8n
+    const brut = String(env.CODE_FICHE), entre = brut.match(/['"`]([^'"`]+)['"`]/);
+    charge.code = (entre ? entre[1] : brut.replace(/\/\/.*$/, '')).trim().replace(/^[\s,;]+|[\s,;]+$/g, '');
     let r;
     try { r = await fetch(env.N8N_FICHE || N8N_FICHE, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(charge) }); }
     catch (e) { return json({ erreur: 'n8n ne répond pas.' }, 502); }

@@ -1,0 +1,50 @@
+Créa 6 · Devlynx
+
+1. Titre : L'IA manque de contexte ?
+2. Titre, 2e ligne en couleur : Vos documents en ont.
+3. Sous-titre : Une IA peut exploiter vos documents professionnels.
+4. Libellé colonne de droite : IA sans contexte métier
+5. Ligne 1, colonne de gauche : Documents exploités
+6. Ligne 1, colonne de droite : Documents non exploités
+7. Ligne 2, colonne de gauche : Contexte métier pris en compte
+8. Ligne 2, colonne de droite : Contexte à réexpliquer
+9. Ligne 3, colonne de gauche : Suggestions adaptées
+10. Ligne 3, colonne de droite : Réponses sans contexte
+11. Ligne 4, colonne de gauche : Informations contextualisées
+12. Ligne 4, colonne de droite : Informations à rassembler
+13. CTA : Découvrir Couria
+
+Idée du visuel : Reprendre la structure de l'inspiration AG2-17 : fond blanc cassé, logo centré en haut, titre sur deux lignes, sous-titre, comparaison en deux colonnes de quatre arguments et bouton CTA en bas.
+
+Logo : remplacer le logo Searchable situé en haut par le logo Couria fourni en asset. Conserver son emplacement et ses proportions visuelles.
+
+1 — Titre : afficher « L'IA manque de contexte ? » en grand, centré, dans une typographie sombre.
+
+2 — Deuxième ligne : afficher « Vos documents en ont. » en bleu Couria, au même emplacement que le texte orange de l'inspiration. Conserver la hiérarchie et la taille du titre original.
+
+3 — Sous-titre : afficher « Une IA qui peut exploiter vos documents professionnels. » sous le titre principal, dans une typographie plus petite.
+
+Colonne de gauche : remplacer le petit bandeau Searchable par « Couria », sur fond bleu. Conserver les quatre coches de validation et les emplacements existants.
+
+- 5 : Documents exploités
+- 7 : Contexte métier pris en compte
+- 9 : Suggestions adaptées
+- 11 : Informations contextualisées
+
+Colonne de droite : remplacer « Peec, Semrush & Co. » par « IA sans contexte métier ». Il s'agit d'une comparaison avec une utilisation sans contexte documentaire, et non d'une affirmation sur des logiciels concurrents. Conserver les quatre croix et les emplacements existants.
+
+- 6 : Documents non exploités
+- 8 : Contexte à réexpliquer
+- 10 : Réponses sans contexte
+- 12 : Informations à rassembler
+
+Conserver le trait vertical séparant les deux colonnes. Respecter l'alignement des arguments et leur lisibilité sur mobile.
+
+13 — CTA : remplacer le bouton orange par un bouton bleu Couria, avec le texte « Découvrir Couria ».
+
+Direction artistique : conserver la composition sobre et premium du modèle, le fond clair et les espaces entre les éléments. Remplacer les accents orange par le bleu et le turquoise de Couria.
+
+Ne pas ajouter de captures d'interface, de logos supplémentaires, de chiffres ou de garanties techniques non vérifiées.
+Référence      : AG2-17 · comparaison nous vs eux, deux colonnes
+
+Alerte : VISUEL NON GÉNÉRÉ : {"error":"aborted"} | 1) Le fichier logo-brand.png montre le logo Couria et non celui de Devlynx : le logo Devlynx annoncé dans la consigne n'est pas joint. La mention Devlynx demandée par le client est donc une petite ligne texte en bas ("Une solution Devlynx · devlynx.fr"), ajoutée à partir de sa consigne, à valider. 2) Le sous-titre de l'emplacement 3 ("Une IA peut exploiter vos documents professionnels.") diffère de l'idée du visuel ("Une IA qui peut exploiter…") : j'ai recopié l'emplacement numéroté, à confirmer. 3) La charte du pack impose un CTA en #0F172A, alors que l'idée demande un bouton bleu : j'ai appliqué la charte. La seconde ligne du titre reste en bleu #2563EB, comme le demandent l'idée et le site. 4) Le site est en fond blanc sans texture : le fond a reçu un grain papier quasi imperceptible pour éviter l'aplat, en restant très proche du blanc. 5) L'étiquette de gauche reprend le logo Couria en blanc plutôt qu'un texte "Couria" retapé, pour ne pas faire réécrire la marque dans une autre police.

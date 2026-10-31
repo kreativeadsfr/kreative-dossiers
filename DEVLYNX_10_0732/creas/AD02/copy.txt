@@ -1,0 +1,33 @@
+Créa 2 · Devlynx
+
+1. Titre : Tous vos échanges pros. Un seul espace.
+2. Sous-titre : E-mails, support client et assistance IA réunis dans une plateforme claire et simple à utiliser.
+3. CTA : Découvrir Couria
+
+Idée du visuel : Reprendre la structure de l'inspiration AG1-30 : logo en haut à gauche, grand titre principal, sous-titre, bouton CTA et grande zone de tableau de bord dans la partie inférieure.
+
+Logo : remplacer le logo Monday par le logo complet Couria, en haut à gauche, en conservant son emplacement et des proportions comparables.
+
+1 — Titre : afficher « Tous vos échanges pros. Un seul espace. » en grand, en conservant la hiérarchie typographique du modèle et une excellente lisibilité sur mobile.
+
+2 — Sous-titre : afficher « E-mails, support client et assistance IA réunis dans une plateforme claire et simple à utiliser. » directement sous le titre principal.
+
+3 — CTA : remplacer le bouton original par un bouton aux couleurs de Couria, avec le texte « Découvrir Couria ». Conserver son emplacement et ses proportions.
+
+Zone d'interface inférieure : conserver la structure du tableau de bord présent dans l'inspiration, avec ses différentes cartes et leur disposition superposée.
+
+Adapter les éléments graphiques pour représenter les trois fonctionnalités principales de Couria :
+- « Boîte de réception »
+- « Demandes clients »
+- « Résumé IA »
+
+Ces trois éléments doivent apparaître dans des cartes distinctes, en conservant autant que possible les dimensions et les emplacements des blocs d'origine.
+
+Utiliser uniquement des libellés neutres et des données fictives clairement illustratives. Ne pas présenter le tableau de bord comme une capture authentique de Couria.
+
+Direction artistique : conserver le fond clair, la composition aérée et l'esthétique SaaS premium de l'inspiration. Adapter les accents graphiques aux couleurs Couria : bleu nuit, bleu et turquoise.
+
+Ne pas ajouter de statistiques de performance, de logos tiers ou de fonctionnalités non confirmées.
+Référence      : AG1-30 · tableau de bord SaaS en profondeur
+
+Alerte : VISUEL NON GÉNÉRÉ : {"error":"aborted"} | La pièce jointe 1 est le logo Couria et non celui de Devlynx. Le logo Devlynx n'est donc pas joint : la consigne du client est rendue par une petite mention texte "Un produit Devlynx · devlynx.fr" en haut à droite, à valider ou à retirer par le stratégiste. Aucune capture de l'interface Couria n'est jointe : les trois cartes sont construites en interface schématique (barres et pastilles abstraites, seuls les trois libellés écrits), sans chiffre ni faux texte. Joindre de vraies captures rendrait la créa plus crédible. Selon la charte du pack, le bouton est en #0f172a et non dans le bleu #4F6FFF du site.

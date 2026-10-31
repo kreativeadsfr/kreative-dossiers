@@ -34,6 +34,6 @@ Direction artistique : fond blanc cassé, typographie bleu nuit, accents bleu et
 Style premium, sobre, élégant et lisible sur mobile.
 
 Ne pas ajouter de captures d'interface, de statistiques, de témoignages ou de fonctionnalités non confirmées.
-Référence      : AG2-07 · comparatif deux cartes nous vs eux
+Référence      : AG2-07 · deux cartes comparatives nous vs eux
 
-Alerte : VISUEL NON GÉNÉRÉ : {"error":"aborted"} | La pièce jointe 1 est le logo Couria, pas celui de Devlynx : aucun logo Devlynx n'est joint, et la mention Devlynx (devlynx.fr) souhaitée par le client n'a pas été ajoutée faute de texte fourni par le stratégiste et d'emplacement dans la structure. La mise en valeur de « Trop de tâches » est en bleu #2563EB comme le demande l'idée du visuel, car l'accent #0F172A de la charte se confondrait avec le reste du titre ; #0F172A est conservé sur le CTA.
+Alerte : Le fichier logo-brand.png annoncé comme logo de Devlynx est en réalité le logo Couria. Il est utilisé comme logo Couria. Aucun logo Devlynx n'est joint sur cette créa : la mention demandée par le client est donc faite en petit texte ("Un produit Devlynx · devlynx.fr"), dont le libellé est à valider. Conflits tranchés : le mot pivot du titre est en #2563eb, comme le demande le stratégiste (en #0f172a, il serait invisible sur un titre bleu nuit), et le CTA est en #0f172a selon la charte. Le turquoise #24B39B est relevé sur le logo pour répondre à la demande d'accent turquoise. Le libellé de la carte de droite passe en Inter, car la charte n'autorise qu'une police.

@@ -576,6 +576,23 @@ function personnes(env) {
   return liste;
 }
 
+// v72 : le code Kreative de la fiche. La copie du Worker donnée à Dario le contient (CODE_FICHE_COPIE, toujours vide
+// dans le dépôt public) et le range dans la base (réglage code_fiche, jamais renvoyé à une page) : les versions
+// suivantes, sans le code, le relisent dans la base. Sinon, le secret CODE_FICHE de Cloudflare.
+const CODE_FICHE_COPIE = '';
+async function codeFiche(env) {
+  const db = await baseLiv(env);
+  if (CODE_FICHE_COPIE) {
+    try { await db.prepare('INSERT OR REPLACE INTO reglages (cle, valeur) VALUES (?, ?)').bind('code_fiche', CODE_FICHE_COPIE).run(); } catch (e) {}
+    return CODE_FICHE_COPIE;
+  }
+  try { const r = await db.prepare("SELECT valeur FROM reglages WHERE cle = 'code_fiche'").first(); if (r && r.valeur) return r.valeur; } catch (e) {}
+  if (!env.CODE_FICHE) return '';
+  // le secret tel que collé dans Cloudflare, même avec ses guillemets, sa virgule ou le commentaire de la ligne n8n
+  const brut = String(env.CODE_FICHE), entre = brut.match(/['"`]([^'"`]+)['"`]/);
+  return (entre ? entre[1] : brut.replace(/\/\/.*$/, '')).trim().replace(/^[\s,;]+|[\s,;]+$/g, '');
+}
+
 // la dernière connexion de chaque membre de l'équipe (page Équipe de l'admin) : au plus une écriture toutes les 5 min
 const VU_EQUIPE = new Map();
 function vuEquipe(env, ctx, nom) {
@@ -1983,10 +2000,9 @@ async function apiEquipe(req, env, ctx, url, chemin, methode, qui) {
     let charge;
     try { charge = await req.json(); } catch (e) { return json({ erreur: 'Fiche illisible.' }, 400); }
     if (!charge || typeof charge !== 'object' || !/^[A-Za-z0-9_-]{3,80}$/.test(String(charge.dossier || ''))) return json({ erreur: 'Projet inconnu.' }, 400);
-    if (!env.CODE_FICHE) return json({ erreur: 'Le code de la fiche n\'est pas réglé dans Cloudflare (secret CODE_FICHE).', code_manquant: true }, 503);
-    // v71 : le code tel que collé dans Cloudflare, même copié avec ses guillemets, sa virgule ou le commentaire de la ligne n8n
-    const brut = String(env.CODE_FICHE), entre = brut.match(/['"`]([^'"`]+)['"`]/);
-    charge.code = (entre ? entre[1] : brut.replace(/\/\/.*$/, '')).trim().replace(/^[\s,;]+|[\s,;]+$/g, '');
+    const code = await codeFiche(env);
+    if (!code) return json({ erreur: 'Le code de la fiche n\'est pas réglé.', code_manquant: true }, 503);
+    charge.code = code;
     let r;
     try { r = await fetch(env.N8N_FICHE || N8N_FICHE, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(charge) }); }
     catch (e) { return json({ erreur: 'n8n ne répond pas.' }, 502); }

@@ -24,6 +24,6 @@ Direction artistique : conserver la composition photographique et typographique 
 Le rendu doit être premium, moderne et professionnel, sans emojis, éléments enfantins ni surcharge graphique.
 
 Ne pas ajouter de capture d'interface, de statistique, de témoignage ou de promesse non vérifiée.
-Référence      : AG1-58 · portrait studio, titre scindé
+Référence      : AG1-58 · personnage debout coupant le titre
 
-Alerte : Le fichier logo-brand.png annoncé comme logo Devlynx montre en réalité le logo Couria. Il est utilisé comme logo de marque. Le logo Devlynx n'est donc pas fourni, et la mention Devlynx (devlynx.fr) souhaitée par le client n'a pas été ajoutée, faute de texte prévu dans la fiche. À ajouter par le stratégiste s'il la veut. Le personnage est généré, comme demandé dans l'idée du visuel, car aucune photo n'a été jointe. Le turquoise n'existe pas dans la palette du client, les touches claires sont donc en blanc #FFFFFF. La référence n'a aucun CTA, donc aucun bouton.
+Alerte : Le fichier logo-brand.png est annoncé comme le logo Devlynx mais montre le logo Couria : je l'ai utilisé comme logo Couria, comme le demande l'idée. Le logo Devlynx n'est pas joint, donc la consigne du client passe par une petite mention texte verticale "Un produit Devlynx · devlynx.fr", placée à l'emplacement de la mention verticale de la référence, à retirer si non souhaitée. Le personnage est une photo générée à la demande du stratégiste, ce qui est inhabituel pour un SaaS. La référence ne contient aucun CTA, donc la créa n'en a pas.

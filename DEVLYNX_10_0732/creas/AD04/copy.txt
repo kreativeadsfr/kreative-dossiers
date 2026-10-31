@@ -1,0 +1,43 @@
+Créa 4 · Devlynx
+
+1. Titre : Un client vous relance ?
+2. Libellé étape 1 : 01
+3. Étape 1 : La demande arrive
+4. Description étape 1 : Un client vous contacte.
+5. Libellé étape 2 : 02
+6. Étape 2 : Vous organisez le suivi
+7. Description étape 2 : Gérez sa demande avec un ticket.
+8. Libellé étape 3 : 03
+9. Étape 3 : Vous gardez le fil
+10. Description étape 3 : Retrouvez les échanges au même endroit.
+11. CTA : Découvrir Couria
+
+Idée du visuel : Reprendre la structure de l’inspiration AG1-22 : fond clair, logo centré en haut, titre principal, parcours vertical en 3 étapes reliées par une ligne fine, puis bouton CTA en bas.
+
+Logo : remplacer le logo Softriver par le logo Couria en haut du visuel.
+
+1 — Titre : afficher « Un client vous relance ? » en grand, centré. Mettre « relance » en évidence avec une couleur issue de l’identité Couria.
+
+2, 5 et 8 — Libellés des étapes : remplacer les repères de type “Day 01 / Day 02 / Day 03” par 01, 02 et 03, le long de la ligne verticale à gauche.
+
+3 — Étape 1 : afficher « La demande arrive » dans le premier bloc arrondi.
+4 — Description étape 1 : afficher « Un client vous contacte. »
+
+6 — Étape 2 : afficher « Vous organisez le suivi » dans le deuxième bloc arrondi.
+7 — Description étape 2 : afficher « Gérez sa demande avec un ticket. »
+
+9 — Étape 3 : afficher « Vous gardez le fil » dans le troisième bloc arrondi.
+10 — Description étape 3 : afficher « Retrouvez les échanges au même endroit. »
+
+11 — CTA : remplacer le bouton d’origine par un bouton bleu Couria avec le texte « Découvrir Couria ».
+
+12 — Mention : laisser vide. Supprimer la note, les étoiles et toute preuve sociale de l’inspiration.
+
+Direction artistique : conserver le fond clair, la structure verticale et les dégradés légers de l’inspiration. Remplacer les accents violets par des tons bleu / turquoise cohérents avec l’identité de Couria.
+
+Le rendu doit rester sobre, premium, lisible sur mobile.
+
+Ne pas ajouter de capture d’interface, de statistique, ni de promesse d’automatisation non confirmée.
+Référence      : AG1-22 · parcours vertical en trois étapes
+
+Alerte : VISUEL NON GÉNÉRÉ : 504 - "{\"error\":{\"message\":\"Deadline expired before operation could complete.\",\"code\":\"deadline_exceeded\"}}" | Plusieurs points à vérifier. 1) La pièce jointe 1 montre le logo Couria et non celui de Devlynx : aucun logo Devlynx n'est joint. 2) La mention Devlynx (devlynx.fr) souhaitée par le client n'a pas été ajoutée, car la mention de cette créa est À RETIRER et l'idée demande de ne rien ajouter. 3) La charte impose #0F172A pour le mot pivot et pour le CTA, ce qui rendrait « relance » invisible dans un titre en #0F172A. Le mot pivot passe donc en bleu Couria #2563EB, comme le demande le stratégiste. 4) Le CTA reste en #0F172A selon la charte, alors que le stratégiste demandait un bouton bleu Couria. 5) Le fond reçoit un léger dégradé et un grain fin, malgré la DA « blanc uni », pour suivre la structure de la créa et éviter l'aplat.

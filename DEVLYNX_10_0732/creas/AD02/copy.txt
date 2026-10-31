@@ -28,6 +28,6 @@ Utiliser uniquement des libellés neutres et des données fictives clairement il
 Direction artistique : conserver le fond clair, la composition aérée et l'esthétique SaaS premium de l'inspiration. Adapter les accents graphiques aux couleurs Couria : bleu nuit, bleu et turquoise.
 
 Ne pas ajouter de statistiques de performance, de logos tiers ou de fonctionnalités non confirmées.
-Référence      : AG1-30 · tableau de bord SaaS en profondeur
+Référence      : AG1-30 · SaaS, titre et tableau de bord
 
-Alerte : VISUEL NON GÉNÉRÉ : {"error":"aborted"} | La pièce jointe 1 est le logo Couria et non celui de Devlynx. Le logo Devlynx n'est donc pas joint : la consigne du client est rendue par une petite mention texte "Un produit Devlynx · devlynx.fr" en haut à droite, à valider ou à retirer par le stratégiste. Aucune capture de l'interface Couria n'est jointe : les trois cartes sont construites en interface schématique (barres et pastilles abstraites, seuls les trois libellés écrits), sans chiffre ni faux texte. Joindre de vraies captures rendrait la créa plus crédible. Selon la charte du pack, le bouton est en #0f172a et non dans le bleu #4F6FFF du site.
+Alerte : La pièce jointe 1 est le logo Couria, pas celui de Devlynx : aucun logo Devlynx n'a été joint et aucune mention Devlynx n'est écrite dans la fiche, donc la mention souhaitée par le client n'apparaît pas (à ajouter dans la fiche si voulue). Aucune capture de l'interface Couria n'est jointe : le tableau de bord est une illustration schématique générée, sans données ni faux texte, avec seulement les trois libellés demandés par le stratégiste.

@@ -135,4 +135,48 @@
     });
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', assets); else assets();
+
+  // ---------- 3. visuels arrivés après la page (31/10) ----------
+  // La page des visuels est écrite une fois, à la fin de la génération. Un visuel que Gemini n'a pas
+  // rendu (« visual not generated ») puis régénéré n'y apparaissait jamais : on va voir s'il existe
+  // maintenant, on l'affiche dans l'aperçu et on le met dans le zip de téléchargement.
+  function visuelsTardifs() {
+    if (!/\/creas\/(index\.html|telecharger\.html)?$/.test(location.pathname)) return;
+    var cherche = function (ad) {
+      var exts = ['png', 'jpg'], i = 0;
+      var essai = function () {
+        if (i >= exts.length) return Promise.resolve(null);
+        var u = ad + '/visuel.' + exts[i++];
+        return fetch(u + '?v=' + Date.now(), { cache: 'no-store' }).then(function (r) {
+          return r.ok && /^image\//.test(r.headers.get('content-type') || '') ? new URL(u, location.href).href : essai();
+        }).catch(essai);
+      };
+      return essai();
+    };
+    // l'aperçu
+    Array.prototype.forEach.call(document.querySelectorAll('article.c'), function (carte) {
+      var vide = carte.querySelector('.im .vide'), num = carte.querySelector('.num');
+      if (!vide || !num) return;
+      var ad = num.textContent.trim();
+      if (!/^AD\d{2,3}$/.test(ad)) return;
+      cherche(ad).then(function (u) {
+        if (!u) return;
+        vide.parentNode.innerHTML = '<img src="' + u + '?v=' + Date.now() + '" alt="' + ad + '" loading="lazy">';
+        carte.classList.remove('ko');
+      });
+    });
+    // le zip (« Download all » de l'aperçu et page de téléchargement)
+    try {
+      /* global PLAN */
+      if (typeof PLAN !== 'undefined' && Array.isArray(PLAN)) PLAN.forEach(function (p) {
+        if (!p || p.visuel || !/^AD\d{2,3}$/.test(p.ad || '')) return;
+        cherche(p.ad).then(function (u) {
+          if (!u) return;
+          p.visuel = u;
+          if (p.nom) p.nom = p.nom.replace(/\.(jpe?g|png)$/i, /\.png$/.test(u) ? '.png' : '.jpg');
+        });
+      });
+    } catch (e) {}
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', visuelsTardifs); else visuelsTardifs();
 })();

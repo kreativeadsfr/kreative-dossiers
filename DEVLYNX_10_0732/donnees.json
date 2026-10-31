@@ -30,13 +30,13 @@
     "#64748b"
   ],
   "polices": [
-    "sans-serif géométrique très grasse",
-    "sans-serif régulière"
+    "Inter SemiBold (titres)",
+    "Inter Regular (texte)"
   ],
   "polices_client": [],
   "polices_site": [
-    "sans-serif géométrique très grasse",
-    "sans-serif régulière"
+    "Inter SemiBold (titres)",
+    "Inter Regular (texte)"
   ],
   "captures": [
     {
@@ -51,11 +51,11 @@
   "brand_kit": {
     "fonts": [
       {
-        "name": "sans-serif geometrique tres grasse",
+        "name": "Inter SemiBold",
         "use": "headlines"
       },
       {
-        "name": "sans-serif reguliere",
+        "name": "Inter Regular",
         "use": "body text"
       }
     ],

@@ -183,3 +183,7 @@ body.kc-on.k-dossier #assets .kp-tout{order:3;height:34px;padding:0 16px;font-si
 
 /* fiche ouverte dans le portail : le choix du projet est déjà dans la barre du portail */
 body.kc-integre.kc-fiche .bar1 .sel{display:none}
+
+/* 31/10 : dans le portail, l'aperçu ne sert qu'à regarder. La livraison se fait dans « Deliver » :
+   la section « Delivery » de l'aperçu et son bouton du haut sont masqués */
+.kc-on #livrer, .kc-on a[href="#livrer"] { display: none !important; }

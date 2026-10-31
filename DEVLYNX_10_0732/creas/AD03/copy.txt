@@ -1,0 +1,39 @@
+Créa 3 · Devlynx
+
+1. Titre : Beaucoup trop d’e-mails à traiter ?
+2. Libellé colonne de gauche : Sans résumé IA
+3. Libellé colonne de droite : Avec Couria
+4. Ligne 1, colonne de gauche : Tout relire
+5. Ligne 1, colonne de droite : Consulter un résumé
+6. Ligne 2, colonne de gauche : Rechercher le contexte
+7. Ligne 2, colonne de droite : Retrouver l’essentiel
+8. Ligne 3, colonne de gauche : Repérer les sujets clés
+9. Ligne 3, colonne de droite : Points clés synthétisés
+10. Lignes 4 et 5, colonne de gauche : Informations à retrouver Synthèse à rédiger
+11. Lignes 4 et 5, colonne de droite : Informations synthétisées Résumé proposé par l’IA
+12. CTA : Découvrir Couria
+
+Idée du visuel : Reprendre la structure de l'inspiration AG2-08 : logo en haut, grand titre centré, deux colonnes comparatives de cinq lignes et bouton CTA en dessous.
+
+Logo : remplacer le logo Legacy en haut du visuel par le logo Couria fourni en asset. Le conserver centré, dans des proportions comparables.
+
+1 — Titre : afficher « Beaucoup trop d’e-mails à traiter ? » en grand, centré sur deux lignes. Mettre « e-mails » en évidence avec le bleu de Couria.
+
+2 — Colonne gauche : conserver la carte blanche de gauche, avec le titre « Sans résumé IA ». Reprendre les cinq lignes du copywriting dans leurs emplacements d'origine, accompagnées de petites icônes rouges.
+
+3 — Colonne droite : conserver la carte blanche de droite, avec le titre « Avec Couria ». Afficher les cinq bénéfices correspondants, accompagnés des icônes vertes.
+
+4 à 11 — Lignes comparatives : respecter strictement les correspondances entre les deux colonnes. Chaque ligne de gauche doit être visuellement alignée avec son équivalent à droite. Conserver une typographie suffisamment lisible sur mobile.
+
+12 — CTA : sous les deux colonnes, remplacer le bouton rouge par un bouton bleu Couria avec « Découvrir Couria ».
+
+13 — Mention : supprimer la mention de preuve sociale sous le CTA. Ne pas la remplacer par un chiffre ou un témoignage non vérifié.
+
+Direction artistique : conserver le fond clair et les légers dégradés de l'inspiration, en remplaçant les accents roses par des touches de bleu et turquoise issues de l'identité Couria.
+
+L'objectif est une comparaison immédiatement compréhensible entre la lecture manuelle d'une conversation et l'utilisation de la fonction de résumé IA de Couria.
+
+Ne pas ajouter de captures d'interface, de statistiques ou de fonctionnalités non mentionnées dans le brief.
+Référence      : AG2-08 · comparaison deux cartes avant/avec
+
+Alerte : 1) La pièce jointe 1, annoncée comme le logo de Devlynx, est en réalité le logo Couria. Elle est utilisée comme logo en haut, et aucun logo Devlynx n'a été joint. La mention Devlynx demandée par le client est donc en texte seul ("Un produit Devlynx · devlynx.fr"), discrète, à l'emplacement de la mention retirée. Elle est à valider, puisqu'elle ne figure pas dans la fiche. 2) La charte impose l'accent #0f172a sur le mot pivot, ce qui le rendrait invisible sur un titre bleu-noir. Le mot e-mails est donc en bleu #2563EB, comme le demandent l'idée du stratégiste et le site. 3) Le CTA est en #0f172a selon la charte, et non en bleu Couria comme le souhaitait le stratégiste : à arbitrer si besoin.

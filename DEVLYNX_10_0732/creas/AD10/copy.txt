@@ -1,0 +1,42 @@
+Créa 10 · Devlynx
+
+1. Titre : Répondre, c'est bien. Suivre, c'est mieux.
+2. Sous-titre : Avec Couria, allez au-delà d'une simple boîte mail.
+3. Libellé colonne de gauche : Boîte mail classique
+4. Libellé colonne de droite : Avec Couria
+5. Ligne 1, colonne de gauche : E-mails reçus
+6. Ligne 2, colonne de gauche : Suivi manuel
+7. Ligne 3, colonne de gauche : Demandes à trier
+8. Ligne 4, colonne de gauche : Relances à suivre
+9. Ligne 1, colonne de droite : Messagerie pro
+10. Ligne 2, colonne de droite : Tickets de support
+11. Ligne 3, colonne de droite : Demandes organisées
+12. Ligne 4, colonne de droite : Échanges centralisés
+13. CTA : Découvrir Couria
+
+Idée du visuel : Reprendre la structure de l'inspiration AG2-12 : logo en haut à gauche, grand titre sur plusieurs lignes, sous-titre, deux colonnes comparatives de quatre éléments et CTA en bas à gauche.
+
+Logo : remplacer le logo Superside par le logo complet Couria fourni en asset, en conservant son emplacement et des proportions comparables.
+
+1 — Titre : afficher « Répondre, c'est bien. Suivre, c'est mieux. » en grand, sur trois lignes maximum. Mettre « Suivre, c'est mieux. » en évidence en turquoise.
+
+2 — Sous-titre : placer « Avec Couria, allez au-delà de la simple messagerie. » directement sous le titre.
+
+3 — Colonne gauche : remplacer « HIRING » par « Messagerie seule ». Conserver les quatre encadrés flottants accompagnés d'une croix, aux mêmes emplacements.
+
+5 à 8 — Arguments de gauche : afficher successivement « E-mails reçus », « Suivi manuel », « Demandes à trier » et « Relances à suivre ».
+
+4 — Colonne droite : remplacer « SUPERSIDE » par « Avec Couria ». Conserver la carte blanche et les quatre coches de validation.
+
+9 à 12 — Arguments de droite : afficher « Messagerie pro », « Tickets de support », « Demandes organisées » et « Échanges centralisés ».
+
+13 — CTA : remplacer le bouton original par un bouton bleu nuit avec « Découvrir Couria », en bas à gauche.
+
+Visuel inférieur droit : conserver l'emplacement et les proportions de l'ordinateur de l'inspiration. Le représenter sous forme d'une illustration sobre d'ordinateur portable, avec un écran neutre, sans interface logicielle fictive ni marque tierce.
+
+Direction artistique : conserver le fond clair et les dégradés subtils de l'inspiration. Utiliser les couleurs de Couria : bleu nuit, bleu et turquoise. Typographie moderne, composition aérée, rendu premium et lisible sur mobile.
+
+Ne pas ajouter de chiffres, de captures produit ou de promesses d'automatisation non confirmées.
+Référence      : AG2-12 · comparaison deux colonnes étiquettes contre carte
+
+Alerte : Le fichier logo-brand.png montre le logo Couria et non celui de Devlynx. Aucun logo Devlynx n'a été joint et la fiche ne prévoit aucun emplacement de mention, donc la mention Devlynx (devlynx.fr) souhaitée par le client n'a pas été ajoutée : il faut l'ajouter comme emplacement Mention si elle est voulue. L'ordinateur du coin inférieur droit a été retiré : aucun asset ne le fournit, et un écran inventé et vide est interdit pour un SaaS. Le coin reste ouvert, porté par la lumière diffuse. L'idée du visuel donnait d'autres textes que la fiche pour le sous-titre (au-delà de la simple messagerie) et le libellé de gauche (Messagerie seule) : les textes de la fiche ont été appliqués mot pour mot. La deuxième ligne du titre est en turquoise, à la demande du stratégiste, plutôt qu'avec l'accent #0f172a de la charte, qui ne se distinguerait pas d'un titre déjà en bleu nuit. Ce turquoise est pris dans le logo et assombri pour rester lisible.

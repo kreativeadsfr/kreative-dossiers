@@ -1,0 +1,6 @@
+{
+  "dossier": "VERIFCODE_KREATIVE",
+  "max": 2,
+  "envois": ["2026-10-31T00:00:00.000Z", "2026-10-31T00:00:01.000Z"],
+  "note": "Projet de vérification (Claude) : marqué « déjà envoyé 2 fois », pour tester le code de la fiche sans lancer de production. Ne pas supprimer."
+}

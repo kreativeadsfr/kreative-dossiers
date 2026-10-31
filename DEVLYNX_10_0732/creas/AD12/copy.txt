@@ -1,0 +1,43 @@
+Créa 12 · Devlynx
+
+1. Titre : Vos outils se multiplient. Pas votre temps.
+2. Sous-titre : E-mails, support client et IA : Couria réunit l'essentiel.
+3. Libellé au-dessus de la carte de gauche : Outils séparés
+4. Nom de l'offre, carte de droite : Couria
+5. Prix, carte de droite : 1 espace
+6. Nom de l'offre, carte de gauche : Gestion dispersée
+7. Prix barré, carte de gauche : 3 outils
+8. Délai, carte de droite : Tout au même endroit
+9. Délai, carte de gauche : Passer d'un outil à l'autre
+10. CTA : Découvrir Couria
+
+Idée du visuel : Reprendre la structure de l'inspiration AG2-04 : fond clair légèrement dégradé, logo centré en haut, grand titre, sous-titre, deux cartes inclinées au centre avec une flèche de transition et bouton CTA en bas.
+
+Logo : remplacer le logo Softriver supérieur par le logo complet Couria fourni en asset.
+
+1 — Titre : afficher « Vos outils se multiplient. Pas votre temps. » en grand, centré sur deux lignes. Mettre « Pas votre temps. » en turquoise.
+
+2 — Sous-titre : afficher « E-mails, support client et IA : Couria réunit l'essentiel. » juste sous le titre.
+
+Carte gauche : conserver sa position inclinée et sa structure.
+- 3 : « Outils séparés » au-dessus de la carte.
+- 6 : « Gestion dispersée » à la place du nom de l'offre.
+- 7 : « 3 outils » en grand, barré comme le prix original.
+- 9 : « Changer d'outil » dans l'emplacement inférieur.
+
+Carte droite : conserver sa position et sa structure.
+- Remplacer le petit logo Softriver par le logo Couria.
+- 4 : « Couria » à la place du nom de l'offre.
+- 5 : « 1 espace » en grand, à la place du prix.
+- 8 : « Tout au même endroit » dans l'emplacement inférieur.
+
+Conserver la flèche entre les deux cartes pour illustrer le passage d'une gestion dispersée à une plateforme réunissant plusieurs fonctionnalités.
+
+10 — CTA : remplacer le bouton original par un bouton bleu « Découvrir Couria ».
+
+Conserver les proportions des cartes, leurs inclinaisons, la position des éléments et les espaces du modèle. Utiliser les couleurs Couria : bleu nuit, bleu et turquoise, avec un rendu sobre et élégant.
+
+Ne pas afficher de prix ni de délai de livraison, ces informations n'étant pas disponibles dans le brief. Ne pas ajouter de captures d'interface ou d'autres logos.
+Référence      : AG2-04 · deux cartes comparées, flèche
+
+Alerte : VISUEL NON GÉNÉRÉ : {"error":"aborted"} | 1. La pièce jointe 1 est le logo Couria et non celui de Devlynx : aucun logo Devlynx n'a été fourni. La mention Devlynx (devlynx.fr) souhaitée par le client n'est pas dans les textes de la fiche, donc elle n'est pas ajoutée. À ajouter comme emplacement si le stratégiste la veut. 2. L'emplacement 9 garde le texte de la fiche, « Passer d'un outil à l'autre », et non « Changer d'outil » écrit dans l'idée du visuel. 3. Le mot pivot est en bleu #2563eb, pour deux raisons. L'accent de la charte, #0f172a, se confondrait avec le titre. Le turquoise demandé n'est pas une couleur donnée par le client. 4. Le CTA est en #0f172a selon la charte du pack, et non en bleu comme le demande l'idée du visuel. 5. Le trait qui barre « 3 outils » est en bleu nuit et non en rouge, pour rester dans la palette du client.

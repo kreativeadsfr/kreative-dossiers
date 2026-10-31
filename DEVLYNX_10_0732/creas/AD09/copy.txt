@@ -1,0 +1,29 @@
+Créa 9 · Devlynx
+
+1. Titre, en haut : Votre boîte mail prend
+2. Titre, au milieu : trop
+3. Titre, à droite : de place.
+4. Sous-titre : Couria vous aide à gérer vos e-mails et demandes clients grâce à l'IA.
+
+Idée du visuel : Reprendre la structure de l'inspiration AG1-58 : logo en haut, titre principal, personnage debout au centre, deux parties du titre réparties de chaque côté du personnage et sous-titre en bas.
+
+Logo : remplacer le logo Superads en haut du visuel par le logo complet Couria, en conservant son emplacement centré et des proportions comparables.
+
+1 — Titre supérieur : afficher « Votre boîte mail prend » en grande typographie bleu nuit, sur deux lignes, au même emplacement que le titre original.
+
+2 — Titre au milieu : afficher « trop » à gauche du personnage, en très grande typographie.
+
+3 — Titre à droite : afficher « de place. » à droite du personnage. Conserver l'effet typographique de l'inspiration, avec le personnage qui sépare visuellement les deux parties du message. Ajuster la taille des mots pour respecter les espaces disponibles sans les superposer au personnage.
+
+Personnage central : remplacer la photographie originale par une photo de stock d'un entrepreneur ou professionnel debout, en tenue business casual, avec une posture naturelle et assurée. Conserver le cadrage vertical, la taille et l'emplacement du personnage original. Ne pas le présenter comme un client réel de Couria.
+
+4 — Sous-titre inférieur : afficher « Couria vous aide à gérer vos e-mails et demandes clients grâce à l'IA. » en bas du visuel, centré, dans une typographie lisible.
+
+Direction artistique : conserver la composition photographique et typographique originale. Utiliser un fond bleu-gris sobre, des textes bleu nuit et des touches de turquoise ou de blanc pour assurer le contraste.
+
+Le rendu doit être premium, moderne et professionnel, sans emojis, éléments enfantins ni surcharge graphique.
+
+Ne pas ajouter de capture d'interface, de statistique, de témoignage ou de promesse non vérifiée.
+Référence      : AG1-58 · portrait studio, titre scindé
+
+Alerte : Le fichier logo-brand.png annoncé comme logo Devlynx montre en réalité le logo Couria. Il est utilisé comme logo de marque. Le logo Devlynx n'est donc pas fourni, et la mention Devlynx (devlynx.fr) souhaitée par le client n'a pas été ajoutée, faute de texte prévu dans la fiche. À ajouter par le stratégiste s'il la veut. Le personnage est généré, comme demandé dans l'idée du visuel, car aucune photo n'a été jointe. Le turquoise n'existe pas dans la palette du client, les touches claires sont donc en blanc #FFFFFF. La référence n'a aucun CTA, donc aucun bouton.

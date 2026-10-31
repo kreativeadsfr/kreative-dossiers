@@ -22,6 +22,6 @@ Ordinateur central : conserver exactement le cadrage et les proportions de l'ord
 Direction artistique : conserver l'ambiance technologique premium, le fond bleu dégradé, les contrastes et les espaces de l'inspiration. Utiliser les couleurs Couria : bleu nuit, bleu électrique et turquoise.
 
 Ne pas ajouter de statistiques, de captures d'interface fictives ou de promesses de performances non vérifiées.
-Référence      : AG1-83 · ordinateur héro, écran typographique
+Référence      : AG1-83 · ordinateur héro sous titre lumineux
 
-Alerte : La pièce jointe 1 est le logo Couria, et non le logo Devlynx annoncé par le nom du fichier. Le logo Devlynx n'est donc pas joint. La mention demandée par le client est faite en texte discret en bas ("Un produit Devlynx · devlynx.fr") : ce libellé n'est pas dans la fiche, il est à valider. Sur ce fond sombre, la couleur d'accent #0f172a ne peut pas servir au mot pivot du titre, qui reste entièrement blanc comme demandé par le stratégiste. Le CTA en #0f172a se détache grâce à une lumière bleue ajoutée derrière lui, en bas du cadre. Le turquoise #2BB59A est tiré de la coche du logo, car il est absent des couleurs données par le client.
+Alerte : La pièce jointe 1 est le logo Couria et non celui de Devlynx : le logo Devlynx n'a pas été fourni. La mention Devlynx (devlynx.fr) souhaitée par le client ne figure pas dans les textes du stratégiste, elle n'a donc pas été ajoutée. Le CTA en #0f172a imposé par la charte se trouvait sur un fond sombre : une lumière bleue diffuse monte du bas pour le détacher. Le turquoise #22B59A est tiré de la coche du logo, faute de hex turquoise dans la charte.

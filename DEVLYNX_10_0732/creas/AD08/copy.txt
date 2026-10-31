@@ -1,0 +1,39 @@
+Créa 8 · Devlynx
+
+1. Titre : Trop de tâches à gérer ?
+2. Ligne 1, colonne de gauche : Messagerie pro intégrée
+3. Ligne 2, colonne de gauche : Demandes en tickets
+4. Ligne 3, colonne de gauche : Résumés par IA
+5. Ligne 4, colonne de gauche : Suggestions de réponses
+6. Ligne 5, colonne de gauche : IA avec vos documents
+7. Ligne 6, colonne de gauche : Communications réunies
+8. Libellé colonne de droite : Gestion dispersée
+9. Ligne 1, colonne de droite : E-mails d'un côté
+10. Ligne 2, colonne de droite : Demandes à suivre
+11. Ligne 3, colonne de droite : Échanges à relire
+12. Ligne 4, colonne de droite : Réponses à rédiger
+13. Lignes 5 et 6, colonne de droite : Documents à parcourir / Outils séparés
+14. CTA : Découvrir Couria
+
+Idée du visuel : Reprendre la structure de l'inspiration AG2-07 : fond clair, logo centré en haut, titre principal, deux cartes comparatives de six lignes et bouton CTA en bas.
+
+Logo : remplacer le logo Highlanding en haut du visuel par le logo complet Couria fourni en asset.
+
+1 — Titre : afficher « Trop de tâches à gérer ? » en grand, centré sur deux lignes. Mettre « Trop de tâches » en évidence en bleu Couria.
+
+Colonne gauche — Couria : remplacer le second logo Highlanding, situé en haut de la carte gauche, par le logo Couria, dans des proportions comparables. Conserver les six coches et afficher les textes 2 à 7, dans leur ordre et leurs emplacements respectifs.
+
+Colonne droite — Gestion dispersée : remplacer « Autres Agences Web » par « Gestion dispersée ». Conserver les six croix et afficher les textes 9 à 13. Le champ 13 contient deux éléments à répartir sur les deux dernières lignes.
+
+Conserver exactement les deux cartes, leurs proportions, leurs six lignes et leurs alignements. Les colonnes comparent les fonctionnalités de Couria à une organisation manuelle et fragmentée, sans prétendre décrire les limites d'un concurrent précis.
+
+14 — CTA : conserver le bouton inférieur et remplacer son texte par « Découvrir Couria ». Utiliser un bleu profond issu de l'identité Couria.
+
+Direction artistique : fond blanc cassé, typographie bleu nuit, accents bleu et turquoise. Conserver les coches et les croix sous forme de pictogrammes fins, sans emojis.
+
+Style premium, sobre, élégant et lisible sur mobile.
+
+Ne pas ajouter de captures d'interface, de statistiques, de témoignages ou de fonctionnalités non confirmées.
+Référence      : AG2-07 · comparatif deux cartes nous vs eux
+
+Alerte : VISUEL NON GÉNÉRÉ : {"error":"aborted"} | La pièce jointe 1 est le logo Couria, pas celui de Devlynx : aucun logo Devlynx n'est joint, et la mention Devlynx (devlynx.fr) souhaitée par le client n'a pas été ajoutée faute de texte fourni par le stratégiste et d'emplacement dans la structure. La mise en valeur de « Trop de tâches » est en bleu #2563EB comme le demande l'idée du visuel, car l'accent #0F172A de la charte se confondrait avec le reste du titre ; #0F172A est conservé sur le CTA.

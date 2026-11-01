@@ -27,7 +27,7 @@ const ANCIENS = [
 ];
 const COOKIE = 'k_espace';
 const DUREE_JOURS = 60;
-const PUBLICS = /^\/(ui\/kreative\.css|ui\/(app|review|panier)\.(css|js)|ui\/logo-[a-z0-9-]+\.png|ui\/[a-z0-9-]+\.svg|favicon-\d+\.png|apple-touch-icon\.png|app-icon-[a-z0-9-]+\.png)$/;
+const PUBLICS = /^\/(ui\/kreative\.css|ui\/(app|review|panier|qr)\.(css|js)|ui\/logo-[a-z0-9-]+\.png|ui\/[a-z0-9-]+\.svg|favicon-\d+\.png|apple-touch-icon\.png|app-icon-[a-z0-9-]+\.png)$/;
 const INTERDITS = /(^|\/)(\.git|\.github|outils)(\/|$)|\.\./;
 const LIMITE_REECRITURE = 3 * 1024 * 1024;   // au-delà, le texte passe tel quel
 const LIMITE_SCRIPT = 64 * 1024;              // scripts inline réécrits jusqu'à 64 ko
@@ -576,6 +576,7 @@ function personnes(env) {
   return liste;
 }
 
+// v74 : l'app sur ordinateur : page App visible sur ordinateur, QR code qui connecte le téléphone 30 min (/acces-app/, /api/client/lien-app), appareil des notifications (push_abos.appareil, clients.app_appareils), SCHEMA_V 74.
 // v73 : l'email de livraison commence par « Vos créatives sont prêtes. » (ou « Votre livraison 1 sur 4 est prête. »).
 // v72 : le code Kreative de la fiche. La copie du Worker donnée à Dario le contient (CODE_FICHE_COPIE, toujours vide
 // dans le dépôt public) et le range dans la base (réglage code_fiche, jamais renvoyé à une page) : les versions
@@ -888,7 +889,7 @@ let BASE_PRETE = false;
 // v70 : la base est vérifiée une seule fois par version. Avant, chaque démarrage du Worker refaisait
 // ~25 allers-retours (tables, colonnes, index) : près d'une seconde sur la 1re ouverture.
 // Augmenter SCHEMA_V à chaque nouvelle table ou colonne : la vérification complète repasse une fois.
-const SCHEMA_V = 70;
+const SCHEMA_V = 74;
 let SCHEMA_EN_COURS = null;
 async function base(env) {
   if (!env.DB) throw new Error('Base de données absente : liez une base D1 au Worker sous le nom DB.');
@@ -932,7 +933,7 @@ async function migrerBase(env) {
       try { await env.DB.prepare('ALTER TABLE commandes ADD COLUMN ' + col).run(); } catch (e) {}
     }
     for (const col of ['stripe_le INTEGER', 'offre_le INTEGER']) { try { await env.DB.prepare('ALTER TABLE abonnements ADD COLUMN ' + col).run(); } catch (e) {} }
-    for (const col of ['stripe_client TEXT', 'photo TEXT', 'photo_le INTEGER', 'app_le INTEGER', 'special TEXT']) {
+    for (const col of ['stripe_client TEXT', 'photo TEXT', 'photo_le INTEGER', 'app_le INTEGER', 'special TEXT', 'app_appareils TEXT']) {
       try { await env.DB.prepare('ALTER TABLE clients ADD COLUMN ' + col).run(); } catch (e) {}
     }
     try { await env.DB.prepare('CREATE UNIQUE INDEX IF NOT EXISTS i_cmd_session ON commandes(stripe_session)').run(); } catch (e) {}
@@ -980,6 +981,8 @@ async function corpsJson(req) {
 
 // le lien d'accès du client, absolu
 const lienAcces = (url, jeton) => url.origin + '/acces/' + jeton;
+// v74 : « telephone » ou « ordinateur », envoyé par la page App du client
+const appareilDe = b => ['telephone', 'ordinateur'].includes(b && b.appareil) ? b.appareil : null;
 
 async function envoyerEmail(env, donnees) {
   // les clients de démonstration (@example.com) ne reçoivent jamais rien
@@ -1005,6 +1008,19 @@ async function routerPortail(req, env, ctx, url, chemin) {
     const valeur = cl.id + '.' + fin + '.' + (await signer(env, 'client.' + cl.id + '.' + fin));
     await db.prepare('UPDATE clients SET vu_le = ? WHERE id = ?').bind(maintenant(), cl.id).run();
     return new Response(null, { status: 302, headers: { 'Location': '/client/', 'Cache-Control': 'no-store',
+      'Set-Cookie': COOKIE_CLIENT + '=' + valeur + '; Path=/; Max-Age=' + DUREE_CLIENT_JOURS * 86400 + '; HttpOnly; Secure; SameSite=Lax' } });
+  }
+  // v74 : le QR code de la page App (ordinateur) : connecte le téléphone du client pendant 30 min, puis ouvre l'installation
+  const accesApp = chemin.match(/^\/acces-app\/([A-Za-z0-9_-]{3,80})\.(\d{10,16})\.([A-Za-z0-9_-]{10,200})\/?$/);
+  if (accesApp) {
+    const [, id, finLien, sigLien] = accesApp;
+    if (Number(finLien) < maintenant() || !env.CLE || !egal(sigLien, await signer(env, 'app.' + id + '.' + finLien))) return redirection('/client/connexion?lien=invalide');
+    const db = await base(env);
+    const cl = await db.prepare('SELECT id, statut FROM clients WHERE id = ?').bind(id).first();
+    if (!cl || cl.statut === 'bloque') return redirection('/client/connexion?lien=invalide');
+    const fin = maintenant() + DUREE_CLIENT_JOURS * 864e5;
+    const valeur = cl.id + '.' + fin + '.' + (await signer(env, 'client.' + cl.id + '.' + fin));
+    return new Response(null, { status: 302, headers: { 'Location': '/client/#/app', 'Cache-Control': 'no-store',
       'Set-Cookie': COOKIE_CLIENT + '=' + valeur + '; Path=/; Max-Age=' + DUREE_CLIENT_JOURS * 86400 + '; HttpOnly; Secure; SameSite=Lax' } });
   }
   if (chemin === '/client/sortie') return new Response(null, { status: 303, headers: { 'Location': '/client/connexion',
@@ -1204,13 +1220,23 @@ async function apiClient(req, env, ctx, url, chemin, methode, cl, apercu) {
       liens: Object.fromEntries(Object.entries(LIENS_PAIEMENT).map(([k, f]) => [k, { unique: f.unique[0], mensuel: f.mensuel[0] }])) });
   }
   if (chemin === '/photo' && methode === 'GET') return imagePhoto(cl.photo);
+  // v74 : le lien du QR code (valable 30 min), jamais en aperçu
+  if (chemin === '/lien-app' && methode === 'GET') {
+    if (apercu) return json({ lien: null });
+    const fin = maintenant() + 30 * 6e4;
+    return json({ lien: url.origin + '/acces-app/' + cl.id + '.' + fin + '.' + (await signer(env, 'app.' + cl.id + '.' + fin)), fin });
+  }
   // en aperçu, l'admin voit tout mais ne change rien à la place du client
   if (methode !== 'GET' && apercu) return json({ erreur: 'Aperçu : rien n\'est enregistré à la place du client.' }, 403);
 
   // son profil
   // l'app : installée (ouverte depuis l'écran d'accueil), notifications
   if (chemin === '/app' && methode === 'POST') {
-    if (!apercu) await db.prepare('UPDATE clients SET app_le = COALESCE(app_le, ?) WHERE id = ?').bind(maintenant(), cl.id).run();
+    if (!apercu) {
+      const ap = appareilDe(await corpsJson(req)), deja = String(cl.app_appareils || '').split(',').filter(Boolean);
+      const tous = ap && !deja.includes(ap) ? deja.concat(ap).join(',') : (deja.join(',') || null);
+      await db.prepare('UPDATE clients SET app_le = COALESCE(app_le, ?), app_appareils = ? WHERE id = ?').bind(maintenant(), tous, cl.id).run();
+    }
     return json({ ok: true });
   }
   if (chemin === '/push/cle' && methode === 'GET') return json({ cle: (await clesVapid(env)).publique });
@@ -1219,7 +1245,8 @@ async function apiClient(req, env, ctx, url, chemin, methode, cl, apercu) {
     const b = await corpsJson(req), ep = String((b.subscription && b.subscription.endpoint) || '');
     if (!/^https:\/\//.test(ep) && !(env.PUSH_TEST && ep.startsWith(env.PUSH_TEST))) return json({ erreur: 'Abonnement invalide' }, 400);
     const ldb = await baseLiv(env);
-    await ldb.prepare('INSERT INTO push_abos (endpoint, client_id, cree_le) VALUES (?,?,?) ON CONFLICT(endpoint) DO UPDATE SET client_id = excluded.client_id').bind(ep.slice(0, 1000), cl.id, maintenant()).run();
+    await ldb.prepare('INSERT INTO push_abos (endpoint, client_id, cree_le, appareil) VALUES (?,?,?,?) ON CONFLICT(endpoint) DO UPDATE SET client_id = excluded.client_id, appareil = COALESCE(excluded.appareil, push_abos.appareil)')
+      .bind(ep.slice(0, 1000), cl.id, maintenant(), appareilDe(b)).run();
     await db.prepare('UPDATE clients SET app_le = COALESCE(app_le, ?) WHERE id = ?').bind(maintenant(), cl.id).run();
     return json({ ok: true });
   }
@@ -1488,7 +1515,8 @@ async function apiAdmin(req, env, ctx, url, chemin, methode) {
       SUM(CASE WHEN k.statut = 'valide' AND k.avis_le IS NULL THEN 1 ELSE 0 END) AS sans_avis,
       MIN(CASE WHEN k.statut = 'brief' THEN k.cree_le END) AS brief_attendu_depuis, MAX(k.valide_le) AS derniere_validation,
       MAX(CASE WHEN k.formule = 'mensuel' THEN k.cree_le END) AS dernier_mensuel,
-      (SELECT COUNT(*) FROM push_abos p WHERE p.client_id = c.id) AS notifs
+      (SELECT COUNT(*) FROM push_abos p WHERE p.client_id = c.id) AS notifs,
+      (SELECT GROUP_CONCAT(DISTINCT p.appareil) FROM push_abos p WHERE p.client_id = c.id) AS notifs_appareils
       FROM clients c LEFT JOIN commandes k ON k.client_id = c.id AND k.statut != 'annule'
       GROUP BY c.id ORDER BY c.cree_le DESC`).all();
     return json(results.map(({ photo, ...c }) => ({ ...c, lien: lienAcces(url, c.jeton) })));
@@ -1518,8 +1546,8 @@ async function apiAdmin(req, env, ctx, url, chemin, methode) {
         db.prepare('SELECT * FROM factures WHERE client_id = ? ORDER BY emise_le DESC').bind(cl.id).all()]);
       const { photo, ...sansPhoto } = cl;
       await baseLiv(env);
-      const ab = await db.prepare('SELECT COUNT(*) AS n FROM push_abos WHERE client_id = ?').bind(cl.id).first();
-      return json({ client: { ...sansPhoto, notifs: (ab && ab.n) || 0, lien: lienAcces(url, cl.jeton) }, commandes, activite, factures, abonnements: await abonnementsDuClient(db, cl.id) });
+      const ab = await db.prepare('SELECT COUNT(*) AS n, GROUP_CONCAT(DISTINCT appareil) AS app FROM push_abos WHERE client_id = ?').bind(cl.id).first();
+      return json({ client: { ...sansPhoto, notifs: (ab && ab.n) || 0, notifs_appareils: (ab && ab.app) || null, lien: lienAcces(url, cl.jeton) }, commandes, activite, factures, abonnements: await abonnementsDuClient(db, cl.id) });
     }
     if (methode === 'PATCH') {
       const champs = ['marque', 'contact', 'email', 'telephone', 'site', 'statut', 'notes'].filter(k => k in b);
@@ -1709,6 +1737,8 @@ async function baseLiv(env) {
       db.prepare('CREATE INDEX IF NOT EXISTS i_com_fic ON commentaires(fichier_id)')]);
     // les retouches : qui doit agir en premier (le stratégiste pour les textes, la designer pour le visuel)
     for (const col of ['retouche TEXT', 'retouche_le INTEGER']) { try { await db.prepare('ALTER TABLE livraisons ADD COLUMN ' + col).run(); } catch (e) {} }
+    // v74 : l'appareil qui reçoit les notifications (téléphone ou ordinateur)
+    try { await db.prepare('ALTER TABLE push_abos ADD COLUMN appareil TEXT').run(); } catch (e) {}
     // une seule version N par projet, même si deux dépôts partent en même temps
     try { await db.prepare('CREATE UNIQUE INDEX IF NOT EXISTS u_liv_version ON livraisons(dossier, version)').run(); } catch (e) {}
     LIV_PRETE = true;

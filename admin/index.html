@@ -523,12 +523,16 @@ function raisonRelance(c) {
 }
 // une notification (une promo, une nouvelle) aux clients qui ont activé les notifications de l'app
 // seul : un client précis (depuis sa fiche)
+// 02/11 : l'app existe aussi sur ordinateur ; on sait sur quels appareils elle est installée et où arrivent les notifications
+const appareils = t => String(t || '').split(',').filter(x => ['telephone', 'ordinateur'].includes(x));
+const nomsAppareils = (l, son) => l.slice().sort().reverse().map(x => (son ? 'son ' : '') + (x === 'telephone' ? 'téléphone' : 'ordinateur')).join(' et ');
+const surQuoi = c => { const l = appareils(c.notifs_appareils); return l.length ? nomsAppareils(l, true) : c.notifs > 1 ? 'ses ' + c.notifs + ' appareils' : 'son appareil'; };
 function notifierClients(seul) {
   const C = S.clients || [], avecNotifs = C.filter(c => c.notifs > 0), sansNotifs = C.filter(c => c.app_le && !(c.notifs > 0));
   const avec = seul ? (seul.notifs > 0 ? 1 : 0) : avecNotifs.length;
   const intro = seul
-    ? (seul.notifs > 0 ? 'Elle arrive sur ' + (seul.notifs > 1 ? 'ses ' + seul.notifs + ' appareils' : 'son téléphone') + ', comme un message.' : seul.app_le ? seul.marque + ' a installé l\'app, mais n\'a pas encore activé les notifications.' : seul.marque + ' n\'a pas encore installé l\'app, ni activé les notifications.')
-    : 'Elle arrive sur le téléphone des clients qui ont l\'app et les notifications activées.';
+    ? (seul.notifs > 0 ? 'Elle arrive sur ' + surQuoi(seul) + ', comme un message.' : seul.app_le ? seul.marque + ' a installé l\'app, mais n\'a pas encore activé les notifications.' : seul.marque + ' n\'a pas encore installé l\'app, ni activé les notifications.')
+    : 'Elle arrive sur le téléphone ou l\'ordinateur des clients qui ont l\'app et les notifications activées.';
   const ligne = (c, ok) => '<label class="dest' + (ok ? '' : ' off') + '"><input type="checkbox" value="' + esc(c.id) + '"' + (ok ? '' : ' disabled') + '>' + tuileClient(c) +
     '<span><b>' + esc(c.marque) + '</b><small>' + (ok ? esc(c.contact || c.email || '') : 'notifications pas activées') + '</small></span></label>';
   const dest = seul ? '' : '<div class="champ"><label>Envoyer à</label><select class="in" id="nt-dest"><option value="tous">Tous les clients avec les notifications (' + avecNotifs.length + ')</option><option value="choix">Choisir les clients</option></select>' +
@@ -573,7 +577,7 @@ function statutsClient(c) {
   if (estAbonne(c)) p.push('<span class="pill v"><i></i>Abonné</span>');
   const rel = raisonRelance(c);
   if (rel) p.push('<span class="pill r" title="' + esc(rel) + '"><i></i>À relancer · ' + esc(rel.charAt(0).toLowerCase() + rel.slice(1)) + '</span>');
-  if (c.app_le) p.push('<span class="pill" title="' + (c.notifs ? 'App installée, notifications activées' : 'App installée, notifications pas activées') + '">App' + (c.notifs ? ' · notifs' : '') + '</span>');
+  if (c.app_le || c.notifs) p.push('<span class="pill" title="' + (c.notifs ? 'App installée, notifications sur ' + surQuoi(c) : 'App installée, notifications pas activées') + '">App' + (c.notifs ? ' · notifs' : '') + '</span>');
   return '<div class="pills">' + p.join('') + '</div>';
 }
 function ecranClients() {
@@ -640,9 +644,12 @@ async function ecranClient(id) {
     [c.contact, c.email, c.telephone].filter(Boolean).map(esc).join(' · ') + (c.site ? ' · <a href="' + esc(c.site) + '" target="_blank" rel="noopener">' + esc(c.site.replace(/^https?:\/\//, '')) + '</a>' : '') + '</p></div></div>' +
     '<div class="act"><a class="btn btn-s" href="/client/?client=' + esc(c.id) + '" target="_blank" rel="noopener">' + i.oeil + 'Voir son espace</a>' +
     '<button class="btn btn-s" id="b-notif">' + i.cloche + 'Notification</button><button class="btn btn-s" id="b-modif">' + i.crayon + 'Modifier</button><button class="btn btn-p" id="b-cmd">' + i.plus + 'Nouvelle commande</button></div></div>';
-  h += '<div class="grid g3">' + kpi('Commandes', cmds.length, cmds.filter(x => !['valide', 'annule'].includes(x.statut)).length + ' en cours') +
+  const appL = [...new Set(appareils(c.app_appareils).concat(appareils(c.notifs_appareils)))];
+  const appK = kpi('App', c.app_le || c.notifs ? 'Installée' : 'Pas installée',
+    c.app_le || c.notifs ? (appL.length ? 'sur ' + nomsAppareils(appL) + ' · ' : '') + (c.notifs > 0 ? 'notifications sur ' + surQuoi(c) : 'notifications pas activées') : 'ni sur téléphone, ni sur ordinateur');
+  h += '<div class="grid g4">' + kpi('Commandes', cmds.length, cmds.filter(x => !['valide', 'annule'].includes(x.statut)).length + ' en cours') +
     kpi('Total commandé', K.euros(cmds.reduce((s, x) => s + (x.prix || 0), 0)), cmds.some(x => x.formule === 'mensuel') ? 'dont abonnement mensuel' : 'commandes uniques') +
-    kpi('Dernière connexion', c.vu_le ? K.ilya(c.vu_le) : 'jamais', 'client depuis le ' + K.date(c.cree_le)) + '</div>';
+    kpi('Dernière connexion', c.vu_le ? K.ilya(c.vu_le) : 'jamais', 'client depuis le ' + K.date(c.cree_le)) + appK + '</div>';
   h += '<div class="card pad" style="margin-top:14px"><div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap"><div><h3 style="font-size:15px">Lien d\'accès à son espace</h3>' +
     '<p class="muted" style="font-size:13px;margin-top:4px">Personnel et permanent : il le reconnecte sur n\'importe quel appareil. Ne le partagez qu\'avec lui.</p></div>' +
     '<button class="btn btn-g btn-sm" id="b-regen">' + i.rafraichir + 'Nouveau lien</button></div>' +

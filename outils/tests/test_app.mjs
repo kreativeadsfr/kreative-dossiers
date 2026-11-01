@@ -71,4 +71,24 @@ await get('/admin/', { headers: { Cookie: A } }); await new Promise(z => setTime
 const eq = (await api('/api/admin/equipe', A)).d, dario = eq.find(p => p.nom === 'dario');
 t('équipe : dernière connexion de Dario connue', dario && dario.vu_le > Date.now() - 6e4, JSON.stringify(dario));
 t('équipe : pas de mot de passe dans la réponse', !JSON.stringify(eq).includes(sec.ACCES.dario), 'mdp visible');
+// ---- 02/11 : l'app sur ordinateur : appareils, QR code qui connecte le téléphone 30 min ----
+await api('/api/client/app', CK, 'POST', { appareil: 'ordinateur' });
+await api('/api/client/app', CK, 'POST', { appareil: 'telephone' });
+await api('/api/client/app', CK, 'POST', { appareil: 'pirate' });
+await api('/api/client/push', CK, 'POST', { subscription: { endpoint: 'http://127.0.0.1:9911/push/ordi1' }, appareil: 'ordinateur' });
+cl = (await api('/api/admin/clients', A)).d.find(c => c.id === cid);
+t('app installée sur ordinateur et téléphone (un appareil inconnu est ignoré)', cl.app_appareils === 'ordinateur,telephone', cl.app_appareils);
+t('notifications : l\'ordinateur est connu', String(cl.notifs_appareils || '').split(',').includes('ordinateur'), cl.notifs_appareils);
+const fc = (await api('/api/admin/clients/' + cid, A)).d.client;
+t('page du client : appareils des notifications', String(fc.notifs_appareils || '').includes('ordinateur'), JSON.stringify(fc.notifs_appareils));
+r = await api('/api/client/lien-app', CK); const lq = r.d && r.d.lien;
+t('lien du QR code : valable 30 min, jamais le lien personnel', r.s === 200 && /\/acces-app\//.test(lq || '') && !(lq || '').includes('/acces/') && r.d.fin - Date.now() > 29 * 6e4 && r.d.fin - Date.now() <= 30 * 6e4, JSON.stringify(r.d));
+r = await get(new URL(lq).pathname);
+t('le QR code connecte le téléphone et ouvre la page App', r.status === 302 && r.headers.get('location') === '/client/#/app' && /kreative_client|=/.test(cookie(r)), r.status + ' ' + r.headers.get('location'));
+const CK2 = cookie(r); r = await api('/api/client/moi', CK2); t('… le téléphone est bien connecté à cet espace', r.s === 200 && r.d.client && r.d.client.marque === 'Appco', r.s);
+const [, idq, finq, sigq] = new URL(lq).pathname.match(/^\/acces-app\/([^.]+)\.(\d+)\.(.+)$/);
+r = await get('/acces-app/' + idq + '.' + (Number(finq) + 1) + '.' + sigq); t('QR code modifié refusé', r.status === 302 && /lien=invalide/.test(r.headers.get('location')), r.headers.get('location'));
+r = await get('/acces-app/' + idq + '.' + (Date.now() - 1000) + '.' + sigq); t('QR code expiré refusé', /lien=invalide/.test(r.headers.get('location') || ''), r.headers.get('location'));
+r = await api('/api/client/lien-app?client=' + cid, A); t('aperçu de l\'admin : pas de QR code', r.s === 200 && r.d.lien === null, JSON.stringify(r.d));
+r = await get('/ui/qr.js'); t('librairie du QR code publique', r.status === 200 && /qrcode/.test(await r.text()), r.status);
 console.log('\n' + ok + ' ok, ' + ko + ' en échec');

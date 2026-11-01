@@ -60,11 +60,24 @@ const APP = {
   installee: () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true,
   ios: () => /iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1),
   safari: () => /Safari/i.test(navigator.userAgent) && !/CriOS|FxiOS|EdgiOS|GSA|Instagram|FBAN|FBAV/i.test(navigator.userAgent),
-  notifs: () => 'Notification' in window && Notification.permission === 'granted'
+  notifs: () => 'Notification' in window && Notification.permission === 'granted',
+  // 02/11 : l'app aussi sur ordinateur (Chrome, Edge, Brave : bouton ; Safari Mac : Ajouter au Dock ; Firefox : ne sait pas)
+  appareil: () => APP.mobile() ? 'telephone' : 'ordinateur',
+  mac: () => /Macintosh|Mac OS X/i.test(navigator.userAgent),
+  safariMac: () => APP.mac() && /Safari/i.test(navigator.userAgent) && !/Chrome|Chromium|CriOS|Edg|Firefox|FxiOS|OPR/i.test(navigator.userAgent),
+  firefox: () => /Firefox\//i.test(navigator.userAgent)
 };
 window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); APP.installation = e; if (/^#\/app/.test(location.hash)) K.rendre(); });
 window.addEventListener('appinstalled', () => { APP.installation = null; K.toast('L\'app Kreative est sur votre écran d\'accueil'); if (/^#\/app/.test(location.hash)) K.rendre(); });
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('/client/sw.js', { scope: '/client/' }).catch(() => {});
+// l'app ouverte depuis l'écran d'accueil, le Dock ou la barre des tâches : notée une fois par session, avec l'appareil
+function noterApp() {
+  let deja = false; try { deja = !!sessionStorage.getItem('k-app'); } catch (e) {}
+  if (!APP.installee() || deja) return;
+  try { sessionStorage.setItem('k-app', '1'); } catch (e) {}
+  K.api('/api/client/app', { methode: 'POST', corps: { appareil: APP.appareil() } }).catch(() => {});
+}
+setTimeout(noterApp, 3000);
 const octets = b => { const p = '='.repeat((4 - b.length % 4) % 4), s = atob((b + p).replace(/-/g, '+').replace(/_/g, '/')); return Uint8Array.from(s, c => c.charCodeAt(0)); };
 async function activerNotifs() {
   if (!('serviceWorker' in navigator) || !('PushManager' in window)) { K.toast(APP.ios() ? 'Ouvrez d\'abord l\'app depuis votre écran d\'accueil.' : 'Les notifications ne sont pas disponibles ici.'); return false; }
@@ -73,11 +86,58 @@ async function activerNotifs() {
   try {
     const reg = await navigator.serviceWorker.ready, { cle } = await K.api('/api/client/push/cle');
     const sub = (await reg.pushManager.getSubscription()) || await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: octets(cle) });
-    await K.api('/api/client/push', { methode: 'POST', corps: { subscription: sub.toJSON() } });
+    await K.api('/api/client/push', { methode: 'POST', corps: { subscription: sub.toJSON(), appareil: APP.appareil() } });
     K.toast('Notifications activées'); return true;
   } catch (e) { K.toast('Les notifications n\'ont pas pu s\'activer. Réessayez.'); return false; }
 }
+// ---------- sur ordinateur : deux cartes, cet ordinateur et le téléphone (QR code) ----------
+const IC_ORDI = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="11" rx="2"/><path d="M2 19h20"/></svg>';
+const IC_TEL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/></svg>';
+const IC_INSTALLER = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 7v6M9.5 10.5L12 13l2.5-2.5"/></svg>';
+const IC_PUNAISE = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17v5M9 3h6l-1 6 3 3v2H7v-2l3-3z"/></svg>';
+const QR = { lien: null, fin: 0 };
+function ecranAppOrdi() {
+  const ins = APP.installee(), icone = '<div class="app-visu"><div class="app-mini"><img src="/app-icon-192.png" alt=""><span>Kreative</span></div></div>';
+  const etapes = l => '<ol class="app-num">' + l.map((t, n) => '<li><i>' + (n + 1) + '</i><span>' + t + '</span></li>').join('') + '</ol>';
+  let corps;
+  if (ins) {
+    const epingle = APP.safariMac() ? '' : '<p class="app-epingle">' + IC_PUNAISE + '<span>' + (APP.mac() ? 'Clic droit sur l\'icône Kreative dans le Dock, puis <b>Options</b> et <b>Garder dans le Dock</b>.' : 'Clic droit sur l\'icône Kreative dans votre barre des tâches, puis <b>Épingler</b>.') + '</span></p>';
+    corps = '<span class="app-etat ok app-centre">' + i.coche + 'L\'app est installée</span>' + epingle +
+      (APP.notifs() ? '<span class="app-etat ok app-centre">' + i.cloche + 'Notifications activées</span>'
+        : '<button class="btn btn-d btn-bloc btn-lg" id="app-notifs">' + i.cloche + 'Activer les notifications</button><p class="app-aide">Pour être prévenu dès que vos créatives sont prêtes.</p>');
+  } else if (APP.installation) {
+    corps = icone + '<button class="btn btn-d btn-bloc btn-lg" id="app-installer">Installer sur cet ordinateur</button><p class="app-aide">Gratuit, rien à télécharger.</p>';
+  } else if (APP.safariMac()) {
+    corps = '<div class="app-visu"><div class="app-mac"><div class="app-mac-barre"><b>Safari</b><span class="on">Fichier</span><span>Édition</span><span>Présentation</span></div>' +
+      '<div class="app-mac-menu"><div>Nouvelle fenêtre</div><div>Nouvel onglet</div><div class="sep"></div><div class="sel">Ajouter au Dock…</div><div>Partager</div></div></div></div>' +
+      etapes(['Cliquez sur <b>Fichier</b>, en haut de l\'écran', 'Choisissez <b>Ajouter au Dock</b>', 'Cliquez sur <b>Ajouter</b>\u00a0: Kreative est dans votre Dock']);
+  } else if (APP.firefox()) {
+    corps = icone + '<p class="app-aide fort">Firefox ne permet pas d\'installer d\'app. Ouvrez votre espace dans Chrome, Edge ou Safari.</p><button class="btn btn-s btn-bloc" id="app-copier">' + i.copier + 'Copier le lien de mon espace</button>';
+  } else {
+    corps = '<div class="app-visu"><div class="app-nav"><div class="app-url"><span>app.kreativeads.fr/client</span><b>' + IC_INSTALLER + 'Installer</b></div></div></div>' +
+      etapes(['Cliquez sur <b>Installer</b> ou sur l\'icône ' + IC_INSTALLER.replace('<svg', '<svg class="app-ic-txt"') + ', à droite de la barre d\'adresse', 'Confirmez avec <b>Installer</b>\u00a0: Kreative s\'ouvre dans sa propre fenêtre']);
+  }
+  const carte = (ic, t, p, c) => '<div class="card app-c"><div class="app-tete"><span class="app-ic">' + ic + '</span><div><h3>' + t + '</h3><p>' + p + '</p></div></div>' + c + '</div>';
+  return apercu() + '<div class="ph"><div><h1>L\'app Kreative</h1><p>Votre espace dans sa propre fenêtre, et une notification dès que vos créatives sont prêtes.</p></div></div><div class="app-grille">' +
+    carte(IC_ORDI, 'Sur cet ordinateur', 'Retrouvez Kreative à côté de vos autres applications, sans ouvrir votre navigateur.', corps) +
+    carte(IC_TEL, 'Sur votre téléphone', 'Scannez ce code avec l\'appareil photo de votre téléphone\u00a0: l\'installation s\'ouvre directement.',
+      '<div class="app-visu"><div class="app-qr" id="app-qr"></div></div><p class="app-aide">iPhone et Android, sans passer par un store.</p>') + '</div>';
+}
+// le QR code : un lien qui connecte le téléphone pendant 30 min (jamais le lien personnel de l'email), refait avant d'expirer
+let QR_LIB = null;
+const chargerQR = () => QR_LIB || (QR_LIB = new Promise((ok, ko) => { const sc = document.createElement('script'); sc.src = '/ui/qr.js'; sc.onload = () => ok(window.qrcode); sc.onerror = ko; document.head.appendChild(sc); }));
+async function dessinerQR() {
+  const z = document.getElementById('app-qr'); if (!z) return;
+  try {
+    if (!QR.lien || QR.fin - Date.now() < 5 * 6e4) Object.assign(QR, await K.api('/api/client/lien-app'));
+    if (!QR.lien) { z.innerHTML = '<p class="app-aide">Aperçu : le QR code s\'affiche dans l\'espace du client.</p>'; z.classList.add('vide'); return; }
+    const q = (await chargerQR())(0, 'M'); q.addData(QR.lien); q.make();
+    z.innerHTML = q.createSvgTag({ cellSize: 4, margin: 0, scalable: true });
+  } catch (e) { z.innerHTML = '<p class="app-aide">Le QR code n\'a pas pu s\'afficher. Rechargez la page.</p>'; z.classList.add('vide'); }
+  clearTimeout(QR.minuteur); QR.minuteur = setTimeout(() => { if (/^#\/app/.test(location.hash)) dessinerQR(); }, 20 * 6e4);
+}
 function ecranApp() {
+  if (!APP.mobile()) return ecranAppOrdi();
   const ins = APP.installee(), ios = APP.ios();
   let h = apercu() + '<div class="ph"><div><h1>L\'app Kreative</h1><p>Votre espace client sur l\'écran d\'accueil de votre téléphone, avec des notifications dès que vos créatives sont prêtes.</p></div></div>';
   h += '<div class="card app-carte"><div class="app-icone"><img src="/app-icon-192.png" alt=""><span>Kreative</span></div>';
@@ -98,7 +158,8 @@ function ecranApp() {
   return h + '</div>';
 }
 function brancherApp() {
-  if (APP.installee() && !sessionStorage.getItem('k-app')) { try { sessionStorage.setItem('k-app', '1'); } catch (e) {} K.api('/api/client/app', { methode: 'POST' }).catch(() => {}); }
+  noterApp();
+  dessinerQR();
   const b = document.getElementById('app-installer');
   if (b) b.onclick = async () => { const p = APP.installation; if (!p) return; p.prompt(); const r = await p.userChoice.catch(() => ({})); APP.installation = null; if (r.outcome === 'accepted') K.toast('C\'est installé !'); K.rendre(); };
   const g = document.getElementById('app-guide');
@@ -106,7 +167,7 @@ function brancherApp() {
   const n = document.getElementById('app-notifs');
   if (n) n.onclick = async () => { n.disabled = true; await activerNotifs(); K.rendre(); };
   const c = document.getElementById('app-copier');
-  if (c) c.onclick = () => K.copier(location.origin + '/client/#/app', 'Lien copié : collez-le dans Safari');
+  if (c) c.onclick = () => APP.mobile() ? K.copier(location.origin + '/client/#/app', 'Lien copié : collez-le dans Safari') : K.copier(location.origin + '/client/#/app', 'Lien copié : collez-le dans Chrome, Edge ou Safari');
 }
 
 function conf() {
@@ -120,7 +181,7 @@ function conf() {
     ] }, { titre: 'Kreative', liens: [
       { id: 'contact', texte: 'Nous contacter', icone: 'message', href: '#/contact' },
       { id: 'avis', texte: 'Laisser un avis', icone: 'etoile', href: '#/avis' }
-    ].concat(APP.mobile() ? [{ id: 'app', texte: 'App', icone: 'telephone', href: '#/app' }] : []) }],
+    ].concat([{ id: 'app', texte: 'App', icone: 'telephone', href: '#/app' }]) }],
     qui: { nom: D.client.marque, role: D.client.contact || D.client.email || 'Client', tuile: true, photo: urlPhoto() },
     menu: ['<a href="#/profil">' + i.utilisateur + 'Mon profil</a>'],
     sansTheme: true,

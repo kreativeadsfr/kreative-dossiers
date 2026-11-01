@@ -42,7 +42,7 @@ const STYLE = `
 
 const TEXTE = `
 <h2>1. Responsable du traitement</h2>
-<p>Kreative, Dario Crespo (micro-entreprise)<br>47 Rue Vivienne, 75002 Paris, France<br><a href="mailto:contact@kreativeads.fr">contact@kreativeads.fr</a></p>
+<p>Kreative, Dario Crespo EI<br>47 Rue Vivienne, 75002 Paris, France<br><a href="mailto:contact@kreativeads.fr">contact@kreativeads.fr</a></p>
 
 <h2>2. Données collectées</h2>
 <p>Nous collectons uniquement les données strictement nécessaires à la réalisation de nos prestations :</p>

@@ -45,7 +45,7 @@ const TEXTE = `
 <p>Le présent site, accessible à l'adresse <a href="https://kreativeads.fr">https://kreativeads.fr</a> (ci-après le « Site »), est édité par :</p>
 <ul>
   <li>Nom commercial : Kreative</li>
-  <li>Entreprise : Dario Crespo, micro-entreprise</li>
+  <li>Entreprise : Dario Crespo EI</li>
   <li>SIREN : 103 346 003</li>
   <li>SIRET : 103 346 003 00017</li>
   <li>Code APE : 73.11Z (Activités des agences de publicité)</li>

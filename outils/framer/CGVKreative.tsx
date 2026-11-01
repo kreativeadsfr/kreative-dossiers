@@ -43,7 +43,7 @@ const TEXTE = `
 <p class="maj">Dernière mise à jour : 30/10/2026</p>
 
 <h2>Article 1 - Objet et champ d'application</h2>
-<p>Les présentes Conditions Générales de Vente (« CGV ») régissent les relations contractuelles entre Kreative, auto-entreprise immatriculée au nom de Dario Crespo (SIRET : 103 346 003 00017), dont le siège est situé 47 Rue Vivienne, 75002 Paris, ci-après « le Prestataire », et tout client souhaitant acquérir une prestation de création de visuels publicitaires statiques, ci-après « le Client ».</p>
+<p>Les présentes Conditions Générales de Vente (« CGV ») régissent les relations contractuelles entre Kreative, entreprise individuelle (EI) immatriculée au nom de Dario Crespo (SIRET : 103 346 003 00017), dont le siège est situé 47 Rue Vivienne, 75002 Paris, ci-après « le Prestataire », et tout client souhaitant acquérir une prestation de création de visuels publicitaires statiques, ci-après « le Client ».</p>
 <p>L'offre du Prestataire s'adresse exclusivement à des professionnels (entreprises, indépendants, agences) agissant dans le cadre de leur activité commerciale. En passant commande, le Client déclare agir à des fins entrant dans le cadre de son activité professionnelle.</p>
 <p>Toute commande vaut acceptation pleine et entière des présentes CGV dans leur version en vigueur à la date de la commande. Le Client reconnaît avoir été en mesure de consulter, télécharger et imprimer les présentes CGV avant la validation de sa commande.</p>
 

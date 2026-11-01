@@ -17,22 +17,23 @@ html{scrollbar-width:none;overscroll-behavior:auto}html::-webkit-scrollbar{displ
 <section class="kc" data-pack="growth">
 <script>document.currentScript.parentNode.setAttribute('data-pack', (location.pathname.match(/\/(starter|growth|scale|custom)\/?$/) || [])[1] || 'growth');</script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..600&family=Geist:wght@400..700&display=swap">
 <style>
 .kc{--b:#4d94ff;--bd:#eaf2ff;--bt:#2b6fd6;--n:#000;--g:#6f6f6f;--g2:#a3a3a3;--l:#ece7e1;--f:#f9f6f4;--v:#1e9e57;
-  font-family:'Inter','Inter Placeholder',system-ui,-apple-system,'Segoe UI',sans-serif;font-optical-sizing:auto;color:var(--n);background:var(--f);padding:56px 48px 56px;-webkit-font-smoothing:antialiased}
+  font-family:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;font-optical-sizing:auto;color:var(--n);background:var(--f);padding:56px 48px 56px;-webkit-font-smoothing:antialiased}
 .kc *{box-sizing:border-box;margin:0;padding:0}
-.kc h1,.kc h2,.kc h3,.kc-prix b,.kc-nb b,.kc-total b,.kc-go{font-variation-settings:'opsz' 32}
+/* 01/11 : DA du site kreativeads.fr : titres en Bricolage Grotesque, texte en Geist, boutons a coins de 12 px, cartes a coins de 10 px sans ombre */
+.kc-tete h1{font-family:'Bricolage Grotesque',system-ui,sans-serif}
 .kc button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .kc-in{max-width:1000px;margin:0 auto}
 .kc-retour{display:inline-flex;align-items:center;gap:7px;font-size:14px;color:var(--g);text-decoration:none;margin-bottom:22px}
 .kc-retour:hover{color:var(--n)}
 .kc-retour svg{width:15px;height:15px}
-.kc-tete h1{font-size:clamp(30px,4vw,44px);line-height:1.05;letter-spacing:-.04em;font-weight:600}
+.kc-tete h1{font-size:clamp(32px,4.4vw,48px);line-height:1.05;letter-spacing:-.02em;font-weight:500}
 .kc-tete h1 em{font-style:normal;color:var(--b)}
 .kc-tete p{font-size:15.5px;color:var(--g);margin-top:10px;letter-spacing:-.01em;max-width:560px;line-height:1.5}
 .kc-grille{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);gap:20px;margin-top:32px;align-items:start}
-.kc-carte{background:#fff;border:1px solid var(--l);border-radius:18px;padding:22px 24px}
+.kc-carte{background:#fff;border:0;border-radius:10px;padding:22px 24px}
 .kc-carte+.kc-carte{margin-top:14px}
 .kc-carte h2{font-size:17px;font-weight:500;letter-spacing:-.02em}
 .kc-carte .kc-aide{font-size:13px;color:var(--g);margin-top:4px}
@@ -48,7 +49,7 @@ html{scrollbar-width:none;overscroll-behavior:auto}html::-webkit-scrollbar{displ
 .kc input[type=range]{width:100%;accent-color:var(--b);height:26px}
 .kc-reperes{display:flex;justify-content:space-between;font-size:12px;color:var(--g2)}
 .kc-opts{display:flex;flex-direction:column;gap:8px;margin-top:14px}
-.kc-opt{display:flex;align-items:center;gap:12px;padding:11px 14px;border:1px solid var(--l);border-radius:14px;cursor:pointer;transition:border-color .15s,background .15s;user-select:none}
+.kc-opt{display:flex;align-items:center;gap:12px;padding:11px 14px;border:1px solid var(--l);border-radius:10px;cursor:pointer;transition:border-color .15s,background .15s;user-select:none}
 .kc-opt:hover{border-color:#d9d1c8}
 .kc-opt.on{border-color:var(--b);background:#f5f9ff}
 .kc-case{width:19px;height:19px;border-radius:6px;border:1.5px solid #d9d1c8;display:grid;place-items:center;flex:none;background:#fff;transition:all .15s}
@@ -58,15 +59,15 @@ html{scrollbar-width:none;overscroll-behavior:auto}html::-webkit-scrollbar{displ
 .kc-opt-t{flex:1;min-width:0}
 .kc-opt-t b{display:block;font-size:14px;font-weight:500}
 .kc-opt-t small{display:block;font-size:12.5px;color:var(--g);margin-top:1px}
-.kc-qte{display:inline-flex;align-items:center;background:#fff;border:1px solid var(--l);border-radius:999px;padding:3px;box-shadow:0 2px 8px -4px rgba(0,0,0,.15)}
-.kc-qte button{width:28px;height:28px;border-radius:50%;font-size:17px;line-height:1;display:grid;place-items:center;transition:background .12s,transform .12s}
+.kc-qte{display:inline-flex;align-items:center;background:#fff;border:1px solid var(--l);border-radius:10px;padding:3px}
+.kc-qte button{width:28px;height:28px;border-radius:7px;font-size:17px;line-height:1;display:grid;place-items:center;transition:background .12s,transform .12s}
 .kc-qte button:hover:not(:disabled){background:var(--f)}
 .kc-qte button:active:not(:disabled){transform:scale(.9)}
 .kc-qte button:disabled{color:#d9d1c8;cursor:default}
 .kc-qte b{min-width:28px;text-align:center;font-size:14px;font-variant-numeric:tabular-nums}
 .kc-px{text-align:right;white-space:nowrap;font-size:14px;font-weight:500;min-width:56px}
 .kc-px small{display:block;font-size:11px;color:var(--g2);font-weight:400}
-.kc-recap{position:sticky;top:24px;background:#fff;border:1px solid var(--b);border-radius:18px;padding:22px 24px;box-shadow:0 24px 50px -30px rgba(77,148,255,.55)}
+.kc-recap{position:sticky;top:24px;background:#fff;border:1px solid var(--b);border-radius:10px;padding:22px 24px}
 .kc-recap h3{font-size:18px;font-weight:500;letter-spacing:-.02em}
 .kc-recap .kc-sous{font-size:12.5px;color:var(--g);margin-top:3px}
 .kc-lignes{margin-top:14px;display:flex;flex-direction:column;gap:7px}
@@ -76,9 +77,9 @@ html{scrollbar-width:none;overscroll-behavior:auto}html::-webkit-scrollbar{displ
 .kc-total span{font-size:13.5px;color:var(--g)}
 .kc-total b{font-size:34px;line-height:1;font-weight:500;letter-spacing:-.04em;font-variant-numeric:tabular-nums}
 .kc-unit{font-size:12.5px;color:var(--g);margin-top:5px;text-align:right}
-.kc-delai{display:flex;align-items:center;gap:8px;margin-top:14px;padding:10px 12px;border-radius:11px;background:var(--f);font-size:12.5px;color:#444}
+.kc-delai{display:flex;align-items:center;gap:8px;margin-top:14px;padding:10px 12px;border-radius:10px;background:var(--f);font-size:12.5px;color:#444}
 .kc-delai svg{width:14px;height:14px;flex:none}
-.kc-go{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:14px;height:46px;border-radius:999px;background:var(--b);color:#fff;font-size:15px;font-weight:600;letter-spacing:-.02em;text-decoration:none;transition:background .15s,transform .15s}
+.kc-go{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:14px;height:48px;border-radius:12px;background:var(--b);color:#fff;font-size:15px;font-weight:500;letter-spacing:-.02em;text-decoration:none;transition:background .15s,transform .15s}
 .kc-go:hover{background:#3584fb}
 .kc-go:active{transform:scale(.98)}
 .kc-go svg{width:16px;height:16px}

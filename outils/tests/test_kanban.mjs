@@ -57,6 +57,7 @@ const mails = lignes('emails.log').slice(avant).map(l => JSON.parse(l).corps);
 t('un seul email au client', mails.filter(m => m.type === 'creatives').length === 1, mails.length);
 t('glissé chez le client : version envoyée', (await etat(D)).v.statut === 'envoyee' && (await etat(D)).v.statut === 'envoyee', JSON.stringify(r.d).slice(0, 160));
 t('… et le client reçoit l\'email de ses créatives', mails.some(m => m.a === 'lou@senso.fr' && m.type === 'creatives'), JSON.stringify(mails).slice(0, 200));
+t('… qui commence par « Vos créatives sont prêtes. »', mails.some(m => m.type === 'creatives' && /Vos créatives sont prêtes\. Si des ajustements/.test(m.html || '')), '');
 r = await api('/api/client/commandes/' + kid + '/creatives', CK); t('le client voit la version 1', r.d.livraisons.length === 1 && r.d.livraisons[0].version === 1, JSON.stringify(r.d).slice(0, 100));
 
 // 4. retours du client sur les textes : le stratégiste d'abord

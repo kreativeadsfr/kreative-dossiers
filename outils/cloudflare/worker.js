@@ -576,6 +576,7 @@ function personnes(env) {
   return liste;
 }
 
+// v73 : l'email de livraison commence par « Vos créatives sont prêtes. » (ou « Votre livraison 1 sur 4 est prête. »).
 // v72 : le code Kreative de la fiche. La copie du Worker donnée à Dario le contient (CODE_FICHE_COPIE, toujours vide
 // dans le dépôt public) et le range dans la base (réglage code_fiche, jamais renvoyé à une page) : les versions
 // suivantes, sans le code, le relisent dans la base. Sinon, le secret CODE_FICHE de Cloudflare.
@@ -1789,7 +1790,7 @@ async function envoyerAuClient(env, ctx, url, db, l) {
     const envoi = envoyerEmail(env, { type: 'creatives', a: k.email, marque: k.marque, contact: k.contact || '', lien, sujet: k.marque + ' · ' + titre,
       html: emailHtml(url.origin, { titre: 'Bonjour' + (prenom ? ' ' + prenom : '') + ',',
         paragraphes: v2 ? ['Les retouches demandées ont été appliquées. Si d\'autres ajustements sont nécessaires, indiquez-les directement sur les créatives concernées, ou validez le projet en un clic.']
-          : ['Si des ajustements sont nécessaires, indiquez-les directement sur les créatives concernées.'],
+          : [(partie ? 'Votre livraison ' + partie.n + ' sur ' + partie.sur + ' est prête.' : 'Vos créatives sont prêtes.') + ' Si des ajustements sont nécessaires, indiquez-les directement sur les créatives concernées.'],
         bouton: [v2 ? 'Voir la nouvelle version' : 'Voir mes créatives', lien] }) });
     if (ctx && ctx.waitUntil) ctx.waitUntil(envoi); else await envoi;
   }

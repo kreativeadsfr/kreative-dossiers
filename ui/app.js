@@ -437,6 +437,8 @@
         nom: (d.brand_name || x.dossier) + (l && l.sur > 1 ? ' · livraison ' + l.n + '/' + l.sur : ''),
         nb: d.nb_creas || x.nb_creas || 0, pack: d.pack || x.pack || '', retour: aRetour, retourLe: aRetour ? Date.parse(retour.recu_le || '') || 0 : 0,
         envoye: ev.length > 0, envoyeLe: Date.parse(typeof dernier === 'string' ? dernier : (dernier || {}).le || '') || 0,
+        // le 1er envoi de la fiche : c'est lui qui compte pour le délai (un renvoi ne met pas en retard)
+        envoyePremierLe: Date.parse(typeof ev[0] === 'string' ? ev[0] : (ev[0] || {}).le || '') || 0,
         livre: !!(liv && liv.livre), livreLe: Date.parse(der.le || '') || 0, zip: der.lien || '', livraisons: livs,
         strat: Date.parse(d.deadline_strategiste || '') || 0, desi: Date.parse(d.deadline_designer || '') || 0, client: Date.parse(d.deadline || '') || 0 };
     }))).filter(Boolean);
@@ -552,7 +554,7 @@
     if (x.etape && x.etape.retouche === 'strategiste' && x.etape.cle === 'strat') return { cle: 'retouches', texte: 'Retouches de textes', pill: 'v' };
     if (x.etape && x.etape.cle === 'strat' && x.envoye) return { cle: 'afaire', texte: 'Fiche à reprendre', pill: 'b' };
     if (!x.envoye) return x.strat && x.strat < Date.now() ? { cle: 'retard', texte: 'Fiche en retard', pill: 'r' } : { cle: 'afaire', texte: 'Fiche à remplir', pill: 'b' };
-    if (x.strat && x.envoyeLe > x.strat) { const h = Math.max(1, Math.round((x.envoyeLe - x.strat) / 36e5)); return { cle: 'tard', texte: 'Envoyée avec ' + (h >= 24 ? Math.round(h / 24) + ' j' : h + ' h') + ' de retard', pill: 'a' }; }
+    if (x.strat && (x.envoyePremierLe || x.envoyeLe) > x.strat) { const h = Math.max(1, Math.round(((x.envoyePremierLe || x.envoyeLe) - x.strat) / 36e5)); return { cle: 'tard', texte: 'Envoyée avec ' + (h >= 24 ? Math.round(h / 24) + ' j' : h + ' h') + ' de retard', pill: 'a' }; }
     return { cle: 'heure', texte: 'Envoyée à l\'heure', pill: 'g' };
   };
   P.pillStrat = x => { const e = P.etatStrat(x); return '<span class="pill ' + e.pill + '"><i></i>' + K.esc(e.texte) + '</span>'; };

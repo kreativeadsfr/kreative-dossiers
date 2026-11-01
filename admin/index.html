@@ -313,7 +313,7 @@ function tableauDeBord(retards) {
     '<div class="graph-bulle" id="graph-bulle" hidden></div></div></div>';
   // la production sur la même période
   const livrees = C.filter(c => c.livre_le && dans(c.livre_le, a, b));
-  const P = (S.prod || []).filter(x => x.livreLe && dans(x.livreLe, a, b)), aLheure = P.filter(x => !x.desi || x.livreLe <= x.desi).length;
+  const P = (S.prod || []).filter(x => x.livreLe && dans(x.livreLe, a, b)), aLheure = P.filter(x => !x.desi || livreDesiLe(x) <= x.desi).length;
   const L = (S.livraisons || []), envoyees = L.filter(l => l.envoye_le && dans(l.envoye_le, a, b)), retouches = L.filter(l => l.review_le && dans(l.review_le, a, b) && l.statut === 'review_terminee').length;
   h += '<div class="sec"><div><h2>Production</h2><p>Ce qui a été livré sur la période.</p></div></div>';
   h += '<div class="grid g4">' + kpi('Créatives livrées', livrees.reduce((t, c) => t + (c.nb_creas || 0), 0), livrees.length + ' projet' + (livrees.length > 1 ? 's' : '') + ' livré' + (livrees.length > 1 ? 's' : '') + ' au client') +
@@ -928,16 +928,22 @@ function tachesEquipe(role) {
   }
   return T.map(t => ({ ...t, retard: !!(t.le && t.le < now) })).sort((a, b) => (a.le || 9e15) - (b.le || 9e15));
 }
+// à l'heure pour la designer = sa 1re livraison avant son échéance (pas l'envoi au client par Dario, ni la review, ni une retouche)
+function livreDesiLe(x) {
+  const t = [Date.parse(((x.livraisons || [])[0] || {}).le || '') || 0].concat((S.livraisons || []).filter(l => l.dossier === x.dossier && l.version === 1 && l.depose_le).map(l => l.depose_le)).filter(Boolean);
+  return t.length ? Math.min(...t) : x.livreLe;
+}
 // ses 30 derniers jours, en trois chiffres
 function bilanEquipe(role) {
   const depuis = Date.now() - 30 * 864e5, P = (S.prod || []).filter(x => !x.demo), L = S.livraisons || [];
   const pc = (ok, n) => n ? Math.round(ok * 100 / n) + ' %' : '0 %';
   if (role === 'strategiste') {
-    const f = P.filter(x => x.envoye && x.envoyeLe >= depuis), ok = f.filter(x => !x.strat || x.envoyeLe <= x.strat).length;
+    // à l'heure = le 1er envoi de la fiche avant son échéance (un renvoi ne compte pas)
+    const f = P.filter(x => x.envoye && x.envoyeLe >= depuis), ok = f.filter(x => !x.strat || (x.envoyePremierLe || x.envoyeLe) <= x.strat).length;
     return [['Fiches envoyées', f.length], ['Dans les délais', pc(ok, f.length)], ['Retouches de textes', L.filter(l => l.retouche === 'strategiste' && (l.depose_le || l.cree_le) >= depuis).length]];
   }
   if (role === 'designer') {
-    const d = P.filter(x => x.livre && x.livreLe >= depuis), ok = d.filter(x => !x.desi || x.livreLe <= x.desi).length;
+    const d = P.filter(x => x.livre && x.livreLe >= depuis), ok = d.filter(x => !x.desi || livreDesiLe(x) <= x.desi).length;
     return [['Projets livrés', d.length], ['Dans les délais', pc(ok, d.length)], ['Versions corrigées', L.filter(l => l.version > 1 && (l.depose_le || 0) >= depuis).length]];
   }
   const env = L.filter(l => (l.envoye_le || 0) >= depuis);

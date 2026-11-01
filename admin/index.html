@@ -102,6 +102,7 @@ function nomBrief(d) {
 function conf() {
   const enCours = (S.prod || []).filter(x => etatProd(x).cle !== 'client').length;
   return {
+    badge: 'Admin',
     cta: { texte: 'Nouveau client', href: '#/clients/nouveau' },
     sections: [
       { titre: '', liens: [{ id: 'accueil', texte: 'Vue d\'ensemble', icone: 'accueil', href: '#/' }] },

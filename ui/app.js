@@ -346,7 +346,7 @@
         (l.nb ? '<span class="nb">' + l.nb + '</span>' : '') + (l.ext ? K.i.externe.replace('<svg', '<svg class="ext"') : '') + '</a>').join('') + '</nav>').join('');
     const sombre = document.documentElement.dataset.theme === 'dark';
     return '<div class="app" id="k-app">' +
-      '<div class="side-voile" id="k-voile" aria-hidden="true"></div><aside class="side"><div class="side-logo">' + K.logo + '</div>' +
+      '<div class="side-voile" id="k-voile" aria-hidden="true"></div><aside class="side"><div class="side-logo">' + K.logo + (conf.badge ? '<span class="side-badge">' + K.esc(conf.badge) + '</span>' : '') + '</div>' +
       (conf.cta ? '<a class="side-cta" href="' + K.esc(conf.cta.href) + '">' + K.esc(conf.cta.texte) + K.i.fleche.replace('<svg', '<svg width="16" height="16"') + '</a>' : '') +
       '<div class="side-nav">' + nav + '</div>' +
       // toute la zone du profil ouvre le menu du compte

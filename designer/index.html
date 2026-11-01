@@ -21,7 +21,7 @@
    toujours visible (rien n'apparaît au clic).
    ============================================================ */
 const { i, esc } = K;
-const E = { moi: null, filtre: 'todo' };
+const E = { moi: null, filtre: 'all' };   // 01/11 : « All » par défaut et en premier (comme partout)
 const SECS = ['visuels', 'telechargement'];
 K.prod.autorisees = SECS;
 const aFaire = x => !!(x.etape ? x.etape.cle === 'desi' : !x.livre);
@@ -93,7 +93,7 @@ function ecranProjets() {
   const chip = (k, t, c) => '<button class="chip' + (f === k ? ' on' : '') + '" onclick="E.filtre=\'' + k + '\';K.rendre(true)">' + (c ? '<i style="color:' + c + '"></i>' : '') + t + '<span class="c">' + L.filter(F[k]).length + '</span></button>';
   const l = L.filter(F[f]).sort((a, b) => (a.livre - b.livre) || ((a.desi || 9e15) - (b.desi || 9e15)));
   return '<div class="ph"><div><h1>Projects</h1><p>All your projects, and each of their pages in one click.</p></div></div>' +
-    '<div class="filtres">' + chip('todo', 'To deliver', 'var(--blue)') + chip('late', 'Late', 'var(--red)') + chip('done', 'Delivered', 'var(--green)') + chip('all', 'All') + '</div>' +
+    '<div class="filtres">' + chip('all', 'All') + chip('todo', 'To deliver', 'var(--blue)') + chip('late', 'Late', 'var(--red)') + chip('done', 'Delivered', 'var(--green)') + '</div>' +
     (l.length ? '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Project</th><th class="num">Creatives</th><th>Status</th><th>Due</th><th></th></tr></thead><tbody>' +
       l.map(x => '<tr><td>' + ligneNom(x) + '</td><td class="num">' + esc(K.prod.total(x) || '?') + '</td><td>' + K.prod.pill(x, true) + '</td><td>' + (x.desi ? esc(quand(x.desi)) : '<span class="muted">No date</span>') + '</td><td class="fin">' + boutons(x) + '</td></tr>').join('') +
       '</tbody></table></div></div>' : '<div class="card"><div class="vide">No project here.</div></div>');

@@ -645,8 +645,15 @@ async function ecranClient(id) {
     '<div class="act"><a class="btn btn-s" href="/client/?client=' + esc(c.id) + '" target="_blank" rel="noopener">' + i.oeil + 'Voir son espace</a>' +
     '<button class="btn btn-s" id="b-notif">' + i.cloche + 'Notification</button><button class="btn btn-s" id="b-modif">' + i.crayon + 'Modifier</button><button class="btn btn-p" id="b-cmd">' + i.plus + 'Nouvelle commande</button></div></div>';
   const appL = [...new Set(appareils(c.app_appareils).concat(appareils(c.notifs_appareils)))];
-  const appK = kpi('App', c.app_le || c.notifs ? 'Installée' : 'Pas installée',
-    c.app_le || c.notifs ? (appL.length ? 'sur ' + nomsAppareils(appL) + ' · ' : '') + (c.notifs > 0 ? 'notifications sur ' + surQuoi(c) : 'notifications pas activées') : 'ni sur téléphone, ni sur ordinateur');
+  // 02/11 : deux pastilles, allumées là où l'app est installée, avec une cloche là où arrivent les notifications
+  const notL = appareils(c.notifs_appareils), installee = !!(c.app_le || c.notifs);
+  const ICD = { telephone: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/></svg>',
+    ordinateur: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="11" rx="2"/><path d="M2 19h20"/></svg>' };
+  const ligneApp = a => '<div class="dev' + (appL.includes(a) ? ' on' : '') + '">' + ICD[a] + '<span>' + (a === 'telephone' ? 'Téléphone' : 'Ordinateur') + '</span>' +
+    (notL.includes(a) ? '<b class="ok">' + i.cloche + 'Notifs</b>' : appL.includes(a) ? '<b>Installée</b>' : '<b class="non">Non</b>') + '</div>';
+  const appK = '<div class="card kpi"><div class="lab">App</div>' +
+    (appL.length ? '<div class="devs">' + ligneApp('telephone') + ligneApp('ordinateur') + '</div>'
+      : '<div class="v">' + (installee ? 'Installée' : 'Pas installée') + '</div><div class="d">' + (c.notifs > 0 ? 'Notifications activées' : installee ? 'Notifications pas activées' : 'Ni sur téléphone, ni sur ordinateur') + '</div>') + '</div>';
   h += '<div class="grid g4">' + kpi('Commandes', cmds.length, cmds.filter(x => !['valide', 'annule'].includes(x.statut)).length + ' en cours') +
     kpi('Total commandé', K.euros(cmds.reduce((s, x) => s + (x.prix || 0), 0)), cmds.some(x => x.formule === 'mensuel') ? 'dont abonnement mensuel' : 'commandes uniques') +
     kpi('Dernière connexion', c.vu_le ? K.ilya(c.vu_le) : 'jamais', 'client depuis le ' + K.date(c.cree_le)) + appK + '</div>';

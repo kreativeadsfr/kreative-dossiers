@@ -454,6 +454,9 @@ function ecranBrief(id) {
   const pro = D.commandes.find(x => x.brief_prochain);
   if (pro) h += '<div class="card pad" style="margin-bottom:14px;display:flex;gap:12px;align-items:center"><span class="pill b"><i></i>À venir</span><p style="font-size:14px;margin:0">Le brief de la livraison ' + pro.brief_prochain.n + ' sur ' + pro.brief_prochain.sur + ' (' + esc(nom(pro)) + ') vous sera demandé le <b>' + esc(K.date(pro.brief_prochain.le, { month: 'long' })) + '</b>.</p></div>';
   let rep = []; try { rep = c.brief_json ? JSON.parse(c.brief_json) : []; } catch (e) { rep = []; }
+  // 02/11 : la page « Informations complémentaires » du brief est un sondage pour Kreative : pas affichée au client
+  const SONDAGE = /^(comment avez-vous compris|comment nous avez-vous decouvert|quel contenu vous a le plus marque|quelles etaient vos plus grosses hesitations|combien de temps vous a-t-il fallu|qu.est-ce qui vous a finalement fait choisir|qu.avez-vous pense de ce formulaire)/;
+  rep = rep.filter(x => !SONDAGE.test(String(x.q || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')));
   h += '<div class="ph"><div><h1>Mon brief</h1><p>' + esc(nom(c)) + ' · commande #' + esc(c.ref) + '</p></div></div>';
   if (D.commandes.length > 1) h += '<div class="filtres">' + D.commandes.map(x => '<a class="chip' + (x.id === c.id ? ' on' : '') + '" href="#/brief/' + esc(x.id) + '">' + esc(nom(x)) + '</a>').join('') + '</div>';
   h += '<div class="card pad brief-recu"><div class="brief-tete"><span class="tuile" style="background:var(--green)">' + i.coche.replace('<svg', '<svg width="18" height="18"') + '</span>' +

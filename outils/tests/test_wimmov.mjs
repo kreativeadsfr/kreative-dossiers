@@ -126,8 +126,16 @@ t('… toujours 3 fichiers, le 1:1 est le nouveau', fv2 && fv2.fichiers.length =
 await api('/api/admin/wimmov/livraisons/' + r.d.id + '/envoyer', A, 'POST'); await pause(400);
 E = emails().filter(e => e.type === 'creatives');
 t('… email « nouvelle version »', /Livraison 1 : nouvelle version/.test(E[E.length - 1].sujet), E[E.length - 1].sujet);
-// la nouvelle version : Wimmov approuve tout et valide la livraison ; le mois continue (1 livraison sur 4)
-const v2 = (await api('/api/client/commandes/' + k.id + '/creatives', W)).d.livraisons.find(x => x.dossier === l1.dossier && x.version === 2);
+// v83 : corriger des fichiers sans prévenir Wimmov
+r = await api('/api/admin/wimmov/livraisons', A, 'POST', { dossier: l1.dossier });
+const v3 = r.d; const nEm = emails().length;
+await get('/api/equipe/fichiers?livraison=' + v3.id + '&format=1x1&nom=WIMMOV_STANDARD_01b.png&l=1080&h=1080&crea=01', { method: 'PUT', headers: { Cookie: A, 'Content-Type': 'image/png' }, body: png(1080, 1080) });
+r = await api('/api/admin/wimmov/livraisons/' + v3.id + '/envoyer', A, 'POST', { silencieux: true }); await pause(400);
+t('mise à jour sans email : envoyée, aucun email', r.s === 200 && /sans email/.test(r.d.message) && emails().length === nEm, JSON.stringify(r.d) + ' ' + (emails().length - nEm));
+const vW = (await api('/api/client/commandes/' + k.id + '/creatives', W)).d.livraisons.filter(x => x.dossier === l1.dossier).map(x => x.version);
+t('… Wimmov voit la version 3', vW.includes(3), JSON.stringify(vW));
+// la nouvelle version (v3) : Wimmov approuve tout et valide la livraison ; le mois continue (1 livraison sur 4)
+const v2 = (await api('/api/client/commandes/' + k.id + '/creatives', W)).d.livraisons.find(x => x.dossier === l1.dossier && x.version === 3);
 r = await api('/api/client/livraisons/' + v2.id + '/tout-approuver', W, 'POST');
 const fV = await api('/api/client/livraisons/' + v2.id + '/terminer', W, 'POST');
 t('Wimmov approuve tout et valide la livraison 1', r.s === 200 && fV.s === 200 && fV.d.approuvee === true && fV.d.valide === false, JSON.stringify(fV.d));

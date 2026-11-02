@@ -928,7 +928,7 @@ let BASE_PRETE = false;
 // v70 : la base est vérifiée une seule fois par version. Avant, chaque démarrage du Worker refaisait
 // ~25 allers-retours (tables, colonnes, index) : près d'une seconde sur la 1re ouverture.
 // Augmenter SCHEMA_V à chaque nouvelle table ou colonne : la vérification complète repasse une fois.
-const SCHEMA_V = 82;
+const SCHEMA_V = 82;   // v83 : pas de nouvelle colonne
 let SCHEMA_EN_COURS = null;
 async function base(env) {
   if (!env.DB) throw new Error('Base de données absente : liez une base D1 au Worker sous le nom DB.');
@@ -1727,7 +1727,7 @@ async function apiAdmin(req, env, ctx, url, chemin, methode) {
     const sha = await shaMain(env).catch(() => null);
     TRAD_ERREURS = []; TRAD_MODELE = null;
     const essai = url.searchParams.has('traduction') ? (await traduire(env, ['Serait-il possible de mettre un visuel de l\'interface ?']))[0] : undefined;
-    return json({ worker: 'v82', traduction_essai: essai, traduction_modele: essai !== undefined ? TRAD_MODELE : undefined, traduction_refus: essai !== undefined && TRAD_ERREURS.length ? TRAD_ERREURS : undefined, depot_commit: sha ? sha.slice(0, 7) : null, github_jeton: gh === 200 ? 'ok' : gh === 401 ? 'REFUSÉ (jeton expiré ou révoqué)' : gh, github_derniere_lecture: DEPOT_DERNIER,
+    return json({ worker: 'v83', traduction_essai: essai, traduction_modele: essai !== undefined ? TRAD_MODELE : undefined, traduction_refus: essai !== undefined && TRAD_ERREURS.length ? TRAD_ERREURS : undefined, depot_commit: sha ? sha.slice(0, 7) : null, github_jeton: gh === 200 ? 'ok' : gh === 401 ? 'REFUSÉ (jeton expiré ou révoqué)' : gh, github_derniere_lecture: DEPOT_DERNIER,
       stockage_r2: !!env.FICHIERS, traduction_ai: !!env.AI, telegram_bot: !!env.TELEGRAM_BOT, code_fiche: !!(await codeFiche(env)) });
   }
   if (chemin === '/equipe' && methode === 'GET') {
@@ -3538,8 +3538,9 @@ async function apiWimmovAdmin(env, ctx, url, chemin, methode, b) {
     if (der) {
       // la nouvelle version reprend les fichiers de la précédente : on ne remplace que ce qui change
       const { results: F } = await db.prepare('SELECT * FROM fichiers WHERE livraison_id = ?').bind(der.id).all();
-      if (F.length) await db.batch(F.map(f => db.prepare('INSERT INTO fichiers (id, livraison_id, format, nom, cle, mini, type, taille, largeur, hauteur, cree_le) VALUES (?,?,?,?,?,?,?,?,?,?,?)')
-        .bind('fi_' + aleatoire(12), id, f.format, f.nom, f.cle, f.mini, f.type, f.taille, f.largeur, f.hauteur, now)));
+      // v83 : avec les validations de Wimmov (un fichier redéposé, lui, repart à zéro)
+      if (F.length) await db.batch(F.map(f => db.prepare('INSERT INTO fichiers (id, livraison_id, format, nom, cle, mini, type, taille, largeur, hauteur, approuve_le, cree_le) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)')
+        .bind('fi_' + aleatoire(12), id, f.format, f.nom, f.cle, f.mini, f.type, f.taille, f.largeur, f.hauteur, f.approuve_le || null, now)));
     }
     return json(await detailLivraison(db, await db.prepare('SELECT * FROM livraisons WHERE id = ?').bind(id).first(), false));
   }
@@ -3560,13 +3561,16 @@ async function apiWimmovAdmin(env, ctx, url, chemin, methode, b) {
     if (!ch.meta || ch.meta.changes !== 1) return json({ erreur: 'Cette livraison est déjà envoyée.' }, 409);
     const k = await commandeDuDossier(db, l.dossier);
     const n = numeroLivraison(l.dossier), v2 = l.version > 1;
+    // v83 : corriger des fichiers sans prévenir (Wimmov voit la nouvelle version, ni email ni notification)
+    const silence = v2 && !!(b && b.silencieux === true);
     if (k) {
       // un mois (60 créas) n'est livré qu'à sa 4e livraison ; des créas en plus, dès la 1re
       const faites = await db.prepare("SELECT COUNT(DISTINCT dossier) AS n FROM livraisons WHERE statut = 'envoyee' AND (dossier = ? OR dossier LIKE ?)").bind(k.dossier, k.dossier + '_L%').first().catch(() => null);
       const fini = k.formule !== 'mensuel' || (faites && faites.n >= WIMMOV.livraisons_mois);
       if (fini && !['valide', 'annule'].includes(k.statut)) await db.prepare("UPDATE commandes SET statut = 'livre', livre_le = COALESCE(livre_le, ?) WHERE id = ?").bind(now, k.id).run();
-      await noter(db, k.client_id, k.id, 'livre', v2 ? 'Livraison ' + n + ' : nouvelle version' : 'Livraison ' + n + ' disponible');
+      await noter(db, k.client_id, k.id, 'livre', silence ? 'Livraison ' + n + ' : fichiers mis à jour' : v2 ? 'Livraison ' + n + ' : nouvelle version' : 'Livraison ' + n + ' disponible');
     }
+    if (silence) return json({ ok: true, message: 'Livraison ' + n + ' mise à jour : Wimmov voit les nouveaux fichiers, sans email.' });
     const titre = v2 ? 'Livraison ' + n + ' : nouvelle version' : 'Livraison ' + n + ' disponible';
     const notif = notifier(env, cl.id, { titre, texte: 'Vos nouvelles créatives sont disponibles dans votre espace.', url: '/client/#/creatives' });
     if (ctx && ctx.waitUntil) ctx.waitUntil(notif); else await notif;

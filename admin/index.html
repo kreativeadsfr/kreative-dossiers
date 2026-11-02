@@ -1487,8 +1487,9 @@ function ecranLivraison(d) {
       '<div class="envois" id="lv-envois"></div>' +
       '<div class="compte-formats">' + ['1x1', '4x5', '9x16'].map(f => '<span class="pill ' + (par(f) ? 'g' : '') + '">' + NOMS_F[f] + ' · ' + par(f) + '</span>').join('') + (par('autre') ? '<span class="pill r">Autres tailles · ' + par('autre') + '</span>' : '') + '</div>' +
       '<div style="display:flex;gap:10px;margin-top:18px;flex-wrap:wrap"><button class="btn btn-p btn-lg" id="lv-envoyer"' + (F.length ? '' : ' disabled') + '>' + i.envoi + 'Envoyer à Wimmov' + (F.length ? ' (' + F.length + ' fichiers)' : '') + '</button>' +
+      (travail.version > 1 ? '<button class="btn btn-s btn-lg" id="lv-maj"' + (F.length ? '' : ' disabled') + '>' + i.coche + 'Mettre à jour sans email</button>' : '') +
       '<button class="btn btn-g" id="lv-jeter">' + i.poubelle + 'Supprimer ce brouillon</button></div>' +
-      '<p class="muted" style="font-size:12.5px;margin-top:10px">Wimmov la voit tout de suite dans son espace. Hugo et les adresses ajoutées reçoivent un email.</p></div>';
+      '<p class="muted" style="font-size:12.5px;margin-top:10px">' + (travail.version > 1 ? '« Envoyer à Wimmov » : Hugo et les adresses ajoutées reçoivent un email « nouvelle version ». « Mettre à jour sans email » : Wimmov voit les nouveaux fichiers dans son espace, sans être prévenu.' : 'Wimmov la voit tout de suite dans son espace. Hugo et les adresses ajoutées reçoivent un email.') + '</p></div>';
   } else if (der) {
     // la review de Wimmov, en direct : approuvées, commentaires, retours envoyés ou livraison validée
     const nOk = der.fichiers.filter(f => f.approuve_le).length, nCom = der.fichiers.reduce((s, f) => s + f.commentaires.filter(c => c.role === 'client').length, 0);
@@ -1590,6 +1591,17 @@ function brancherLivraison(d) {
     env.disabled = true;
     try { const r = await K.api('/api/admin/wimmov/livraisons/' + t.id + '/envoyer', { methode: 'POST' }); K.toast(r.message); await charger(); await chargerLivraison(d); }
     catch (e) { K.toast(e.message); env.disabled = false; }
+  };
+  const maj = document.getElementById('lv-maj');
+  if (maj) maj.onclick = async () => {
+    const t = V[0];
+    if (!await K.confirmer('Mettre à jour la livraison ' + numero(d) + ' sans email ?', 'Wimmov voit la version ' + t.version + ' (' + t.fichiers.length + ' fichiers) dans son espace dès maintenant. Personne ne reçoit d\'email ni de notification.', 'Mettre à jour')) return;
+    maj.disabled = true;
+    // un Worker plus ancien que la v83 enverrait l'email : on vérifie d'abord
+    const dg = await K.api('/api/admin/diagnostic').catch(() => ({}));
+    if (!(Number(String(dg.worker || '').replace(/\D/g, '')) >= 83)) { maj.disabled = false; return K.toast('Collez d\'abord le Worker v83 dans Cloudflare : sinon Wimmov recevrait un email.'); }
+    try { const r = await K.api('/api/admin/wimmov/livraisons/' + t.id + '/envoyer', { methode: 'POST', corps: { silencieux: true } }); K.toast(r.message); await charger(); await chargerLivraison(d); }
+    catch (e) { K.toast(e.message); maj.disabled = false; }
   };
   const jeter = document.getElementById('lv-jeter');
   if (jeter) jeter.onclick = async () => {

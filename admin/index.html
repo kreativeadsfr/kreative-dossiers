@@ -1096,7 +1096,11 @@ const suggestion = textes => {
   if (RX_VISUEL.test(t) && !/[«"“]/.test(t)) return ['designer', 'ajout visuel'];
   return ['moi', 'consigne précise'];
 };
-const REP = { id: null, choix: {}, note: {}, notes: {} };
+const REP = { id: null, choix: {}, note: {}, notes: {}, formats: {} };
+// v82 : les formats à refaire pour une créa (par défaut : ceux que le client a commentés ; sinon tous)
+const ORDRE_F = ['1x1', '4x5', '9x16'];
+const formatsDeCrea = (l, crea) => ORDRE_F.filter(f => l.fichiers.some(x => K.depot.crea(x.nom) === crea && x.format === f));
+const puceFormats = (tous, choisis, attr, verrou) => '<div class="rp-fmt"><span>Formats à refaire :</span>' + tous.map(f => '<button class="' + (choisis.includes(f) ? 'on' : '') + '" ' + attr + ' data-f="' + f + '"' + (verrou ? ' disabled' : '') + '>' + esc(K.rv.nomFormat(f)) + '</button>').join('') + '</div>';
 // les retours du client regroupés par créa (une créa = ses 3 formats)
 function retoursParCrea(l) {
   const par = {};
@@ -1107,7 +1111,7 @@ function retoursParCrea(l) {
 }
 function blocRepartir(l) {
   const R = retoursParCrea(l);
-  if (REP.id !== l.id) { REP.id = l.id; REP.choix = {}; REP.notes = {}; R.forEach(r => { REP.choix[r.crea] = suggestion(r.coms.map(x => x.c.texte))[0]; }); }
+  if (REP.id !== l.id) { REP.id = l.id; REP.choix = {}; REP.notes = {}; REP.formats = {}; R.forEach(r => { REP.choix[r.crea] = suggestion(r.coms.map(x => x.c.texte))[0]; const tous = formatsDeCrea(l, r.crea), c = tous.filter(f => r.coms.some(x => x.f.format === f)); REP.formats[r.crea] = c.length ? c : tous; }); }
   const ok = l.fichiers.filter(f => f.approuve_le).length;
   const enCours = l.statut === 'envoyee';
   let h = '<div class="rp-tete"><div><h2>Retours du client</h2><p>Version ' + l.version + ' · ' + (enCours ? 'review en cours chez le client' : 'review terminée ' + (l.review_le ? esc(K.ilya(l.review_le)) : '')) + ' · ' + ok + ' approuvé' + (ok > 1 ? 's' : '') + ' sur ' + l.fichiers.length +
@@ -1121,6 +1125,7 @@ function blocRepartir(l) {
     return '<div class="card rp-c"><button class="rp-img" data-rv-voir="' + esc(r.f.id) + '" title="Voir la créative"><img src="' + esc(r.f.mini) + '" alt="" loading="lazy">' + pins + '</button><div>' +
       r.coms.map(x => '<div class="rp-meta">AD' + esc(r.crea) + ' · ' + esc(K.rv.nomFormat(x.f.format)) + ' · ' + esc(x.c.auteur || 'Client') + (x.c.cree_le ? ', ' + esc(K.ilya(x.c.cree_le)) : '') + '</div><p class="rp-txt">' + esc(x.c.texte) + '</p>').join('') +
       (ch !== 'moi' && ch !== 'rien' ? (REP.notes[r.crea] != null ? '<input class="in rp-note" data-rp-note="' + esc(r.crea) + '" placeholder="Une précision pour ' + esc(ch === 'refaire' ? St : D) + ' (facultatif)" value="' + esc(REP.notes[r.crea]) + '">' : '<button class="rp-plus" data-rp-plus="' + esc(r.crea) + '">+ Ajouter une précision</button>') : '') +
+      (ch !== 'rien' ? puceFormats(formatsDeCrea(l, r.crea), REP.formats[r.crea] || [], 'data-rp-fmt="' + esc(r.crea) + '"') : '') +
       '</div><div><div class="rp-seg">' + opts.map(([k, a, nom]) => '<button class="' + (ch === k ? 'on' : '') + (k === 'rien' ? ' rien' : '') + '" data-rp="' + esc(r.crea) + '" data-qui="' + k + '"><i class="' + (k === 'designer' ? 'desi' : k) + '">' + esc(a) + '</i>' + esc(nom) + '</button>').join('') + '</div>' +
       '<span class="rp-sug">Suggéré : ' + esc(sug[1]) + '</span></div></div>';
   }).join('');
@@ -1142,7 +1147,7 @@ function blocSuivi(rv, travailLiv) {
     if (x.etat === 'faite') droite = '<div class="sv-droite"><span class="sv-etat ok">' + i.coche + (ap ? 'Nouvelle version déposée' : 'Marquée faite') + '</span>' + (ap ? '<a class="sv-new" href="' + esc(ap.mini.replace('?mini=1', '')) + '" target="_blank" rel="noopener"><img src="' + esc(ap.mini) + '" alt="">Voir la nouvelle</a>' : '') +
       '<button class="rp-plus" data-sv-defaire="' + x.id + '">Refaire cette retouche</button></div>';
     else if (x.qui === 'moi') droite = '<div class="sv-droite"><div class="sv-drop" data-sv-depot="' + esc(x.crea) + '"><b>Déposez AD' + esc(x.crea) + ' corrigée en ' + req.map(f => K.rv.nomFormat(f)).join(', ') + '</b><small>' +
-      (req.length < x.formats.length ? 'Seulement ' + (req.length > 1 ? 'ces formats (les seuls commentés)' : 'ce format (le seul commenté)') + ' : les autres restent tels quels.' : 'Les ' + x.formats.length + ' formats, ensemble ou un par un.') + ' Le fichier remplace l\'ancien.</small></div>' +
+      (req.length < x.formats.length ? 'Seulement ' + (req.length > 1 ? 'ces formats' : 'ce format') + ' : les autres restent tels quels.' : 'Les ' + x.formats.length + ' formats, ensemble ou un par un.') + ' Le fichier remplace l\'ancien.</small></div>' +
       '<select class="in sv-qui" data-sv-qui="' + x.id + '"><option value="moi" selected>Pour moi</option><option value="designer">Confier à ' + esc(D) + '</option><option value="refaire">À refaire (' + esc(St) + ')</option><option value="faite">Marquer comme faite</option></select></div>';
     else {
       const etats = x.qui === 'designer' ? '<span class="sv-etat att">● Chez ' + esc(D) + '</span>'
@@ -1152,7 +1157,8 @@ function blocSuivi(rv, travailLiv) {
     }
     return '<div class="card sv-c"><div class="rp-img">' + (av ? '<img src="' + esc(av.mini) + '" alt="" loading="lazy">' : '') + '</div><div><div class="rp-meta">AD' + esc(x.crea) + ' · ' + esc(quiTxt(x)) + '</div>' +
       (x.coms.length ? x.coms.map(c => '<p class="rp-txt" style="font-size:14.5px">' + esc(c.texte) + '</p>').join('') : '<p class="rp-txt" style="font-size:14.5px">Sans commentaire du client.</p>') +
-      (x.note ? '<p class="rp-txt"><small>Votre précision : ' + esc(x.note) + '</small></p>' : '') + '</div>' + droite + '</div>';
+      (x.note ? '<p class="rp-txt"><small>Votre précision : ' + esc(x.note) + '</small></p>' : '') +
+      (x.formats.length > 1 ? puceFormats(ORDRE_F.filter(f => x.formats.includes(f)), x.requis || x.formats, 'data-sv-fmt="' + x.id + '"', x.etat === 'faite') : '') + '</div>' + droite + '</div>';
   }).join('') + '</div>';
   const autres = Math.max(0, rv.nb_creas - items.length);
   h += '<div class="sv-note">' + i.coche + (autres === 1 ? 'L\'autre créa est reprise telle quelle' : 'Les ' + autres + ' autres créas sont reprises telles quelles') + ' de la version ' + (rv.source ? rv.source.version : rv.travail.version - 1) + ', avec les validations du client. Il ne revoit que ' + (items.length > 1 ? 'les ' + items.length + ' créas modifiées' : 'la créa modifiée') + '.</div>' +
@@ -1160,22 +1166,36 @@ function blocSuivi(rv, travailLiv) {
   return h;
 }
 function brancherRevisions(l) {
+  const rv = LIV.rev;
   const recharger = async () => { S.livraisons = null; await charger('livraisons'); await K.prod.chargerEtats(); await chargerLivraison(l.dossier); };
   document.querySelectorAll('[data-rp]').forEach(b => b.onclick = () => { REP.choix[b.dataset.rp] = b.dataset.qui; K.rendre(); });
   document.querySelectorAll('[data-rp-plus]').forEach(b => b.onclick = () => { REP.notes[b.dataset.rpPlus] = ''; K.rendre(); setTimeout(() => { const c = document.querySelector('[data-rp-note="' + b.dataset.rpPlus + '"]'); if (c) c.focus(); }, 30); });
+  // v82 : choisir les formats à refaire (au moins un)
+  document.querySelectorAll('[data-rp-fmt]').forEach(b => b.onclick = () => {
+    const k = b.dataset.rpFmt, f = b.dataset.f, cur = REP.formats[k] || [];
+    const nv = cur.includes(f) ? cur.filter(x => x !== f) : ORDRE_F.filter(x => cur.includes(x) || x === f);
+    if (!nv.length) return K.toast('Gardez au moins un format.');
+    REP.formats[k] = nv; K.rendre();
+  });
+  document.querySelectorAll('[data-sv-fmt]').forEach(b => b.onclick = async () => {
+    const x = (rv.items || []).find(y => String(y.id) === b.dataset.svFmt); if (!x) return;
+    const cur = x.requis || x.formats, f = b.dataset.f;
+    const nv = cur.includes(f) ? cur.filter(y => y !== f) : ORDRE_F.filter(y => cur.includes(y) || y === f);
+    if (!nv.length) return K.toast('Gardez au moins un format.');
+    try { await K.api('/api/equipe/retouches/' + x.id, { methode: 'POST', corps: { formats: nv } }); await recharger(); } catch (e) { K.toast(e.message); }
+  });
   document.querySelectorAll('[data-rp-note]').forEach(c => c.oninput = () => { REP.notes[c.dataset.rpNote] = c.value; });
   const tout = document.querySelector('[data-rp-tout]');
   if (tout) tout.onclick = () => { Object.keys(REP.choix).forEach(k => { REP.choix[k] = 'moi'; }); K.rendre(); };
   const lancer = document.querySelector('[data-rp-lancer]');
   if (lancer) lancer.onclick = async () => {
-    const items = Object.keys(REP.choix).filter(k => REP.choix[k] !== 'rien').map(k => ({ crea: k, qui: REP.choix[k], note: REP.choix[k] === 'moi' ? '' : (REP.notes[k] || '') }));
+    const items = Object.keys(REP.choix).filter(k => REP.choix[k] !== 'rien').map(k => ({ crea: k, qui: REP.choix[k], note: REP.choix[k] === 'moi' ? '' : (REP.notes[k] || ''), formats: REP.formats[k] || [] }));
     if (!items.length) return;
     if (l.statut === 'envoyee' && !await K.confirmer('Lancer les retouches maintenant ?', 'Le client est encore en train de faire sa review : elle se termine pour lui, et les retouches partent.', 'Lancer les retouches')) return;
     lancer.disabled = true; lancer.textContent = 'Lancement…';
     try { const r = await K.api('/api/equipe/livraisons/' + l.id + '/repartir', { methode: 'POST', corps: { items } }); K.toast(r.message); REP.id = null; LIV.choix = l.id; await recharger(); }
     catch (e) { K.toast(e.message); lancer.disabled = false; lancer.textContent = 'Lancer les retouches'; }
   };
-  const rv = LIV.rev;
   document.querySelectorAll('[data-sv-depot]').forEach(z => K.depot.brancher(z, async fichiers => {
     const crea = z.dataset.svDepot;
     z.innerHTML = '<b>Envoi de AD' + esc(crea) + '…</b><div class="barre"><i style="width:0"></i></div>';

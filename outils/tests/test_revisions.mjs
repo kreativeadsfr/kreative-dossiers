@@ -41,7 +41,7 @@ r = await api('/api/equipe/livraisons/' + v1.id + '/repartir', A, 'POST', { item
 
 // Kreative répartit
 const TG = new URL('telegram.log', import.meta.url); try { fs.unlinkSync(TG); } catch (x) {}
-r = await api('/api/equipe/livraisons/' + v1.id + '/repartir', A, 'POST', { items: [{ crea: '01', qui: 'moi' }, { crea: '02', qui: 'designer', note: 'Garder le même fond' }, { crea: '03', qui: 'refaire' }] });
+r = await api('/api/equipe/livraisons/' + v1.id + '/repartir', A, 'POST', { items: [{ crea: '01', qui: 'moi', formats: ['1x1', '4x5', '9x16'] }, { crea: '02', qui: 'designer', note: 'Garder le même fond' }, { crea: '03', qui: 'refaire' }] });
 await new Promise(z => setTimeout(z, 400));
 const tg = fs.existsSync(TG) ? fs.readFileSync(TG, 'utf8').trim().split('\n').map(l => JSON.parse(l)) : [];
 const tgD = tg.find(x => x.corps.chat_id === '-1004299298150'), tgS = tg.find(x => x.corps.chat_id === '-5241939931');
@@ -89,9 +89,17 @@ t('les 2 formats déposés : retouche faite', it2.etat === 'faite' && it2.apres.
 r = await api('/api/equipe/livraisons/' + D, A);
 t('la nouvelle AD02 remplace l\'ancienne (toujours 8 fichiers)', r.d.versions[0].fichiers.length === 8 && !r.d.versions[0].fichiers.some(f => f.nom === 'PULSO_STANDARD_02.png'), r.d.versions[0].fichiers.map(f => f.nom).join(','));
 
+// v82 : Kreative a choisi lui-même les formats de AD01 (1:1 et 4:5, le 9:16 n'existe pas : ignoré)
+r = await api('/api/equipe/revisions/' + D, A); let it1 = r.d.items.find(x => x.crea === '01');
+t('formats choisis à la répartition : 1:1 + 4:5 (commenté en 1:1 seulement)', JSON.stringify(it1.requis) === '["1x1","4x5"]', JSON.stringify(it1.requis));
 // Kreative dépose AD01
 await deposer(travail, 'PULSO_STANDARD_01.png', '1x1', A, '01');
-r = await api('/api/equipe/revisions/' + D, A); t('AD01 commentée en 1:1 seulement : faite dès le 1:1 redéposé', r.d.items.find(x => x.crea === '01').etat === 'faite', JSON.stringify(r.d.items.find(x => x.crea === '01')).slice(0, 200));
+r = await api('/api/equipe/revisions/' + D, A); it1 = r.d.items.find(x => x.crea === '01');
+t('le 1:1 seul ne suffit pas quand le 4:5 est demandé', it1.etat === 'a_faire', it1.etat);
+r = await api('/api/equipe/retouches/' + it1.id, DE, 'POST', { formats: ['1x1'] }); t('la designer ne change pas les formats', r.s === 403, r.s);
+r = await api('/api/equipe/retouches/' + it1.id, A, 'POST', { formats: [] }); t('au moins un format', r.s === 400, r.s);
+r = await api('/api/equipe/retouches/' + it1.id, A, 'POST', { formats: ['1x1'] });
+r = await api('/api/equipe/revisions/' + D, A); t('Kreative retire le 4:5 : AD01 devient faite (1:1 déjà redéposé)', r.d.items.find(x => x.crea === '01').etat === 'faite', JSON.stringify(r.d.items.find(x => x.crea === '01')).slice(0, 200));
 e = await etat(D); t('état : retouches 2 sur 3', e.v.ret.faites === 2 && e.v.ret.strat === 1, JSON.stringify(e.v.ret));
 
 // pas d'envoi au client tant que tout n'est pas fait
@@ -147,7 +155,7 @@ const img = await get(lv2.fichiers[0].url, { headers: { Cookie: CK } }); t('le c
 r = await api('/api/equipe/livraisons/' + lv2.id + '/stockage', DE); t('la designer ne lance pas la vérification', r.s === 403, r.s);
 r = await get('/api/equipe/fichiers/' + lv2.fichiers[0].id + '/reparer', { method: 'PUT', headers: { Cookie: A, 'Content-Type': 'image/png' }, body: PNG });
 t('réparer un fichier : remis à la même place', r.status === 200, r.status);
-r = await api('/api/admin/diagnostic', A); t('diagnostic du Worker', r.s === 200 && r.d.worker === 'v81' && r.d.telegram_bot === true, JSON.stringify(r.d));
+r = await api('/api/admin/diagnostic', A); t('diagnostic du Worker', r.s === 200 && r.d.worker === 'v82' && r.d.telegram_bot === true, JSON.stringify(r.d));
 r = await api('/api/admin/diagnostic', DE); t('diagnostic : admin seulement', r.s === 403 || r.s === 401, r.s);
 
 // v78 : une page modifiée sur main est servie dès le nouveau commit (avant : une copie pouvait rester figée des heures)

@@ -928,7 +928,7 @@ let BASE_PRETE = false;
 // v70 : la base est vérifiée une seule fois par version. Avant, chaque démarrage du Worker refaisait
 // ~25 allers-retours (tables, colonnes, index) : près d'une seconde sur la 1re ouverture.
 // Augmenter SCHEMA_V à chaque nouvelle table ou colonne : la vérification complète repasse une fois.
-const SCHEMA_V = 79;
+const SCHEMA_V = 82;
 let SCHEMA_EN_COURS = null;
 async function base(env) {
   if (!env.DB) throw new Error('Base de données absente : liez une base D1 au Worker sous le nom DB.');
@@ -1727,7 +1727,7 @@ async function apiAdmin(req, env, ctx, url, chemin, methode) {
     const sha = await shaMain(env).catch(() => null);
     TRAD_ERREURS = []; TRAD_MODELE = null;
     const essai = url.searchParams.has('traduction') ? (await traduire(env, ['Serait-il possible de mettre un visuel de l\'interface ?']))[0] : undefined;
-    return json({ worker: 'v81', traduction_essai: essai, traduction_modele: essai !== undefined ? TRAD_MODELE : undefined, traduction_refus: essai !== undefined && TRAD_ERREURS.length ? TRAD_ERREURS : undefined, depot_commit: sha ? sha.slice(0, 7) : null, github_jeton: gh === 200 ? 'ok' : gh === 401 ? 'REFUSÉ (jeton expiré ou révoqué)' : gh, github_derniere_lecture: DEPOT_DERNIER,
+    return json({ worker: 'v82', traduction_essai: essai, traduction_modele: essai !== undefined ? TRAD_MODELE : undefined, traduction_refus: essai !== undefined && TRAD_ERREURS.length ? TRAD_ERREURS : undefined, depot_commit: sha ? sha.slice(0, 7) : null, github_jeton: gh === 200 ? 'ok' : gh === 401 ? 'REFUSÉ (jeton expiré ou révoqué)' : gh, github_derniere_lecture: DEPOT_DERNIER,
       stockage_r2: !!env.FICHIERS, traduction_ai: !!env.AI, telegram_bot: !!env.TELEGRAM_BOT, code_fiche: !!(await codeFiche(env)) });
   }
   if (chemin === '/equipe' && methode === 'GET') {
@@ -1793,6 +1793,8 @@ async function baseLiv(env) {
     try { await db.prepare('CREATE INDEX IF NOT EXISTS i_ret_liv ON retouches(livraison_id)').run(); } catch (e) {}
     // v79 : qui a déposé la retouche (la designer ne voit jamais celles faites par Kreative)
     try { await db.prepare('ALTER TABLE retouches ADD COLUMN fait_par TEXT').run(); } catch (e) {}
+    // v82 : les formats à refaire, choisis par Kreative (par défaut : ceux que le client a commentés)
+    try { await db.prepare('ALTER TABLE retouches ADD COLUMN formats TEXT').run(); } catch (e) {}
     // v74 : l'appareil qui reçoit les notifications (téléphone ou ordinateur)
     try { await db.prepare('ALTER TABLE push_abos ADD COLUMN appareil TEXT').run(); } catch (e) {}
     // une seule version N par projet, même si deux dépôts partent en même temps
@@ -1989,10 +1991,16 @@ async function nouvelleVersion(db, dossier, der) {
 }
 // v76 : seuls les formats que le client a commentés sont à redéposer (un retour sur le 1:1 ne touche pas le 4:5
 // ni le 9:16) ; sans commentaire (Kreative a choisi la créa elle-même) : tous ses formats
+// v82 : Kreative peut choisir lui-même 1, 2 ou 3 formats par créa (colonne « formats ») : ce choix passe avant
+const FORMATS_RET = ['1x1', '4x5', '9x16'];
 const formatsRequis = (r, tous) => {
-  const t = [...new Set(tous)], c = [...new Set((formeJson(r.coms) || []).map(x => x.format).filter(f => t.includes(f)))];
-  return c.length ? c : t;
+  const t = [...new Set(tous)];
+  const choisis = (formeJson(r.formats) || []).filter(f => t.includes(f));
+  if (choisis.length) return t.filter(f => choisis.includes(f));
+  const c = [...new Set((formeJson(r.coms) || []).map(x => x.format).filter(f => t.includes(f)))];
+  return c.length ? t.filter(f => c.includes(f)) : t;
 };
+const formatsChoisis = v => Array.isArray(v) ? [...new Set(v.map(String).filter(f => FORMATS_RET.includes(f)))] : [];
 // une ligne de retouche est faite quand la créa a été redéposée dans les formats commentés
 async function verifierRetouches(db, livraisonId, crea, role) {
   const { results: R } = await db.prepare("SELECT * FROM retouches WHERE livraison_id = ? AND crea = ? AND etat != 'faite'").bind(livraisonId, crea).all();
@@ -2495,7 +2503,8 @@ async function apiEquipe(req, env, ctx, url, chemin, methode, qui) {
     for (const it of Array.isArray(b.items) ? b.items.slice(0, 200) : []) {
       const crea = propre(it && it.crea, 40), q = String(it && it.qui || '');
       if (!creas.has(crea) || !QUI_RETOUCHE.includes(q) || vus.has(crea)) continue;
-      vus.add(crea); items.push({ crea, qui: q, note: propre(it.note, 600) });
+      const fc = formatsChoisis(it.formats).filter(f => F.some(x => creaDe(x.nom) === crea && x.format === f));
+      vus.add(crea); items.push({ crea, qui: q, note: propre(it.note, 600), formats: fc.length ? fc : null });
     }
     if (!items.length) return json({ erreur: 'Choisissez au moins une créa à retoucher.' }, 400);
     const now = maintenant(), k = await commandeDuDossier(db, l.dossier);
@@ -2516,8 +2525,8 @@ async function apiEquipe(req, env, ctx, url, chemin, methode, qui) {
         const en = await traduire(env, [it.note, ...coms.map(c => c.texte)]);
         it.note_en = en[0]; coms.forEach((c, n) => { c.texte_en = en[n + 1]; if (en[n + 1]) c.trad = 3; });
       }
-      lignes.push(db.prepare('INSERT INTO retouches (dossier, source_id, livraison_id, crea, qui, etat, note, note_en, coms, cree_le) VALUES (?,?,?,?,?,?,?,?,?,?)')
-        .bind(l.dossier, l.id, travail.id, it.crea, it.qui, 'a_faire', it.note || null, it.note_en || null, JSON.stringify(coms), now));
+      lignes.push(db.prepare('INSERT INTO retouches (dossier, source_id, livraison_id, crea, qui, etat, note, note_en, coms, formats, cree_le) VALUES (?,?,?,?,?,?,?,?,?,?,?)')
+        .bind(l.dossier, l.id, travail.id, it.crea, it.qui, 'a_faire', it.note || null, it.note_en || null, JSON.stringify(coms), it.formats ? JSON.stringify(it.formats) : null, now));
     }
     await db.batch(lignes);
     await db.prepare("UPDATE livraisons SET retouche = 'reparti', retouche_le = ? WHERE id = ?").bind(now, l.id).run();
@@ -2532,6 +2541,13 @@ async function apiEquipe(req, env, ctx, url, chemin, methode, qui) {
     const b = await corpsJson(req);
     const r = await db.prepare('SELECT r.*, l.statut FROM retouches r JOIN livraisons l ON l.id = r.livraison_id WHERE r.id = ?').bind(Number(m[1])).first();
     if (!r || r.statut !== 'brouillon') return json({ erreur: 'Cette retouche n\'est plus modifiable.' }, 409);
+    // v82 : changer les formats à refaire (1, 2 ou 3) ; une retouche déjà redéposée dans ces formats devient faite
+    if (Array.isArray(b.formats)) {
+      const fc = formatsChoisis(b.formats);
+      if (!fc.length) return json({ erreur: 'Gardez au moins un format.' }, 400);
+      await db.prepare('UPDATE retouches SET formats = ? WHERE id = ?').bind(JSON.stringify(fc), r.id).run();
+      if (r.etat !== 'faite') await verifierRetouches(db, r.livraison_id, r.crea, r.qui === 'moi' ? 'admin' : 'designer');
+    }
     if (b.faite === true) await db.prepare("UPDATE retouches SET etat = 'faite', fait_le = ?, fait_par = 'admin' WHERE id = ?").bind(maintenant(), r.id).run();
     else if (b.faite === false) await db.prepare("UPDATE retouches SET etat = ?, fait_le = NULL WHERE id = ?").bind(r.qui === 'refaire' && r.reprise ? 'reprise' : 'a_faire', r.id).run();
     if (QUI_RETOUCHE.includes(b.qui) && b.qui !== r.qui) {

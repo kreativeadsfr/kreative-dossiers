@@ -1886,14 +1886,20 @@ async function nouvelleVersion(db, dossier, der) {
   }
   return db.prepare('SELECT * FROM livraisons WHERE id = ?').bind(id).first();
 }
-// une ligne de retouche est faite quand la créa a été redéposée dans tous les formats qu'elle avait
+// v76 : seuls les formats que le client a commentés sont à redéposer (un retour sur le 1:1 ne touche pas le 4:5
+// ni le 9:16) ; sans commentaire (Kreative a choisi la créa elle-même) : tous ses formats
+const formatsRequis = (r, tous) => {
+  const t = [...new Set(tous)], c = [...new Set((formeJson(r.coms) || []).map(x => x.format).filter(f => t.includes(f)))];
+  return c.length ? c : t;
+};
+// une ligne de retouche est faite quand la créa a été redéposée dans les formats commentés
 async function verifierRetouches(db, livraisonId, crea) {
   const { results: R } = await db.prepare("SELECT * FROM retouches WHERE livraison_id = ? AND crea = ? AND etat != 'faite'").bind(livraisonId, crea).all();
   if (!R.length) return;
   const { results: F } = await db.prepare('SELECT format, nom, cree_le FROM fichiers WHERE livraison_id = ?').bind(livraisonId).all();
   for (const r of R) {
     const src = await db.prepare('SELECT format, nom FROM fichiers WHERE livraison_id = ?').bind(r.source_id).all();
-    const formats = [...new Set(src.results.filter(f => creaDe(f.nom) === crea).map(f => f.format))];
+    const formats = formatsRequis(r, src.results.filter(f => creaDe(f.nom) === crea).map(f => f.format));
     const neufs = new Set(F.filter(f => creaDe(f.nom) === crea && f.cree_le > r.cree_le).map(f => f.format));
     if (formats.length && formats.every(x => neufs.has(x))) await db.prepare("UPDATE retouches SET etat = 'faite', fait_le = ? WHERE id = ?").bind(maintenant(), r.id).run();
   }
@@ -1917,7 +1923,7 @@ async function revisionsDe(db, dossier, role) {
     const o = { id: r.id, crea: r.crea, etat: r.etat, note: r.note || '', fait_le: r.fait_le || null,
       avant: avant.map(f => ({ id: f.id, format: f.format, nom: f.nom, mini: '/fichiers/' + f.id + (f.mini ? '?mini=1' : '') })),
       apres: neufs.map(f => ({ id: f.id, format: f.format, nom: f.nom, mini: '/fichiers/' + f.id + (f.mini ? '?mini=1' : '') })),
-      formats: [...new Set(avant.map(f => f.format))], coms: coms.map(c => ({ texte: c.texte, auteur: c.auteur, format: c.format, forme: c.forme || null, couleur: c.couleur || null })) };
+      formats: [...new Set(avant.map(f => f.format))], requis: formatsRequis(r, avant.map(f => f.format)), coms: coms.map(c => ({ texte: c.texte, auteur: c.auteur, format: c.format, forme: c.forme || null, couleur: c.couleur || null })) };
     if (role === 'admin') { o.qui = r.qui; o.reprise = r.reprise || null; o.reprise_le = r.reprise_le || null; }
     // la designer : en anglais d'abord ; une créa refaite = « new creative », avec sa page d'aperçu
     if (role === 'designer') { o.type = r.qui === 'refaire' ? 'nouvelle' : 'visuel'; o.note_en = r.note_en || ''; o.coms = coms.map(c => ({ texte: c.texte, texte_en: c.texte_en || '', format: c.format, forme: c.forme || null, couleur: c.couleur || null })); o.reprise = r.reprise || null; }

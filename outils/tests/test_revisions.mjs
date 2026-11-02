@@ -65,6 +65,7 @@ r = await api('/api/equipe/etats', DE); t('l\'état du projet ne nomme personne 
 r = await api('/api/equipe/livraisons/' + travail + '/envoyer', DE, 'POST', {}); t('la designer n\'envoie pas la version de retouches elle-même', r.s === 409, r.s);
 
 // la designer dépose AD02 (les 2 formats), même avec un autre nom de fichier
+r = await api('/api/equipe/revisions/' + D, A); t('seul le format commenté est demandé (AD02 : 4:5)', JSON.stringify(r.d.items.find(x => x.crea === '02').requis) === '["4x5"]', JSON.stringify(r.d.items.find(x => x.crea === '02')).slice(0, 200));
 let d1 = await deposer(travail, 'Pulso-02-new-square.png', '1x1', DE, '02');
 r = await api('/api/equipe/revisions/' + D, A); t('un seul format déposé : pas encore faite', d1.s === 200 && r.d.items.find(x => x.crea === '02').etat === 'a_faire', JSON.stringify(d1.d));
 await deposer(travail, 'Pulso-02-new-feed.png', '4x5', DE, '02');
@@ -74,7 +75,8 @@ r = await api('/api/equipe/livraisons/' + D, A);
 t('la nouvelle AD02 remplace l\'ancienne (toujours 8 fichiers)', r.d.versions[0].fichiers.length === 8 && !r.d.versions[0].fichiers.some(f => f.nom === 'PULSO_STANDARD_02.png'), r.d.versions[0].fichiers.map(f => f.nom).join(','));
 
 // Kreative dépose AD01
-await deposer(travail, 'PULSO_STANDARD_01.png', '1x1', A, '01'); await deposer(travail, 'PULSO_FEED_01.png', '4x5', A, '01');
+await deposer(travail, 'PULSO_STANDARD_01.png', '1x1', A, '01');
+r = await api('/api/equipe/revisions/' + D, A); t('AD01 commentée en 1:1 seulement : faite dès le 1:1 redéposé', r.d.items.find(x => x.crea === '01').etat === 'faite', JSON.stringify(r.d.items.find(x => x.crea === '01')).slice(0, 200));
 e = await etat(D); t('état : retouches 2 sur 3', e.v.ret.faites === 2 && e.v.ret.strat === 1, JSON.stringify(e.v.ret));
 
 // pas d'envoi au client tant que tout n'est pas fait

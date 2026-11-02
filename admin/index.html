@@ -1136,11 +1136,12 @@ function blocSuivi(rv, travailLiv) {
     '<div class="sv-prog"><b style="font-size:14px">' + faites + ' sur ' + items.length + ' faite' + (faites > 1 ? 's' : '') + '</b><div class="b"><i style="width:' + Math.round(faites * 100 / Math.max(1, items.length)) + '%"></i></div></div><div class="rp-liste">';
   h += items.map(x => {
     const av = x.avant[0], ap = x.apres[0];
-    let droite;
+    let droite; const req = x.requis || x.formats;
     if (x.etat === 'faite') droite = '<div class="sv-droite"><span class="sv-etat ok">' + i.coche + (ap ? 'Nouvelle version déposée' : 'Marquée faite') + '</span>' + (ap ? '<a class="sv-new" href="' + esc(ap.mini.replace('?mini=1', '')) + '" target="_blank" rel="noopener"><img src="' + esc(ap.mini) + '" alt="">Voir la nouvelle</a>' : '') +
       '<button class="rp-plus" data-sv-defaire="' + x.id + '">Refaire cette retouche</button></div>';
-    else if (x.qui === 'moi') droite = '<div class="sv-droite"><div class="sv-drop" data-sv-depot="' + esc(x.crea) + '"><b>Déposez AD' + esc(x.crea) + ' corrigée</b><small>Les ' + x.formats.length + ' formats d\'un coup (' + x.formats.map(f => K.rv.nomFormat(f)).join(', ') + '). Ils remplacent les anciens.</small></div>' +
-      '<select class="in sv-qui" data-sv-qui="' + x.id + '"><option value="moi" selected>Pour moi</option><option value="designer">Confier à ' + esc(D) + '</option><option value="refaire">À refaire (' + esc(St) + ')</option></select></div>';
+    else if (x.qui === 'moi') droite = '<div class="sv-droite"><div class="sv-drop" data-sv-depot="' + esc(x.crea) + '"><b>Déposez AD' + esc(x.crea) + ' corrigée en ' + req.map(f => K.rv.nomFormat(f)).join(', ') + '</b><small>' +
+      (req.length < x.formats.length ? 'Seulement ' + (req.length > 1 ? 'ces formats (les seuls commentés)' : 'ce format (le seul commenté)') + ' : les autres restent tels quels.' : 'Les ' + x.formats.length + ' formats, ensemble ou un par un.') + ' Le fichier remplace l\'ancien.</small></div>' +
+      '<select class="in sv-qui" data-sv-qui="' + x.id + '"><option value="moi" selected>Pour moi</option><option value="designer">Confier à ' + esc(D) + '</option><option value="refaire">À refaire (' + esc(St) + ')</option><option value="faite">Marquer comme faite</option></select></div>';
     else {
       const etats = x.qui === 'designer' ? '<span class="sv-etat att">● Chez ' + esc(D) + '</span>'
         : x.etat === 'a_faire' ? '<span class="sv-etat att">● Chez ' + esc(St) + ' : nouvelle créa</span>'
@@ -1169,7 +1170,7 @@ function brancherRevisions(l) {
     if (!items.length) return;
     if (l.statut === 'envoyee' && !await K.confirmer('Lancer les retouches maintenant ?', 'Le client est encore en train de faire sa review : elle se termine pour lui, et les retouches partent.', 'Lancer les retouches')) return;
     lancer.disabled = true; lancer.textContent = 'Lancement…';
-    try { const r = await K.api('/api/equipe/livraisons/' + l.id + '/repartir', { methode: 'POST', corps: { items } }); K.toast(r.message); REP.id = null; LIV.choix = r.travail; await recharger(); }
+    try { const r = await K.api('/api/equipe/livraisons/' + l.id + '/repartir', { methode: 'POST', corps: { items } }); K.toast(r.message); REP.id = null; LIV.choix = l.id; await recharger(); }
     catch (e) { K.toast(e.message); lancer.disabled = false; lancer.textContent = 'Lancer les retouches'; }
   };
   const rv = LIV.rev;
@@ -1203,7 +1204,7 @@ function ecranLivraisons() {
   if (!L.length) return h + '<div class="card"><div class="vide">' + i.envoi + 'Aucune livraison pour l\'instant. Elles arrivent ici dès que la designer dépose ses fichiers.</div></div>';
   return h + '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Projet</th><th>Version</th><th>Statut</th><th>Détail</th><th></th></tr></thead><tbody>' +
     L.map(({ l, e }) => '<tr class="clic" onclick="location.hash=\'#/livraisons/' + esc(l.dossier) + '\'"><td><div class="nom">' + K.tuile(nomLiv(l.dossier)) + '<div><b>' + esc(nomLiv(l.dossier)) + (K.estDemo(l.dossier) ? ' <span class="pill demo">Démo</span>' : '') + '</b><span class="sub">' + esc(l.dossier) + (l.ref ? ' · #' + esc(l.ref) : '') + '</span></div></div></td>' +
-      '<td>Version ' + l.version + '</td><td>' + e.pill + '</td><td>' + (e.det || '<span class="muted">Pas encore</span>') + '</td>' +
+      '<td>Version ' + (l.statut === 'brouillon' && retDe(l.dossier) ? l.version - 1 : l.version) + '</td><td>' + e.pill + '</td><td>' + (e.det || '<span class="muted">Pas encore</span>') + '</td>' +
       '<td class="fin"><span class="btn ' + e.act[1] + ' btn-sm">' + esc(e.act[0]) + '</span></td></tr>').join('') + '</tbody></table></div></div>';
 }
 const LIV = { dossier: null, donnees: null, choix: null };
@@ -1211,6 +1212,8 @@ async function chargerLivraison(d) {
   LIV.dossier = d;
   try { [LIV.donnees, LIV.rev] = await Promise.all([K.api('/api/equipe/livraisons/' + d), K.api('/api/equipe/revisions/' + d).catch(() => null)]); } catch (e) { LIV.donnees = { versions: [] }; K.toast(e.message); }
   if (!LIV.donnees.versions.find(v => v.id === LIV.choix)) LIV.choix = (LIV.donnees.versions[0] || {}).id;
+  // la version suivante en préparation n'est pas une vraie version : on montre celle que le client a vue
+  if (LIV.rev && LIV.rev.travail && LIV.rev.travail.statut === 'brouillon' && LIV.choix === LIV.rev.travail.id && LIV.rev.source) LIV.choix = LIV.rev.source.id;
   K.rendre();
 }
 function ecranLivraison(d) {
@@ -1219,7 +1222,9 @@ function ecranLivraison(d) {
   if (!LIV.donnees) return h + '<div class="card"><div class="vide">Chargement…</div></div>';
   const V = LIV.donnees.versions, l = V.find(v => v.id === LIV.choix);
   if (!l) return h + '<div class="card"><div class="vide">' + i.envoi + 'Rien n\'a encore été déposé pour ce projet.</div></div>';
-  h += K.rv.puces(V, l.id, v => 'Version ' + v.version + ' · ' + (STATUTS_LIV[v.statut] || [v.statut])[0]);
+  // v76 : la version en préparation (copie de la précédente) n'a pas d'onglet : seulement le bloc de suivi
+  const enPrep = LIV.rev && LIV.rev.travail && LIV.rev.travail.statut === 'brouillon' ? LIV.rev.travail.id : null;
+  h += K.rv.puces(V.filter(v => v.id !== enPrep), l.id, v => 'Version ' + v.version + ' · ' + (v.id === (LIV.rev && LIV.rev.source || {}).id && enPrep ? 'retouches en cours' : (STATUTS_LIV[v.statut] || [v.statut])[0]));
   if (l.note_designer) h += '<div class="rv-note">' + i.message + '<div><b>Note de la designer :</b> ' + esc(l.note_designer) + '</div></div>';
   if (l.statut === 'a_corriger' && l.note_kreative) h += '<div class="rv-note">' + i.crayon + '<div><b>Note de correction :</b> ' + esc(l.note_kreative) + '</div></div>';
   // v75 : répartir les retours du client, créa par créa ; puis suivre la version suivante

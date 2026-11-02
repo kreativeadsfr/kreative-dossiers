@@ -1018,3 +1018,10 @@ a.lien-kpi:hover{border-color:var(--line2)}
 .rp-pin{position:absolute;transform:translate(-50%,-50%);width:22px;height:22px;border-radius:50%;background:#4D94FF;color:#fff;font:600 11px Inter,sans-serif;display:grid;place-items:center;box-shadow:0 0 0 2px #fff}
 .rp-c .rp-txt+.rp-meta{margin-top:10px}
 .rp-seg button:disabled,.rp-barre .btn:disabled{opacity:.45;cursor:default}
+/* « Livraisons et révisions » tient sur une ligne, pastille comprise */
+.nav a{white-space:nowrap}
+.nav a .nb{margin-left:auto}
+.side{width:264px}
+.sv-note svg{width:18px;height:18px;flex:none}
+.rp-barre{margin-bottom:28px}
+.sv-pied{margin-bottom:28px}

@@ -1152,7 +1152,7 @@ function blocSuivi(rv, travailLiv) {
       (x.note ? '<p class="rp-txt"><small>Votre précision : ' + esc(x.note) + '</small></p>' : '') + '</div>' + droite + '</div>';
   }).join('') + '</div>';
   const autres = Math.max(0, rv.nb_creas - items.length);
-  h += '<div class="sv-note">' + i.coche + 'Les ' + autres + ' autres créas sont reprises telles quelles de la version ' + (rv.source ? rv.source.version : rv.travail.version - 1) + ', avec les validations du client. Il ne revoit que les ' + items.length + ' créa' + (items.length > 1 ? 's' : '') + ' modifiée' + (items.length > 1 ? 's' : '') + '.</div>' +
+  h += '<div class="sv-note">' + i.coche + (autres === 1 ? 'L\'autre créa est reprise telle quelle' : 'Les ' + autres + ' autres créas sont reprises telles quelles') + ' de la version ' + (rv.source ? rv.source.version : rv.travail.version - 1) + ', avec les validations du client. Il ne revoit que ' + (items.length > 1 ? 'les ' + items.length + ' créas modifiées' : 'la créa modifiée') + '.</div>' +
     '<div class="sv-pied"><small style="color:var(--tx3)">' + (tout ? 'Tout est prêt.' : 'Le bouton s\'active dès que la dernière retouche est déposée.') + '</small><button class="btn btn-d btn-lg" data-sv-envoyer' + (tout ? '' : ' disabled') + '>' + i.envoi + 'Envoyer la version ' + rv.travail.version + ' au client</button></div>';
   return h;
 }

@@ -40,7 +40,14 @@ r = await api('/api/equipe/livraisons/' + v1.id + '/repartir', ST, 'POST', { ite
 r = await api('/api/equipe/livraisons/' + v1.id + '/repartir', A, 'POST', { items: [{ crea: '99', qui: 'moi' }, { crea: '01', qui: 'personne' }] }); t('créa inconnue ou choix inconnu : refusé', r.s === 400, r.s);
 
 // Kreative répartit
+const TG = new URL('telegram.log', import.meta.url); try { fs.unlinkSync(TG); } catch (x) {}
 r = await api('/api/equipe/livraisons/' + v1.id + '/repartir', A, 'POST', { items: [{ crea: '01', qui: 'moi' }, { crea: '02', qui: 'designer', note: 'Garder le même fond' }, { crea: '03', qui: 'refaire' }] });
+await new Promise(z => setTimeout(z, 400));
+const tg = fs.existsSync(TG) ? fs.readFileSync(TG, 'utf8').trim().split('\n').map(l => JSON.parse(l)) : [];
+const tgD = tg.find(x => x.corps.chat_id === '-1004299298150'), tgS = tg.find(x => x.corps.chat_id === '-5241939931');
+t('Telegram : la designer est prévenue (en anglais, AD02 seulement)', tgD && /Revisions \| Pulso/.test(tgD.corps.text) && /AD02/.test(tgD.corps.text) && !/AD03|AD01/.test(tgD.corps.text) && tgD.chemin === '/telegram/botbot-test/sendMessage', JSON.stringify(tg).slice(0, 300));
+t('Telegram : le stratégiste est prévenu (AD03 à refaire)', tgS && /Retouches \| Pulso/.test(tgS.corps.text) && /AD03/.test(tgS.corps.text) && !/AD02/.test(tgS.corps.text), JSON.stringify(tgS));
+t('Telegram : aucun message ne nomme l\'autre', tg.every(x => !/designer|andrea|strat[eé]g|lo[iï]c/i.test(x.corps.text)), tg.map(x => x.corps.text).join(' | '));
 t('répartition acceptée', r.s === 200 && r.d.travail, JSON.stringify(r.d));
 const travail = r.d.travail;
 r = await api('/api/equipe/livraisons/' + v1.id + '/repartir', A, 'POST', { items: [{ crea: '01', qui: 'moi' }] }); t('… une seule fois', r.s === 409, r.s);
@@ -120,6 +127,18 @@ t('nouvelle répartition sur la version 2 (version 3 en cours)', r.d.travail.ver
 r = await api('/api/equipe/retouches/' + ligne.id, A, 'POST', { qui: 'moi' }); t('Kreative reprend la retouche pour lui', r.s === 200 && (await api('/api/equipe/revisions/' + D, A)).d.items[0].qui === 'moi', r.s);
 r = await api('/api/equipe/retouches/' + ligne.id, DE, 'POST', { faite: true }); t('la designer ne change pas la répartition', r.s === 403, r.s);
 r = await api('/api/equipe/retouches/' + ligne.id, A, 'POST', { faite: true }); t('marquée faite sans nouveau fichier', (await api('/api/equipe/revisions/' + D, A)).d.items[0].etat === 'faite', r.s);
+
+// v77 : le stockage. Supprimer la version en préparation (une copie) n'efface pas les fichiers de la version d'avant
+r = await api('/api/equipe/revisions/' + D, A); const v3id = r.d.travail.id;
+r = await api('/api/equipe/livraisons/' + lv2.id + '/stockage', A); t('stockage de la version 2 : rien ne manque', r.s === 200 && r.d.manquants.length === 0, JSON.stringify(r.d));
+r = await api('/api/equipe/livraisons/' + v3id, A, 'DELETE'); t('la version 3 en préparation est supprimée', r.s === 200, JSON.stringify(r.d));
+r = await api('/api/equipe/livraisons/' + lv2.id + '/stockage', A); t('… les fichiers de la version 2 sont toujours là', r.d.manquants.length === 0, JSON.stringify(r.d));
+const img = await get(lv2.fichiers[0].url, { headers: { Cookie: CK } }); t('le client voit toujours ses images', img.status === 200, img.status);
+r = await api('/api/equipe/livraisons/' + lv2.id + '/stockage', DE); t('la designer ne lance pas la vérification', r.s === 403, r.s);
+r = await get('/api/equipe/fichiers/' + lv2.fichiers[0].id + '/reparer', { method: 'PUT', headers: { Cookie: A, 'Content-Type': 'image/png' }, body: PNG });
+t('réparer un fichier : remis à la même place', r.status === 200, r.status);
+r = await api('/api/admin/diagnostic', A); t('diagnostic du Worker', r.s === 200 && r.d.worker === 'v77' && r.d.telegram_bot === true, JSON.stringify(r.d));
+r = await api('/api/admin/diagnostic', DE); t('diagnostic : admin seulement', r.s === 403 || r.s === 401, r.s);
 
 // la fiche du portail sait faire une reprise
 const pf = await (await get('/fiche/', { headers: { Cookie: ST } })).text();

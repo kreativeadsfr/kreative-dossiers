@@ -240,7 +240,8 @@ async function depotRelire(fichier, env, e) {
   const encode = fichier.split('/').map(encodeURIComponent).join('/');
   const h = { 'Authorization': 'Bearer ' + (env.GITHUB_TOKEN || ''), 'Accept': 'application/vnd.github.raw', 'User-Agent': 'kreative-espace', 'X-GitHub-Api-Version': '2022-11-28' };
   if (e && e.etag) h['If-None-Match'] = e.etag;
-  const r = await fetch(api + '/repos/' + DEPOT + '/contents/' + encode + '?ref=' + BRANCHE, { headers: h });
+  const r = await fetchGithub(api + '/repos/' + DEPOT + '/contents/' + encode + '?ref=' + BRANCHE, h);
+  DEPOT_DERNIER = { fichier, s: r.status, le: Date.now() };
   const now = Date.now();
   let n;
   if (r.status === 304 && e) { if (r.body) r.body.cancel(); n = { ...e, lu: now }; }
@@ -257,6 +258,7 @@ async function depotRelire(fichier, env, e) {
   return n;
 }
 const DEPOT_EN_COURS = new Map();
+let DEPOT_DERNIER = null;   // la dernière réponse de GitHub (diagnostic)
 function depotMaj(fichier, env, e) {
   if (!e) return depotRelire(fichier, env, e).catch(() => null);   // première lecture : chacun la sienne (un très gros fichier ne se partage pas)
   if (!DEPOT_EN_COURS.has(fichier)) DEPOT_EN_COURS.set(fichier, depotRelire(fichier, env, e).catch(() => null).finally(() => DEPOT_EN_COURS.delete(fichier)));
@@ -527,16 +529,27 @@ class ScriptInline {
   }
 }
 
+// v77 : si GitHub refuse le jeton (expiré, révoqué : 401), on relit sans jeton : le dépôt est public.
+// Avant, la copie gardée était servie sans fin et les pages ne se mettaient plus à jour.
+let GITHUB_JETON_KO = 0;
+async function fetchGithub(adresse, h) {
+  if (h.Authorization && !(GITHUB_JETON_KO && Date.now() - GITHUB_JETON_KO < 6e5)) {
+    const r = await fetch(adresse, { headers: h });
+    if (r.status !== 401) return r;
+    if (r.body) r.body.cancel();
+    GITHUB_JETON_KO = Date.now();
+  }
+  const sans = { ...h }; delete sans.Authorization;
+  return fetch(adresse, { headers: sans });
+}
 function lireGithub(fichier, env, methode) {
   const api = (env.GITHUB_API || 'https://api.github.com').replace(/\/$/, '');
   const encode = fichier.split('/').map(encodeURIComponent).join('/');
-  return fetch(api + '/repos/' + DEPOT + '/contents/' + encode + '?ref=' + BRANCHE, {
-    headers: {
+  return fetchGithub(api + '/repos/' + DEPOT + '/contents/' + encode + '?ref=' + BRANCHE, {
       'Authorization': 'Bearer ' + (env.GITHUB_TOKEN || ''),
       'Accept': 'application/vnd.github.raw',
       'User-Agent': 'kreative-espace',
       'X-GitHub-Api-Version': '2022-11-28'
-    }
   }).then(r => {
     if (methode === 'HEAD' && r.body) r.body.cancel();
     return r;
@@ -1681,6 +1694,13 @@ async function apiAdmin(req, env, ctx, url, chemin, methode) {
   if (chemin === '/demo' && methode === 'POST') return json(await creerDemo(db, env));
   if (chemin === '/demo' && methode === 'DELETE') return json(await retirerDemo(db, env));
 
+  // v77 : l'état du Worker en un coup d'œil (pour Dario : une capture suffit)
+  if (chemin === '/diagnostic' && methode === 'GET') {
+    let gh = null;
+    try { const r = await fetch((env.GITHUB_API || 'https://api.github.com').replace(/\/$/, '') + '/repos/' + DEPOT + '/contents/admin/index.html?ref=' + BRANCHE, { headers: { 'Authorization': 'Bearer ' + (env.GITHUB_TOKEN || ''), 'Accept': 'application/vnd.github.raw', 'User-Agent': 'kreative-espace', 'X-GitHub-Api-Version': '2022-11-28' } }); gh = r.status; if (r.body) r.body.cancel(); } catch (e) { gh = 'erreur'; }
+    return json({ worker: 'v77', github_jeton: gh === 200 ? 'ok' : gh === 401 ? 'REFUSÉ (jeton expiré ou révoqué)' : gh, github_derniere_lecture: DEPOT_DERNIER,
+      stockage_r2: !!env.FICHIERS, traduction_ai: !!env.AI, telegram_bot: !!env.TELEGRAM_BOT, code_fiche: !!(await codeFiche(env)) });
+  }
   if (chemin === '/equipe' && methode === 'GET') {
     const ldb = await baseLiv(env);
     const { results: V } = await ldb.prepare("SELECT cle, valeur FROM reglages WHERE cle LIKE 'vu_equipe:%'").all();
@@ -1861,6 +1881,22 @@ const pourQui = textes => textes.some(parleTexte) ? 'strategiste' : 'designer';
 // les autres restent avec les validations du client. Kreative l'envoie au client quand tout est fait.
 // Le stratégiste et la designer ne voient que leurs lignes : jamais le prénom ni le rôle de l'autre.
 const QUI_RETOUCHE = ['moi', 'designer', 'refaire'];
+// v77 : l'équipe est prévenue sur Telegram quand une retouche lui est confiée (Dario, 02/11).
+// Jamais le nom ni le rôle de l'autre. Le bot : secret TELEGRAM_BOT (le jeton du bot de n8n) ;
+// sans lui, rien ne part. Les groupes : ceux de n8n (Relances, VISUELS), modifiables par TELEGRAM_CHAT_*.
+const CHATS_EQUIPE = { designer: '-1004299298150', strategiste: '-5241939931' };
+async function prevenirEquipe(env, ctx, db, dossier, R) {
+  if (!env.TELEGRAM_BOT || /^TEST_DEMO_/.test(dossier) || DOSSIER_WIMMOV.test(dossier)) return;
+  const k = await commandeDuDossier(db, dossier), marque = (k && k.marque) || dossier;
+  const liste = q => R.filter(x => x.qui === q).map(x => 'AD' + x.crea);
+  const msgs = [];
+  const d = liste('designer'), r = liste('refaire');
+  if (d.length) msgs.push([env.TELEGRAM_CHAT_DESIGNER || CHATS_EQUIPE.designer, '✏️ Revisions | ' + marque + '\n\n' + d.length + ' creative' + (d.length > 1 ? 's' : '') + ' to update: ' + d.join(', ') + '.\nOnly ' + (d.length > 1 ? 'these ones' : 'this one') + ': the others stay as they are. Details in Revisions.']);
+  if (r.length) msgs.push([env.TELEGRAM_CHAT_STRATEGISTE || CHATS_EQUIPE.strategiste, '✏️ Retouches | ' + marque + '\n\n' + r.length + ' créa' + (r.length > 1 ? 's' : '') + ' à refaire : ' + r.join(', ') + '.\nLe client veut ' + (r.length > 1 ? 'de nouvelles créas' : 'une nouvelle créa') + ' à la place : refais-' + (r.length > 1 ? 'les' : 'la') + ' dans ta fiche créas (Retouches).']);
+  const api = (env.TELEGRAM_API || 'https://api.telegram.org').replace(/\/$/, '');
+  const envoi = Promise.all(msgs.map(([chat, text]) => fetch(api + '/bot' + env.TELEGRAM_BOT + '/sendMessage', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ chat_id: chat, text }) }).catch(() => null)));
+  if (ctx && ctx.waitUntil) ctx.waitUntil(envoi); else await envoi;
+}
 // le numéro de la créa dans un nom de fichier : « PULSE_STANDARD_03.png » → « 03 »
 const creaDe = nom => { const s = String(nom || '').replace(/\.[A-Za-z0-9]{2,4}$/, ''); const m = s.match(/(\d+)\D*$/); return m ? String(Number(m[1])).padStart(2, '0') : s.slice(0, 40); };
 // la traduction en anglais pour la designer (Cloudflare Workers AI, binding « AI ») : sans lui, le français seul
@@ -2244,7 +2280,7 @@ async function apiEquipe(req, env, ctx, url, chemin, methode, qui) {
   if ((m = chemin.match(/^\/fichiers\/(fi_[A-Za-z0-9_]+)\/mini$/)) && methode === 'PUT') {
     if (!env.FICHIERS) return json({ erreur: 'Stockage absent' }, 503);
     const f = await db.prepare('SELECT f.*, l.statut, l.dossier FROM fichiers f JOIN livraisons l ON l.id = f.livraison_id WHERE f.id = ?').bind(m[1]).first();
-    if (!f || f.statut !== 'brouillon') return json({ erreur: 'Introuvable' }, 404);
+    if (!f || (f.statut !== 'brouillon' && !(admin && !f.mini))) return json({ erreur: 'Introuvable' }, 404);   // v77 : un fichier réparé refait sa miniature
     if (Number(req.headers.get('Content-Length') || 0) > 3e6) return json({ erreur: 'Miniature trop lourde' }, 413);
     const cle = f.cle + '.mini.jpg';
     await env.FICHIERS.put(cle, req.body, { httpMetadata: { contentType: 'image/jpeg' } });
@@ -2263,7 +2299,12 @@ async function apiEquipe(req, env, ctx, url, chemin, methode, qui) {
     const l = await db.prepare('SELECT * FROM livraisons WHERE id = ?').bind(m[1]).first();
     if (!l) return json({ erreur: 'Livraison introuvable' }, 404);
     const { results: fs } = await db.prepare('SELECT cle, mini FROM fichiers WHERE livraison_id = ?').bind(l.id).all();
-    if (env.FICHIERS) for (const f of fs) { for (const k of [f.cle, f.mini]) if (k) { try { await env.FICHIERS.delete(k); } catch (e) {} } }
+    // v77 : une version de retouches (ou une version suivante) partage les fichiers de la précédente :
+    // on n'efface du stockage que ce qu'aucune autre version n'utilise (avant, supprimer une copie effaçait les originaux)
+    if (env.FICHIERS) for (const f of fs) for (const k of [f.cle, f.mini]) if (k) {
+      const autre = await db.prepare('SELECT 1 AS x FROM fichiers WHERE livraison_id != ? AND (cle = ? OR mini = ?) LIMIT 1').bind(l.id, k, k).first();
+      if (!autre) { try { await env.FICHIERS.delete(k); } catch (e) {} }
+    }
     await db.batch([db.prepare('DELETE FROM commentaires WHERE livraison_id = ? OR fichier_id IN (SELECT id FROM fichiers WHERE livraison_id = ?)').bind(l.id, l.id),
       db.prepare('DELETE FROM fichiers WHERE livraison_id = ?').bind(l.id), db.prepare('DELETE FROM livraisons WHERE id = ?').bind(l.id)]);
     return json({ ok: true, message: 'Version ' + l.version + ' de ' + l.dossier + ' supprimée.' });
@@ -2326,6 +2367,32 @@ async function apiEquipe(req, env, ctx, url, chemin, methode, qui) {
     await db.prepare('DELETE FROM prod_etapes WHERE dossier = ?').bind(l.dossier).run();
     return json({ ok: true, message: 'Merci, la nouvelle version va être préparée avec tes textes.' });
   }
+  // ---- v77 : le stockage d'une version : quels fichiers manquent (40 par appel : Cloudflare limite les appels) ----
+  if ((m = chemin.match(/^\/livraisons\/(l_[A-Za-z0-9_]+)\/stockage$/)) && methode === 'GET') {
+    if (!admin) return json({ erreur: 'Accès refusé' }, 403);
+    if (!env.FICHIERS) return json({ erreur: 'Stockage absent' }, 503);
+    const depuis = Math.max(0, Number(url.searchParams.get('depuis')) || 0);
+    const { results: F } = await db.prepare('SELECT id, nom, format, cle FROM fichiers WHERE livraison_id = ? ORDER BY id LIMIT 40 OFFSET ?').bind(m[1], depuis).all();
+    const manquants = [];
+    for (const f of F) {
+      if (String(f.cle).startsWith('depot:')) continue;
+      let o = null; try { o = await env.FICHIERS.head(f.cle); } catch (e) {}
+      if (!o || !o.size) manquants.push({ id: f.id, nom: f.nom, format: f.format });
+    }
+    return json({ manquants, suite: F.length === 40 ? depuis + 40 : null });
+  }
+  // remettre un fichier perdu à sa place : même fichier, mêmes validations et commentaires du client
+  if ((m = chemin.match(/^\/fichiers\/(fi_[A-Za-z0-9_]+)\/reparer$/)) && methode === 'PUT') {
+    if (!admin) return json({ erreur: 'Accès refusé' }, 403);
+    if (!env.FICHIERS) return json({ erreur: 'Stockage absent' }, 503);
+    const f = await db.prepare('SELECT * FROM fichiers WHERE id = ?').bind(m[1]).first();
+    if (!f || String(f.cle).startsWith('depot:')) return json({ erreur: 'Fichier introuvable' }, 404);
+    const type = (req.headers.get('Content-Type') || '').split(';')[0];
+    if (type !== 'image/png') return json({ erreur: 'Fichiers PNG seulement.' }, 415);
+    await env.FICHIERS.put(f.cle, req.body, { httpMetadata: { contentType: type } });
+    await db.prepare('UPDATE fichiers SET mini = NULL WHERE id = ?').bind(f.id).run();
+    return json({ ok: true, id: f.id });
+  }
   // ---- v75 : les révisions, créa par créa ----
   // les retouches d'un projet (chacun ne voit que les siennes)
   if ((m = chemin.match(/^\/revisions\/([A-Za-z0-9_-]{3,80})$/)) && methode === 'GET') {
@@ -2383,6 +2450,7 @@ async function apiEquipe(req, env, ctx, url, chemin, methode, qui) {
     }
     await db.batch(lignes);
     await db.prepare("UPDATE livraisons SET retouche = 'reparti', retouche_le = ? WHERE id = ?").bind(now, l.id).run();
+    await prevenirEquipe(env, ctx, db, l.dossier, items);
     await db.prepare('DELETE FROM prod_etapes WHERE dossier = ?').bind(l.dossier).run();
     const n = q => items.filter(x => x.qui === q).length;
     return json({ ok: true, travail: travail.id, message: 'Retouches lancées : ' + [n('moi') ? n('moi') + ' pour vous' : '', n('designer') ? n('designer') + ' pour la designer' : '', n('refaire') ? n('refaire') + ' à refaire' : ''].filter(Boolean).join(', ') + '.' });
@@ -2400,6 +2468,7 @@ async function apiEquipe(req, env, ctx, url, chemin, methode, qui) {
       let note_en = r.note_en;
       if (b.qui !== 'moi' && coms.some(c => !c.texte_en)) { const en = await traduire(env, [r.note, ...coms.map(c => c.texte)]); note_en = en[0] || note_en; coms.forEach((c, n) => { c.texte_en = c.texte_en || en[n + 1]; }); }
       await db.prepare("UPDATE retouches SET qui = ?, etat = 'a_faire', reprise = NULL, note_en = ?, coms = ? WHERE id = ?").bind(b.qui, note_en || null, JSON.stringify(coms), r.id).run();
+      await prevenirEquipe(env, ctx, db, r.dossier, [{ crea: r.crea, qui: b.qui }]);
     }
     return json({ ok: true });
   }

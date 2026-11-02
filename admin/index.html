@@ -1224,6 +1224,7 @@ function ecranLivraison(d) {
   if (!l) return h + '<div class="card"><div class="vide">' + i.envoi + 'Rien n\'a encore été déposé pour ce projet.</div></div>';
   // v76 : la version en préparation (copie de la précédente) n'a pas d'onglet : seulement le bloc de suivi
   const enPrep = LIV.rev && LIV.rev.travail && LIV.rev.travail.statut === 'brouillon' ? LIV.rev.travail.id : null;
+  h += blocStockage(l);
   h += K.rv.puces(V.filter(v => v.id !== enPrep), l.id, v => 'Version ' + v.version + ' · ' + (v.id === (LIV.rev && LIV.rev.source || {}).id && enPrep ? 'retouches en cours' : (STATUTS_LIV[v.statut] || [v.statut])[0]));
   if (l.note_designer) h += '<div class="rv-note">' + i.message + '<div><b>Note de la designer :</b> ' + esc(l.note_designer) + '</div></div>';
   if (l.statut === 'a_corriger' && l.note_kreative) h += '<div class="rv-note">' + i.crayon + '<div><b>Note de correction :</b> ' + esc(l.note_kreative) + '</div></div>';
@@ -1276,6 +1277,7 @@ function brancherLivraison() {
     try { const r = await K.api('/api/equipe/livraisons/' + l.id + '/retouche', { methode: 'POST', corps: { pour: b.dataset.router } }); K.toast(r.message); S.livraisons = null; await charger('livraisons'); await K.prod.chargerEtats(); await chargerLivraison(l.dossier); } catch (e) { K.toast(e.message); }
   });
   brancherRevisions(l);
+  brancherStockage(l);
   const cor = document.querySelector('[data-corriger]');
   if (cor) cor.onclick = () => {
     const v = K.fenetre('<div class="fen-h"><h2>Renvoyer pour correction</h2><p>Vos commentaires sur les fichiers sont visibles dans son espace.</p></div>' +
@@ -1298,6 +1300,52 @@ function brancherLivraison() {
 //  Livraisons (créer, déposer, envoyer), Révisions (les retouches demandées dans sa review),
 //  Retours de la semaine (son formulaire), Mois et commandes, Accès et emails.
 // ============================================================
+// ---------- v77 : fichiers perdus dans le stockage ----------
+// Une version affichée est vérifiée une fois : si des fichiers n'existent plus dans le stockage (le client voit
+// des carrés noirs), Dario redépose les originaux (mêmes noms) et ils reprennent leur place, validations comprises.
+const STO = {};
+const propreNom = n => String(n || '').replace(/[^A-Za-z0-9._ -]/g, '_').toLowerCase();
+async function verifierStockage(id) {
+  STO[id] = { etat: 'verif' };
+  const manquants = [];
+  try { let depuis = 0; do { const r = await K.api('/api/equipe/livraisons/' + id + '/stockage?depuis=' + depuis); manquants.push(...r.manquants); depuis = r.suite; } while (depuis != null); STO[id] = { etat: 'fait', manquants }; }
+  catch (e) { STO[id] = { etat: 'fait', manquants: [], erreur: e.message }; }
+  K.rendre(true);
+}
+function blocStockage(l) {
+  if (!l || l.statut === 'brouillon') return '';
+  if (!STO[l.id]) { setTimeout(() => verifierStockage(l.id), 0); return ''; }
+  const M = STO[l.id].manquants || [];
+  if (!M.length) return '';
+  return '<div class="card pad" style="margin:0 0 18px;border:1.5px solid var(--red,#e5484d)"><h3 style="font-size:16px;color:var(--red,#e5484d)">' + M.length + ' fichier' + (M.length > 1 ? 's ne sont' : ' n\'est') + ' plus dans le stockage</h3>' +
+    '<p style="font-size:13.5px;margin:6px 0 12px;color:var(--tx2)">Le client voit des carrés noirs à leur place et ne peut pas les télécharger. Déposez les originaux ici, avec les mêmes noms de fichiers : ils reprennent leur place, avec les validations et les commentaires du client.</p>' +
+    '<div class="sv-drop" id="sto-depot"><b>Déposez les PNG d\'origine</b><small>' + M.slice(0, 6).map(f => esc(f.nom)).join(', ') + (M.length > 6 ? ' et ' + (M.length - 6) + ' autres' : '') + '</small></div></div>';
+}
+function brancherStockage(l) {
+  const z = document.getElementById('sto-depot');
+  if (!z || !l) return;
+  K.depot.brancher(z, async fichiers => {
+    const M = (STO[l.id] && STO[l.id].manquants) || [];
+    let ok = 0, sans = [];
+    z.innerHTML = '<b>Envoi…</b><div class="barre"><i style="width:0"></i></div>';
+    const L = Array.from(fichiers);
+    for (const [n, fi] of L.entries()) {
+      const cible = M.find(f => propreNom(f.nom) === propreNom(fi.name));
+      if (!cible) { sans.push(fi.name); continue; }
+      try {
+        const r = await fetch('/api/equipe/fichiers/' + cible.id + '/reparer', { method: 'PUT', headers: { 'Content-Type': 'image/png' }, body: fi, credentials: 'same-origin' });
+        if (!r.ok) throw new Error((await r.json().catch(() => ({}))).erreur || 'Erreur ' + r.status);
+        const mini = await K.depot.miniature(fi);
+        if (mini) await fetch('/api/equipe/fichiers/' + cible.id + '/mini', { method: 'PUT', headers: { 'Content-Type': 'image/jpeg' }, body: mini, credentials: 'same-origin' });
+        ok++;
+      } catch (e) { K.toast(fi.name + ' : ' + e.message); }
+      const b = z.querySelector('.barre i'); if (b) b.style.width = Math.round((n + 1) * 100 / L.length) + '%';
+    }
+    K.toast(ok + ' fichier' + (ok > 1 ? 's' : '') + ' remis en place.' + (sans.length ? ' Pas trouvés (autre nom) : ' + sans.slice(0, 3).join(', ') + (sans.length > 3 ? '…' : '') : ''));
+    delete STO[l.id]; K.rendre(true);
+  });
+}
+
 const W = (() => {
 
 let D = null;
@@ -1438,7 +1486,7 @@ function ecranLivraison(d) {
       '<img src="' + esc(f.mini) + '" alt="" style="width:52px;height:52px;object-fit:cover;border-radius:8px;flex:none;background:var(--soft)">' +
       '<span class="t" style="white-space:normal"><b style="display:block;font-size:13px">' + esc(f.nom) + '</b><span style="font-size:13.5px">' + esc(c.texte) + '</span></span>' +
       '<small style="white-space:nowrap">' + esc(K.dateHeure(c.cree_le)) + '</small></div>').join('') + '</div></div>';
-  if (vue) h += (V.length > 1 ? K.rv.puces(V, vue.id, v => 'Version ' + v.version) : '') + blocComs + K.rv.grille(vue, { mode: 'admin', sansCompte: true, titre: 'Version ' + vue.version, sousTitre: vue.fichiers.length + ' fichiers', supprimer: vue.statut === 'brouillon' });
+  if (vue) h += blocStockage(vue) + (V.length > 1 ? K.rv.puces(V, vue.id, v => 'Version ' + v.version) : '') + blocComs + K.rv.grille(vue, { mode: 'admin', sansCompte: true, titre: 'Version ' + vue.version, sousTitre: vue.fichiers.length + ' fichiers', supprimer: vue.statut === 'brouillon' });
   return h;
 }
 function dimensions(f) {
@@ -1490,6 +1538,7 @@ async function deposer(fichiers) {
 }
 function brancherLivraison(d) {
   const V = (LV.donnees && LV.donnees.versions) || [], vue = V.find(v => v.id === LV.choix) || V[0];
+  brancherStockage(vue);
   document.querySelectorAll('[data-rv-version]').forEach(b => b.onclick = () => { LV.choix = b.dataset.rvVersion; K.rendre(); });
   if (vue) {
     K.rv.brancher(vue, { mode: 'admin', nomZip: ('Wimmov-livraison-' + numero(d) + '-v' + vue.version), rendre: () => K.rendre(), auteur: 'Kreative', peutCommenter: () => false, peutApprouver: () => false, api: {} });

@@ -1082,7 +1082,8 @@ function etatLiv(l) {
   if (l.statut === 'approuvee') return { o: 7, pill: pillLiv(l.statut), det: l.review_le ? 'Validée ' + esc(K.ilya(l.review_le)) : '', act: ['Voir', 'btn-s'] };
   return { o: l.statut === 'brouillon' ? 5 : 4, pill: pillLiv(l.statut, l.retouche), det: l.statut === 'brouillon' ? 'La designer dépose ses fichiers' : '', act: ['Voir', 'btn-s'] };
 }
-const aTraiterLiv = () => (S.livraisons || []).filter(estDerniere).filter(l => etatLiv(l).o <= 2).length;
+// le chiffre du menu : tout projet pas encore renvoyé au client (retours à répartir, à vérifier, retouches en cours chez n'importe qui)
+const aTraiterLiv = () => (S.livraisons || []).filter(estDerniere).filter(l => etatLiv(l).o <= 3).length;
 // le prénom de la personne qui tient un rôle (pour Dario seulement : l'équipe ne voit jamais celui de l'autre)
 const nomRole = role => { const p = (S.equipe || []).find(x => x.role === role); return p ? nomEq(p.nom) : role === 'designer' ? 'La designer' : 'Le stratégiste'; };
 const ini = n => String(n || '?').charAt(0).toUpperCase();

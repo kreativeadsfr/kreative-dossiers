@@ -41,6 +41,8 @@ const STYLE = `
 `
 
 const TEXTE = `
+<p class="maj">Dernière mise à jour : 09/06/2026</p>
+
 <h2>1. Responsable du traitement</h2>
 <p>Kreative, Dario Crespo EI<br>47 Rue Vivienne, 75002 Paris, France<br><a href="mailto:contact@kreativeads.fr">contact@kreativeads.fr</a></p>
 

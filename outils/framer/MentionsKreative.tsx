@@ -41,6 +41,8 @@ const STYLE = `
 `
 
 const TEXTE = `
+<p class="maj">Dernière mise à jour : 09/06/2026</p>
+
 <h2>1. Éditeur du site</h2>
 <p>Le présent site, accessible à l'adresse <a href="https://kreativeads.fr">https://kreativeads.fr</a> (ci-après le « Site »), est édité par :</p>
 <ul>

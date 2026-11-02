@@ -1099,7 +1099,7 @@ const suggestion = textes => {
 const REP = { id: null, choix: {}, note: {}, notes: {}, formats: {} };
 // v82 : les formats à refaire pour une créa (par défaut : ceux que le client a commentés ; sinon tous)
 const ORDRE_F = ['1x1', '4x5', '9x16'];
-const formatsDeCrea = (l, crea) => ORDRE_F.filter(f => l.fichiers.some(x => K.depot.crea(x.nom) === crea && x.format === f));
+const formatsDeCrea = () => ORDRE_F;
 const puceFormats = (tous, choisis, attr, verrou) => '<div class="rp-fmt"><span>Formats à refaire :</span>' + tous.map(f => '<button class="' + (choisis.includes(f) ? 'on' : '') + '" ' + attr + ' data-f="' + f + '"' + (verrou ? ' disabled' : '') + '>' + esc(K.rv.nomFormat(f)) + '</button>').join('') + '</div>';
 // les retours du client regroupés par créa (une créa = ses 3 formats)
 function retoursParCrea(l) {
@@ -1118,20 +1118,20 @@ function blocRepartir(l) {
     (R.length ? ', <b>' + R.length + ' créa' + (R.length > 1 ? 's' : '') + ' à répartir</b>' : '') + '</p></div>' + (R.length ? '<button class="btn btn-s btn-sm" data-rp-tout>Tout pour moi</button>' : '') + '</div>';
   if (!R.length) return h + '<div class="card" style="margin-bottom:18px"><div class="vide">' + i.message + (enCours ? 'Pas encore de commentaire du client sur cette version.' : 'Le client n\'a laissé aucun commentaire.') + '</div></div>';
   const D = nomRole('designer'), St = nomRole('strategiste');
-  const opts = [['moi', 'DC', 'Moi'], ['designer', ini(D), D], ['refaire', ini(St) + '+' + ini(D), St + ' + ' + D], ['rien', '–', 'Rien']];
+  const opts = [['moi', 'DC', 'Moi'], ['designer', ini(D), D], ['refaire', ini(St) + '+' + ini(D), St + ' + ' + D]];
   h += '<div class="rp-liste">' + R.map(r => {
     const sug = suggestion(r.coms.map(x => x.c.texte)), ch = REP.choix[r.crea];
     const pins = r.coms.filter(x => x.f.id === r.f.id && x.c.forme && x.c.forme.x1 != null).map((x, n) => '<span class="rp-pin" style="left:' + Math.round((x.c.forme.x1 + x.c.forme.x2) * 50) + '%;top:' + Math.round((x.c.forme.y1 + x.c.forme.y2) * 50) + '%">' + (n + 1) + '</span>').join('');
     return '<div class="card rp-c"><button class="rp-img" data-rv-voir="' + esc(r.f.id) + '" title="Voir la créative"><img src="' + esc(r.f.mini) + '" alt="" loading="lazy">' + pins + '</button><div>' +
       r.coms.map(x => '<div class="rp-meta">AD' + esc(r.crea) + ' · ' + esc(K.rv.nomFormat(x.f.format)) + ' · ' + esc(x.c.auteur || 'Client') + (x.c.cree_le ? ', ' + esc(K.ilya(x.c.cree_le)) : '') + '</div><p class="rp-txt">' + esc(x.c.texte) + '</p>').join('') +
-      (ch !== 'moi' && ch !== 'rien' ? (REP.notes[r.crea] != null ? '<input class="in rp-note" data-rp-note="' + esc(r.crea) + '" placeholder="Une précision pour ' + esc(ch === 'refaire' ? St : D) + ' (facultatif)" value="' + esc(REP.notes[r.crea]) + '">' : '<button class="rp-plus" data-rp-plus="' + esc(r.crea) + '">+ Ajouter une précision</button>') : '') +
-      (ch !== 'rien' ? puceFormats(formatsDeCrea(l, r.crea), REP.formats[r.crea] || [], 'data-rp-fmt="' + esc(r.crea) + '"') : '') +
-      '</div><div><div class="rp-seg">' + opts.map(([k, a, nom]) => '<button class="' + (ch === k ? 'on' : '') + (k === 'rien' ? ' rien' : '') + '" data-rp="' + esc(r.crea) + '" data-qui="' + k + '"><i class="' + (k === 'designer' ? 'desi' : k) + '">' + esc(a) + '</i>' + esc(nom) + '</button>').join('') + '</div>' +
+      (ch !== 'moi' ? (REP.notes[r.crea] != null ? '<input class="in rp-note" data-rp-note="' + esc(r.crea) + '" placeholder="Une précision pour ' + esc(ch === 'refaire' ? St : D) + ' (facultatif)" value="' + esc(REP.notes[r.crea]) + '">' : '<button class="rp-plus" data-rp-plus="' + esc(r.crea) + '">+ Ajouter une précision</button>') : '') +
+      puceFormats(ORDRE_F, REP.formats[r.crea] || [], 'data-rp-fmt="' + esc(r.crea) + '"') +
+      '</div><div><div class="rp-seg">' + opts.map(([k, a, nom]) => '<button class="' + (ch === k ? 'on' : '') + '" data-rp="' + esc(r.crea) + '" data-qui="' + k + '"><i class="' + (k === 'designer' ? 'desi' : k) + '">' + esc(a) + '</i>' + esc(nom) + '</button>').join('') + '</div>' +
       '<span class="rp-sug">Suggéré : ' + esc(sug[1]) + '</span></div></div>';
   }).join('');
   const n = k => R.filter(r => REP.choix[r.crea] === k).length;
   h += '<div class="rp-barre"><div class="tot"><span><i style="background:#fff;color:#111">DC</i><b>' + n('moi') + '</b>pour moi</span><span><i style="background:#EA7C3F;color:#fff">' + esc(ini(D)) + '</i><b>' + n('designer') + '</b>pour ' + esc(D) + '</span>' +
-    '<span><i style="background:#D9473F;color:#fff">' + esc(ini(St)) + '</i><b>' + n('refaire') + '</b>pour ' + esc(St) + ', puis ' + esc(D) + '</span></div><button class="btn btn-lg" data-rp-lancer' + (R.length === n('rien') ? ' disabled' : '') + '>Lancer les retouches</button></div></div>';
+    '<span><i style="background:#D9473F;color:#fff">' + esc(ini(St)) + '</i><b>' + n('refaire') + '</b>pour ' + esc(St) + ', puis ' + esc(D) + '</span></div><button class="btn btn-lg" data-rp-lancer>Lancer les retouches</button></div></div>';
   return h;
 }
 // la version suivante en préparation : chaque retouche, qui s'en occupe, où elle en est
@@ -1158,7 +1158,7 @@ function blocSuivi(rv, travailLiv) {
     return '<div class="card sv-c"><div class="rp-img">' + (av ? '<img src="' + esc(av.mini) + '" alt="" loading="lazy">' : '') + '</div><div><div class="rp-meta">AD' + esc(x.crea) + ' · ' + esc(quiTxt(x)) + '</div>' +
       (x.coms.length ? x.coms.map(c => '<p class="rp-txt" style="font-size:14.5px">' + esc(c.texte) + '</p>').join('') : '<p class="rp-txt" style="font-size:14.5px">Sans commentaire du client.</p>') +
       (x.note ? '<p class="rp-txt"><small>Votre précision : ' + esc(x.note) + '</small></p>' : '') +
-      (x.formats.length > 1 ? puceFormats(ORDRE_F.filter(f => x.formats.includes(f)), x.requis || x.formats, 'data-sv-fmt="' + x.id + '"', x.etat === 'faite') : '') + '</div>' + droite + '</div>';
+      puceFormats(ORDRE_F, x.requis || x.formats, 'data-sv-fmt="' + x.id + '"', x.etat === 'faite') + '</div>' + droite + '</div>';
   }).join('') + '</div>';
   const autres = Math.max(0, rv.nb_creas - items.length);
   h += '<div class="sv-note">' + i.coche + (autres === 1 ? 'L\'autre créa est reprise telle quelle' : 'Les ' + autres + ' autres créas sont reprises telles quelles') + ' de la version ' + (rv.source ? rv.source.version : rv.travail.version - 1) + ', avec les validations du client. Il ne revoit que ' + (items.length > 1 ? 'les ' + items.length + ' créas modifiées' : 'la créa modifiée') + '.</div>' +
@@ -1189,7 +1189,7 @@ function brancherRevisions(l) {
   if (tout) tout.onclick = () => { Object.keys(REP.choix).forEach(k => { REP.choix[k] = 'moi'; }); K.rendre(); };
   const lancer = document.querySelector('[data-rp-lancer]');
   if (lancer) lancer.onclick = async () => {
-    const items = Object.keys(REP.choix).filter(k => REP.choix[k] !== 'rien').map(k => ({ crea: k, qui: REP.choix[k], note: REP.choix[k] === 'moi' ? '' : (REP.notes[k] || ''), formats: REP.formats[k] || [] }));
+    const items = Object.keys(REP.choix).map(k => ({ crea: k, qui: REP.choix[k], note: REP.choix[k] === 'moi' ? '' : (REP.notes[k] || ''), formats: REP.formats[k] || [] }));
     if (!items.length) return;
     if (l.statut === 'envoyee' && !await K.confirmer('Lancer les retouches maintenant ?', 'Le client est encore en train de faire sa review : elle se termine pour lui, et les retouches partent.', 'Lancer les retouches')) return;
     lancer.disabled = true; lancer.textContent = 'Lancement…';

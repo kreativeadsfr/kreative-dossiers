@@ -118,6 +118,11 @@ t('l\'admin, lui, voit tout', JSON.stringify(r.d).includes('WIMMOV_'));
 r = await api('/api/admin/wimmov/livraisons', A, 'POST', { dossier: l1.dossier });
 t('nouvelle version de la livraison 1 : reprend les 3 fichiers', r.s === 200 && r.d.version === 2 && r.d.fichiers.length === 3, JSON.stringify(r.d).slice(0, 200));
 await deposer(A, r.d.id, 'WIMMOV_STANDARD_01.png', 1080, 1080, '1x1');
+// corriger une livraison déjà envoyée : un PNG renommé remplace la créa du même numéro dans son format (crea=01)
+t('PNG renommé, même numéro : il remplace l\'ancien', (await get('/api/equipe/fichiers?livraison=' + r.d.id + '&format=1x1&nom=Wimmov-standard-v2-01.png&l=1080&h=1080&crea=01', { method: 'PUT', headers: { Cookie: A, 'Content-Type': 'image/png' }, body: png(1080, 1080) })).status === 200);
+const v2b = (await api('/api/admin/wimmov/livraisons/' + l1.dossier, A)).d;
+const fv2 = (v2b.versions || []).find(x => x.version === 2);
+t('… toujours 3 fichiers, le 1:1 est le nouveau', fv2 && fv2.fichiers.length === 3 && fv2.fichiers.some(f => f.nom === 'Wimmov-standard-v2-01.png') && fv2.fichiers.filter(f => f.format === '1x1').length === 1, JSON.stringify(fv2 && fv2.fichiers.map(f => f.nom)));
 await api('/api/admin/wimmov/livraisons/' + r.d.id + '/envoyer', A, 'POST'); await pause(400);
 E = emails().filter(e => e.type === 'creatives');
 t('… email « nouvelle version »', /Livraison 1 : nouvelle version/.test(E[E.length - 1].sujet), E[E.length - 1].sujet);

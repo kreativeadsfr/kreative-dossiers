@@ -1482,7 +1482,7 @@ function ecranLivraison(d) {
   if (travail) {
     const par = f => F.filter(x => x.format === f).length;
     h += '<div class="card pad"><h3 style="font-size:16px">Déposer les fichiers' + (travail.version > 1 ? ' · version ' + travail.version : '') + '</h3>' +
-      (travail.version > 1 ? '<p class="muted" style="font-size:13px;margin-top:4px">Cette version reprend les fichiers de la précédente : un fichier du même nom remplace l\'ancien.</p>' : '') +
+      (travail.version > 1 ? '<p class="muted" style="font-size:13px;margin-top:4px">Cette version reprend tous les fichiers de la version ' + (travail.version - 1) + '. Déposez seulement ceux à changer : un PNG du même format et du même numéro (ex. _03) remplace l\'ancien, même si le nom a changé. Les autres restent tels quels.</p>' : '') +
       '<div class="depot" id="lv-depot" style="margin-top:14px">' + i.telecharger + '<b>Glissez les PNG ici, ou cliquez pour les choisir</b><small>PNG seulement. 1080 × 1080, 1080 × 1350 et 1080 × 1920.</small><input type="file" id="lv-fichiers" multiple accept="image/png,.png" hidden></div>' +
       '<div class="envois" id="lv-envois"></div>' +
       '<div class="compte-formats">' + ['1x1', '4x5', '9x16'].map(f => '<span class="pill ' + (par(f) ? 'g' : '') + '">' + NOMS_F[f] + ' · ' + par(f) + '</span>').join('') + (par('autre') ? '<span class="pill r">Autres tailles · ' + par('autre') + '</span>' : '') + '</div>' +
@@ -1499,7 +1499,8 @@ function ecranLivraison(d) {
         ? ['Wimmov demande des retouches' + (der.review_le ? ' depuis le ' + esc(K.dateHeure(der.review_le)) : ''), 'Version ' + der.version + ' · ' + bilan + '. Corrigez ses commentaires dans la version ' + (der.version + 1) + ', puis envoyez-la.', 'var(--amber-soft,#fff4e0)', 'var(--amber,#e08a00)']
         : ['Chez Wimmov depuis le ' + esc(K.dateHeure(der.envoye_le)), 'Version ' + der.version + ' · ' + bilan + '. Sa review n\'est pas encore terminée.', 'var(--blue-soft,#eaf2ff)', 'var(--blue,#4d94ff)'];
     h += '<div class="etat-envoi" style="margin:0 0 18px' + (fond ? ';background:' + fond : '') + '"><span class="pastille"' + (coul ? ' style="background:' + coul + ';box-shadow:none"' : '') + '>' + (der.statut === 'approuvee' ? i.coche : i.message) + '</span><div style="flex:1"><b>' + titre + '</b><small>' + detail + '</small></div>' +
-      (der.statut === 'review_terminee' ? '<button class="btn btn-p" id="lv-version">' + i.crayon + 'Faire la version ' + (der.version + 1) + '</button>' : '') + '</div>';
+      (der.statut === 'review_terminee' ? '<button class="btn btn-p" id="lv-version">' + i.crayon + 'Faire la version ' + (der.version + 1) + '</button>'
+        : '<button class="btn btn-s" id="lv-version" data-corriger="1">' + i.crayon + 'Corriger des fichiers</button>') + '</div>';
   }
   const vue = V.find(v => v.id === LV.choix) || der;
   // les commentaires de Wimmov sur la version affichée : un clic ouvre la créa concernée
@@ -1524,7 +1525,9 @@ function miniature(f) {
 function envoyerFichier(livraison, f, format, d, suivi) {
   return new Promise((ok, ko) => {
     const x = new XMLHttpRequest();
-    x.open('PUT', '/api/equipe/fichiers?livraison=' + encodeURIComponent(livraison) + '&format=' + format + '&nom=' + encodeURIComponent(f.name) + '&l=' + d.l + '&h=' + d.h);
+    // version 2 et plus : le PNG remplace la créa du même numéro dans ce format, même si son nom a changé
+    const v = LV.donnees && LV.donnees.versions[0], crea = v && v.version > 1 ? (String(f.name).replace(/\.[A-Za-z0-9]{2,4}$/, '').match(/(\d+)\D*$/) || [])[1] : null;
+    x.open('PUT', '/api/equipe/fichiers?livraison=' + encodeURIComponent(livraison) + '&format=' + format + '&nom=' + encodeURIComponent(f.name) + '&l=' + d.l + '&h=' + d.h + (crea ? '&crea=' + String(Number(crea)).padStart(2, '0') : ''));
     x.setRequestHeader('Content-Type', 'image/png');
     x.upload.onprogress = e => { if (e.lengthComputable) suivi(Math.round(e.loaded * 100 / e.total)); };
     x.onload = () => { let r = {}; try { r = JSON.parse(x.responseText); } catch (e) {} if (x.status < 300) ok(r); else ko(new Error(r.erreur || 'Envoi impossible (' + x.status + ')')); };
@@ -1595,6 +1598,7 @@ function brancherLivraison(d) {
   };
   const nv = document.getElementById('lv-version');
   if (nv) nv.onclick = async () => {
+    if (nv.dataset.corriger && !await K.confirmer('Corriger cette livraison ?', 'Une version ' + (V[0].version + 1) + ' est préparée avec tous les fichiers actuels. Vous déposez seulement ceux à changer, puis « Envoyer à Wimmov » : Hugo reçoit un email « nouvelle version ». Rien ne change pour Wimmov avant cet envoi.', 'Corriger des fichiers')) return;
     nv.disabled = true;
     try { await K.api('/api/admin/wimmov/livraisons', { methode: 'POST', corps: { dossier: d } }); await charger(); LV.depuis = 'revisions'; await chargerLivraison(d); }
     catch (e) { K.toast(e.message); nv.disabled = false; }

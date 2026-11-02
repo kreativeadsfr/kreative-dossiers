@@ -928,7 +928,7 @@ let BASE_PRETE = false;
 // v70 : la base est vérifiée une seule fois par version. Avant, chaque démarrage du Worker refaisait
 // ~25 allers-retours (tables, colonnes, index) : près d'une seconde sur la 1re ouverture.
 // Augmenter SCHEMA_V à chaque nouvelle table ou colonne : la vérification complète repasse une fois.
-const SCHEMA_V = 75;
+const SCHEMA_V = 79;
 let SCHEMA_EN_COURS = null;
 async function base(env) {
   if (!env.DB) throw new Error('Base de données absente : liez une base D1 au Worker sous le nom DB.');
@@ -1725,7 +1725,8 @@ async function apiAdmin(req, env, ctx, url, chemin, methode) {
     let gh = null;
     try { const r = await fetch((env.GITHUB_API || 'https://api.github.com').replace(/\/$/, '') + '/repos/' + DEPOT + '/contents/admin/index.html?ref=' + BRANCHE, { headers: { 'Authorization': 'Bearer ' + (env.GITHUB_TOKEN || ''), 'Accept': 'application/vnd.github.raw', 'User-Agent': 'kreative-espace', 'X-GitHub-Api-Version': '2022-11-28' } }); gh = r.status; if (r.body) r.body.cancel(); } catch (e) { gh = 'erreur'; }
     const sha = await shaMain(env).catch(() => null);
-    return json({ worker: 'v78', depot_commit: sha ? sha.slice(0, 7) : null, github_jeton: gh === 200 ? 'ok' : gh === 401 ? 'REFUSÉ (jeton expiré ou révoqué)' : gh, github_derniere_lecture: DEPOT_DERNIER,
+    const essai = url.searchParams.has('traduction') ? (await traduire(env, ['Serait-il possible de mettre un visuel de l\'interface ?']))[0] : undefined;
+    return json({ worker: 'v79', traduction_essai: essai, depot_commit: sha ? sha.slice(0, 7) : null, github_jeton: gh === 200 ? 'ok' : gh === 401 ? 'REFUSÉ (jeton expiré ou révoqué)' : gh, github_derniere_lecture: DEPOT_DERNIER,
       stockage_r2: !!env.FICHIERS, traduction_ai: !!env.AI, telegram_bot: !!env.TELEGRAM_BOT, code_fiche: !!(await codeFiche(env)) });
   }
   if (chemin === '/equipe' && methode === 'GET') {
@@ -1789,6 +1790,8 @@ async function baseLiv(env) {
     await db.prepare(`CREATE TABLE IF NOT EXISTS retouches (id INTEGER PRIMARY KEY AUTOINCREMENT, dossier TEXT, source_id TEXT, livraison_id TEXT, crea TEXT, qui TEXT,
       etat TEXT, note TEXT, note_en TEXT, coms TEXT, reprise TEXT, reprise_le INTEGER, fait_le INTEGER, cree_le INTEGER)`).run();
     try { await db.prepare('CREATE INDEX IF NOT EXISTS i_ret_liv ON retouches(livraison_id)').run(); } catch (e) {}
+    // v79 : qui a déposé la retouche (la designer ne voit jamais celles faites par Kreative)
+    try { await db.prepare('ALTER TABLE retouches ADD COLUMN fait_par TEXT').run(); } catch (e) {}
     // v74 : l'appareil qui reçoit les notifications (téléphone ou ordinateur)
     try { await db.prepare('ALTER TABLE push_abos ADD COLUMN appareil TEXT').run(); } catch (e) {}
     // une seule version N par projet, même si deux dépôts partent en même temps
@@ -1929,14 +1932,38 @@ const creaDe = nom => { const s = String(nom || '').replace(/\.[A-Za-z0-9]{2,4}$
 // la traduction en anglais pour la designer (Cloudflare Workers AI, binding « AI ») : sans lui, le français seul
 async function traduire(env, textes) {
   if (!env.AI) return textes.map(() => null);
+  const delai = p => Promise.race([p, new Promise(ok => setTimeout(() => ok(null), 9000))]);
   return Promise.all(textes.map(async t => {
     if (!t || !String(t).trim()) return null;
+    const x = String(t).slice(0, 1500);
+    // v79 : codes de langue (fr → en) ; si le modèle de traduction ne répond pas, un modèle de texte traduit
     try {
-      const r = await Promise.race([env.AI.run('@cf/meta/m2m100-1.2b', { text: String(t).slice(0, 1500), source_lang: 'french', target_lang: 'english' }), new Promise(ok => setTimeout(() => ok(null), 8000))]);
+      const r = await delai(env.AI.run('@cf/meta/m2m100-1.2b', { text: x, source_lang: 'fr', target_lang: 'en' }));
       const en = r && (r.translated_text || r.response);
-      return en ? String(en).trim().slice(0, 2000) : null;
-    } catch (e) { return null; }
+      if (en && String(en).trim() && String(en).trim() !== x.trim()) return String(en).trim().slice(0, 2000);
+    } catch (e) {}
+    try {
+      const r = await delai(env.AI.run('@cf/meta/llama-3.1-8b-instruct', { messages: [
+        { role: 'system', content: 'Translate the user message from French to English. Reply with the English translation only, nothing else. Keep quotes, numbers, brand names and line breaks.' },
+        { role: 'user', content: x }], max_tokens: 600 }));
+      const en = r && (r.response || r.translated_text);
+      if (en && String(en).trim()) return String(en).trim().replace(/^["«]\s*|\s*["»]$/g, '').slice(0, 2000);
+    } catch (e) {}
+    return null;
   }));
+}
+// la designer lit l'anglais : une retouche pas encore traduite l'est au moment où elle l'ouvre (et c'est gardé)
+async function traduireRetouches(db, env, R) {
+  if (!env || !env.AI) return;
+  for (const r of R) {
+    const coms = formeJson(r.coms) || [];
+    const manque = coms.filter(c => c.texte && !c.texte_en);
+    if (!manque.length && !(r.note && !r.note_en)) continue;
+    const en = await traduire(env, [r.note && !r.note_en ? r.note : '', ...manque.map(c => c.texte)]);
+    manque.forEach((c, n) => { c.texte_en = en[n + 1] || null; });
+    r.coms = JSON.stringify(coms); if (en[0]) r.note_en = en[0];
+    await db.prepare('UPDATE retouches SET coms = ?, note_en = ? WHERE id = ?').bind(r.coms, r.note_en || null, r.id).run();
+  }
 }
 // la version suivante d'un projet : un brouillon qui reprend tous les fichiers de la précédente (validations comprises)
 async function nouvelleVersion(db, dossier, der) {
@@ -1956,7 +1983,7 @@ const formatsRequis = (r, tous) => {
   return c.length ? c : t;
 };
 // une ligne de retouche est faite quand la créa a été redéposée dans les formats commentés
-async function verifierRetouches(db, livraisonId, crea) {
+async function verifierRetouches(db, livraisonId, crea, role) {
   const { results: R } = await db.prepare("SELECT * FROM retouches WHERE livraison_id = ? AND crea = ? AND etat != 'faite'").bind(livraisonId, crea).all();
   if (!R.length) return;
   const { results: F } = await db.prepare('SELECT format, nom, cree_le FROM fichiers WHERE livraison_id = ?').bind(livraisonId).all();
@@ -1964,11 +1991,11 @@ async function verifierRetouches(db, livraisonId, crea) {
     const src = await db.prepare('SELECT format, nom FROM fichiers WHERE livraison_id = ?').bind(r.source_id).all();
     const formats = formatsRequis(r, src.results.filter(f => creaDe(f.nom) === crea).map(f => f.format));
     const neufs = new Set(F.filter(f => creaDe(f.nom) === crea && f.cree_le > r.cree_le).map(f => f.format));
-    if (formats.length && formats.every(x => neufs.has(x))) await db.prepare("UPDATE retouches SET etat = 'faite', fait_le = ? WHERE id = ?").bind(maintenant(), r.id).run();
+    if (formats.length && formats.every(x => neufs.has(x))) await db.prepare("UPDATE retouches SET etat = 'faite', fait_le = ?, fait_par = ? WHERE id = ?").bind(maintenant(), role || null, r.id).run();
   }
 }
 // ce que chacun voit des retouches d'un projet (la version en cours, sinon la dernière répartie)
-async function revisionsDe(db, dossier, role) {
+async function revisionsDe(db, dossier, role, env) {
   const r0 = await db.prepare('SELECT livraison_id FROM retouches WHERE dossier = ? ORDER BY cree_le DESC LIMIT 1').bind(dossier).first();
   if (!r0) return null;
   const travail = await db.prepare('SELECT * FROM livraisons WHERE id = ?').bind(r0.livraison_id).first();
@@ -1993,7 +2020,11 @@ async function revisionsDe(db, dossier, role) {
     if (role === 'strategiste') o.reprise_le = r.reprise_le || null;
     return o;
   };
-  const visibles = R.filter(r => role === 'admin' || (role === 'designer' && (r.qui === 'designer' || (r.qui === 'refaire' && r.etat !== 'a_faire'))) || (role === 'strategiste' && r.qui === 'refaire'));
+  // v79 : la designer ne voit que SES retouches : confiées à elle (ou refaites après la reprise), et une fois faites,
+  // seulement celles qu'elle a déposée elle-même (jamais une retouche faite par Kreative)
+  const aElle = r => (r.qui === 'designer' || (r.qui === 'refaire' && r.etat !== 'a_faire')) && (r.etat !== 'faite' || r.fait_par === 'designer');
+  const visibles = R.filter(r => role === 'admin' || (role === 'designer' && aElle(r)) || (role === 'strategiste' && r.qui === 'refaire'));
+  if (role === 'designer') await traduireRetouches(db, env, visibles);
   return { dossier, source: source ? { id: source.id, version: source.version } : null, travail: { id: travail.id, version: travail.version, statut: travail.statut, cree_le: travail.cree_le },
     nb_fichiers: FT.length, nb_creas: new Set(FT.map(f => creaDe(f.nom))).size, items: visibles.map(vue) };
 }
@@ -2301,7 +2332,7 @@ async function apiEquipe(req, env, ctx, url, chemin, methode, qui) {
     }
     await db.prepare('INSERT INTO fichiers (id, livraison_id, format, nom, cle, type, taille, largeur, hauteur, cree_le) VALUES (?,?,?,?,?,?,?,?,?,?)')
       .bind(id, l.id, format, nom, cle, type, taille, Number(url.searchParams.get('l')) || null, Number(url.searchParams.get('h')) || null, maintenant()).run();
-    await verifierRetouches(db, l.id, crea || creaDe(nom));
+    await verifierRetouches(db, l.id, crea || creaDe(nom), qui.role);
     return json({ ok: true, id });
   }
   if ((m = chemin.match(/^\/fichiers\/(fi_[A-Za-z0-9_]+)\/mini$/)) && methode === 'PUT') {
@@ -2424,7 +2455,7 @@ async function apiEquipe(req, env, ctx, url, chemin, methode, qui) {
   // les retouches d'un projet (chacun ne voit que les siennes)
   if ((m = chemin.match(/^\/revisions\/([A-Za-z0-9_-]{3,80})$/)) && methode === 'GET') {
     if (cache(m[1])) return json({ erreur: 'Introuvable' }, 404);
-    return json(await revisionsDe(db, m[1], qui.role) || { dossier: m[1], items: [] });
+    return json(await revisionsDe(db, m[1], qui.role, env) || { dossier: m[1], items: [] });
   }
   // toutes les retouches en cours (la liste de la designer et du stratégiste)
   if (chemin === '/revisions' && methode === 'GET') {
@@ -2432,7 +2463,7 @@ async function apiEquipe(req, env, ctx, url, chemin, methode, qui) {
     const sortie = [];
     for (const x of results) {
       if (cache(x.dossier)) continue;
-      const d = await revisionsDe(db, x.dossier, qui.role);
+      const d = await revisionsDe(db, x.dossier, qui.role, env);
       if (d && d.travail.statut === 'brouillon' && d.items.length) sortie.push(d);
     }
     return json(sortie);
@@ -2488,7 +2519,7 @@ async function apiEquipe(req, env, ctx, url, chemin, methode, qui) {
     const b = await corpsJson(req);
     const r = await db.prepare('SELECT r.*, l.statut FROM retouches r JOIN livraisons l ON l.id = r.livraison_id WHERE r.id = ?').bind(Number(m[1])).first();
     if (!r || r.statut !== 'brouillon') return json({ erreur: 'Cette retouche n\'est plus modifiable.' }, 409);
-    if (b.faite === true) await db.prepare("UPDATE retouches SET etat = 'faite', fait_le = ? WHERE id = ?").bind(maintenant(), r.id).run();
+    if (b.faite === true) await db.prepare("UPDATE retouches SET etat = 'faite', fait_le = ?, fait_par = 'admin' WHERE id = ?").bind(maintenant(), r.id).run();
     else if (b.faite === false) await db.prepare("UPDATE retouches SET etat = ?, fait_le = NULL WHERE id = ?").bind(r.qui === 'refaire' && r.reprise ? 'reprise' : 'a_faire', r.id).run();
     if (QUI_RETOUCHE.includes(b.qui) && b.qui !== r.qui) {
       const coms = formeJson(r.coms) || [];

@@ -829,6 +829,14 @@ a.lien-kpi:hover{border-color:var(--line2)}
 .routage{display:flex;align-items:center;gap:16px;flex-wrap:wrap;justify-content:space-between;margin-bottom:18px;padding:14px 18px;border:1px solid var(--line);border-radius:14px;background:var(--violet-soft)}
 .routage b{display:block;font-size:14.5px}
 .routage small{display:block;color:var(--tx2);font-size:13px;margin-top:2px}
+.retours-cl{margin-bottom:18px;padding:6px}
+.retours-h{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:10px 12px 8px}
+.retours-h b{font-size:14.5px}.retours-h span{font-size:12.5px;color:var(--tx3)}
+.retour-cl{display:flex;gap:12px;align-items:flex-start;width:100%;text-align:left;padding:10px 12px;border:0;border-top:1px solid var(--line);background:none;border-radius:0;cursor:pointer;font:inherit;color:inherit}
+.retour-cl:hover{background:var(--bg2,rgba(0,0,0,.03))}
+.retour-cl img{width:44px;height:44px;border-radius:8px;object-fit:cover;flex:none;background:var(--line)}
+.retour-cl small{display:block;font-size:12px;color:var(--tx3)}
+.retour-cl p{margin:3px 0 0;font-size:14px;line-height:1.45;white-space:pre-wrap}
 .routage .onglets{background:var(--panel)}
 .etat-envoi small{display:block;font-size:13px;color:var(--tx2);margin-top:3px;line-height:1.45}
 .etat-envoi:has(.attente){background:var(--violet-soft,#f1ecff)}

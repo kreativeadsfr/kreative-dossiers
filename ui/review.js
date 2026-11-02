@@ -34,6 +34,7 @@
     envoi: p('<path d="M21 3 10 14M21 3l-7 18-4-7-7-4Z"/>')
   };
   RV.taille = n => !n ? '' : n > 1e6 ? (n / 1e6).toFixed(1).replace('.', ',') + ' Mo' : Math.max(1, Math.round(n / 1e3)) + ' Ko';
+  RV.nomFormat = f => NOMS_FORMATS[f] || f;
   RV.formats = l => ORDRE.filter(f => l.fichiers.some(x => x.format === f));
   const quand = t => { const d = (Date.now() - t) / 6e4, en = enCours === 'en';
     if (en) return d < 1 ? 'just now' : d < 60 ? Math.round(d) + ' min ago' : d < 1440 ? Math.round(d / 60) + ' h ago' : new Date(t).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'Europe/Paris' });

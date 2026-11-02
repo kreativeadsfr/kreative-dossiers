@@ -1100,6 +1100,15 @@ function ecranLivraison(d) {
       (r === 'strategiste' ? 'Il corrige les textes, puis la designer fait la version ' + (l.version + 1) + '.' : 'Elle fait la version ' + (l.version + 1) + ' avec les commentaires.') + '</small></div>' +
       '<div class="onglets"><button class="' + (r === 'strategiste' ? 'on' : '') + '" data-router="strategiste">' + i.doc + 'Stratégiste · textes</button><button class="' + (r === 'designer' ? 'on' : '') + '" data-router="designer">' + i.pinceau + 'Designer · visuels</button></div></div>';
   }
+  // 02/11 : la review en cours chez le client, et ses retours, visibles sans ouvrir chaque fichier
+  const F = l.fichiers, ok = F.filter(f => f.approuve_le).length, coms = F.flatMap(f => f.commentaires.filter(c => !c.interne && c.role === 'client').map(c => ({ f, c })));
+  if (l.statut === 'envoyee' && l === V[0]) {
+    h += '<div class="routage"><div><b>Review en cours chez le client</b><small>' + ok + ' approuvé' + (ok > 1 ? 's' : '') + ' sur ' + F.length + ', ' + coms.length + ' commentaire' + (coms.length > 1 ? 's' : '') +
+      '. Dès qu\'il clique sur « Review terminée », les retouches partent toutes seules. Pour ne pas attendre, lancez-les maintenant :</small></div>' +
+      '<div class="onglets"><button data-lancer="strat">' + i.doc + 'Stratégiste · textes</button><button data-lancer="desi">' + i.pinceau + 'Designer · visuels</button></div></div>';
+  }
+  if (coms.length) h += '<div class="card retours-cl"><div class="retours-h"><b>Retours du client</b><span>' + coms.length + ' commentaire' + (coms.length > 1 ? 's' : '') + ' · cliquez pour voir la créative</span></div>' +
+    coms.map(({ f, c }) => '<button class="retour-cl" data-rv-voir="' + esc(f.id) + '"><img src="' + esc(f.mini) + '" alt="" loading="lazy"><div><small>' + esc(K.rv.nomFormat(f.format)) + ' · ' + esc(f.nom) + (c.cree_le ? ' · ' + esc(K.ilya(c.cree_le)) : '') + '</small><p>' + esc(c.texte) + '</p></div></button>').join('') + '</div>';
   return h + K.rv.grille(l, { mode: 'admin', titre: nomLiv(d) + ' · version ' + l.version, sousTitre: l.fichiers.length + ' fichiers · ' + (STATUTS_LIV[l.statut] || [''])[0],
     actions: '<button class="btn btn-g" data-suppr-liv title="Supprimer cette version">' + i.poubelle + '</button>' +
       (l.statut === 'a_verifier' ? '<button class="btn btn-s" data-corriger>' + i.crayon + 'Renvoyer pour correction</button><button class="btn btn-d" data-envoyer-client>' + i.envoi + 'Envoyer au client</button>' : '') });
@@ -1124,6 +1133,11 @@ function brancherLivraison() {
     env.disabled = true;
     try { const r = await K.api('/api/equipe/livraisons/' + l.id + '/decision', { methode: 'POST', corps: { action: 'envoyer' } }); K.toast(r.message); S.livraisons = null; S.commandes = null; await charger('livraisons'); await K.prod.chargerEtats(); await chargerLivraison(l.dossier); } catch (e) { K.toast(e.message); env.disabled = false; }
   };
+  document.querySelectorAll('[data-lancer]').forEach(b => b.onclick = async () => {
+    const vers = b.dataset.lancer;
+    if (!await K.confirmer('Lancer les retouches ?', 'La review de la version ' + l.version + ' se termine pour le client, et les retouches partent ' + (vers === 'strat' ? 'chez le stratégiste (textes).' : 'chez la designer (visuels).') + ' Elle voit les commentaires du client dans son espace.', 'Lancer les retouches')) return;
+    try { const r = await K.api('/api/equipe/deplacer', { methode: 'POST', corps: { dossier: l.dossier, vers, confirme: true } }); K.toast(r.message); S.livraisons = null; await charger('livraisons'); await K.prod.chargerEtats(); await chargerLivraison(l.dossier); } catch (e) { K.toast(e.message); }
+  });
   document.querySelectorAll('[data-router]').forEach(b => b.onclick = async () => {
     if (b.classList.contains('on')) return;
     try { const r = await K.api('/api/equipe/livraisons/' + l.id + '/retouche', { methode: 'POST', corps: { pour: b.dataset.router } }); K.toast(r.message); S.livraisons = null; await charger('livraisons'); await K.prod.chargerEtats(); await chargerLivraison(l.dossier); } catch (e) { K.toast(e.message); }

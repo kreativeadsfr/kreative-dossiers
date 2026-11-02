@@ -25,6 +25,7 @@ Ce fichier est lu automatiquement par Claude quand il ouvre ce dépôt. Il conti
 - Livraisons : dossiers 1:1 / 4:5 / 9:16 **fermés** à l'ouverture partout.
 - Bandeau « Vos créatives sont prêtes » : seulement le nom du projet (ex. « Pack Growth · octobre 2026 »).
 - Espace designer en **anglais** (la designer est anglophone). Le reste en français.
+- **Le stratégiste et la designer ne doivent jamais savoir que l'autre existe** : aucun prénom, aucun rôle (« la designer », « the strategist »), aucun « Envoyer à … » dans leurs espaces, leurs emails ni leurs messages Telegram. Leur seul interlocuteur est « Kreative ». Seul l'admin voit qui fait quoi.
 
 ## 3. Architecture
 

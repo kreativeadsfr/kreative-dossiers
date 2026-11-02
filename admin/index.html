@@ -1144,8 +1144,9 @@ function blocSuivi(rv, travailLiv) {
   h += items.map(x => {
     const av = x.avant[0], ap = x.apres[0];
     let droite; const req = x.requis || x.formats;
-    if (x.etat === 'faite') droite = '<div class="sv-droite"><span class="sv-etat ok">' + i.coche + (ap ? 'Nouvelle version déposée' : 'Marquée faite') + '</span>' + (ap ? '<a class="sv-new" href="' + esc(ap.mini.replace('?mini=1', '')) + '" target="_blank" rel="noopener"><img src="' + esc(ap.mini) + '" alt="">Voir la nouvelle</a>' : '') +
-      '<button class="rp-plus" data-sv-defaire="' + x.id + '">Refaire cette retouche</button></div>';
+    if (x.etat === 'faite') droite = '<div class="sv-droite sv-fait"><div class="sv-fait-tete"><span class="sv-ok">' + i.coche + '</span><div><b>' + (ap ? 'Nouvelle version déposée' : 'Marquée comme faite') + '</b>' + (x.fait_le ? '<small>' + esc(K.ilya(x.fait_le)) + '</small>' : '') + '</div></div>' +
+      (x.apres.length ? '<div class="sv-apres">' + x.apres.map(f => '<a href="' + esc(f.mini.replace('?mini=1', '')) + '" target="_blank" rel="noopener" title="Ouvrir la nouvelle version"><img src="' + esc(f.mini) + '" alt=""><span>' + esc(K.rv.nomFormat(f.format)) + '</span></a>').join('') + '</div>' : '') +
+      '<button class="sv-refaire" data-sv-defaire="' + x.id + '">Refaire cette retouche</button></div>';
     else if (x.qui === 'moi') droite = '<div class="sv-droite"><div class="sv-drop" data-sv-depot="' + esc(x.crea) + '"><b>Déposez AD' + esc(x.crea) + ' corrigée en ' + req.map(f => K.rv.nomFormat(f)).join(', ') + '</b><small>' +
       (req.length < x.formats.length ? 'Seulement ' + (req.length > 1 ? 'ces formats' : 'ce format') + ' : les autres restent tels quels.' : 'Les ' + x.formats.length + ' formats, ensemble ou un par un.') + ' Le fichier remplace l\'ancien.</small></div>' +
       '<select class="in sv-qui" data-sv-qui="' + x.id + '"><option value="moi" selected>Pour moi</option><option value="designer">Confier à ' + esc(D) + '</option><option value="refaire">À refaire (' + esc(St) + ')</option><option value="faite">Marquer comme faite</option></select></div>';

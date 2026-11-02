@@ -1005,6 +1005,16 @@ a.lien-kpi:hover{border-color:var(--line2)}
 .sv-drop b{display:block;margin-bottom:3px}.sv-drop small{color:var(--tx3)}
 .sv-drop .barre{height:4px;border-radius:99px;background:var(--line);margin-top:8px;overflow:hidden}.sv-drop .barre i{display:block;height:100%;background:#4D94FF}
 .sv-new{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--tx2)}.sv-new img{width:40px;height:40px;border-radius:8px;object-fit:cover}
+.sv-etat svg{width:14px;height:14px;flex:none}
+.sv-fait{gap:12px}
+.sv-fait-tete{display:flex;align-items:center;gap:10px}
+.sv-fait-tete b{display:block;font-size:13.5px;font-weight:600;color:var(--ink)}.sv-fait-tete small{display:block;font-size:12px;color:var(--tx3);margin-top:1px}
+.sv-ok{width:26px;height:26px;border-radius:50%;background:var(--green-soft);color:var(--green);display:grid;place-items:center;flex:none}.sv-ok svg{width:14px;height:14px}
+.sv-apres{display:flex;gap:8px}
+.sv-apres a{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11.5px;color:var(--tx3);text-decoration:none}
+.sv-apres img{width:64px;height:64px;border-radius:8px;object-fit:cover;border:1px solid var(--line);transition:transform .15s,border-color .15s}
+.sv-apres a:hover img{border-color:#4D94FF;transform:translateY(-1px)}.sv-apres a:hover span{color:var(--ink)}
+.sv-refaire{background:none;border:0;padding:0;font:500 12.5px Inter,sans-serif;color:var(--tx3);cursor:pointer;text-decoration:underline;text-underline-offset:3px}.sv-refaire:hover{color:var(--ink)}
 .sv-qui{height:32px;font-size:12.5px;padding:0 8px;width:auto}
 .sv-note{display:flex;gap:10px;align-items:center;padding:12px 16px;border-radius:12px;background:var(--soft);font-size:13.5px;color:var(--tx2);margin-top:12px}
 .sv-pied{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:16px;flex-wrap:wrap}

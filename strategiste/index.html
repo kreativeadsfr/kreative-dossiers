@@ -18,7 +18,7 @@
    Des sections permanentes : Vue d'ensemble, Projets, puis la
    production (fiches créas, dossiers, briefs suivants).
    Le stratégiste ne voit que SON travail : la fiche à remplir, son
-   échéance, et si elle est partie à l'heure. Pas le designer.
+   échéance, et si elle est partie à l'heure. Rien d'autre.
    Chaque page de production s'ouvre DANS le portail, avec le choix
    du projet en haut : jamais de nouvel onglet.
    Les données viennent du dépôt (projets.json et les JSON de chaque projet).
@@ -77,11 +77,11 @@ function ecranAccueil() {
   const kpi = (l, v, d, st) => '<div class="card kpi"><div class="lab">' + l + '</div><div class="v' + (String(v).length > 5 ? ' s' : '') + '"' + (st ? ' style="' + st + '"' : '') + '>' + esc(v) + '</div><div class="d">' + esc(d) + '</div></div>';
   let h = '<div class="ph"><div><h1>Vue d\'ensemble</h1><p>Tes fiches à remplir avec leur échéance, et celles que tu as envoyées.</p></div>' +
     '<div class="act"><a class="btn btn-p" href="#/fiche">' + i.doc + 'Fiches créas</a></div></div>';
-  h += '<div class="grid g4">' + kpi('À faire', afaire.length + retouches.length, retouches.length ? retouches.length + ' retouche' + (retouches.length > 1 ? 's' : '') + ' de textes' + (afaire.length ? ', ' + afaire.length + ' fiche' + (afaire.length > 1 ? 's' : '') : '') : 'fiche' + (afaire.length > 1 ? 's' : '') + ' à remplir') +
+  h += '<div class="grid g4">' + kpi('À faire', afaire.length + retouches.length, retouches.length ? retouches.length + ' retouche' + (retouches.length > 1 ? 's' : '') + (afaire.length ? ', ' + afaire.length + ' fiche' + (afaire.length > 1 ? 's' : '') : '') : 'fiche' + (afaire.length > 1 ? 's' : '') + ' à remplir') +
     kpi('En retard', retard.length, retard.length ? 'à rendre en priorité' : 'tout est dans les temps', retard.length ? 'color:var(--red)' : '') +
     kpi('Prochaine échéance', prochain ? K.date(prochain.strat, { year: undefined }) : 'Aucune', prochain ? prochain.marque + ', ' + K.prod.echeance(prochain.strat).texte : 'aucune fiche en attente') +
     kpi('Envoyées à l\'heure', mois.length ? aLheure.length + ' / ' + mois.length : '0', 'sur les 30 derniers jours') + '</div>';
-  if (retouches.length) h += '<div class="sec"><div><h2>Retouches de textes</h2><p>Le client a demandé des changements de textes. Écris les textes corrigés en commentaire sur les créatives concernées, puis clique sur « Textes corrigés ».</p></div></div>' +
+  if (retouches.length) h += '<div class="sec"><div><h2>Retouches</h2><p>Le client a fait ses retours. Ouvre chaque projet pour voir ce qu\'il y a à reprendre.</p></div></div>' +
     '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Projet</th><th>Type</th><th>Version</th><th>Statut</th><th></th></tr></thead><tbody>' +
     retouches.map(x => '<tr class="clic" onclick="location.hash=\'#/retouches/' + esc(x.dossier) + '\'"><td>' + ligneNom(x) + '</td><td>' + K.prod.celluleType(x) + '</td><td>Version ' + esc(x.etape.version || 1) + '</td><td>' + K.prod.pillStrat(x) + '</td>' +
       '<td class="fin"><a class="btn btn-p btn-sm" href="#/retouches/' + esc(x.dossier) + '">' + i.message + 'Voir les retours</a></td></tr>').join('') + '</tbody></table></div></div>';
@@ -111,9 +111,37 @@ function ecranProjets() {
 const RT = { dossier: null, donnees: null };
 async function chargerRetouches(d) {
   RT.dossier = d;
-  try { RT.donnees = await K.api('/api/equipe/livraisons/' + d); } catch (e) { RT.donnees = { versions: [], erreur: e.message }; }
+  try { [RT.donnees, RT.rev] = await Promise.all([K.api('/api/equipe/livraisons/' + d), K.api('/api/equipe/revisions/' + d).catch(() => null)]); } catch (e) { RT.donnees = { versions: [], erreur: e.message }; }
   K.rendre(true);
 }
+// 02/11 : les créas que le client veut voir refaites : on les refait dans la fiche créas, comme une créa normale
+function ecranRefaire(x) {
+  const items = RT.rev.items, reste = items.filter(r => r.etat === 'a_faire'), parties = items.filter(r => r.etat !== 'a_faire');
+  let h = '';
+  if (reste.length) h += '<div class="etat-envoi" style="margin:0 0 22px"><span class="pastille attente">' + i.crayon + '</span><div style="flex:1"><b>' + reste.length + ' créa' + (reste.length > 1 ? 's' : '') + ' à refaire</b>' +
+    '<small>Le client veut ' + (reste.length > 1 ? 'de nouvelles créas à la place' : 'une nouvelle créa à la place') + '. Refais-' + (reste.length > 1 ? 'les' : 'la') + ' dans la fiche créas, comme une créa normale : seule' + (reste.length > 1 ? 's ces créas repartent' : ' cette créa repart') + ' en production.</small></div>' +
+    '<a class="btn btn-p" href="#/reprise/' + esc(x.dossier) + '">' + i.doc + 'Refaire dans la fiche</a></div>';
+  else h += '<div class="etat-envoi" style="margin:0 0 22px"><span class="pastille">' + i.coche + '</span><div><b>Reprise envoyée</b><small>Tes nouvelles créas sont parties en production. Rien d\'autre à faire sur ce projet.</small></div></div>';
+  return h + '<div class="rp-liste">' + items.map(r => '<div class="card rq"><div class="rp-img">' + (r.avant[0] ? '<img src="' + esc(r.avant[0].mini) + '" alt="" loading="lazy">' : '') + '</div><div><div class="rp-meta">AD' + esc(r.crea) + ' · version ' + (RT.rev.source ? RT.rev.source.version : 1) + '</div>' +
+    '<div class="rq-b"><small>Retour du client</small>' + (r.coms.length ? r.coms.map(c => esc(c.texte)).join('<br>') : 'Le client souhaite une nouvelle créa à la place.') + '</div></div>' +
+    (r.etat === 'a_faire' ? '<a class="btn btn-p" href="#/reprise/' + esc(x.dossier) + '">Refaire dans la fiche</a>' : '<span class="pill g"><i></i>Envoyée ' + esc(K.ilya(r.reprise_le)) + '</span>') + '</div>').join('') + '</div>';
+}
+// la fiche créas, seulement avec les créas à refaire (envoi dans un petit dossier à part)
+function ecranReprise(id) {
+  const x = K.prod.trouver(id);
+  if (!RT.rev || RT.dossier !== id) { RT.dossier = id; setTimeout(() => chargerRetouches(id), 0); return '<div class="card"><div class="vide">Chargement…</div></div>'; }
+  const nums = RT.rev.items.filter(r => r.etat === 'a_faire').map(r => Number(r.crea));
+  if (!nums.length) { setTimeout(() => K.aller('#/retouches/' + id), 0); return ''; }
+  return '<div class="vp"><div class="vp-barre"><a class="btn btn-g btn-sm" href="#/retouches/' + esc(id) + '">' + i.gauche + 'Retours du client</a>' +
+    '<span class="pill v"><i></i>Reprise : ' + nums.length + ' créa' + (nums.length > 1 ? 's' : '') + ' à refaire</span></div>' +
+    '<iframe class="vp-cadre" id="vp-cadre" src="/fiche/?projet=' + encodeURIComponent(id) + '&reprise=' + nums.join(',') + '&integre=1" title="Fiche créas"></iframe></div>';
+}
+window.addEventListener('message', e => {
+  if (e.origin !== location.origin || !e.data || !e.data.kreativeReprise) return;
+  K.toast('Reprise envoyée : les nouvelles créas partent en production.');
+  const d = e.data.kreativeReprise; RT.rev = null;
+  setTimeout(async () => { await K.prod.charger(true); K.aller('#/retouches/' + d); }, 1500);
+});
 function ecranRetouches(id) {
   const x = K.prod.trouver(id);
   if (!x) return '<a class="retour" href="#/">' + i.gauche + 'Vue d\'ensemble</a><div class="card"><div class="vide">Projet introuvable.</div></div>';
@@ -121,6 +149,7 @@ function ecranRetouches(id) {
   let h = '<a class="retour" href="#/">' + i.gauche + 'Vue d\'ensemble</a><div class="ph"><div><h1>' + esc(x.nom) + '</h1><p>Les retours du client sur la dernière version.</p></div>' +
     '<div class="act"><a class="btn btn-s" href="#/fiche/' + esc(x.dossier) + '">' + i.doc + 'Ouvrir la fiche</a></div></div>';
   if (!RT.donnees) return h + '<div class="card"><div class="vide">Chargement…</div></div>';
+  if (RT.rev && RT.rev.items && RT.rev.items.length && RT.rev.travail && RT.rev.travail.statut === 'brouillon') return h.replace('Les retours du client sur la dernière version.', 'Les retours du client sur la version ' + (RT.rev.source ? RT.rev.source.version : '') + '.') + ecranRefaire(x);
   const v = (RT.donnees.versions || [])[0];
   if (!v) return h + '<div class="card"><div class="vide">Aucune version livrée pour ce projet.</div></div>';
   const coms = v.fichiers.reduce((n, f) => n + f.commentaires.filter(c => c.role === 'client').length, 0);
@@ -132,7 +161,7 @@ function ecranRetouches(id) {
 }
 function brancherRetouches(id) {
   const x = K.prod.trouver(id), v = RT.donnees && (RT.donnees.versions || [])[0];
-  if (!x || !v) return;
+  if (!x || !v || (RT.rev && RT.rev.items && RT.rev.items.length)) return;
   K.rv.brancher(v, { mode: 'strategiste', nomZip: (x.marque + '-v' + v.version).replace(/[^A-Za-z0-9]+/g, '-'), rendre: () => K.rendre(true), auteur: (E.moi && E.moi.nom) || 'Stratégiste',
     peutCommenter: () => true, peutApprouver: () => false,
     api: { commenter: (f, texte, forme, couleur) => K.api('/api/equipe/commentaires', { methode: 'POST', corps: { fichier_id: f.id, texte, forme, couleur } }),
@@ -147,7 +176,7 @@ function brancherRetouches(id) {
 }
 
 // ---------- RENDU ----------
-const TITRES = { '': 'Vue d\'ensemble', projets: 'Projets', retouches: 'Retouches', fiche: 'Fiches créas', dossier: 'Dossiers de production', brief: 'Briefs suivants' };
+const TITRES = { '': 'Vue d\'ensemble', projets: 'Projets', retouches: 'Retouches', reprise: 'Reprise', fiche: 'Fiches créas', dossier: 'Dossiers de production', brief: 'Briefs suivants' };
 const TEXTES = { fiche: 'Choisis le projet dont tu remplis la fiche.', dossier: 'Le dossier de production de chaque projet : site, brief, pubs, assets.', brief: 'Pour un projet livré en plusieurs fois ou un abonnement : ce que le client veut pour la suite. Lis-le avant de remplir la fiche.' };
 let derniere = '';
 K.rendre = async force => {
@@ -162,13 +191,14 @@ K.rendre = async force => {
     if (id) { contenu = K.prod.vue(sec, id, { sections: SECS, role: 'strategiste' }); plein = true; const x = K.prod.trouver(id); nomProjet = x ? x.nom : id === 'banque' ? 'Banque d\'inspirations' : id; }
     else contenu = K.prod.liste_(sec, { texte: TEXTES[sec], role: 'strategiste' });
   } else if (sec === 'retouches' && id) { contenu = ecranRetouches(id); const x = K.prod.trouver(id); nomProjet = x ? x.nom : id; }
+  else if (sec === 'reprise' && id) { contenu = ecranReprise(id); plein = !!(RT.rev && RT.dossier === id); const x = K.prod.trouver(id); nomProjet = x ? x.nom : id; }
   else contenu = sec === 'projets' ? ecranProjets() : ecranAccueil();
-  const c = conf(), actif = SECS.includes(sec) || sec === 'projets' ? sec : 'accueil';
+  const c = conf(), actif = SECS.includes(sec) || sec === 'projets' ? sec : sec === 'reprise' ? 'fiche' : 'accueil';
   const ariane = nomProjet ? K.ariane('ampoule', 'Stratégiste', TITRES[sec], nomProjet) : K.ariane('ampoule', 'Stratégiste', TITRES[sec] || TITRES['']);
   document.getElementById('racine').innerHTML = K.coquille(c, actif, ariane, contenu, plein ? 'plein' : false);
   K.brancherCoquille(c);
-  K.prod.surveiller(() => { if (RT.dossier && K.route().ecran === 'retouches') chargerRetouches(RT.dossier); else K.rendre(true); });
-  if (plein) K.prod.brancher(sec);
+  K.prod.surveiller(() => { if (RT.dossier && K.route().ecran === 'retouches') chargerRetouches(RT.dossier); else if (K.route().ecran !== 'reprise') K.rendre(true); });
+  if (plein && sec !== 'reprise') K.prod.brancher(sec);
   if (sec === 'retouches' && id) brancherRetouches(id);
   document.title = 'Espace stratégiste · Kreative';
 };

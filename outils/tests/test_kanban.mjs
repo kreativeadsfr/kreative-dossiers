@@ -64,7 +64,9 @@ r = await api('/api/client/commandes/' + kid + '/creatives', CK); t('le client v
 const fFeed = r.d.livraisons[0].fichiers.find(f => f.format === '4x5').id;
 await api('/api/client/commentaires', CK, 'POST', { fichier_id: fFeed, texte: 'Remplacer « dès 29 € » par « à partir de 29 € »' });
 r = await api('/api/client/livraisons/' + v1.id + '/terminer', CK, 'POST');
-e = await etat(D); t('retours sur les textes : retouches chez le stratégiste', e.v.statut === 'review_terminee' && e.v.retouche === 'strategiste', JSON.stringify(e));
+e = await etat(D); t('review terminée : les retours attendent que Kreative les répartisse (v75)', e.v.statut === 'review_terminee' && e.v.retouche === 'repartir', JSON.stringify(e));
+r = await api('/api/equipe/livraisons/' + v1.id + '/retouche', A, 'POST', { pour: 'strategiste' });
+e = await etat(D); t('retours sur les textes : Kreative les confie au stratégiste', e.v.statut === 'review_terminee' && e.v.retouche === 'strategiste', JSON.stringify(e));
 r = await api('/api/equipe/livraisons', DE, 'POST', { dossier: D }); t('la designer attend le stratégiste', r.s === 409 && /strategist/.test(r.d.erreur), JSON.stringify(r.d));
 r = await api('/api/equipe/livraisons/' + D, ST); t('le stratégiste voit les commentaires du client', r.s === 200 && r.d.versions[0].fichiers.some(f => f.commentaires.some(c => c.role === 'client')), r.s);
 r = await api('/api/equipe/commentaires', ST, 'POST', { fichier_id: fFeed, texte: 'Nouveau texte dans la fiche' }); t('le stratégiste laisse une note interne', r.s === 200, r.s);
@@ -92,7 +94,9 @@ r = await api('/api/admin/clients/' + cid, A); t('commande « livré » après l
 r = await api('/api/client/commandes/' + kid + '/creatives', CK); const f3 = r.d.livraisons[0].fichiers[0].id;
 await api('/api/client/commentaires', CK, 'POST', { fichier_id: f3, texte: 'Le logo est trop petit' });
 await api('/api/client/livraisons/' + v3.id + '/terminer', CK, 'POST');
-e = await etat(D); t('retours sur le visuel : retouches chez la designer', e.v.retouche === 'designer', JSON.stringify(e));
+e = await etat(D); t('retours sur le visuel : à répartir par Kreative', e.v.retouche === 'repartir', JSON.stringify(e));
+await api('/api/equipe/livraisons/' + v3.id + '/retouche', A, 'POST', { pour: 'designer' });
+e = await etat(D); t('retours sur le visuel : confiés à la designer', e.v.retouche === 'designer', JSON.stringify(e));
 r = await api('/api/equipe/deplacer', A, 'POST', { dossier: D, vers: 'client' });
 e = await etat(D); t('glissé de nouveau chez le client : sa review reprend', r.d.action === 'retour_client' && e.v.statut === 'envoyee' && !e.v.retouche, JSON.stringify(r.d).slice(0, 100));
 r = await api('/api/admin/clients/' + cid, A); t('… commande de nouveau « livré »', r.d.commandes[0].statut === 'livre', r.d.commandes[0].statut);

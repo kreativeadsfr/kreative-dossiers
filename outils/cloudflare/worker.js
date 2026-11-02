@@ -889,7 +889,7 @@ let BASE_PRETE = false;
 // v70 : la base est vérifiée une seule fois par version. Avant, chaque démarrage du Worker refaisait
 // ~25 allers-retours (tables, colonnes, index) : près d'une seconde sur la 1re ouverture.
 // Augmenter SCHEMA_V à chaque nouvelle table ou colonne : la vérification complète repasse une fois.
-const SCHEMA_V = 74;
+const SCHEMA_V = 75;
 let SCHEMA_EN_COURS = null;
 async function base(env) {
   if (!env.DB) throw new Error('Base de données absente : liez une base D1 au Worker sous le nom DB.');
@@ -1066,6 +1066,7 @@ async function routerPortail(req, env, ctx, url, chemin) {
       (sousChemin === '/fiche' && methode === 'POST') ||
       (/^\/livraisons\/[A-Za-z0-9_-]{3,80}$/.test(sousChemin) && methode === 'GET') ||
       (/^\/livraisons\/l_[A-Za-z0-9_]+\/retouches-faites$/.test(sousChemin) && methode === 'POST') ||
+      (/^\/revisions(\/[A-Za-z0-9_-]{3,80})?$/.test(sousChemin) && methode === 'GET') ||
       (sousChemin === '/commentaires' && methode === 'POST') || (/^\/commentaires\/\d+$/.test(sousChemin) && methode === 'DELETE')))
       return json({ erreur: 'Accès refusé' }, 403);
     return apiEquipe(req, env, ctx, url, chemin.slice('/api/equipe'.length), methode, qui);
@@ -1737,6 +1738,10 @@ async function baseLiv(env) {
       db.prepare('CREATE INDEX IF NOT EXISTS i_com_fic ON commentaires(fichier_id)')]);
     // les retouches : qui doit agir en premier (le stratégiste pour les textes, la designer pour le visuel)
     for (const col of ['retouche TEXT', 'retouche_le INTEGER']) { try { await db.prepare('ALTER TABLE livraisons ADD COLUMN ' + col).run(); } catch (e) {} }
+    // v75 : les révisions, une ligne par créa retouchée (voir « RÉVISIONS »)
+    await db.prepare(`CREATE TABLE IF NOT EXISTS retouches (id INTEGER PRIMARY KEY AUTOINCREMENT, dossier TEXT, source_id TEXT, livraison_id TEXT, crea TEXT, qui TEXT,
+      etat TEXT, note TEXT, note_en TEXT, coms TEXT, reprise TEXT, reprise_le INTEGER, fait_le INTEGER, cree_le INTEGER)`).run();
+    try { await db.prepare('CREATE INDEX IF NOT EXISTS i_ret_liv ON retouches(livraison_id)').run(); } catch (e) {}
     // v74 : l'appareil qui reçoit les notifications (téléphone ou ordinateur)
     try { await db.prepare('ALTER TABLE push_abos ADD COLUMN appareil TEXT').run(); } catch (e) {}
     // une seule version N par projet, même si deux dépôts partent en même temps
@@ -1845,6 +1850,84 @@ const MOTS_VISUEL = /\b(couleurs?|blanc|noir|rouge|bleu|vert|jaune|rose|taille|p
 const sansAccents = t => String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '');
 const parleTexte = t => { const x = sansAccents(t); return (x.match(MOTS_TEXTE) || []).length > (x.match(MOTS_VISUEL) || []).length; };
 const pourQui = textes => textes.some(parleTexte) ? 'strategiste' : 'designer';
+
+// ---------- RÉVISIONS (v75, 02/11/2026) ----------
+// Quand le client termine sa review, Kreative répartit ses retours CRÉA PAR CRÉA :
+//   « moi »      Kreative (Dario) fait la retouche lui-même (consigne précise : décaler, remplacer un mot…)
+//   « designer » la designer retouche le visuel (ajout visuel, sans toucher au texte)
+//   « refaire »  la créa est à refaire : le stratégiste la reprend dans la fiche créas (seule cette créa repart
+//                en production, dans un petit dossier « <dossier>_R1 »), puis la designer la livre.
+// La version N+1 est créée tout de suite (copie de la N) : chaque créa retouchée y remplace l'ancienne,
+// les autres restent avec les validations du client. Kreative l'envoie au client quand tout est fait.
+// Le stratégiste et la designer ne voient que leurs lignes : jamais le prénom ni le rôle de l'autre.
+const QUI_RETOUCHE = ['moi', 'designer', 'refaire'];
+// le numéro de la créa dans un nom de fichier : « PULSE_STANDARD_03.png » → « 03 »
+const creaDe = nom => { const s = String(nom || '').replace(/\.[A-Za-z0-9]{2,4}$/, ''); const m = s.match(/(\d+)\D*$/); return m ? String(Number(m[1])).padStart(2, '0') : s.slice(0, 40); };
+// la traduction en anglais pour la designer (Cloudflare Workers AI, binding « AI ») : sans lui, le français seul
+async function traduire(env, textes) {
+  if (!env.AI) return textes.map(() => null);
+  return Promise.all(textes.map(async t => {
+    if (!t || !String(t).trim()) return null;
+    try {
+      const r = await Promise.race([env.AI.run('@cf/meta/m2m100-1.2b', { text: String(t).slice(0, 1500), source_lang: 'french', target_lang: 'english' }), new Promise(ok => setTimeout(() => ok(null), 8000))]);
+      const en = r && (r.translated_text || r.response);
+      return en ? String(en).trim().slice(0, 2000) : null;
+    } catch (e) { return null; }
+  }));
+}
+// la version suivante d'un projet : un brouillon qui reprend tous les fichiers de la précédente (validations comprises)
+async function nouvelleVersion(db, dossier, der) {
+  const id = 'l_' + aleatoire(10), now = maintenant();
+  await db.prepare('INSERT INTO livraisons (id, dossier, version, statut, cree_le) VALUES (?,?,?,?,?)').bind(id, dossier, der ? der.version + 1 : 1, 'brouillon', now).run();
+  if (der) {
+    const { results: F } = await db.prepare('SELECT * FROM fichiers WHERE livraison_id = ?').bind(der.id).all();
+    if (F.length) await db.batch(F.map(f => db.prepare('INSERT INTO fichiers (id, livraison_id, format, nom, cle, mini, type, taille, largeur, hauteur, approuve_le, cree_le) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)')
+      .bind('fi_' + aleatoire(12), id, f.format, f.nom, f.cle, f.mini, f.type, f.taille, f.largeur, f.hauteur, f.approuve_le, f.cree_le || now)));   // la date d'origine : seules les créas redéposées sont « nouvelles »
+  }
+  return db.prepare('SELECT * FROM livraisons WHERE id = ?').bind(id).first();
+}
+// une ligne de retouche est faite quand la créa a été redéposée dans tous les formats qu'elle avait
+async function verifierRetouches(db, livraisonId, crea) {
+  const { results: R } = await db.prepare("SELECT * FROM retouches WHERE livraison_id = ? AND crea = ? AND etat != 'faite'").bind(livraisonId, crea).all();
+  if (!R.length) return;
+  const { results: F } = await db.prepare('SELECT format, nom, cree_le FROM fichiers WHERE livraison_id = ?').bind(livraisonId).all();
+  for (const r of R) {
+    const src = await db.prepare('SELECT format, nom FROM fichiers WHERE livraison_id = ?').bind(r.source_id).all();
+    const formats = [...new Set(src.results.filter(f => creaDe(f.nom) === crea).map(f => f.format))];
+    const neufs = new Set(F.filter(f => creaDe(f.nom) === crea && f.cree_le > r.cree_le).map(f => f.format));
+    if (formats.length && formats.every(x => neufs.has(x))) await db.prepare("UPDATE retouches SET etat = 'faite', fait_le = ? WHERE id = ?").bind(maintenant(), r.id).run();
+  }
+}
+// ce que chacun voit des retouches d'un projet (la version en cours, sinon la dernière répartie)
+async function revisionsDe(db, dossier, role) {
+  const r0 = await db.prepare('SELECT livraison_id FROM retouches WHERE dossier = ? ORDER BY cree_le DESC LIMIT 1').bind(dossier).first();
+  if (!r0) return null;
+  const travail = await db.prepare('SELECT * FROM livraisons WHERE id = ?').bind(r0.livraison_id).first();
+  if (!travail) return null;
+  const { results: R } = await db.prepare('SELECT * FROM retouches WHERE livraison_id = ? ORDER BY crea').bind(travail.id).all();
+  const source = await db.prepare('SELECT * FROM livraisons WHERE id = ?').bind(R[0].source_id).first();
+  const [{ results: FS }, { results: FT }] = await Promise.all([
+    db.prepare('SELECT id, format, nom, mini FROM fichiers WHERE livraison_id = ? ORDER BY format, nom').bind(R[0].source_id).all(),
+    db.prepare('SELECT id, format, nom, mini, cree_le FROM fichiers WHERE livraison_id = ? ORDER BY format, nom').bind(travail.id).all()]);
+  const ordreF = { '1x1': 0, '4x5': 1, '9x16': 2, autre: 3 };
+  const vue = r => {
+    const avant = FS.filter(f => creaDe(f.nom) === r.crea).sort((a, b) => ordreF[a.format] - ordreF[b.format]);
+    const neufs = FT.filter(f => creaDe(f.nom) === r.crea && f.cree_le > r.cree_le).sort((a, b) => ordreF[a.format] - ordreF[b.format]);
+    const coms = formeJson(r.coms) || [];
+    const o = { id: r.id, crea: r.crea, etat: r.etat, note: r.note || '', fait_le: r.fait_le || null,
+      avant: avant.map(f => ({ id: f.id, format: f.format, nom: f.nom, mini: '/fichiers/' + f.id + (f.mini ? '?mini=1' : '') })),
+      apres: neufs.map(f => ({ id: f.id, format: f.format, nom: f.nom, mini: '/fichiers/' + f.id + (f.mini ? '?mini=1' : '') })),
+      formats: [...new Set(avant.map(f => f.format))], coms: coms.map(c => ({ texte: c.texte, auteur: c.auteur, format: c.format, forme: c.forme || null, couleur: c.couleur || null })) };
+    if (role === 'admin') { o.qui = r.qui; o.reprise = r.reprise || null; o.reprise_le = r.reprise_le || null; }
+    // la designer : en anglais d'abord ; une créa refaite = « new creative », avec sa page d'aperçu
+    if (role === 'designer') { o.type = r.qui === 'refaire' ? 'nouvelle' : 'visuel'; o.note_en = r.note_en || ''; o.coms = coms.map(c => ({ texte: c.texte, texte_en: c.texte_en || '', format: c.format, forme: c.forme || null, couleur: c.couleur || null })); o.reprise = r.reprise || null; }
+    if (role === 'strategiste') o.reprise_le = r.reprise_le || null;
+    return o;
+  };
+  const visibles = R.filter(r => role === 'admin' || (role === 'designer' && (r.qui === 'designer' || (r.qui === 'refaire' && r.etat !== 'a_faire'))) || (role === 'strategiste' && r.qui === 'refaire'));
+  return { dossier, source: source ? { id: source.id, version: source.version } : null, travail: { id: travail.id, version: travail.version, statut: travail.statut, cree_le: travail.cree_le },
+    nb_fichiers: FT.length, nb_creas: new Set(FT.map(f => creaDe(f.nom))).size, items: visibles.map(vue) };
+}
 // l'état de production de chaque projet : la dernière version livrée, un déplacement manuel, la commande
 async function etatsProduction(db) {
   const [{ results: L }, { results: O }, { results: K2 }] = await Promise.all([
@@ -1852,9 +1935,18 @@ async function etatsProduction(db) {
       WHERE l.version = (SELECT MAX(x.version) FROM livraisons x WHERE x.dossier = l.dossier)`).all(),
     db.prepare('SELECT * FROM prod_etapes').all(),
     db.prepare("SELECT dossier, statut, options FROM commandes WHERE dossier IS NOT NULL ORDER BY cree_le").all()]);
+  const { results: RT } = await db.prepare("SELECT r.livraison_id, r.qui, r.etat FROM retouches r JOIN livraisons l ON l.id = r.livraison_id WHERE l.statut = 'brouillon'").all();
   const etats = {}, de = d => (etats[d] = etats[d] || {});
   for (const l of L) de(l.dossier).v = { id: l.id, version: l.version, statut: l.statut, retouche: ['a_corriger', 'review_terminee'].includes(l.statut) ? (l.retouche || 'designer') : null,
     le: Math.max(l.cree_le || 0, l.depose_le || 0, l.verifie_le || 0, l.envoye_le || 0, l.review_le || 0, l.retouche_le || 0) };
+  // v75 : la version de retouches en cours : combien chez Kreative, chez la designer, chez le stratégiste
+  for (const l of L) {
+    const R = RT.filter(r => r.livraison_id === l.id);
+    if (!R.length) continue;
+    const reste = R.filter(r => r.etat !== 'faite');
+    de(l.dossier).v.ret = { total: R.length, faites: R.length - reste.length, moi: reste.filter(r => r.qui === 'moi').length,
+      desi: reste.filter(r => r.qui === 'designer' || (r.qui === 'refaire' && r.etat === 'reprise')).length, strat: reste.filter(r => r.qui === 'refaire' && r.etat === 'a_faire').length };
+  }
   for (const o of O) de(o.dossier).o = { etape: o.etape, le: o.le, par: o.par };
   // les options payées par le client (variations de texte, express ; anciennes commandes : A/B tests) : visibles par le stratégiste et la designer
   const commandes = {}, options = {};
@@ -2031,13 +2123,48 @@ async function apiEquipe(req, env, ctx, url, chemin, methode, qui) {
     let charge;
     try { charge = await req.json(); } catch (e) { return json({ erreur: 'Fiche illisible.' }, 400); }
     if (!charge || typeof charge !== 'object' || !/^[A-Za-z0-9_-]{3,80}$/.test(String(charge.dossier || ''))) return json({ erreur: 'Projet inconnu.' }, 400);
+    const demoReprise = charge.reprise === true && /^TEST_DEMO_/.test(charge.dossier);
     const code = await codeFiche(env);
-    if (!code) return json({ erreur: 'Le code de la fiche n\'est pas réglé.', code_manquant: true }, 503);
+    if (!code && !demoReprise) return json({ erreur: 'Le code de la fiche n\'est pas réglé.', code_manquant: true }, 503);
     charge.code = code;
+    // v75 : une REPRISE (créas à refaire après les retours du client) part dans un petit dossier « <dossier>_R1 » :
+    // son propre compteur d'envois et sa propre page d'aperçu ; le dossier d'origine n'est pas touché.
+    // VISUELS lit la DA de « <dossier>_R1 » sans le « _R1 » : URL du nœud « Charger la DA » donnée à Dario le 02/11
+    // (…/{{ $json.dossier.replace(/_R\d+$/, '') }}/donnees.json). Un projet de démo ne part jamais vers n8n.
+    let reprise = null;
+    if (charge.reprise === true) {
+      const d0 = charge.dossier;
+      const r0 = await db.prepare('SELECT livraison_id FROM retouches WHERE dossier = ? ORDER BY cree_le DESC LIMIT 1').bind(d0).first();
+      const tr = r0 && await db.prepare('SELECT * FROM livraisons WHERE id = ?').bind(r0.livraison_id).first();
+      if (!tr || tr.statut !== 'brouillon') return json({ erreur: 'Aucune créa à refaire sur ce projet.' }, 409);
+      const { results: R } = await db.prepare("SELECT * FROM retouches WHERE livraison_id = ? AND qui = 'refaire' AND etat = 'a_faire'").bind(tr.id).all();
+      const voulues = new Set(R.map(x => x.crea));
+      charge.creas = (Array.isArray(charge.creas) ? charge.creas : []).filter(c => c && voulues.has(String(Number(c.n)).padStart(2, '0')));
+      if (!charge.creas.length) return json({ erreur: 'Aucune créa à refaire dans cette fiche.' }, 400);
+      const ns = new Set(charge.creas.map(c => String(Number(c.n)).padStart(2, '0')));
+      if (charge.fichiers && typeof charge.fichiers === 'object' && !Array.isArray(charge.fichiers))
+        for (const k of Object.keys(charge.fichiers)) if (!ns.has(String(Number(k)).padStart(2, '0'))) delete charge.fichiers[k];
+      const nb = await db.prepare('SELECT COUNT(DISTINCT reprise) AS n FROM retouches WHERE dossier = ? AND reprise IS NOT NULL').bind(d0).first();
+      const nom = d0 + '_R' + ((nb && nb.n || 0) + 1);
+      if (nom.length > 80) return json({ erreur: 'Nom de projet trop long.' }, 400);
+      reprise = { nom, ids: R.filter(x => ns.has(x.crea)).map(x => x.id) };
+      charge.dossier = nom; charge.nb_creas = charge.creas.length; delete charge.reprise;
+      if (demoReprise) {
+        await db.batch(reprise.ids.map(id => db.prepare("UPDATE retouches SET etat = 'reprise', reprise = ?, reprise_le = ? WHERE id = ? AND etat = 'a_faire'").bind(nom, maintenant(), id)));
+        return json({ ok: true, demo: true, reprise: nom, message: 'Démo : la reprise n\'est partie nulle part, personne n\'est prévenu.' });
+      }
+    }
     let r;
     try { r = await fetch(env.N8N_FICHE || N8N_FICHE, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(charge) }); }
     catch (e) { return json({ erreur: 'n8n ne répond pas.' }, 502); }
-    return new Response(await r.text(), { status: r.status, headers: { 'Content-Type': r.headers.get('Content-Type') || 'application/json', 'Cache-Control': 'no-store' } });
+    const texte = await r.text();
+    if (reprise && r.ok) {
+      const now = maintenant();
+      await db.batch(reprise.ids.map(id => db.prepare("UPDATE retouches SET etat = 'reprise', reprise = ?, reprise_le = ? WHERE id = ? AND etat = 'a_faire'").bind(reprise.nom, now, id)));
+      let o = {}; try { o = JSON.parse(texte); } catch (e) {}
+      return json({ ...o, ok: true, reprise: reprise.nom, message: 'Reprise envoyée : ' + reprise.ids.length + ' créa' + (reprise.ids.length > 1 ? 's' : '') + ' repart' + (reprise.ids.length > 1 ? 'ent' : '') + ' en production.' });
+    }
+    return new Response(texte, { status: r.status, headers: { 'Content-Type': r.headers.get('Content-Type') || 'application/json', 'Cache-Control': 'no-store' } });
   }
   // toutes les livraisons (la liste de l'admin, l'historique de la designer)
   if (chemin === '/livraisons' && methode === 'GET') {
@@ -2096,8 +2223,16 @@ async function apiEquipe(req, env, ctx, url, chemin, methode, qui) {
     await env.FICHIERS.put(cle, req.body, { httpMetadata: { contentType: type } });
     // même nom dans le même format : le nouveau remplace l'ancien
     await db.prepare('DELETE FROM fichiers WHERE livraison_id = ? AND format = ? AND nom = ?').bind(l.id, format, nom).run();
+    // v75 : une retouche (« crea=03 ») remplace la créa 03 de ce format, même si le nom du fichier a changé
+    const crea = /^[0-9]{2,3}$/.test(url.searchParams.get('crea') || '') ? url.searchParams.get('crea') : null;
+    if (crea) {
+      const { results: avant } = await db.prepare('SELECT id, nom FROM fichiers WHERE livraison_id = ? AND format = ?').bind(l.id, format).all();
+      const vieux = avant.filter(f => creaDe(f.nom) === crea);
+      if (vieux.length) await db.batch(vieux.map(f => db.prepare('DELETE FROM fichiers WHERE id = ?').bind(f.id)));
+    }
     await db.prepare('INSERT INTO fichiers (id, livraison_id, format, nom, cle, type, taille, largeur, hauteur, cree_le) VALUES (?,?,?,?,?,?,?,?,?,?)')
       .bind(id, l.id, format, nom, cle, type, taille, Number(url.searchParams.get('l')) || null, Number(url.searchParams.get('h')) || null, maintenant()).run();
+    await verifierRetouches(db, l.id, crea || creaDe(nom));
     return json({ ok: true, id });
   }
   if ((m = chemin.match(/^\/fichiers\/(fi_[A-Za-z0-9_]+)\/mini$/)) && methode === 'PUT') {
@@ -2132,6 +2267,9 @@ async function apiEquipe(req, env, ctx, url, chemin, methode, qui) {
     const b = await corpsJson(req);
     const l = await db.prepare('SELECT * FROM livraisons WHERE id = ?').bind(m[1]).first();
     if (!l || l.statut !== 'brouillon') return json({ erreur: 'This delivery was already sent.' }, 409);
+    // v75 : une version de retouches part chez le client quand toutes les retouches sont faites (Kreative l'envoie)
+    const rv = await db.prepare('SELECT COUNT(*) AS n FROM retouches WHERE livraison_id = ?').bind(l.id).first();
+    if (rv && rv.n) return json({ erreur: 'Kreative sends this version once every revision is done. Nothing else to send.' }, 409);
     const n = await db.prepare('SELECT COUNT(*) AS n FROM fichiers WHERE livraison_id = ?').bind(l.id).first();
     if (!n || !n.n) return json({ erreur: 'Add your files first.' }, 400);
     const ch = await db.prepare("UPDATE livraisons SET statut = 'a_verifier', depose_le = ?, note_designer = ? WHERE id = ? AND statut = 'brouillon'").bind(maintenant(), propre(b.note, 600) || null, l.id).run();
@@ -2181,6 +2319,95 @@ async function apiEquipe(req, env, ctx, url, chemin, methode, qui) {
       .bind(maintenant(), note ? 'Textes corrigés par le stratégiste : ' + note : null, l.id).run();
     await db.prepare('DELETE FROM prod_etapes WHERE dossier = ?').bind(l.dossier).run();
     return json({ ok: true, message: 'Merci, la nouvelle version va être préparée avec tes textes.' });
+  }
+  // ---- v75 : les révisions, créa par créa ----
+  // les retouches d'un projet (chacun ne voit que les siennes)
+  if ((m = chemin.match(/^\/revisions\/([A-Za-z0-9_-]{3,80})$/)) && methode === 'GET') {
+    if (cache(m[1])) return json({ erreur: 'Introuvable' }, 404);
+    return json(await revisionsDe(db, m[1], qui.role) || { dossier: m[1], items: [] });
+  }
+  // toutes les retouches en cours (la liste de la designer et du stratégiste)
+  if (chemin === '/revisions' && methode === 'GET') {
+    const { results } = await db.prepare("SELECT DISTINCT r.dossier FROM retouches r JOIN livraisons l ON l.id = r.livraison_id WHERE l.statut = 'brouillon'").all();
+    const sortie = [];
+    for (const x of results) {
+      if (cache(x.dossier)) continue;
+      const d = await revisionsDe(db, x.dossier, qui.role);
+      if (d && d.travail.statut === 'brouillon' && d.items.length) sortie.push(d);
+    }
+    return json(sortie);
+  }
+  // Kreative répartit les retours du client : une ligne par créa (moi / designer / refaire)
+  if ((m = chemin.match(/^\/livraisons\/(l_[A-Za-z0-9_]+)\/repartir$/)) && methode === 'POST') {
+    if (!admin) return json({ erreur: 'Accès refusé' }, 403);
+    const b = await corpsJson(req);
+    const l = await db.prepare('SELECT * FROM livraisons WHERE id = ?').bind(m[1]).first();
+    if (!l || !['envoyee', 'review_terminee', 'a_corriger'].includes(l.statut)) return json({ erreur: 'Cette version n\'a pas de retours à répartir.' }, 409);
+    const der = await db.prepare('SELECT * FROM livraisons WHERE dossier = ? ORDER BY version DESC LIMIT 1').bind(l.dossier).first();
+    if (der.id !== l.id) return json({ erreur: 'Une version plus récente existe déjà pour ce projet.' }, 409);
+    const { results: F } = await db.prepare('SELECT id, format, nom FROM fichiers WHERE livraison_id = ?').bind(l.id).all();
+    const creas = new Set(F.map(f => creaDe(f.nom)));
+    const vus = new Set(), items = [];
+    for (const it of Array.isArray(b.items) ? b.items.slice(0, 200) : []) {
+      const crea = propre(it && it.crea, 40), q = String(it && it.qui || '');
+      if (!creas.has(crea) || !QUI_RETOUCHE.includes(q) || vus.has(crea)) continue;
+      vus.add(crea); items.push({ crea, qui: q, note: propre(it.note, 600) });
+    }
+    if (!items.length) return json({ erreur: 'Choisissez au moins une créa à retoucher.' }, 400);
+    const now = maintenant(), k = await commandeDuDossier(db, l.dossier);
+    // la review en cours se termine pour le client (Kreative lance les retouches sans attendre)
+    if (l.statut === 'envoyee') {
+      await db.prepare("UPDATE livraisons SET statut = 'review_terminee', review_le = COALESCE(review_le, ?) WHERE id = ? AND statut = 'envoyee'").bind(now, l.id).run();
+      if (k && !['valide', 'annule'].includes(k.statut)) await db.prepare("UPDATE commandes SET statut = 'revisions' WHERE id = ?").bind(k.id).run();
+      if (k) await noter(db, k.client_id, k.id, 'revisions', 'Vos retours sont transmis · retouches en cours');
+    }
+    let travail;
+    try { travail = await nouvelleVersion(db, l.dossier, l); } catch (e) { return json({ erreur: 'La version suivante existe déjà : rechargez la page.' }, 409); }
+    const { results: C } = await db.prepare("SELECT c.texte, c.auteur, c.forme, c.couleur, f.format, f.nom FROM commentaires c JOIN fichiers f ON f.id = c.fichier_id WHERE c.livraison_id = ? AND c.interne = 0 AND c.role = 'client' ORDER BY c.cree_le").bind(l.id).all();
+    const lignes = [];
+    for (const it of items) {
+      const coms = C.filter(c => creaDe(c.nom) === it.crea).map(c => ({ texte: c.texte, auteur: c.auteur, format: c.format, forme: formeJson(c.forme), couleur: c.couleur }));
+      // la designer lit l'anglais : les retours qui lui arriveront sont traduits maintenant
+      if (it.qui !== 'moi') {
+        const en = await traduire(env, [it.note, ...coms.map(c => c.texte)]);
+        it.note_en = en[0]; coms.forEach((c, n) => { c.texte_en = en[n + 1]; });
+      }
+      lignes.push(db.prepare('INSERT INTO retouches (dossier, source_id, livraison_id, crea, qui, etat, note, note_en, coms, cree_le) VALUES (?,?,?,?,?,?,?,?,?,?)')
+        .bind(l.dossier, l.id, travail.id, it.crea, it.qui, 'a_faire', it.note || null, it.note_en || null, JSON.stringify(coms), now));
+    }
+    await db.batch(lignes);
+    await db.prepare("UPDATE livraisons SET retouche = 'reparti', retouche_le = ? WHERE id = ?").bind(now, l.id).run();
+    await db.prepare('DELETE FROM prod_etapes WHERE dossier = ?').bind(l.dossier).run();
+    const n = q => items.filter(x => x.qui === q).length;
+    return json({ ok: true, travail: travail.id, message: 'Retouches lancées : ' + [n('moi') ? n('moi') + ' pour vous' : '', n('designer') ? n('designer') + ' pour la designer' : '', n('refaire') ? n('refaire') + ' à refaire' : ''].filter(Boolean).join(', ') + '.' });
+  }
+  // une ligne de retouche : changer qui s'en occupe, ou la marquer faite (sans nouveau fichier)
+  if ((m = chemin.match(/^\/retouches\/(\d+)$/)) && methode === 'POST') {
+    if (!admin) return json({ erreur: 'Accès refusé' }, 403);
+    const b = await corpsJson(req);
+    const r = await db.prepare('SELECT r.*, l.statut FROM retouches r JOIN livraisons l ON l.id = r.livraison_id WHERE r.id = ?').bind(Number(m[1])).first();
+    if (!r || r.statut !== 'brouillon') return json({ erreur: 'Cette retouche n\'est plus modifiable.' }, 409);
+    if (b.faite === true) await db.prepare("UPDATE retouches SET etat = 'faite', fait_le = ? WHERE id = ?").bind(maintenant(), r.id).run();
+    else if (b.faite === false) await db.prepare("UPDATE retouches SET etat = ?, fait_le = NULL WHERE id = ?").bind(r.qui === 'refaire' && r.reprise ? 'reprise' : 'a_faire', r.id).run();
+    if (QUI_RETOUCHE.includes(b.qui) && b.qui !== r.qui) {
+      const coms = formeJson(r.coms) || [];
+      let note_en = r.note_en;
+      if (b.qui !== 'moi' && coms.some(c => !c.texte_en)) { const en = await traduire(env, [r.note, ...coms.map(c => c.texte)]); note_en = en[0] || note_en; coms.forEach((c, n) => { c.texte_en = c.texte_en || en[n + 1]; }); }
+      await db.prepare("UPDATE retouches SET qui = ?, etat = 'a_faire', reprise = NULL, note_en = ?, coms = ? WHERE id = ?").bind(b.qui, note_en || null, JSON.stringify(coms), r.id).run();
+    }
+    return json({ ok: true });
+  }
+  // tout est fait : Kreative envoie la version N+1 au client (il ne revoit que les créas modifiées)
+  if ((m = chemin.match(/^\/livraisons\/(l_[A-Za-z0-9_]+)\/envoyer-retouches$/)) && methode === 'POST') {
+    if (!admin) return json({ erreur: 'Accès refusé' }, 403);
+    const b = await corpsJson(req);
+    const l = await db.prepare('SELECT * FROM livraisons WHERE id = ?').bind(m[1]).first();
+    if (!l || l.statut !== 'brouillon') return json({ erreur: 'Cette version a déjà été envoyée.' }, 409);
+    const reste = await db.prepare("SELECT COUNT(*) AS n FROM retouches WHERE livraison_id = ? AND etat != 'faite'").bind(l.id).first();
+    if (reste.n && b.force !== true) return json({ erreur: reste.n + ' retouche' + (reste.n > 1 ? 's ne sont' : ' n\'est') + ' pas encore faite' + (reste.n > 1 ? 's' : '') + '.', reste: reste.n }, 409);
+    await db.prepare("UPDATE livraisons SET statut = 'a_verifier', depose_le = ? WHERE id = ? AND statut = 'brouillon'").bind(maintenant(), l.id).run();
+    if (!await envoyerAuClient(env, ctx, url, db, { ...l, statut: 'a_verifier' })) return json({ erreur: 'Cette version a déjà été envoyée.' }, 409);
+    return json({ ok: true, message: 'Version ' + l.version + ' envoyée au client.' });
   }
   // l'état de chaque projet, le même pour tout le monde (admin, stratégiste, designer)
   if (chemin === '/etats' && methode === 'GET') {
@@ -2301,8 +2528,8 @@ async function apiClientLivraisons(req, env, ctx, url, chemin, methode, cl, aper
       }
       return json({ ok: true, approuvee: true, valide, commande: k && k.id });
     }
-    const { results: CO } = await db.prepare('SELECT texte FROM commentaires WHERE livraison_id = ? AND interne = 0').bind(l.id).all();
-    const pour = pourQui(CO.map(c => c.texte));
+    // v75 : les retours attendent que Kreative les répartisse, créa par créa (moi, la designer, ou à refaire)
+    const pour = 'repartir';
     await db.prepare("UPDATE livraisons SET statut = 'review_terminee', review_le = ?, retouche = ?, retouche_le = ? WHERE id = ?").bind(now, pour, now, l.id).run();
     await db.prepare('DELETE FROM prod_etapes WHERE dossier = ?').bind(l.dossier).run();
     if (k && !['valide', 'annule'].includes(k.statut)) await db.prepare("UPDATE commandes SET statut = 'revisions' WHERE id = ?").bind(k.id).run();
@@ -2311,8 +2538,8 @@ async function apiClientLivraisons(req, env, ctx, url, chemin, methode, cl, aper
     const lienAdmin = DOSSIER_WIMMOV.test(l.dossier) ? url.origin + '/admin/#/wimmov/livraison/' + l.dossier : url.origin + '/admin/#/livraisons/' + l.dossier;
     const envoi = envoyerEmail(env, { type: 'review', a: env.EMAIL_KREATIVE || 'contact@kreativeads.fr', marque: cl.marque, contact: 'Kreative', lien: lienAdmin,
       sujet: cl.marque + ' · retours du client sur la version ' + l.version,
-      html: emailHtml(url.origin, { titre: cl.marque + ' a terminé sa review', paragraphes: [(t.n - t.reste) + ' fichier' + (t.n - t.reste > 1 ? 's' : '') + ' approuvé' + (t.n - t.reste > 1 ? 's' : '') + ' sur ' + t.n + ', ' + t.coms + ' commentaire' + (t.coms > 1 ? 's' : '') + '. ' + (pour === 'strategiste' ? 'Les retours parlent des textes : le stratégiste corrige d\'abord, puis la designer fait la nouvelle version.' : 'La designer voit les retours dans son espace et prépare la nouvelle version.') + ' Vous pouvez changer qui s\'en occupe depuis la livraison.'],
-        bouton: ['Voir les retours', lienAdmin] }) });
+      html: emailHtml(url.origin, { titre: cl.marque + ' a terminé sa review', paragraphes: [(t.n - t.reste) + ' fichier' + (t.n - t.reste > 1 ? 's' : '') + ' approuvé' + (t.n - t.reste > 1 ? 's' : '') + ' sur ' + t.n + ', ' + t.coms + ' commentaire' + (t.coms > 1 ? 's' : '') + '. ' + (DOSSIER_WIMMOV.test(l.dossier) ? 'Faites la nouvelle version depuis la section Wimmov.' : 'Répartissez les retours créa par créa : vous, la designer, ou à refaire.')],
+        bouton: [DOSSIER_WIMMOV.test(l.dossier) ? 'Voir les retours' : 'Répartir les retours', lienAdmin] }) });
     if (ctx && ctx.waitUntil) ctx.waitUntil(envoi); else await envoi;
     return json({ ok: true, approuvee: false });
   }

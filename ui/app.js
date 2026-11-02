@@ -516,7 +516,10 @@
       ts = v.le || 0;
       if (v.statut === 'a_verifier') cle = 'livrer';
       else if (['envoyee', 'approuvee'].includes(v.statut)) cle = 'client';
+      // v75 : les retours attendent d'être répartis par Kreative, ou sont déjà répartis (version suivante en cours)
+      else if (['a_corriger', 'review_terminee'].includes(v.statut) && ['repartir', 'reparti'].includes(v.retouche)) { retouche = 'repartir'; cle = 'livrer'; }
       else if (['a_corriger', 'review_terminee'].includes(v.statut)) { retouche = v.retouche || 'designer'; cle = retouche === 'strategiste' ? 'strat' : 'desi'; }
+      else if (v.statut === 'brouillon' && v.ret) { retouche = v.ret.strat ? 'strategiste' : v.ret.desi ? 'designer' : 'kreative'; cle = v.ret.strat ? 'strat' : v.ret.desi ? 'desi' : 'livrer'; }
       else cle = 'desi';
     } else {
       ts = Math.max(x.envoyeLe || 0, x.livreLe || 0);
@@ -524,7 +527,7 @@
     }
     let manuel = false;
     if (x.o && x.o.etape && x.o.le > ts) { cle = x.o.etape; manuel = true; retouche = null; }
-    return { cle, retouche, manuel, statut: v ? v.statut : null, version: v ? v.version : 0, valide: x.k === 'valide' };
+    return { cle, retouche, manuel, statut: v ? v.statut : null, version: v ? v.version : 0, valide: x.k === 'valide', ret: v && v.statut === 'brouillon' && !manuel ? v.ret || null : null };
   };
   P.trouver = id => (P.liste || []).find(x => x.dossier === id) || (P.liste || []).find(x => x.prod === id) || null;
 
@@ -540,18 +543,22 @@
   // où en est un projet de production
   P.etat = (x, en) => {
     const g = x.etape;
+    // v75 : jamais le rôle de l'autre dans les textes de l'équipe (la designer lit l'anglais)
+    if (g && g.retouche === 'repartir') return { cle: 'livrer', texte: en ? 'Client feedback received' : 'Retours à répartir', pill: 'a' };
+    if (g && g.ret) { const r = g.ret, n = r.total - r.faites; return en ? { cle: g.cle, texte: 'Revisions in progress', pill: 'v' } : { cle: g.cle, texte: 'Retouches ' + r.faites + ' sur ' + r.total, pill: n ? 'v' : 'g' }; }
     if (g && g.retouche && g.cle === 'desi') return { cle: 'desi', texte: en ? (g.statut === 'a_corriger' ? 'Sent back to you' : 'Client feedback to fix') : 'Retouches · visuels', pill: 'v' };
-    if (g && g.retouche && g.cle === 'strat') return { cle: 'strat', texte: en ? 'Copy fixes by the strategist' : 'Retouches · textes', pill: 'v' };
-    if (g && g.cle === 'strat' && x.envoye) return { cle: 'strat', texte: en ? 'With the strategist' : 'Chez le stratégiste', pill: 'b' };
+    if (g && g.retouche && g.cle === 'strat') return { cle: 'strat', texte: en ? 'Copy being updated' : 'Retouches · textes', pill: 'v' };
+    if (g && g.cle === 'strat' && x.envoye) return { cle: 'strat', texte: en ? 'Brief in progress' : 'Chez le stratégiste', pill: 'b' };
     if (g && g.cle === 'desi') { const e = P.echeance(x.desi, en); return { cle: 'desi', texte: e.retard ? (en ? 'Late' : 'Designer en retard') : (en ? 'To deliver' : 'Chez le designer'), pill: e.retard ? 'r' : 'v' }; }
-    if (!x.envoye) { const e = P.echeance(x.strat, en); return { cle: 'strat', texte: e.retard ? (en ? 'Brief late' : 'Fiche en retard') : (en ? 'With the strategist' : 'Fiche à remplir'), pill: e.retard ? 'r' : 'b' }; }
+    if (!x.envoye) { const e = P.echeance(x.strat, en); return { cle: 'strat', texte: e.retard ? (en ? 'Brief late' : 'Fiche en retard') : (en ? 'Brief in progress' : 'Fiche à remplir'), pill: e.retard ? 'r' : 'b' }; }
     if (!x.livre) { const e = P.echeance(x.desi, en); return { cle: 'desi', texte: e.retard ? (en ? 'Late' : 'Designer en retard') : (en ? 'To deliver' : 'Chez le designer'), pill: e.retard ? 'r' : 'v' }; }
     return { cle: 'livre', texte: en ? 'Delivered' : 'Livré par le designer', pill: 'g' };
   };
   P.pill = (x, en) => { const e = P.etat(x, en); return '<span class="pill ' + e.pill + '"><i></i>' + K.esc(e.texte) + '</span>'; };
   // ce que voit le stratégiste : seulement SA fiche (à remplir, en retard, envoyée à l'heure ou non)
   P.etatStrat = x => {
-    if (x.etape && x.etape.retouche === 'strategiste' && x.etape.cle === 'strat') return { cle: 'retouches', texte: 'Retouches de textes', pill: 'v' };
+    if (x.etape && x.etape.ret && x.etape.ret.strat) return { cle: 'retouches', texte: x.etape.ret.strat > 1 ? x.etape.ret.strat + ' créas à refaire' : '1 créa à refaire', pill: 'v' };
+    if (x.etape && x.etape.retouche === 'strategiste' && x.etape.cle === 'strat' && !x.etape.ret) return { cle: 'retouches', texte: 'Retouches de textes', pill: 'v' };
     if (x.etape && x.etape.cle === 'strat' && x.envoye) return { cle: 'afaire', texte: 'Fiche à reprendre', pill: 'b' };
     if (!x.envoye) return x.strat && x.strat < Date.now() ? { cle: 'retard', texte: 'Fiche en retard', pill: 'r' } : { cle: 'afaire', texte: 'Fiche à remplir', pill: 'b' };
     if (x.strat && (x.envoyePremierLe || x.envoyeLe) > x.strat) { const h = Math.max(1, Math.round(((x.envoyePremierLe || x.envoyeLe) - x.strat) / 36e5)); return { cle: 'tard', texte: 'Envoyée avec ' + (h >= 24 ? Math.round(h / 24) + ' j' : h + ' h') + ' de retard', pill: 'a' }; }
@@ -639,4 +646,60 @@
     const s = document.getElementById('vp-projet');
     if (s) s.onchange = () => K.aller('#/' + sec + '/' + s.value);
   };
+})();
+
+// ============================================================
+//  v75 : RÉVISIONS. Déposer une créa retouchée (les 3 formats d'un coup) dans la version
+//  en cours : elle remplace l'ancienne créa du même numéro, même si le nom du fichier change.
+//  Utilisé par l'admin (ses retouches) et la designer (les siennes).
+// ============================================================
+K.depot = (() => {
+  const D = {};
+  // « PULSE_STANDARD_03.png » → « 03 » (le même calcul que le Worker)
+  D.crea = nom => { const s = String(nom || '').replace(/\.[A-Za-z0-9]{2,4}$/, ''); const m = s.match(/(\d+)\D*$/); return m ? String(Number(m[1])).padStart(2, '0') : s.slice(0, 40); };
+  D.dimensions = f => new Promise(ok => {
+    const im = new Image(); im.onload = () => { ok({ l: im.naturalWidth, h: im.naturalHeight }); URL.revokeObjectURL(im.src); }; im.onerror = () => ok({ l: 0, h: 0 }); im.src = URL.createObjectURL(f);
+  });
+  D.format = d => { if (!d.l || !d.h) return 'autre'; const r = d.l / d.h; return Math.abs(r - 1) < .03 ? '1x1' : Math.abs(r - .8) < .03 ? '4x5' : Math.abs(r - .5625) < .03 ? '9x16' : 'autre'; };
+  D.miniature = f => new Promise(ok => {
+    const im = new Image();
+    im.onload = () => { const c = document.createElement('canvas'), t = 480, k = Math.min(1, t / Math.max(im.naturalWidth, im.naturalHeight)); c.width = Math.round(im.naturalWidth * k); c.height = Math.round(im.naturalHeight * k); c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); c.toBlob(b => ok(b), 'image/jpeg', .8); };
+    im.onerror = () => ok(null); im.src = URL.createObjectURL(f);
+  });
+  D.envoyer = (livraison, f, format, d, crea, suivi) => new Promise((ok, ko) => {
+    const x = new XMLHttpRequest();
+    x.open('PUT', '/api/equipe/fichiers?livraison=' + encodeURIComponent(livraison) + '&format=' + format + '&nom=' + encodeURIComponent(f.name) + '&l=' + d.l + '&h=' + d.h + (crea ? '&crea=' + encodeURIComponent(crea) : ''));
+    x.setRequestHeader('Content-Type', f.type || 'application/octet-stream');
+    x.upload.onprogress = e => { if (e.lengthComputable && suivi) suivi(Math.round(e.loaded * 100 / e.total)); };
+    x.onload = () => { let r = {}; try { r = JSON.parse(x.responseText); } catch (e) {} if (x.status < 300) ok(r); else ko(new Error(r.erreur || 'Upload failed (' + x.status + ')')); };
+    x.onerror = () => ko(new Error('Network error'));
+    x.send(f);
+  });
+  // la créa « crea » : un fichier par format (1:1, 4:5, 9:16), reconnu à sa taille
+  D.deposerCrea = async (livraison, crea, fichiers, en, suivi) => {
+    const L = Array.from(fichiers || []);
+    const pas = L.filter(f => f.type !== 'image/png');
+    if (pas.length) throw new Error(en ? 'PNG files only.' : 'Fichiers PNG seulement.');
+    let fait = 0;
+    for (const f of L) {
+      const d = await D.dimensions(f), fmt = D.format(d);
+      if (fmt === 'autre') throw new Error((en ? 'Unknown size: ' : 'Taille inconnue : ') + f.name + ' (' + d.l + '×' + d.h + ')');
+      const r = await D.envoyer(livraison, f, fmt, d, crea, pc => suivi && suivi(Math.round((fait * 100 + pc) / L.length)));
+      const mini = await D.miniature(f);
+      if (mini && r.id) await fetch('/api/equipe/fichiers/' + r.id + '/mini', { method: 'PUT', headers: { 'Content-Type': 'image/jpeg' }, body: mini, credentials: 'same-origin' });
+      fait++; if (suivi) suivi(Math.round(fait * 100 / L.length));
+    }
+    return fait;
+  };
+  // une zone de dépôt : clic ou glisser-déposer
+  D.brancher = (zone, surFichiers) => {
+    if (!zone) return;
+    const champ = document.createElement('input'); champ.type = 'file'; champ.multiple = true; champ.accept = 'image/png,.png'; champ.hidden = true; zone.appendChild(champ);
+    zone.onclick = e => { if (e.target !== champ) champ.click(); };
+    champ.onchange = () => { if (champ.files.length) surFichiers(champ.files); };
+    zone.ondragover = e => { e.preventDefault(); zone.classList.add('survol'); };
+    zone.ondragleave = () => zone.classList.remove('survol');
+    zone.ondrop = e => { e.preventDefault(); zone.classList.remove('survol'); if (e.dataTransfer.files.length) surFichiers(e.dataTransfer.files); };
+  };
+  return D;
 })();

@@ -40,7 +40,8 @@ function conf() {
   if (admin) sections.push({ titre: 'Admin', liens: [{ id: 'admin', texte: 'Back to the dashboard', icone: 'gauche', href: '/admin/' }] });
   sections.push({ titre: 'Workspace', liens: [
     { id: 'accueil', texte: 'Overview', icone: 'accueil', href: '#/' },
-    { id: 'projets', texte: 'Projects', icone: 'dossier', href: '#/projets', nb: L.filter(aFaire).length || '' }] });
+    { id: 'projets', texte: 'Projects', icone: 'dossier', href: '#/projets', nb: L.filter(aFaire).length || '' },
+    { id: 'revisions', texte: 'Revisions', icone: 'crayon', href: '#/revisions', nb: revAFaire().length || '' }] });
   sections.push({ titre: 'Production', liens: [
     { id: 'visuels', texte: 'Previews', icone: 'image', href: '#/visuels' },
     { id: 'telechargement', texte: 'Downloads', icone: 'telecharger', href: '#/telechargement' },
@@ -62,6 +63,43 @@ function boutons(x) {
     (x.livre ? '' : '<a class="btn btn-p btn-sm" href="#/livrer/' + esc(x.dossier) + '">' + i.envoi + 'Deliver</a>') + '</div>';
 }
 
+// ---------- REVISIONS (02/11) : the creatives the client wants changed, one by one ----------
+// Only these creatives: the others stay as they are. English first, the client's French words below.
+const revAFaire = () => (E.rev || []).flatMap(p => p.items.filter(x => x.etat !== 'faite').map(x => ({ p, x })));
+const revDe = d => (E.rev || []).find(p => p.dossier === d) || null;
+const nomDe = d => { const x = K.prod.trouver(d); return x ? nomEn(x) : d; };
+function ecranRevisions(id) {
+  const P = (E.rev || []).filter(p => !id || p.dossier === id);
+  let h = '<div class="ph"><div><h1>Revisions</h1><p>The creatives the client wants changed. Only these ones: the others stay as they are.</p></div></div>';
+  if (!P.length) return h + '<div class="card"><div class="vide">' + i.coche + 'No revisions right now.</div></div>';
+  return h + P.map(p => {
+    const reste = p.items.filter(x => x.etat !== 'faite').length;
+    return '<div class="sec"><div><h2>' + esc(nomDe(p.dossier)) + '</h2><p>Version ' + p.travail.version + ' · ' + (reste ? reste + ' creative' + (reste > 1 ? 's' : '') + ' to update' : 'all done, thank you') + '. The other ' + Math.max(0, p.nb_creas - p.items.length) + ' stay as they are.</p></div></div><div class="rp-liste">' +
+      p.items.map(x => {
+        const av = x.avant[0], ap = x.apres[0], nouvelle = x.type === 'nouvelle';
+        const en = x.coms.map(c => esc(c.texte_en || c.texte)).join('<br>') || (nouvelle ? 'Make a brand-new creative to replace this one.' : 'Update this creative.');
+        const fr = x.coms.filter(c => c.texte_en).map(c => '« ' + esc(c.texte) + ' »').join(' ');
+        const gauche = '<div><div class="rp-meta">AD' + esc(x.crea) + (nouvelle ? ' <span class="an-tag">New creative</span>' : ' · change the visual') + '</div>' +
+          (nouvelle ? '<p class="an-en">Make a brand-new creative to replace this one.</p><div class="an-fr">New brief and starting visual are ready in <b>Previews</b>, like a normal batch.' + (x.coms.length ? ' Client\'s feedback: ' + en : '') + '</div>'
+            : '<p class="an-en">' + en + '</p>' + (fr ? '<div class="an-fr">Client\'s words: ' + fr + '</div>' : '')) +
+          (x.note_en || x.note ? '<div class="an-fr" style="color:var(--tx2)"><b>Note from Kreative:</b> ' + esc(x.note_en || x.note) + '</div>' : '') + '</div>';
+        const droite = x.etat === 'faite' ? '<div class="sv-droite"><span class="sv-etat ok">' + i.coche + 'Delivered</span>' + (ap ? '<span class="sv-new"><img src="' + esc(ap.mini) + '" alt="">New version</span>' : '') + '</div>'
+          : '<div class="sv-droite">' + (nouvelle && x.reprise ? '<a class="btn btn-s" style="width:100%;justify-content:center" href="#/visuels/' + esc(x.reprise) + '">' + i.image + 'Open in Previews</a>' : '') +
+            '<div class="sv-drop" data-rev-depot="' + esc(x.crea) + '" data-rev-liv="' + esc(p.travail.id) + '"><b>Drop the new AD' + esc(x.crea) + '</b><small>All ' + x.formats.length + ' formats at once (' + x.formats.map(f => K.rv.nomFormat(f)).join(', ') + '). They replace the old ones.</small></div></div>';
+        return '<div class="card sv-c" style="grid-template-columns:120px 1fr 290px"><div class="rp-img" style="width:120px;height:120px">' + (av ? '<img src="' + esc(av.mini) + '" alt="" loading="lazy">' : '') + '</div>' + gauche + droite + '</div>';
+      }).join('') + '</div>';
+  }).join('');
+}
+function brancherRevisions() {
+  document.querySelectorAll('[data-rev-depot]').forEach(z => K.depot.brancher(z, async fichiers => {
+    const crea = z.dataset.revDepot;
+    z.innerHTML = '<b>Uploading AD' + esc(crea) + '…</b><div class="barre"><i style="width:0"></i></div>';
+    try { const n = await K.depot.deposerCrea(z.dataset.revLiv, crea, fichiers, true, pc => { const b = z.querySelector('.barre i'); if (b) b.style.width = pc + '%'; }); K.toast(n + ' file' + (n > 1 ? 's' : '') + ' uploaded. Thank you!'); }
+    catch (e) { K.toast(e.message); }
+    E.rev = await K.api('/api/equipe/revisions').catch(() => E.rev); await K.prod.charger(true); K.rendre(true);
+  }));
+}
+
 // ---------- OVERVIEW ----------
 function ecranAccueil() {
   const L = mesProjets(), now = Date.now();
@@ -74,6 +112,8 @@ function ecranAccueil() {
     kpi('Late', retard.length, retard.length ? 'deliver these first' : 'everything is on time', retard.length ? 'color:var(--red)' : '') +
     kpi('Next deadline', prochain ? new Date(prochain.desi).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : 'None', prochain ? nomEn(prochain) + ', ' + K.prod.echeance(prochain.desi, true).texte : 'nothing waiting') +
     kpi('Delivered', faits.filter(x => x.livreLe > now - 30 * 864e5).length, 'in the last 30 days') + '</div>';
+  const rv = revAFaire();
+  if (rv.length) h += '<div class="etat-envoi" style="margin:18px 0 0"><span class="pastille attente">' + i.crayon + '</span><div style="flex:1"><b>' + rv.length + ' creative' + (rv.length > 1 ? 's' : '') + ' to revise</b><small>The client asked for changes on ' + (rv.length > 1 ? 'these creatives' : 'this creative') + '. Only ' + (rv.length > 1 ? 'these ones' : 'this one') + ': the others stay as they are.</small></div><a class="btn btn-p" href="#/revisions">Open revisions</a></div>';
   h += '<div class="sec"><div><h2>To deliver</h2><p>Sorted by deadline, the closest first.</p></div></div>';
   h += afaire.length ? '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Project</th><th class="num">Creatives</th><th>Deadline</th><th>Due (Paris time)</th><th></th></tr></thead><tbody>' +
     afaire.map(x => '<tr><td>' + ligneNom(x) + '</td><td class="num">' + esc(K.prod.total(x) || '?') + '</td><td>' + (K.prod.echeance(x.desi, true).pill || '<span class="muted">No date</span>') + '</td>' +
@@ -117,7 +157,8 @@ async function chargerDl(d) {
   K.rendre(true);
 }
 function ecranLivrer(id) {
-  const L = mesProjets(), aLivrer = L.filter(aFaire).sort((a, b) => (a.desi || 9e15) - (b.desi || 9e15));
+  if (id && revDe(id)) return '<div class="ph"><div><h1>Deliver</h1></div></div><div class="card"><div class="vide">' + i.crayon + 'This project is in revisions: upload the updated creatives in <a href="#/revisions/' + esc(id) + '">Revisions</a>.</div></div>';
+  const L = mesProjets(), aLivrer = L.filter(aFaire).filter(x => !revDe(x.dossier)).sort((a, b) => (a.desi || 9e15) - (b.desi || 9e15));
   if (!id) {
     return '<div class="ph"><div><h1>Deliver</h1><p>Pick the project you finished, then upload your files right here.</p></div></div>' +
       (aLivrer.length ? '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Project</th><th class="num">Creatives</th><th>Status</th><th></th></tr></thead><tbody>' +
@@ -134,7 +175,7 @@ function ecranLivrer(id) {
     '<div class="act" style="align-items:center">' + (der ? pillEn(der.statut) : K.prod.echeance(x.desi, true).pill) +
     '<div style="width:300px"><select class="in" id="lv-projet">' + choix.map(y => '<option value="' + esc(y.dossier) + '"' + (y === x ? ' selected' : '') + '>' + esc(nomEn(y)) + '</option>').join('') + '</select></div></div></div>';
   if (!DL.donnees) return h + '<div class="card"><div class="vide">Loading…</div></div>';
-  const attenteStrat = der && ['a_corriger', 'review_terminee'].includes(der.statut) && der.retouche === 'strategiste';
+  const attenteStrat = der && ['a_corriger', 'review_terminee'].includes(der.statut) && /^strat/.test(der.retouche || '');   // les textes d'abord
   const peutDeposer = !attenteStrat && (!der || ['brouillon', 'a_corriger', 'review_terminee'].includes(der.statut));
   const travail = der && der.statut === 'brouillon' ? der : null, F = travail ? travail.fichiers : [];
   let gauche = '<div class="card pad"><h3 style="font-size:16px">Upload your files</h3>';
@@ -276,7 +317,7 @@ function brancherLivrer(id) {
 }
 
 // ---------- RENDU ----------
-const TITRES = { '': 'Overview', projets: 'Projects', visuels: 'Previews', telechargement: 'Downloads', livrer: 'Deliver' };
+const TITRES = { '': 'Overview', projets: 'Projects', revisions: 'Revisions', visuels: 'Previews', telechargement: 'Downloads', livrer: 'Deliver' };
 const TEXTES = { visuels: 'The generated visuals and the copy for each project.', telechargement: 'Download a project folder: visuals, copy and assets.' };
 let derniere = '';
 K.rendre = async force => {
@@ -286,6 +327,7 @@ K.rendre = async force => {
   if (!E.moi) E.moi = await K.lireJson('/_moi');
   await K.prod.charger();
   if (!E.livs) { try { E.livs = await K.api('/api/equipe/livraisons'); } catch (e) { E.livs = []; } }
+  if (!E.rev || force) { try { E.rev = await K.api('/api/equipe/revisions'); } catch (e) { E.rev = E.rev || []; } }
   marquer();
   const sec = r.ecran, id = r.params[0];
   let contenu, plein = false, nomP = '';
@@ -293,6 +335,7 @@ K.rendre = async force => {
     if (id) { contenu = K.prod.vue(sec, id, { en: true, sections: SECS }); plein = true; const x = K.prod.trouver(id); nomP = x ? nomEn(x) : id; }
     else { const tout = K.prod.liste; K.prod.liste = mesProjets(); contenu = K.prod.liste_(sec, { en: true, texte: TEXTES[sec] }); K.prod.liste = tout; }
   } else if (sec === 'livrer') { contenu = ecranLivrer(id); const x = id && K.prod.trouver(id); nomP = x ? nomEn(x) : ''; }
+  else if (sec === 'revisions') { contenu = ecranRevisions(id); nomP = id ? nomDe(id) : ''; }
   else contenu = sec === 'projets' ? ecranProjets() : ecranAccueil();
   const c = conf();
   const ariane = nomP ? K.ariane('pinceau', 'Designer', TITRES[sec], nomP) : K.ariane('pinceau', 'Designer', TITRES[sec] || TITRES['']);
@@ -301,6 +344,7 @@ K.rendre = async force => {
   K.prod.surveiller(() => { marquer(); if (DL.dossier && K.route().ecran === 'livrer') chargerDl(DL.dossier); else K.rendre(true); });
   if (plein) K.prod.brancher(sec);
   if (sec === 'livrer') brancherLivrer(id);
+  if (sec === 'revisions') brancherRevisions();
   document.title = 'Designer space · Kreative';
 };
 K.rendre();

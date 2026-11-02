@@ -962,3 +962,59 @@ a.lien-kpi:hover{border-color:var(--line2)}
 .dest span small{display:block;color:var(--tx3);font-size:12px}
 .dest.off{cursor:default;opacity:.5}
 .dest.off input{cursor:default}
+
+/* ---------- v75 : RÉVISIONS (répartir les retours, suivre la version suivante, espaces de l'équipe) ---------- */
+.rp-tete{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin:4px 0 16px}
+.rp-tete h2{font-size:20px;margin:0}.rp-tete p{margin:5px 0 0;color:var(--tx2);font-size:14px}
+.rp-liste{display:flex;flex-direction:column;gap:12px}
+.rp-c{display:grid;grid-template-columns:120px 1fr auto;gap:20px;align-items:center;padding:16px 18px 16px 16px}
+.rp-img{position:relative;width:120px;height:120px;border-radius:12px;overflow:hidden;background:var(--soft);flex-shrink:0;cursor:zoom-in;border:0;padding:0}
+.rp-img img{width:100%;height:100%;object-fit:cover;display:block}
+.rp-meta{font-size:12.5px;color:var(--tx3);margin-bottom:6px}
+.rp-txt{font-size:15px;line-height:1.45;margin:0 0 4px;color:var(--ink)}
+.rp-txt small{display:block;font-size:12px;color:var(--tx3);margin-top:2px}
+.rp-plus{font-size:13px;color:var(--blue-tx,#2f6fd6);margin-top:8px;display:inline-block;background:none;border:0;padding:0;cursor:pointer;font-family:inherit}
+.rp-note{margin-top:8px;width:100%;height:36px;font-size:13.5px}
+.rp-seg{display:flex;background:var(--soft);border:1px solid var(--line);border-radius:12px;padding:4px;gap:4px}
+.rp-seg button{display:flex;flex-direction:column;align-items:center;gap:4px;width:96px;padding:9px 6px 7px;border-radius:9px;font:500 12.5px Inter,sans-serif;color:var(--tx2);cursor:pointer;background:none;border:0}
+.rp-seg button.rien{width:58px}
+.rp-seg button i{font-style:normal;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font:600 11px Inter,sans-serif;background:var(--line);color:var(--tx2)}
+.rp-seg button kbd{font:500 10px Inter,sans-serif;color:var(--tx3);border:1px solid var(--line2);border-radius:4px;padding:0 4px}
+.rp-seg button.on{background:var(--panel);color:var(--ink);box-shadow:0 1px 3px rgba(15,23,42,.12),0 0 0 1px rgba(15,23,42,.05)}
+.rp-seg button.on i.moi{background:#111;color:#fff}.rp-seg button.on i.desi{background:#EA7C3F;color:#fff}.rp-seg button.on i.refaire{background:linear-gradient(135deg,#D9473F 50%,#EA7C3F 50%);color:#fff}
+:root[data-theme="dark"] .rp-seg button.on i.moi{background:#fff;color:#111}
+.rp-sug{display:block;font-size:11px;color:var(--blue-tx,#2f6fd6);text-align:center;margin-top:6px}
+.rp-barre{position:sticky;bottom:16px;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:14px;padding:12px 14px 12px 20px;border-radius:16px;background:#111;color:#fff;box-shadow:0 18px 40px -16px rgba(0,0,0,.5)}
+.rp-barre .tot{display:flex;gap:20px;font-size:13.5px;flex-wrap:wrap}.rp-barre .tot b{font-size:15px;margin-right:4px}
+.rp-barre .tot span{display:flex;align-items:center;gap:7px}.rp-barre .tot i{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font:600 9.5px Inter,sans-serif;font-style:normal}
+.rp-barre .btn{background:#4D94FF;color:#fff;border:0}
+.sv-prog{display:flex;align-items:center;gap:14px;margin:0 0 16px}.sv-prog .b{flex:1;height:8px;border-radius:99px;background:var(--line);overflow:hidden}.sv-prog .b i{display:block;height:100%;background:#4D94FF;border-radius:99px;transition:width .3s}
+.sv-c{display:grid;grid-template-columns:96px 1fr 290px;gap:18px;align-items:center;padding:14px 16px}
+.sv-c .rp-img{width:96px;height:96px}
+.sv-droite{display:flex;flex-direction:column;gap:8px;align-items:flex-start}
+.sv-etat{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;padding:5px 10px;border-radius:99px}
+.sv-etat.ok{background:var(--green-soft);color:var(--green)}.sv-etat.att{background:#FFF4E5;color:#B26A00}.sv-etat.b{background:rgba(77,148,255,.12);color:var(--blue-tx,#2f6fd6)}
+:root[data-theme="dark"] .sv-etat.att{background:rgba(245,165,36,.15);color:#f5a524}
+.sv-drop{width:100%;border:1.5px dashed #4D94FF;background:rgba(77,148,255,.06);border-radius:12px;padding:12px 14px;text-align:center;font-size:13.5px;color:var(--ink);cursor:pointer}
+.sv-drop.survol{background:rgba(77,148,255,.16)}
+.sv-drop b{display:block;margin-bottom:3px}.sv-drop small{color:var(--tx3)}
+.sv-drop .barre{height:4px;border-radius:99px;background:var(--line);margin-top:8px;overflow:hidden}.sv-drop .barre i{display:block;height:100%;background:#4D94FF}
+.sv-new{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--tx2)}.sv-new img{width:40px;height:40px;border-radius:8px;object-fit:cover}
+.sv-qui{height:32px;font-size:12.5px;padding:0 8px;width:auto}
+.sv-note{display:flex;gap:10px;align-items:center;padding:12px 16px;border-radius:12px;background:var(--soft);font-size:13.5px;color:var(--tx2);margin-top:12px}
+.sv-pied{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:16px;flex-wrap:wrap}
+.lv-mini{display:flex;gap:4px}.lv-mini i{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font:600 9.5px Inter,sans-serif;font-style:normal;color:#fff}
+/* espace de la designer : l'anglais en gros, le français du client en petit */
+.an-en{font-size:16.5px;line-height:1.4;margin:2px 0 0;font-weight:500;color:var(--ink)}
+.an-fr{font-size:12.5px;color:var(--tx3);margin-top:5px}
+.an-tag{display:inline-block;font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:99px;background:#F1ECFF;color:#6B4FD8;margin-left:6px}
+:root[data-theme="dark"] .an-tag{background:rgba(124,92,255,.18);color:#b9a8ff}
+/* espace du stratégiste : la créa à refaire */
+.rq{display:grid;grid-template-columns:150px 1fr auto;gap:22px;align-items:center;padding:18px 20px}
+.rq .rp-img{width:150px;height:150px}
+.rq-b{background:var(--soft);border-radius:4px 14px 14px 14px;padding:12px 14px;font-size:15px;line-height:1.45;margin-top:6px}
+.rq-b small{display:block;font-size:12px;color:var(--tx3);margin-bottom:4px}
+@media (max-width:900px){.rp-c,.sv-c,.rq{grid-template-columns:80px 1fr}.rp-c>:last-child,.sv-c>:last-child,.rq>:last-child{grid-column:1/-1}.rp-img,.sv-c .rp-img,.rq .rp-img{width:80px;height:80px}.rp-seg{overflow-x:auto}}
+.rp-pin{position:absolute;transform:translate(-50%,-50%);width:22px;height:22px;border-radius:50%;background:#4D94FF;color:#fff;font:600 11px Inter,sans-serif;display:grid;place-items:center;box-shadow:0 0 0 2px #fff}
+.rp-c .rp-txt+.rp-meta{margin-top:10px}
+.rp-seg button:disabled,.rp-barre .btn:disabled{opacity:.45;cursor:default}

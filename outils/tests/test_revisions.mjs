@@ -66,6 +66,14 @@ t('… sans jamais le rôle de l\'autre ni qui fait quoi', pDe && !JSON.stringif
 const rSt = await api('/api/equipe/revisions/' + D, ST);
 t('le stratégiste voit seulement la créa à refaire', rSt.d.items.length === 1 && rSt.d.items[0].crea === '03' && /aime pas/.test(rSt.d.items[0].coms[0].texte), JSON.stringify(rSt.d).slice(0, 200));
 t('… sans jamais le rôle de l\'autre', !JSON.stringify(rSt.d).match(/designer|andrea|"qui"|texte_en/i), JSON.stringify(rSt.d).slice(0, 300));
+// v81 : Kreative qui ouvre l'espace de la designer ou du stratégiste voit exactement ce qu'ils voient
+const vD = await api('/api/equipe/revisions?vue=designer', A); const pvD = (vD.d || []).find(p => p.dossier === D);
+t('admin en vue designer : la même chose que la designer (AD02 seulement, sans « qui »)', pvD && JSON.stringify(pvD) === JSON.stringify(pDe), JSON.stringify(pvD).slice(0, 200));
+const vS = await api('/api/equipe/revisions/' + D + '?vue=strategiste', A);
+t('admin en vue stratégiste : la même chose que le stratégiste', JSON.stringify(vS.d) === JSON.stringify(rSt.d), JSON.stringify(vS.d).slice(0, 200));
+r = await api('/api/equipe/revisions?vue=admin', DE); const pDe2 = (r.d || []).find(p => p.dossier === D);
+t('la designer ne peut pas demander une autre vue', pDe2 && pDe2.items.length === 1 && !pDe2.items[0].qui, JSON.stringify(r.d).slice(0, 160));
+r = await api('/api/equipe/revisions/' + D + '?vue=designer', ST); t('le stratégiste ne peut pas voir la vue designer', r.d.items.length === 1 && r.d.items[0].crea === '03' && !JSON.stringify(r.d).includes('texte_en'), JSON.stringify(r.d).slice(0, 160));
 r = await api('/api/equipe/etats', DE); t('l\'état du projet ne nomme personne (designer)', !JSON.stringify(r.d.etats[D] || {}).match(/strateg/i), JSON.stringify(r.d.etats[D]));
 
 // la designer ne peut pas « envoyer » la version de retouches : c'est Kreative qui l'envoie
@@ -139,7 +147,7 @@ const img = await get(lv2.fichiers[0].url, { headers: { Cookie: CK } }); t('le c
 r = await api('/api/equipe/livraisons/' + lv2.id + '/stockage', DE); t('la designer ne lance pas la vérification', r.s === 403, r.s);
 r = await get('/api/equipe/fichiers/' + lv2.fichiers[0].id + '/reparer', { method: 'PUT', headers: { Cookie: A, 'Content-Type': 'image/png' }, body: PNG });
 t('réparer un fichier : remis à la même place', r.status === 200, r.status);
-r = await api('/api/admin/diagnostic', A); t('diagnostic du Worker', r.s === 200 && r.d.worker === 'v80' && r.d.telegram_bot === true, JSON.stringify(r.d));
+r = await api('/api/admin/diagnostic', A); t('diagnostic du Worker', r.s === 200 && r.d.worker === 'v81' && r.d.telegram_bot === true, JSON.stringify(r.d));
 r = await api('/api/admin/diagnostic', DE); t('diagnostic : admin seulement', r.s === 403 || r.s === 401, r.s);
 
 // v78 : une page modifiée sur main est servie dès le nouveau commit (avant : une copie pouvait rester figée des heures)

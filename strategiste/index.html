@@ -111,7 +111,7 @@ function ecranProjets() {
 const RT = { dossier: null, donnees: null };
 async function chargerRetouches(d) {
   RT.dossier = d;
-  try { [RT.donnees, RT.rev] = await Promise.all([K.api('/api/equipe/livraisons/' + d), K.api('/api/equipe/revisions/' + d).catch(() => null)]); } catch (e) { RT.donnees = { versions: [], erreur: e.message }; }
+  try { [RT.donnees, RT.rev] = await Promise.all([K.api('/api/equipe/livraisons/' + d), K.api('/api/equipe/revisions/' + d + '?vue=strategiste').catch(() => null)]); } catch (e) { RT.donnees = { versions: [], erreur: e.message }; }
   K.rendre(true);
 }
 // 02/11 : les créas que le client veut voir refaites : on les refait dans la fiche créas, comme une créa normale

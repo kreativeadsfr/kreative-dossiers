@@ -1725,8 +1725,9 @@ async function apiAdmin(req, env, ctx, url, chemin, methode) {
     let gh = null;
     try { const r = await fetch((env.GITHUB_API || 'https://api.github.com').replace(/\/$/, '') + '/repos/' + DEPOT + '/contents/admin/index.html?ref=' + BRANCHE, { headers: { 'Authorization': 'Bearer ' + (env.GITHUB_TOKEN || ''), 'Accept': 'application/vnd.github.raw', 'User-Agent': 'kreative-espace', 'X-GitHub-Api-Version': '2022-11-28' } }); gh = r.status; if (r.body) r.body.cancel(); } catch (e) { gh = 'erreur'; }
     const sha = await shaMain(env).catch(() => null);
+    TRAD_ERREURS = []; TRAD_MODELE = null;
     const essai = url.searchParams.has('traduction') ? (await traduire(env, ['Serait-il possible de mettre un visuel de l\'interface ?']))[0] : undefined;
-    return json({ worker: 'v80', traduction_essai: essai, depot_commit: sha ? sha.slice(0, 7) : null, github_jeton: gh === 200 ? 'ok' : gh === 401 ? 'REFUSÉ (jeton expiré ou révoqué)' : gh, github_derniere_lecture: DEPOT_DERNIER,
+    return json({ worker: 'v81', traduction_essai: essai, traduction_modele: essai !== undefined ? TRAD_MODELE : undefined, traduction_refus: essai !== undefined && TRAD_ERREURS.length ? TRAD_ERREURS : undefined, depot_commit: sha ? sha.slice(0, 7) : null, github_jeton: gh === 200 ? 'ok' : gh === 401 ? 'REFUSÉ (jeton expiré ou révoqué)' : gh, github_derniere_lecture: DEPOT_DERNIER,
       stockage_r2: !!env.FICHIERS, traduction_ai: !!env.AI, telegram_bot: !!env.TELEGRAM_BOT, code_fiche: !!(await codeFiche(env)) });
   }
   if (chemin === '/equipe' && methode === 'GET') {
@@ -1930,25 +1931,31 @@ async function prevenirEquipe(env, ctx, db, dossier, R) {
 // le numéro de la créa dans un nom de fichier : « PULSE_STANDARD_03.png » → « 03 »
 const creaDe = nom => { const s = String(nom || '').replace(/\.[A-Za-z0-9]{2,4}$/, ''); const m = s.match(/(\d+)\D*$/); return m ? String(Number(m[1])).padStart(2, '0') : s.slice(0, 40); };
 // la traduction en anglais pour la designer (Cloudflare Workers AI, binding « AI ») : sans lui, le français seul
+let TRAD_MODELE = null, TRAD_ERREURS = [];   // le modèle qui a traduit en dernier, les refus (diagnostic)
 async function traduire(env, textes) {
   if (!env.AI) return textes.map(() => null);
-  const delai = p => Promise.race([p, new Promise(ok => setTimeout(() => ok(null), 9000))]);
+  const delai = p => Promise.race([p, new Promise(ok => setTimeout(() => ok(null), 20000))]);
   return Promise.all(textes.map(async t => {
     if (!t || !String(t).trim()) return null;
     const x = String(t).slice(0, 1500);
-    // v80 : un modèle de texte d'abord (m2m100 trahissait le sens : « mettre un visuel de l'interface » → « create an
-    // interface »), m2m100 seulement en secours
-    try {
-      const r = await delai(env.AI.run('@cf/meta/llama-3.1-8b-instruct', { messages: [
-        { role: 'system', content: 'You translate client feedback about an advertising creative from French to English for a graphic designer. Translate faithfully and naturally, keeping the exact meaning, quotes, numbers and brand names. Reply with the English translation only: no introduction, no notes.' },
-        { role: 'user', content: x }], max_tokens: 600 }));
-      const en = r && (r.response || r.translated_text);
-      if (en && String(en).trim()) return String(en).trim().replace(/^(here is|here's) (the )?translation:?\s*/i, '').replace(/^["«]\s*|\s*["»]$/g, '').slice(0, 2000);
-    } catch (e) {}
+    // v81 : le grand modèle d'abord (le petit traduisait « mettre un visuel de l'interface » par « create an interface »),
+    // avec un exemple ; puis le petit ; m2m100 en dernier secours
+    const consigne = [
+      { role: 'system', content: 'You translate client feedback about an advertising creative (a static ad) from French to English, for the graphic designer who will apply it. Translate faithfully: keep every element of the request (what to add, move, remove, change), quotes, numbers and brand names. Do not summarize, do not interpret. Reply with the English translation only, on one line, no introduction.' },
+      { role: 'user', content: 'Serait-il possible de mettre une photo du produit à la place du fond ?' },
+      { role: 'assistant', content: 'Would it be possible to put a photo of the product instead of the background?' },
+      { role: 'user', content: x }];
+    for (const modele of ['@cf/meta/llama-3.3-70b-instruct-fp8-fast', '@cf/meta/llama-3.1-8b-instruct']) {
+      try {
+        const r = await delai(env.AI.run(modele, { messages: consigne, max_tokens: 600 }));
+        const en = r && (r.response || r.translated_text);
+        if (en && String(en).trim()) { TRAD_MODELE = modele; return String(en).trim().replace(/^(here is|here's) (the )?translation:?\s*/i, '').replace(/\s*\n+\s*/g, ' ').replace(/^["«]\s*|\s*["»]$/g, '').slice(0, 2000); }
+      } catch (e) { TRAD_ERREURS.push(modele.split('/').pop() + ' : ' + String(e && e.message || e).slice(0, 160)); }
+    }
     try {
       const r = await delai(env.AI.run('@cf/meta/m2m100-1.2b', { text: x, source_lang: 'fr', target_lang: 'en' }));
       const en = r && (r.translated_text || r.response);
-      if (en && String(en).trim() && String(en).trim() !== x.trim()) return String(en).trim().slice(0, 2000);
+      if (en && String(en).trim() && String(en).trim() !== x.trim()) { TRAD_MODELE = 'm2m100'; return String(en).trim().slice(0, 2000); }
     } catch (e) {}
     return null;
   }));
@@ -1959,12 +1966,12 @@ async function traduireRetouches(db, env, R) {
   for (const r of R) {
     const coms = formeJson(r.coms) || [];
     // v80 : les traductions d'avant (modèle moins fidèle) sont refaites une fois (marque « trad: 2 »)
-    const neuve = c => c.texte_en && c.trad === 2;
+    const neuve = c => c.texte_en && c.trad === 3;
     const manque = coms.filter(c => c.texte && !neuve(c));
     const noteAFaire = r.note && (!r.note_en || manque.length);
     if (!manque.length && !noteAFaire) continue;
     const en = await traduire(env, [noteAFaire ? r.note : '', ...manque.map(c => c.texte)]);
-    manque.forEach((c, n) => { if (en[n + 1]) { c.texte_en = en[n + 1]; c.trad = 2; } });
+    manque.forEach((c, n) => { if (en[n + 1]) { c.texte_en = en[n + 1]; c.trad = 3; } });
     r.coms = JSON.stringify(coms); if (en[0]) r.note_en = en[0];
     await db.prepare('UPDATE retouches SET coms = ?, note_en = ? WHERE id = ?').bind(r.coms, r.note_en || null, r.id).run();
   }
@@ -1998,6 +2005,8 @@ async function verifierRetouches(db, livraisonId, crea, role) {
     if (formats.length && formats.every(x => neufs.has(x))) await db.prepare("UPDATE retouches SET etat = 'faite', fait_le = ?, fait_par = ? WHERE id = ?").bind(maintenant(), role || null, r.id).run();
   }
 }
+// v81 : l'admin qui ouvre l'espace designer ou stratégiste voit exactement ce qu'ils voient (?vue=designer)
+const vueDe = (admin, url, qui) => { const v = url.searchParams.get('vue'); return admin && ['designer', 'strategiste'].includes(v) ? v : qui.role; };
 // ce que chacun voit des retouches d'un projet (la version en cours, sinon la dernière répartie)
 async function revisionsDe(db, dossier, role, env) {
   const r0 = await db.prepare('SELECT livraison_id FROM retouches WHERE dossier = ? ORDER BY cree_le DESC LIMIT 1').bind(dossier).first();
@@ -2459,7 +2468,7 @@ async function apiEquipe(req, env, ctx, url, chemin, methode, qui) {
   // les retouches d'un projet (chacun ne voit que les siennes)
   if ((m = chemin.match(/^\/revisions\/([A-Za-z0-9_-]{3,80})$/)) && methode === 'GET') {
     if (cache(m[1])) return json({ erreur: 'Introuvable' }, 404);
-    return json(await revisionsDe(db, m[1], qui.role, env) || { dossier: m[1], items: [] });
+    return json(await revisionsDe(db, m[1], vueDe(admin, url, qui), env) || { dossier: m[1], items: [] });
   }
   // toutes les retouches en cours (la liste de la designer et du stratégiste)
   if (chemin === '/revisions' && methode === 'GET') {
@@ -2467,7 +2476,7 @@ async function apiEquipe(req, env, ctx, url, chemin, methode, qui) {
     const sortie = [];
     for (const x of results) {
       if (cache(x.dossier)) continue;
-      const d = await revisionsDe(db, x.dossier, qui.role, env);
+      const d = await revisionsDe(db, x.dossier, vueDe(admin, url, qui), env);
       if (d && d.travail.statut === 'brouillon' && d.items.length) sortie.push(d);
     }
     return json(sortie);
@@ -2505,7 +2514,7 @@ async function apiEquipe(req, env, ctx, url, chemin, methode, qui) {
       // la designer lit l'anglais : les retours qui lui arriveront sont traduits maintenant
       if (it.qui !== 'moi') {
         const en = await traduire(env, [it.note, ...coms.map(c => c.texte)]);
-        it.note_en = en[0]; coms.forEach((c, n) => { c.texte_en = en[n + 1]; if (en[n + 1]) c.trad = 2; });
+        it.note_en = en[0]; coms.forEach((c, n) => { c.texte_en = en[n + 1]; if (en[n + 1]) c.trad = 3; });
       }
       lignes.push(db.prepare('INSERT INTO retouches (dossier, source_id, livraison_id, crea, qui, etat, note, note_en, coms, cree_le) VALUES (?,?,?,?,?,?,?,?,?,?)')
         .bind(l.dossier, l.id, travail.id, it.crea, it.qui, 'a_faire', it.note || null, it.note_en || null, JSON.stringify(coms), now));
@@ -2528,7 +2537,7 @@ async function apiEquipe(req, env, ctx, url, chemin, methode, qui) {
     if (QUI_RETOUCHE.includes(b.qui) && b.qui !== r.qui) {
       const coms = formeJson(r.coms) || [];
       let note_en = r.note_en;
-      if (b.qui !== 'moi' && coms.some(c => !c.texte_en)) { const en = await traduire(env, [r.note, ...coms.map(c => c.texte)]); note_en = en[0] || note_en; coms.forEach((c, n) => { c.texte_en = c.texte_en || en[n + 1]; }); }
+      if (b.qui !== 'moi' && coms.some(c => c.trad !== 3)) { const en = await traduire(env, [r.note, ...coms.map(c => c.texte)]); note_en = en[0] || note_en; coms.forEach((c, n) => { if (en[n + 1]) { c.texte_en = en[n + 1]; c.trad = 3; } }); }
       await db.prepare("UPDATE retouches SET qui = ?, etat = 'a_faire', reprise = NULL, note_en = ?, coms = ? WHERE id = ?").bind(b.qui, note_en || null, JSON.stringify(coms), r.id).run();
       await prevenirEquipe(env, ctx, db, r.dossier, [{ crea: r.crea, qui: b.qui }]);
     }

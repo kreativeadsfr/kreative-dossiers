@@ -99,7 +99,7 @@ function brancherRevisions() {
     z.innerHTML = '<b>Uploading AD' + esc(crea) + '…</b><div class="barre"><i style="width:0"></i></div>';
     try { const n = await K.depot.deposerCrea(z.dataset.revLiv, crea, fichiers, true, pc => { const b = z.querySelector('.barre i'); if (b) b.style.width = pc + '%'; }); K.toast(n + ' file' + (n > 1 ? 's' : '') + ' uploaded. Thank you!'); }
     catch (e) { K.toast(e.message); }
-    E.rev = await K.api('/api/equipe/revisions').catch(() => E.rev); await K.prod.charger(true); K.rendre(true);
+    E.rev = await K.api('/api/equipe/revisions?vue=designer').catch(() => E.rev); await K.prod.charger(true); K.rendre(true);
   }));
 }
 
@@ -330,7 +330,7 @@ K.rendre = async force => {
   if (!E.moi) E.moi = await K.lireJson('/_moi');
   await K.prod.charger();
   if (!E.livs) { try { E.livs = await K.api('/api/equipe/livraisons'); } catch (e) { E.livs = []; } }
-  if (!E.rev || force) { try { E.rev = await K.api('/api/equipe/revisions'); } catch (e) { E.rev = E.rev || []; } }
+  if (!E.rev || force) { try { E.rev = await K.api('/api/equipe/revisions?vue=designer'); } catch (e) { E.rev = E.rev || []; } }
   marquer();
   const sec = r.ecran, id = r.params[0];
   let contenu, plein = false, nomP = '';

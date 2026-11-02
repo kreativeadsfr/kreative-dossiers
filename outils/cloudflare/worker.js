@@ -1726,7 +1726,7 @@ async function apiAdmin(req, env, ctx, url, chemin, methode) {
     try { const r = await fetch((env.GITHUB_API || 'https://api.github.com').replace(/\/$/, '') + '/repos/' + DEPOT + '/contents/admin/index.html?ref=' + BRANCHE, { headers: { 'Authorization': 'Bearer ' + (env.GITHUB_TOKEN || ''), 'Accept': 'application/vnd.github.raw', 'User-Agent': 'kreative-espace', 'X-GitHub-Api-Version': '2022-11-28' } }); gh = r.status; if (r.body) r.body.cancel(); } catch (e) { gh = 'erreur'; }
     const sha = await shaMain(env).catch(() => null);
     const essai = url.searchParams.has('traduction') ? (await traduire(env, ['Serait-il possible de mettre un visuel de l\'interface ?']))[0] : undefined;
-    return json({ worker: 'v79', traduction_essai: essai, depot_commit: sha ? sha.slice(0, 7) : null, github_jeton: gh === 200 ? 'ok' : gh === 401 ? 'REFUSÉ (jeton expiré ou révoqué)' : gh, github_derniere_lecture: DEPOT_DERNIER,
+    return json({ worker: 'v80', traduction_essai: essai, depot_commit: sha ? sha.slice(0, 7) : null, github_jeton: gh === 200 ? 'ok' : gh === 401 ? 'REFUSÉ (jeton expiré ou révoqué)' : gh, github_derniere_lecture: DEPOT_DERNIER,
       stockage_r2: !!env.FICHIERS, traduction_ai: !!env.AI, telegram_bot: !!env.TELEGRAM_BOT, code_fiche: !!(await codeFiche(env)) });
   }
   if (chemin === '/equipe' && methode === 'GET') {
@@ -1936,18 +1936,19 @@ async function traduire(env, textes) {
   return Promise.all(textes.map(async t => {
     if (!t || !String(t).trim()) return null;
     const x = String(t).slice(0, 1500);
-    // v79 : codes de langue (fr → en) ; si le modèle de traduction ne répond pas, un modèle de texte traduit
+    // v80 : un modèle de texte d'abord (m2m100 trahissait le sens : « mettre un visuel de l'interface » → « create an
+    // interface »), m2m100 seulement en secours
+    try {
+      const r = await delai(env.AI.run('@cf/meta/llama-3.1-8b-instruct', { messages: [
+        { role: 'system', content: 'You translate client feedback about an advertising creative from French to English for a graphic designer. Translate faithfully and naturally, keeping the exact meaning, quotes, numbers and brand names. Reply with the English translation only: no introduction, no notes.' },
+        { role: 'user', content: x }], max_tokens: 600 }));
+      const en = r && (r.response || r.translated_text);
+      if (en && String(en).trim()) return String(en).trim().replace(/^(here is|here's) (the )?translation:?\s*/i, '').replace(/^["«]\s*|\s*["»]$/g, '').slice(0, 2000);
+    } catch (e) {}
     try {
       const r = await delai(env.AI.run('@cf/meta/m2m100-1.2b', { text: x, source_lang: 'fr', target_lang: 'en' }));
       const en = r && (r.translated_text || r.response);
       if (en && String(en).trim() && String(en).trim() !== x.trim()) return String(en).trim().slice(0, 2000);
-    } catch (e) {}
-    try {
-      const r = await delai(env.AI.run('@cf/meta/llama-3.1-8b-instruct', { messages: [
-        { role: 'system', content: 'Translate the user message from French to English. Reply with the English translation only, nothing else. Keep quotes, numbers, brand names and line breaks.' },
-        { role: 'user', content: x }], max_tokens: 600 }));
-      const en = r && (r.response || r.translated_text);
-      if (en && String(en).trim()) return String(en).trim().replace(/^["«]\s*|\s*["»]$/g, '').slice(0, 2000);
     } catch (e) {}
     return null;
   }));
@@ -1957,10 +1958,13 @@ async function traduireRetouches(db, env, R) {
   if (!env || !env.AI) return;
   for (const r of R) {
     const coms = formeJson(r.coms) || [];
-    const manque = coms.filter(c => c.texte && !c.texte_en);
-    if (!manque.length && !(r.note && !r.note_en)) continue;
-    const en = await traduire(env, [r.note && !r.note_en ? r.note : '', ...manque.map(c => c.texte)]);
-    manque.forEach((c, n) => { c.texte_en = en[n + 1] || null; });
+    // v80 : les traductions d'avant (modèle moins fidèle) sont refaites une fois (marque « trad: 2 »)
+    const neuve = c => c.texte_en && c.trad === 2;
+    const manque = coms.filter(c => c.texte && !neuve(c));
+    const noteAFaire = r.note && (!r.note_en || manque.length);
+    if (!manque.length && !noteAFaire) continue;
+    const en = await traduire(env, [noteAFaire ? r.note : '', ...manque.map(c => c.texte)]);
+    manque.forEach((c, n) => { if (en[n + 1]) { c.texte_en = en[n + 1]; c.trad = 2; } });
     r.coms = JSON.stringify(coms); if (en[0]) r.note_en = en[0];
     await db.prepare('UPDATE retouches SET coms = ?, note_en = ? WHERE id = ?').bind(r.coms, r.note_en || null, r.id).run();
   }
@@ -2501,7 +2505,7 @@ async function apiEquipe(req, env, ctx, url, chemin, methode, qui) {
       // la designer lit l'anglais : les retours qui lui arriveront sont traduits maintenant
       if (it.qui !== 'moi') {
         const en = await traduire(env, [it.note, ...coms.map(c => c.texte)]);
-        it.note_en = en[0]; coms.forEach((c, n) => { c.texte_en = en[n + 1]; });
+        it.note_en = en[0]; coms.forEach((c, n) => { c.texte_en = en[n + 1]; if (en[n + 1]) c.trad = 2; });
       }
       lignes.push(db.prepare('INSERT INTO retouches (dossier, source_id, livraison_id, crea, qui, etat, note, note_en, coms, cree_le) VALUES (?,?,?,?,?,?,?,?,?,?)')
         .bind(l.dossier, l.id, travail.id, it.crea, it.qui, 'a_faire', it.note || null, it.note_en || null, JSON.stringify(coms), now));

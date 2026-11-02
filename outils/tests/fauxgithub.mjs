@@ -81,6 +81,7 @@ http.createServer(async (req, res) => {
       res.writeHead(200, {'content-type':'application/vnd.github.raw', 'content-length': b.length, etag}); return res.end(b); }
     res.writeHead(200, {'content-type':'application/json'}); return res.end(JSON.stringify({ sha: 'sha-'+rel, content: fs.readFileSync(f).toString('base64') }));
   }
+  if (u.pathname === '/repos/kreativeadsfr/kreative-dossiers/commits/main') { const fsha = path.join(process.cwd(), 'sha_main.txt'); if (!fs.existsSync(fsha)) { res.writeHead(404); return res.end('{"message":"Not Found"}'); } res.writeHead(200, {'content-type':'application/vnd.github.sha'}); return res.end(fs.readFileSync(fsha, 'utf8').trim()); }
   if (u.pathname === '/repos/kreativeadsfr/kreative-dossiers/git/ref/heads/main') { res.writeHead(200,{'content-type':'application/json'}); return res.end('{"object":{"sha":"abc123"}}'); }
   if (u.pathname === '/repos/kreativeadsfr/kreative-dossiers/git/commits/abc123') { res.writeHead(200,{'content-type':'application/json'}); return res.end('{"tree":{"sha":"t1"}}'); }
   if (u.pathname === '/repos/kreativeadsfr/kreative-dossiers/git/trees/t1') {

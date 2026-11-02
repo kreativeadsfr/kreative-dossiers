@@ -235,24 +235,43 @@ function depotGarder(fichier, e) {
 }
 // clé sur le domaine Kreative (le cache de Cloudflare ne garde que les adresses de la zone)
 function depotCle(fichier) { return new Request('https://app.kreativeads.fr/_copie/' + encodeURI(fichier)); }
-async function depotRelire(fichier, env, e) {
+// v78 : la version du dépôt = le dernier commit de main, relu au plus toutes les 15 s par isolat. Une copie lue
+// à un autre commit est relue tout de suite, à ce commit précis (sans ETag). Avant, une copie pouvait rester
+// figée des heures (Andrea sans sa page Revisions, l'admin sur l'ancienne page le 02/11).
+let SHA_MAIN = { sha: null, lu: 0, enCours: null };
+function shaMain(env) {
+  if (SHA_MAIN.sha && Date.now() - SHA_MAIN.lu < 15000) return Promise.resolve(SHA_MAIN.sha);
+  if (!SHA_MAIN.enCours) SHA_MAIN.enCours = (async () => {
+    try {
+      const api = (env.GITHUB_API || 'https://api.github.com').replace(/\/$/, '');
+      const r = await fetchGithub(api + '/repos/' + DEPOT + '/commits/' + BRANCHE, { 'Authorization': 'Bearer ' + (env.GITHUB_TOKEN || ''), 'Accept': 'application/vnd.github.sha', 'User-Agent': 'kreative-espace', 'X-GitHub-Api-Version': '2022-11-28' });
+      const t = r.ok ? (await r.text()).trim() : (r.body && r.body.cancel(), '');
+      if (/^[0-9a-f]{40}$/.test(t)) { SHA_MAIN.sha = t; SHA_MAIN.lu = Date.now(); }
+    } catch (e) {}
+    SHA_MAIN.enCours = null;
+    return SHA_MAIN.sha;
+  })();
+  return SHA_MAIN.enCours;
+}
+async function depotRelire(fichier, env, e, sha) {
   const api = (env.GITHUB_API || 'https://api.github.com').replace(/\/$/, '');
   const encode = fichier.split('/').map(encodeURIComponent).join('/');
   const h = { 'Authorization': 'Bearer ' + (env.GITHUB_TOKEN || ''), 'Accept': 'application/vnd.github.raw', 'User-Agent': 'kreative-espace', 'X-GitHub-Api-Version': '2022-11-28' };
-  if (e && e.etag) h['If-None-Match'] = e.etag;
-  const r = await fetchGithub(api + '/repos/' + DEPOT + '/contents/' + encode + '?ref=' + BRANCHE, h);
+  if (e && e.etag && !sha) h['If-None-Match'] = e.etag;
+  const r = await fetchGithub(api + '/repos/' + DEPOT + '/contents/' + encode + '?ref=' + (sha || BRANCHE), h);
   DEPOT_DERNIER = { fichier, s: r.status, le: Date.now() };
   const now = Date.now();
   let n;
+  const commit = sha || (e && e.commit) || null;
   if (r.status === 304 && e) { if (r.body) r.body.cancel(); n = { ...e, lu: now }; }
   else if (r.ok && Number(r.headers.get('content-length') || 0) > 20e6) return { s: 200, flux: r, lu: now };  // très gros fichier : servi sans copie
-  else if (r.ok) n = { s: 200, b: await r.arrayBuffer(), etag: r.headers.get('ETag') || '', lu: now };
-  else if (r.status === 404) { if (r.body) r.body.cancel(); n = { s: 404, lu: now }; }
+  else if (r.ok) n = { s: 200, b: await r.arrayBuffer(), etag: r.headers.get('ETag') || '', lu: now, commit };
+  else if (r.status === 404) { if (r.body) r.body.cancel(); n = { s: 404, lu: now, commit }; }
   else { if (r.body) r.body.cancel(); return e ? null : { s: r.status, lu: now, erreur: true }; }  // GitHub en panne : on garde la copie
   depotGarder(fichier, n);
   if (n.s === 200 && n.b.byteLength < 10e6) {
     try {
-      await caches.default.put(depotCle(fichier), new Response(n.b.slice(0), { headers: { 'Cache-Control': 'max-age=86400', 'X-Lu': String(n.lu), 'X-Etag': n.etag } }));
+      await caches.default.put(depotCle(fichier), new Response(n.b.slice(0), { headers: { 'Cache-Control': 'max-age=86400', 'X-Lu': String(n.lu), 'X-Etag': n.etag, 'X-Commit': n.commit || '' } }));
     } catch (x) {}
   } else if (n.s === 404) { try { await caches.default.delete(depotCle(fichier)); } catch (x) {} }
   return n;
@@ -270,8 +289,15 @@ async function lireDepot(fichier, env, ctx, frais, max) {
     d = 'cache';
     try {
       const c = await caches.default.match(depotCle(fichier));
-      if (c) { e = { s: 200, b: await c.arrayBuffer(), etag: c.headers.get('X-Etag') || '', lu: Number(c.headers.get('X-Lu')) || 0 }; depotGarder(fichier, e); }
+      if (c) { e = { s: 200, b: await c.arrayBuffer(), etag: c.headers.get('X-Etag') || '', lu: Number(c.headers.get('X-Lu')) || 0, commit: c.headers.get('X-Commit') || null }; depotGarder(fichier, e); }
     } catch (x) {}
+  }
+  // v78 : un nouveau commit sur main : la copie est relue tout de suite, à ce commit
+  const sha = await shaMain(env).catch(() => null);
+  if (sha && (!e || e.commit !== sha)) {
+    const n = await depotRelire(fichier, env, e, sha).catch(() => null);
+    if (n && !n.erreur) return depotReponse(n, 'github');
+    if (e) return depotReponse(e, 'secours');
   }
   const age = e ? Date.now() - e.lu : Infinity;
   if (e && age < frais) return depotReponse(e, d);
@@ -1698,7 +1724,8 @@ async function apiAdmin(req, env, ctx, url, chemin, methode) {
   if (chemin === '/diagnostic' && methode === 'GET') {
     let gh = null;
     try { const r = await fetch((env.GITHUB_API || 'https://api.github.com').replace(/\/$/, '') + '/repos/' + DEPOT + '/contents/admin/index.html?ref=' + BRANCHE, { headers: { 'Authorization': 'Bearer ' + (env.GITHUB_TOKEN || ''), 'Accept': 'application/vnd.github.raw', 'User-Agent': 'kreative-espace', 'X-GitHub-Api-Version': '2022-11-28' } }); gh = r.status; if (r.body) r.body.cancel(); } catch (e) { gh = 'erreur'; }
-    return json({ worker: 'v77', github_jeton: gh === 200 ? 'ok' : gh === 401 ? 'REFUSÉ (jeton expiré ou révoqué)' : gh, github_derniere_lecture: DEPOT_DERNIER,
+    const sha = await shaMain(env).catch(() => null);
+    return json({ worker: 'v78', depot_commit: sha ? sha.slice(0, 7) : null, github_jeton: gh === 200 ? 'ok' : gh === 401 ? 'REFUSÉ (jeton expiré ou révoqué)' : gh, github_derniere_lecture: DEPOT_DERNIER,
       stockage_r2: !!env.FICHIERS, traduction_ai: !!env.AI, telegram_bot: !!env.TELEGRAM_BOT, code_fiche: !!(await codeFiche(env)) });
   }
   if (chemin === '/equipe' && methode === 'GET') {

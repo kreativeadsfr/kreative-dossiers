@@ -137,8 +137,22 @@ const img = await get(lv2.fichiers[0].url, { headers: { Cookie: CK } }); t('le c
 r = await api('/api/equipe/livraisons/' + lv2.id + '/stockage', DE); t('la designer ne lance pas la vérification', r.s === 403, r.s);
 r = await get('/api/equipe/fichiers/' + lv2.fichiers[0].id + '/reparer', { method: 'PUT', headers: { Cookie: A, 'Content-Type': 'image/png' }, body: PNG });
 t('réparer un fichier : remis à la même place', r.status === 200, r.status);
-r = await api('/api/admin/diagnostic', A); t('diagnostic du Worker', r.s === 200 && r.d.worker === 'v77' && r.d.telegram_bot === true, JSON.stringify(r.d));
+r = await api('/api/admin/diagnostic', A); t('diagnostic du Worker', r.s === 200 && r.d.worker === 'v78' && r.d.telegram_bot === true, JSON.stringify(r.d));
 r = await api('/api/admin/diagnostic', DE); t('diagnostic : admin seulement', r.s === 403 || r.s === 401, r.s);
+
+// v78 : une page modifiée sur main est servie dès le nouveau commit (avant : une copie pouvait rester figée des heures)
+{
+  const SHA = new URL('sha_main.txt', import.meta.url), FX = new URL('fixtures/ui/essai-commit.css', import.meta.url);
+  fs.mkdirSync(new URL('fixtures/ui/', import.meta.url), { recursive: true });
+  fs.writeFileSync(SHA, 'a'.repeat(40)); fs.writeFileSync(FX, '/* version 1 */');
+  let p1 = await (await get('/ui/essai-commit.css', { headers: { Cookie: A } })).text();
+  fs.writeFileSync(FX, '/* version 2 */'); fs.writeFileSync(SHA, 'b'.repeat(40));
+  await new Promise(z => setTimeout(z, 16000));
+  let p2 = await (await get('/ui/essai-commit.css', { headers: { Cookie: A } })).text();
+  t('nouveau commit : la page est relue tout de suite', p1.includes('version 1') && p2.includes('version 2'), p1 + ' / ' + p2);
+  r = await api('/api/admin/diagnostic', A); t('diagnostic : le commit du dépôt', r.d.depot_commit === 'bbbbbbb', JSON.stringify(r.d));
+  fs.unlinkSync(SHA); fs.unlinkSync(FX);
+}
 
 // la fiche du portail sait faire une reprise
 const pf = await (await get('/fiche/', { headers: { Cookie: ST } })).text();

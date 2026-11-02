@@ -25,6 +25,9 @@ const E = { moi: null, filtre: 'all' };   // 01/11 : « All » par défaut et en
 const SECS = ['visuels', 'telechargement'];
 K.prod.autorisees = SECS;
 const aFaire = x => !!(x.etape ? x.etape.cle === 'desi' : !x.livre);
+// 02/11 : une retouche n'a pas l'échéance du projet (passée depuis longtemps) : jamais « Late » pour une retouche
+const enRev = x => !!(x.etape && (x.etape.retouche || x.etape.ret));
+const ech = x => enRev(x) ? null : x.desi;
 const mesProjets = () => (K.prod.liste || []).filter(x => x.envoye || (x.etape && x.etape.cle !== 'strat'));          // seulement ce qui est arrivé chez la designer
 const quand = ms => {
   const p = {};
@@ -103,9 +106,9 @@ function brancherRevisions() {
 // ---------- OVERVIEW ----------
 function ecranAccueil() {
   const L = mesProjets(), now = Date.now();
-  const afaire = L.filter(aFaire).sort((a, b) => (a.desi || 9e15) - (b.desi || 9e15));
+  const afaire = L.filter(aFaire).sort((a, b) => (ech(a) || 9e15) - (ech(b) || 9e15));
   const faits = L.filter(x => x.livre).sort((a, b) => b.livreLe - a.livreLe);
-  const retard = afaire.filter(x => x.desi && x.desi < now), prochain = afaire.find(x => x.desi && x.desi >= now);
+  const retard = afaire.filter(x => ech(x) && ech(x) < now), prochain = afaire.find(x => ech(x) && ech(x) >= now);
   const kpi = (l, v, d, st) => '<div class="card kpi"><div class="lab">' + l + '</div><div class="v' + (String(v).length > 4 ? ' s' : '') + '"' + (st ? ' style="' + st + '"' : '') + '>' + esc(v) + '</div><div class="d">' + esc(d) + '</div></div>';
   let h = '<div class="ph"><div><h1>Overview</h1><p>Everything you have to deliver, with your deadlines.</p></div><div class="act"><a class="btn btn-p" href="#/livrer">' + i.envoi + 'Deliver a project</a></div></div>';
   h += '<div class="grid g4">' + kpi('To deliver', afaire.length, 'project' + (afaire.length > 1 ? 's' : '')) +
@@ -116,8 +119,8 @@ function ecranAccueil() {
   if (rv.length) h += '<div class="etat-envoi" style="margin:18px 0 0"><span class="pastille attente">' + i.crayon + '</span><div style="flex:1"><b>' + rv.length + ' creative' + (rv.length > 1 ? 's' : '') + ' to revise</b><small>The client asked for changes on ' + (rv.length > 1 ? 'these creatives' : 'this creative') + '. Only ' + (rv.length > 1 ? 'these ones' : 'this one') + ': the others stay as they are.</small></div><a class="btn btn-p" href="#/revisions">Open revisions</a></div>';
   h += '<div class="sec"><div><h2>To deliver</h2><p>Sorted by deadline, the closest first.</p></div></div>';
   h += afaire.length ? '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Project</th><th class="num">Creatives</th><th>Deadline</th><th>Due (Paris time)</th><th></th></tr></thead><tbody>' +
-    afaire.map(x => '<tr><td>' + ligneNom(x) + '</td><td class="num">' + esc(K.prod.total(x) || '?') + '</td><td>' + (K.prod.echeance(x.desi, true).pill || '<span class="muted">No date</span>') + '</td>' +
-      '<td>' + (x.desi ? esc(quand(x.desi)) : '<span class="muted">No date</span>') + '</td><td class="fin">' + boutons(x) + '</td></tr>').join('') + '</tbody></table></div></div>'
+    afaire.map(x => '<tr><td>' + ligneNom(x) + '</td><td class="num">' + esc(K.prod.total(x) || '?') + '</td><td>' + (enRev(x) ? '<a class="pill v" href="#/revisions/' + esc(x.dossier) + '"><i></i>Revisions</a>' : K.prod.echeance(ech(x), true).pill || '<span class="muted">No date</span>') + '</td>' +
+      '<td>' + (ech(x) ? esc(quand(ech(x))) : '<span class="muted">No date</span>') + '</td><td class="fin">' + boutons(x) + '</td></tr>').join('') + '</tbody></table></div></div>'
     : '<div class="card"><div class="vide">' + i.coche + 'Nothing to deliver right now. New projects appear here as soon as they are ready.</div></div>';
   h += '<div class="sec"><div><h2>Delivered</h2><p>What you already sent to Kreative.</p></div><a class="btn btn-g btn-sm" href="#/projets">All projects</a></div>';
   h += faits.length ? '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Project</th><th class="num">Creatives</th><th>Delivered on</th><th>Status</th><th></th></tr></thead><tbody>' +
@@ -129,13 +132,13 @@ function ecranAccueil() {
 // ---------- PROJECTS ----------
 function ecranProjets() {
   const L = mesProjets(), f = E.filtre, now = Date.now();
-  const F = { todo: aFaire, late: x => aFaire(x) && x.desi && x.desi < now, done: x => x.livre, all: () => true };
+  const F = { todo: aFaire, late: x => aFaire(x) && ech(x) && ech(x) < now, done: x => x.livre, all: () => true };
   const chip = (k, t, c) => '<button class="chip' + (f === k ? ' on' : '') + '" onclick="E.filtre=\'' + k + '\';K.rendre(true)">' + (c ? '<i style="color:' + c + '"></i>' : '') + t + '<span class="c">' + L.filter(F[k]).length + '</span></button>';
-  const l = L.filter(F[f]).sort((a, b) => (a.livre - b.livre) || ((a.desi || 9e15) - (b.desi || 9e15)));
+  const l = L.filter(F[f]).sort((a, b) => (a.livre - b.livre) || ((ech(a) || 9e15) - (ech(b) || 9e15)));
   return '<div class="ph"><div><h1>Projects</h1><p>All your projects, and each of their pages in one click.</p></div></div>' +
     '<div class="filtres">' + chip('all', 'All') + chip('todo', 'To deliver', 'var(--blue)') + chip('late', 'Late', 'var(--red)') + chip('done', 'Delivered', 'var(--green)') + '</div>' +
     (l.length ? '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Project</th><th class="num">Creatives</th><th>Status</th><th>Due</th><th></th></tr></thead><tbody>' +
-      l.map(x => '<tr><td>' + ligneNom(x) + '</td><td class="num">' + esc(K.prod.total(x) || '?') + '</td><td>' + K.prod.pill(x, true) + '</td><td>' + (x.desi ? esc(quand(x.desi)) : '<span class="muted">No date</span>') + '</td><td class="fin">' + boutons(x) + '</td></tr>').join('') +
+      l.map(x => '<tr><td>' + ligneNom(x) + '</td><td class="num">' + esc(K.prod.total(x) || '?') + '</td><td>' + K.prod.pill(x, true) + '</td><td>' + (ech(x) ? esc(quand(ech(x))) : '<span class="muted">No date</span>') + '</td><td class="fin">' + boutons(x) + '</td></tr>').join('') +
       '</tbody></table></div></div>' : '<div class="card"><div class="vide">No project here.</div></div>');
 }
 

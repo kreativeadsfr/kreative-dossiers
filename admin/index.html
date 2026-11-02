@@ -937,8 +937,10 @@ function tachesEquipe(role) {
   const P = (S.prod || []).filter(x => !x.demo), now = Date.now(), T = [];
   for (const x of P) {
     const e = etatProd(x), nom = nomProjet(x);
-    if (role === 'strategiste' && e.cle === 'strat') T.push({ t: nom, quoi: e.retouche ? 'Retouches des textes' : 'Fiche créas à remplir', le: x.strat, href: '#/fiche/' + x.dossier });
-    if (role === 'designer' && e.cle === 'desi') T.push({ t: nom, quoi: e.retouche ? 'Retouches des visuels' : 'Visuels à reprendre et déposer', le: x.desi, href: '#/visuels/' + x.dossier });
+    // 02/11 : une retouche n'a pas l'échéance du projet : on montre depuis quand elle est lancée, jamais « en retard »
+    const lance = x.v && x.v.le ? x.v.le : null;
+    if (role === 'strategiste' && e.cle === 'strat') T.push(e.retouche || e.ret ? { t: nom, quoi: x.etape && x.etape.ret ? 'Créa à refaire' : 'Retouches des textes', le: null, lance, href: '#/livraisons/' + x.dossier } : { t: nom, quoi: 'Fiche créas à remplir', le: x.strat, href: '#/fiche/' + x.dossier });
+    if (role === 'designer' && e.cle === 'desi') T.push(e.retouche || e.ret ? { t: nom, quoi: 'Retouches des visuels', le: null, lance, href: '#/livraisons/' + x.dossier } : { t: nom, quoi: 'Visuels à reprendre et déposer', le: x.desi, href: '#/visuels/' + x.dossier });
     if (role === 'admin' && e.cle === 'livrer') T.push({ t: nom, quoi: e.texte, le: x.client, href: '#/livraisons/' + x.dossier });
   }
   return T.map(t => ({ ...t, retard: !!(t.le && t.le < now) })).sort((a, b) => (a.le || 9e15) - (b.le || 9e15));
@@ -982,7 +984,7 @@ function ecranEquipe() {
       '<button class="btn btn-g btn-sm" onclick="gererAcces(\'' + esc(p.nom) + '\',\'' + esc(p.role) + '\',' + (moi ? 1 : 0) + ')" title="Mot de passe, retirer l\'accès">' + i.bouclier + 'Accès</button></div></div>' +
       '<div class="eq-corps"><div><div class="eq-lab">À faire' + (T.length ? ' · ' + T.length : '') + '</div>' +
       (T.length ? T.slice(0, 6).map(t => '<a class="eq-tache" href="' + esc(t.href) + '"><span><b>' + esc(t.t) + '</b><small>' + esc(t.quoi) + '</small></span>' +
-        (t.le ? '<span class="pill ' + (t.retard ? 'r' : '') + '"><i></i>' + (t.retard ? 'En retard · ' : 'Avant ') + esc(K.dateHeure(t.le)) + '</span>' : '') + '</a>').join('') +
+        (t.le ? '<span class="pill ' + (t.retard ? 'r' : '') + '"><i></i>' + (t.retard ? 'En retard · ' : 'Avant ') + esc(K.dateHeure(t.le)) + '</span>' : t.lance ? '<span class="pill v"><i></i>Lancées ' + esc(K.ilya(t.lance)) + '</span>' : '') + '</a>').join('') +
         (T.length > 6 ? '<small class="muted">et ' + (T.length - 6) + ' autre' + (T.length > 7 ? 's' : '') + '</small>' : '')
         : '<p class="muted eq-rien">' + i.coche + 'Rien en attente.</p>') + '</div>' +
       '<div><div class="eq-lab">30 derniers jours</div><div class="eq-bilan">' + B.map(([l, v]) => '<div><b>' + esc(v) + '</b><small>' + esc(l) + '</small></div>').join('') + '</div></div></div></div>';

@@ -11,6 +11,67 @@
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Kreative"><meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="stylesheet" href="/ui/app.css">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..700&display=swap">
+<style>
+/* 03/11/2026 : l'espace client prend la DA du site kreativeads.fr (validé par Dario).
+   Les polices et les textes du portail restent ; seuls les grands titres passent en Bricolage, en gras.
+   La page Commander et le panier reprennent la mise en forme de la section Offres du site. */
+.ph h1{font-family:"Bricolage Grotesque",var(--titre);font-weight:600;letter-spacing:-.025em}
+/* Commander : cartes à fin contour et ombre douce, Growth en bleu plein avec son bandeau, boutons à halo */
+.offres{gap:18px;padding-top:62px;align-items:start;max-width:1090px}
+.offre{border:1px solid var(--line);border-radius:10px;box-shadow:rgba(18,18,18,.35) 0 30px 60px -50px;padding:30px 20px 22px}
+.offre .btn{height:50px;border-radius:10px;font-size:15px;background:#4d94ff;color:#fff;border:0;box-shadow:rgba(77,148,255,.85) 0 10px 22px -12px;margin-top:22px}
+.offre .btn:hover{background:#3584fb}
+.offre ul{border-top:0;padding-top:0;margin-top:24px;gap:13px}
+.offre.hot{background:radial-gradient(90% 55% at 95% 12%,rgba(255,255,255,.28),rgba(255,255,255,0) 60%),#4d94ff;border:0;margin-top:-48px;padding-top:0;box-shadow:rgba(47,111,232,.8) 0 38px 66px -34px}
+.offre.hot,.offre.hot h3,.offre.hot .prix,.offre.hot li{color:#fff}
+.offre.hot .prix small,.offre.hot .unit,.offre.hot .barre-prix{color:rgba(255,255,255,.78)}
+.offre.hot li svg{color:#fff}
+.offre.hot li.off,.offre.hot li.off svg{color:rgba(255,255,255,.55)}
+.offre.hot .pill{background:rgba(255,255,255,.2);color:#fff}
+.offre.hot .btn{background:#fff;color:#4d94ff;box-shadow:rgba(18,18,18,.18) 0 10px 22px -12px}
+.offre.hot .btn:hover{background:#f3f8ff}
+.offre .bande{margin:0 -20px 26px;height:52px;display:grid;place-items:center;background:rgba(255,255,255,.14);border-radius:10px 10px 0 0;font-weight:600;font-size:15px;color:#fff}
+.offre-c{box-shadow:none;margin-top:8px}
+.offre-c .btn{max-width:300px}
+.offre-c ul{margin-top:0}
+@media(max-width:1100px){.offre.hot{margin-top:0}.offres{padding-top:14px}}
+/* le panier : blocs à fin contour et ombre douce, récapitulatif en bleu plein comme sur le site */
+.config .card{border:1px solid var(--line);border-radius:10px;box-shadow:rgba(18,18,18,.35) 0 30px 60px -50px}
+.config .card.recap{background:radial-gradient(120% 70% at 90% 0%,rgba(255,255,255,.22),rgba(255,255,255,0) 60%),#4d94ff;border:0;color:#fff;box-shadow:rgba(47,111,232,.85) 0 50px 90px -40px}
+.recap,.recap h3,.recap .lab,.recap .muted,.recap .ligne,.recap .ligne b,.recap .total b,.recap .unitaire,.recap .unitaire span,.recap .confiance,.recap .confiance span{color:#fff}
+.recap .lab,.recap .muted,.recap .ligne,.recap .unitaire span,.recap .confiance{opacity:.88}
+.recap .total{border-top-color:rgba(255,255,255,.28)}
+.recap .delai{background:rgba(255,255,255,.16);color:#fff}
+.recap .btn{height:50px;border-radius:10px;background:#fff;color:#4d94ff;border:0;box-shadow:rgba(18,18,18,.22) 0 10px 22px -12px}
+.recap .btn:hover{background:#f3f8ff}
+.recap .confiance svg{color:#fff}
+/* Accueil : chaque projet en grand, avec ses 5 étapes ; toute la carte est cliquable */
+.projets{display:flex;flex-direction:column;gap:14px}
+.projet-l{display:block;color:inherit;text-decoration:none;padding:26px 30px;transition:box-shadow .15s,border-color .15s}
+.projet-l:hover{border-color:#4d94ff;box-shadow:0 0 0 1px #4d94ff,var(--ombre)}
+.pl-haut{display:flex;justify-content:space-between;align-items:flex-start;gap:20px}
+.pl-ref{font-size:11.5px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--tx3)}
+.pl-t{font:600 22px/1.15 var(--titre);letter-spacing:-.025em;margin-top:6px}
+.pl-d{display:flex;align-items:center;gap:10px;flex:none}
+.pl-fl{width:18px;height:18px;color:var(--tx3)}
+.pl-et{display:grid;grid-template-columns:repeat(5,1fr);margin-top:26px}
+.pl-e{position:relative;text-align:center;padding-top:38px;min-width:0}
+.pl-e::before{content:"";position:absolute;top:14px;left:-50%;right:50%;height:3px;background:var(--soft2);border-radius:3px}
+.pl-e:first-child::before{display:none}
+.pl-e.fait::before,.pl-e.cours::before{background:var(--blue)}
+.pl-r{position:absolute;top:0;left:50%;transform:translateX(-50%);width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:var(--panel);border:2px solid var(--line2);color:var(--tx3);font-size:12.5px;font-weight:600;z-index:1}
+.pl-e.fait .pl-r{background:var(--blue);border-color:var(--blue);color:#fff}
+.pl-e.cours .pl-r{border-color:var(--blue);box-shadow:0 0 0 5px rgba(77,148,255,.16)}
+.pl-e.cours .pl-r::after{content:"";width:9px;height:9px;border-radius:50%;background:var(--blue)}
+.pl-r svg{width:14px;height:14px}
+.pl-e b{display:block;font-size:13.5px;font-weight:600;padding:0 4px}
+.pl-e small{display:block;font-size:12px;color:var(--tx3);margin-top:2px}
+.pl-e.futur b{color:var(--tx3)}
+.pl-e.cours small{color:var(--blue-tx);font-weight:600}
+@media(max-width:700px){.projet-l{padding:20px}.pl-et{grid-template-columns:1fr;gap:14px;text-align:left}.pl-e{text-align:left;padding:4px 0 0 44px}.pl-e::before{display:none}.pl-r{left:0;transform:none}.pl-e b{padding:0}}
+</style>
 <script src="/ui/app.js"></script>
 <script src="/ui/panier.js"></script>
 <script src="/ui/review.js"></script>
@@ -244,12 +305,16 @@ function prochaineEtape(c) {
 const ICONES_ACT = { commande: i.sac, brief: i.doc, livre: i.image, revisions: i.crayon, valide: i.coche, production: i.pinceau, client: i.accueil, lien: i.lien,
   facture: i.recu, paiement: i.carte, avis: i.etoile, profil: i.utilisateur };
 
+// 03/11 : chaque projet en grand, avec ses 5 étapes (toute la carte ouvre le projet, pas de bouton)
+const NOMS_ETAPES = { commande: 'Commande payée', brief: 'Brief reçu', production: 'Production', livraison: 'Livraison', validation: 'Validation' };
 function carteProjet(c) {
-  return '<a class="card projet" href="#/projets/' + esc(c.id) + '"><div class="hd"><span class="ic">' + i.calques + '</span>' + K.pillCommande(c) + '</div>' +
-    '<div class="lab">#' + esc(c.ref) + ' · ' + c.nb_creas + ' créatives</div><h3>' + esc(nom(c)) + '</h3>' +
-    '<div class="muted" style="font-size:13px">Commandé le ' + esc(K.date(c.cree_le)) + (c.formule === 'mensuel' ? ' · abonnement' : '') + '</div>' +
-    '<div class="barre" style="margin-top:12px"><i style="width:' + c.progression + '%"></i></div><div class="pc">' + c.progression + ' % d\'avancement</div>' +
-    '<span class="btn btn-p btn-sm">Voir le projet ' + i.fleche + '</span></a>';
+  const ce = coeur(c), iCours = ce.findIndex(x => !x.fait), court = t => t ? K.date(t, { year: undefined }) : '';
+  const sous = (x, n) => n === iCours ? (x.cle === 'brief' ? 'À remplir' : x.cle === 'validation' ? 'À vous de valider' : 'En cours')
+    : x.cle === 'commande' ? court(c.cree_le) : x.cle === 'brief' ? (x.fait ? court(c.brief_le) : '') : x.cle === 'livraison' ? (c.livre_le ? court(c.livre_le) : court(c.deadline)) : x.cle === 'validation' && x.fait ? court(c.valide_le) : '';
+  return '<a class="card projet-l" href="#/projets/' + esc(c.id) + '"><div class="pl-haut"><div><div class="pl-ref">#' + esc(c.ref) + ' · ' + c.nb_creas + ' créatives' + (c.formule === 'mensuel' ? ' · abonnement' : '') + '</div>' +
+    '<div class="pl-t">' + esc(nom(c)) + '</div></div><div class="pl-d">' + K.pillCommande(c) + i.fleche.replace('<svg', '<svg class="pl-fl"') + '</div></div>' +
+    '<div class="pl-et">' + ce.map((x, n) => { const cl = x.fait ? 'fait' : n === iCours ? 'cours' : 'futur';
+      return '<div class="pl-e ' + cl + '"><span class="pl-r">' + (x.fait ? i.coche : n === iCours ? '' : n + 1) + '</span><b>' + esc(NOMS_ETAPES[x.cle] || x.titre) + '</b><small>' + (esc(sous(x, n)) || '&nbsp;') + '</small></div>'; }).join('') + '</div></a>';
 }
 
 // ---------- PROJETS ----------
@@ -527,13 +592,13 @@ function ecranCommander() {
     '<button class="' + (!m ? 'on' : '') + '" onclick="formule=\'unique\';K.rendre()">Commande unique</button></div></div></div>';
   h += '<div class="offres">' + ['starter', 'growth', 'scale'].map(k => {
     const P = D.packs[k], prix = m ? P.mensuel : P.unique, hot = k === 'growth';
-    return '<div class="card offre' + (hot ? ' hot' : '') + '">' + (hot ? '<span class="badge-hot">Le plus populaire</span>' : '') +
+    return '<div class="card offre' + (hot ? ' hot' : '') + '">' + (hot ? '<div class="bande">Le plus populaire</div>' : '') +
       '<div class="tete"><h3>Pack ' + esc(P.nom) + '</h3>' + (m ? '<span class="pill b">−15 %</span>' : '') + '</div>' +
       '<div class="prix">' + (m ? '<span class="barre-prix">' + P.unique + ' €</span>' : '') + '<span>' + prix + ' €</span>' + (m ? '<small>/ mois</small>' : '') + '</div>' +
       // le prix par créative, comme sur le site : « 40 € / créative » (arrondi au-dessus pour l'abonnement : 760 / 24 = 32 €)
       '<div class="unit">' + (m ? Math.ceil(prix / P.creas) : Math.floor(prix / P.creas)) + ' € / créative</div>' +
       '<a class="btn ' + (hot ? 'btn-p' : 'btn-d') + ' btn-bloc btn-lg" href="#/commander/' + k + '">Voir les options</a>' +
-      '<ul>' + AVANTAGES[k].map(a => '<li class="' + (a[1] ? '' : 'off') + '">' + i.coche + '<span>' + esc(a[0]) + '</span></li>').join('') + '</ul></div>';
+      '<ul>' + AVANTAGES[k].map((a, n) => '<li class="' + (a[1] ? '' : 'off') + '">' + i.coche + '<span>' + esc(a[0]) + (m && n === 0 && /visuels/i.test(a[0]) ? ' / mois' : '') + '</span></li>').join('') + '</ul></div>';
   }).join('') +
     '<div class="card offre offre-c"><div><h3>Pack Custom</h3><div class="prix"><span>Sur mesure</span>' + (m ? '<small>/ mois</small>' : '') + '</div>' +
     '<div class="unit">À partir de ' + D.custom.min + ' créatives' + (m ? ' par mois' : '') + ', prix dégressif selon le volume.<br>Vous choisissez le volume et les options, le prix s\'affiche tout de suite.</div>' +

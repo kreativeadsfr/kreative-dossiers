@@ -113,7 +113,7 @@
       '<div class="nb-creas"><b id="cf-nb">' + c.nb + '</b><span>créatives' + (m ? ' par mois' : '') + '</span></div>' +
       '<input class="curseur" type="range" id="cf-range" min="' + CU.min + '" max="' + CU.max + '" step="' + CU.pas + '" value="' + c.nb + '">' +
       '<div class="reperes"><span>' + CU.min + '</span><span>' + CU.max + '</span></div></div>';
-    h += '<div class="card bloc"><h3>Inclus dans le pack ' + (custom ? 'Custom' : esc(P.nom)) + '</h3><ul class="inclus">' + PN.AVANTAGES[c.pack].filter(a => a[1]).map(a => '<li>' + i.coche + '<span>' + esc(a[0]) + '</span></li>').join('') + '</ul></div>';
+    h += '<div class="card bloc"><h3>Inclus dans le pack ' + (custom ? 'Custom' : esc(P.nom)) + '</h3><ul class="inclus">' + PN.AVANTAGES[c.pack].filter(a => a[1]).map((a, n) => '<li>' + i.coche + '<span>' + esc(a[0]) + (m && n === 0 && /visuels/i.test(a[0]) ? ' / mois' : '') + '</span></li>').join('') + '</ul></div>';
     if (o.formules !== false) h += '<div class="card bloc"><h3>Formule</h3><div class="onglets" style="margin-top:14px"><button class="' + (m ? 'on' : '') + '" data-cf-formule="mensuel">Mensuel · ' + Math.round(CU.remise_mensuel * 100) + ' % de moins</button>' +
       '<button class="' + (!m ? 'on' : '') + '" data-cf-formule="unique">Commande unique</button></div>' +
       '<p class="aide" style="margin-top:12px">' + (m ? 'Prélevé chaque mois. ' + PN.ENGAGEMENT : 'Payé en une fois, sans engagement.') + '</p></div>';

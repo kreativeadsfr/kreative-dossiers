@@ -69,7 +69,7 @@
 .pl-e small{display:block;font-size:12px;color:var(--tx3);margin-top:2px}
 .pl-e.futur b{color:var(--tx3)}
 .pl-e.cours small{color:var(--blue-tx);font-weight:600}
-@media(max-width:700px){.projet-l{padding:20px}.pl-et{grid-template-columns:1fr;gap:14px;text-align:left}.pl-e{text-align:left;padding:4px 0 0 44px}.pl-e::before{display:none}.pl-r{left:0;transform:none}.pl-e b{padding:0}}
+@media(max-width:700px){.projet-l{padding:20px}.pl-haut{flex-direction:column-reverse;align-items:flex-start;gap:12px}.pl-haut>div:first-child{max-width:100%}.pl-t{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pl-et{grid-template-columns:1fr;gap:14px;text-align:left}.pl-e{text-align:left;padding:4px 0 0 44px}.pl-e::before{display:none}.pl-r{left:0;transform:none}.pl-e b{padding:0}}
 /* v84 : plusieurs projets, un brief chacun : on choisit le projet dans une carte */
 .bp{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin:0 0 18px}
 .bp a{display:flex;align-items:center;gap:14px;padding:16px 18px;border:1px solid var(--line);border-radius:10px;background:var(--card,#fff);color:inherit;text-decoration:none;box-shadow:rgba(18,18,18,.35) 0 30px 60px -50px;transition:border-color .15s,box-shadow .15s}

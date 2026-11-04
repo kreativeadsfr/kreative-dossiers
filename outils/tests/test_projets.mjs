@@ -32,7 +32,7 @@ await pg.goto(B + '/client/#/brief'); await pg.waitForSelector('iframe', { timeo
 const chips = await pg.$$eval('.bp a', l => l.map(x => x.textContent));
 const src = await pg.getAttribute('iframe', 'src');
 t('Mon brief : un onglet par projet', chips.length === 2 && chips.some(x => /Marque A/.test(x)) && chips.some(x => /Marque B/.test(x)), JSON.stringify(chips));
-t('formulaire Custom avec 5 créas et le nom du projet', /oQN3qKRznVus/.test(src) && /creas=5/.test(src) && /marque=(Marque\+A|Marque\+B)/.test(src), src);
+t('questionnaire Starter avec 5 créas et le nom du projet', /hSWiGFjTVhus/.test(src) && /creas=5/.test(src) && /marque=(Marque\+A|Marque\+B)/.test(src), src);
 await pg.screenshot({ path: process.env.CAPTURE || '/tmp/projets.png' });
 t('aucune erreur JavaScript', !erreurs.length, erreurs.join(' | '));
 await nav.close();

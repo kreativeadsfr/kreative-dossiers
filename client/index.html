@@ -488,7 +488,9 @@ function briefAFaire(c) {
   if (etat(c) === 'confirmee' && c.brief_mois) { const m = MOIS_B[new Date(c.cree_le || Date.now()).getMonth()];
     return { cle: c.id, titre: 'Brief ' + (/^[ao]/.test(m) ? 'd\'' : 'de ') + m, texte: 'Dites-nous-en davantage sur ce qui a fonctionné le mois dernier, et sur ce que vous souhaitez garder ou changer ce mois-ci.', lien: p(LIENS.fillout.suivant, { dossier: c.brief_mois.dossier }) }; }
   // Custom : le nombre de créas commandé part dans le lien (champ caché « creas » du formulaire), lu par n8n
-  if (etat(c) === 'confirmee') return { cle: c.id, titre: 'Votre brief', texte: 'Votre brief lance la production de votre ' + nom(c) + '. Comptez une quinzaine de minutes.', lien: p(LIENS.fillout[c.pack] || LIENS.fillout.custom, c.pack === 'custom' && c.nb_creas ? { creas: c.nb_creas } : null) };
+  // 04/11 : un petit projet vendu à part (Custom de moins de 30 créas, ex. 5) prend le questionnaire Starter, avec son nombre de créas dans le lien (lu par n8n)
+  const petit = c.pack === 'custom' && c.nb_creas > 0 && c.nb_creas < 30;
+  if (etat(c) === 'confirmee') return { cle: c.id, titre: 'Votre brief', texte: 'Votre brief lance la production de votre ' + nom(c) + '. Comptez une quinzaine de minutes.', lien: p(petit ? LIENS.fillout.starter : (LIENS.fillout[c.pack] || LIENS.fillout.custom), c.pack === 'custom' && c.nb_creas ? { creas: c.nb_creas } : null) };
   if (c.brief_suivant) return { cle: c.id, titre: 'Brief de la livraison ' + c.brief_suivant.n + '/' + c.brief_suivant.sur, texte: 'Dites-nous-en davantage sur ce qui a fonctionné dans la livraison ' + (c.brief_suivant.n - 1) + ', et sur ce que vous souhaitez garder ou changer pour la suivante.', lien: p(LIENS.fillout.suivant, { dossier: c.brief_suivant.dossier }) };
   return null;
 }

@@ -50,7 +50,6 @@
 /* Accueil : chaque projet en grand, avec ses 5 étapes ; toute la carte est cliquable */
 .projets{display:flex;flex-direction:column;gap:14px}
 .projet-l{display:block;color:inherit;text-decoration:none;padding:26px 30px;transition:box-shadow .15s,border-color .15s}
-.projet-l:hover{border-color:#4d94ff;box-shadow:0 0 0 1px #4d94ff,var(--ombre)}
 .pl-haut{display:flex;justify-content:space-between;align-items:flex-start;gap:20px}
 .pl-ref{font-size:11.5px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--tx3)}
 .pl-t{font:600 22px/1.15 var(--titre);letter-spacing:-.025em;margin-top:6px}
@@ -281,7 +280,7 @@ function ecranAccueil() {
   if (aValider) h += '<div class="bandeau"><span class="ic">' + i.image + '</span><div><b>Vos créatives sont prêtes</b>' +
     '<small>' + esc(nom(aValider)) + '</small></div>' +
     '<a class="btn" href="#/projets/' + esc(aValider.id) + (aValider.creatives ? '/creatives' : '') + '">Voir mes créatives</a></div>';
-  else if (attente && D.commandes.filter(c => etat(c) === 'confirmee').length > 1) { const L = D.commandes.filter(c => etat(c) === 'confirmee').sort((x, y) => (x.cree_le || 0) - (y.cree_le || 0));
+  else if (attente && D.commandes.filter(c => etat(c) === 'confirmee').length > 1 && D.commandes.some(c => c.nom)) { const L = D.commandes.filter(c => etat(c) === 'confirmee').sort((x, y) => (x.cree_le || 0) - (y.cree_le || 0));
     h += '<div class="bandeau"><span class="ic">' + i.doc + '</span><div><b>Il reste une étape : vos ' + L.length + ' briefs</b>' +
     '<small>Un brief par projet : ' + esc(L.map(nom).join(' et ')) + '. Comptez une quinzaine de minutes chacun.</small></div>' +
     '<a class="btn" href="#/brief/' + esc(attente.id) + '">Remplir mes briefs</a></div>'; }
@@ -322,16 +321,16 @@ function prochaineEtape(c) {
 const ICONES_ACT = { commande: i.sac, brief: i.doc, livre: i.image, revisions: i.crayon, valide: i.coche, production: i.pinceau, client: i.accueil, lien: i.lien,
   facture: i.recu, paiement: i.carte, avis: i.etoile, profil: i.utilisateur };
 
-// 03/11 : chaque projet en grand, avec ses 5 étapes (toute la carte ouvre le projet, pas de bouton)
+// 03/11 : chaque projet en grand, avec ses 5 étapes. 04/11 (Dario) : la carte ne se clique pas, pas de flèche ni de bleu au survol : on ouvre un projet depuis « Mes projets »
 const NOMS_ETAPES = { commande: 'Commande payée', brief: 'Brief reçu', production: 'Production', livraison: 'Livraison', validation: 'Validation' };
 function carteProjet(c) {
   const ce = coeur(c), iCours = ce.findIndex(x => !x.fait), court = t => t ? K.date(t, { year: undefined }) : '';
   const sous = (x, n) => n === iCours ? (x.cle === 'brief' ? 'À remplir' : x.cle === 'validation' ? 'À vous de valider' : 'En cours')
     : x.cle === 'commande' ? court(c.cree_le) : x.cle === 'brief' ? (x.fait ? court(c.brief_le) : '') : x.cle === 'livraison' ? (c.livre_le ? court(c.livre_le) : court(c.deadline)) : x.cle === 'validation' && x.fait ? court(c.valide_le) : '';
-  return '<a class="card projet-l" href="#/projets/' + esc(c.id) + '"><div class="pl-haut"><div><div class="pl-ref">#' + esc(c.ref) + ' · ' + c.nb_creas + ' créatives' + (c.formule === 'mensuel' ? ' · abonnement' : '') + '</div>' +
-    '<div class="pl-t">' + esc(nom(c)) + '</div></div><div class="pl-d">' + K.pillCommande(c) + i.fleche.replace('<svg', '<svg class="pl-fl"') + '</div></div>' +
+  return '<div class="card projet-l"><div class="pl-haut"><div><div class="pl-ref">#' + esc(c.ref) + ' · ' + c.nb_creas + ' créatives' + (c.formule === 'mensuel' ? ' · abonnement' : '') + '</div>' +
+    '<div class="pl-t">' + esc(nom(c)) + '</div></div><div class="pl-d">' + K.pillCommande(c) + '</div></div>' +
     '<div class="pl-et">' + ce.map((x, n) => { const cl = x.fait ? 'fait' : n === iCours ? 'cours' : 'futur';
-      return '<div class="pl-e ' + cl + '"><span class="pl-r">' + (x.fait ? i.coche : n === iCours ? '' : n + 1) + '</span><b>' + esc(NOMS_ETAPES[x.cle] || x.titre) + '</b><small>' + (esc(sous(x, n)) || '&nbsp;') + '</small></div>'; }).join('') + '</div></a>';
+      return '<div class="pl-e ' + cl + '"><span class="pl-r">' + (x.fait ? i.coche : n === iCours ? '' : n + 1) + '</span><b>' + esc(NOMS_ETAPES[x.cle] || x.titre) + '</b><small>' + (esc(sous(x, n)) || '&nbsp;') + '</small></div>'; }).join('') + '</div></div>';
 }
 
 // ---------- PROJETS ----------
@@ -521,7 +520,7 @@ const qr = rep => {
 // v84 : un client avec plusieurs projets : une carte par projet, celle ouverte en bleu
 function cartesBriefs(todo, actif) {
   const L = D.commandes.filter(c => todo.some(x => x.c === c) || (c.brief_le && !['valide', 'annule'].includes(etat(c)))).sort((x, y) => (x.cree_le || 0) - (y.cree_le || 0));
-  if (L.length < 2) return '';
+  if (L.length < 2 || !L.some(c => c.nom)) return '';   // seulement pour un client dont Kreative a nommé les projets
   return '<div class="bp">' + L.map((c, n) => { const a = todo.some(x => x.c === c);
     return '<a class="' + (c === actif ? 'on' : '') + '" href="#/brief/' + esc(c.id) + '"><span class="n' + (a ? '' : ' ok') + '">' + (a ? n + 1 : i.coche) + '</span>' +
       '<span><b>' + esc(nom(c)) + '</b><small>' + (c.nb_creas || '') + ' créatives · ' + (a ? 'Brief à remplir' : 'Brief reçu') + '</small></span></a>'; }).join('') + '</div>';

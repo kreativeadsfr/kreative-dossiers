@@ -155,7 +155,7 @@ const img = await get(lv2.fichiers[0].url, { headers: { Cookie: CK } }); t('le c
 r = await api('/api/equipe/livraisons/' + lv2.id + '/stockage', DE); t('la designer ne lance pas la vérification', r.s === 403, r.s);
 r = await get('/api/equipe/fichiers/' + lv2.fichiers[0].id + '/reparer', { method: 'PUT', headers: { Cookie: A, 'Content-Type': 'image/png' }, body: PNG });
 t('réparer un fichier : remis à la même place', r.status === 200, r.status);
-r = await api('/api/admin/diagnostic', A); t('diagnostic du Worker', r.s === 200 && r.d.worker === 'v83' && r.d.telegram_bot === true, JSON.stringify(r.d));
+r = await api('/api/admin/diagnostic', A); t('diagnostic du Worker', r.s === 200 && r.d.worker === 'v84' && r.d.telegram_bot === true, JSON.stringify(r.d));
 r = await api('/api/admin/diagnostic', DE); t('diagnostic : admin seulement', r.s === 403 || r.s === 401, r.s);
 
 // v78 : une page modifiée sur main est servie dès le nouveau commit (avant : une copie pouvait rester figée des heures)

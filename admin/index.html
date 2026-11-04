@@ -674,7 +674,7 @@ async function ecranClient(id) {
   });
   h += '<div class="sec"><div><h2>Commandes</h2><p>Reliez chaque commande à son dossier de production dès que le brief est arrivé.</p></div></div>';
   h += cmds.length ? '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Commande</th><th>Pack</th><th class="num">Prix</th><th>Dossier de production</th><th>Statut</th><th>Avancement</th><th></th></tr></thead><tbody>' +
-    cmds.map(k => '<tr><td><b>' + esc(K.nomCommande(k)) + '</b><span class="sub">#' + esc(k.ref) + ' · ' + esc(K.date(k.cree_le)) + (k.stripe_session ? ' · payée en ligne' : '') + '</span></td><td>' + k.nb_creas + ' créas<span class="sub">' + esc(FORMULES[k.formule] || '') + '</span></td>' +
+    cmds.map(k => '<tr><td><b>' + esc(K.nomCommande(k)) + '</b> <button class="btn btn-g btn-sm" style="height:24px;padding:0 6px;vertical-align:-6px" data-modcmd="' + esc(k.id) + '" title="Nom du projet, créatives, prix">' + i.crayon + '</button><span class="sub">#' + esc(k.ref) + ' · ' + esc(K.date(k.cree_le)) + (k.stripe_session ? ' · payée en ligne' : '') + '</span></td><td>' + k.nb_creas + ' créas<span class="sub">' + esc(FORMULES[k.formule] || '') + '</span></td>' +
       '<td class="num">' + K.euros(k.prix) + '</td><td>' + choixDossier(k, c.marque) + '</td><td>' + choixStatut(k) + '</td>' +
       '<td style="min-width:120px"><div class="barre"><i style="width:' + k.progression + '%"></i></div><span class="sub">' + k.progression + ' %</span></td>' +
       '<td class="fin"><button class="btn btn-g btn-sm" data-suppr="' + esc(k.id) + '" title="Supprimer">' + i.poubelle + '</button></td></tr>').join('') + '</tbody></table></div></div>'
@@ -744,6 +744,27 @@ function brancherClient() {
   document.querySelectorAll('[data-statut]').forEach(s => s.onchange = async () => {
     try { await K.api('/api/admin/commandes/' + s.dataset.statut, { methode: 'PATCH', corps: { statut: s.value } }); K.toast('Statut mis à jour'); recharger(); } catch (e) { K.toast(e.message); }
   });
+  // v84 : nommer un projet (un client avec plusieurs projets : « Pack Marque A », « Pack Marque B »), et son volume pour un Custom
+  document.querySelectorAll('[data-modcmd]').forEach(x => x.onclick = () => {
+    const k = (FICHE.commandes || []).find(y => y.id === x.dataset.modcmd); if (!k) return;
+    const custom = k.pack === 'custom';
+    const v = K.fenetre('<div class="fen-h"><h2>Modifier la commande #' + esc(k.ref) + '</h2><p>Le nom du projet remplace « ' + esc(K.nomCommande(Object.assign({}, k, { nom: '' }))) + ' » dans l\'espace du client et dans l\'admin.</p></div><div class="fen-b">' +
+      '<div class="champ"><label>Nom du projet</label><input class="in" id="m-nom" maxlength="60" placeholder="Ex. : Pack Marque A" value="' + esc(k.nom || '') + '"><div class="aide">Laissez vide pour garder le nom automatique.</div></div>' +
+      (custom ? '<div class="grid g2" style="gap:12px"><div class="champ"><label>Nombre de créatives</label><input class="in" id="m-nb" type="number" min="1" value="' + esc(k.nb_creas || '') + '"></div>' +
+        '<div class="champ"><label>Prix (€)</label><input class="in" id="m-prix" type="number" min="0" value="' + esc(k.prix == null ? '' : k.prix) + '"></div></div>' : '') +
+      '</div><div class="fen-f"><button class="btn btn-s" data-n>Annuler</button><button class="btn btn-p" data-o>Enregistrer</button></div>');
+    v.querySelector('[data-n]').onclick = K.fermer;
+    v.querySelector('[data-o]').onclick = async e => {
+      e.target.disabled = true;
+      const corps = { nom: K.$('#m-nom').value.trim() };
+      if (custom) { corps.nb_creas = K.$('#m-nb').value; corps.prix = K.$('#m-prix').value; }
+      try {
+        const d = await K.api('/api/admin/diagnostic').catch(() => ({}));
+        if (corps.nom && !(Number(String(d.worker || '').replace(/\D/g, '')) >= 84)) throw new Error('Collez d\'abord le Worker v84 dans Cloudflare : sinon le nom n\'est pas enregistré.');
+        await K.api('/api/admin/commandes/' + k.id, { methode: 'PATCH', corps }); K.fermer(); K.toast('Commande enregistrée'); recharger();
+      } catch (err) { K.toast(err.message); e.target.disabled = false; }
+    };
+  });
   brancherSupprFactures();
   document.querySelectorAll('[data-suppr]').forEach(x => x.onclick = async () => {
     if (!await K.confirmer('Supprimer cette commande ?', 'Elle disparaît de l\'espace du client. Le dossier de production n\'est pas touché.', 'Supprimer', true)) return;
@@ -753,6 +774,7 @@ function brancherClient() {
 function nouvelleCommande(c, apres) {
   const P = (S.resume && S.resume.packs) || {};
   const v = K.fenetre('<div class="fen-h"><h2>Nouvelle commande</h2><p>' + esc(c.marque) + ' · elle apparaît tout de suite dans son espace.</p></div><div class="fen-b">' +
+    '<div class="champ"><label>Nom du projet (facultatif)</label><input class="in" id="c-nom" maxlength="60" placeholder="Ex. : Pack Marque B"><div class="aide">Utile quand le client a plusieurs projets : c\'est ce nom qu\'il voit dans son espace.</div></div>' +
     '<div class="grid g2" style="gap:12px"><div class="champ"><label>Pack</label><select class="in" id="c-pack">' + ['starter', 'growth', 'scale', 'custom'].map(k => '<option value="' + k + '"' + (k === 'growth' ? ' selected' : '') + '>' + PACKS_NOMS[k] + '</option>').join('') + '</select></div>' +
     '<div class="champ"><label>Formule</label><select class="in" id="c-formule"><option value="unique">Commande unique</option><option value="mensuel">Abonnement mensuel</option></select></div></div>' +
     '<div class="grid g2" style="gap:12px"><div class="champ"><label>Nombre de créatives</label><input class="in" id="c-nb" type="number" min="1"></div>' +
@@ -774,7 +796,7 @@ function nouvelleCommande(c, apres) {
   v.querySelector('[data-o]').onclick = async e => {
     e.target.disabled = true;
     try {
-      const r = await K.api('/api/admin/commandes', { methode: 'POST', corps: { client_id: c.id, pack: K.$('#c-pack').value, formule: K.$('#c-formule').value, nb_creas: K.$('#c-nb').value, prix: K.$('#c-prix').value, dossier: K.$('#c-dossier').value } });
+      const r = await K.api('/api/admin/commandes', { methode: 'POST', corps: { client_id: c.id, pack: K.$('#c-pack').value, formule: K.$('#c-formule').value, nb_creas: K.$('#c-nb').value, prix: K.$('#c-prix').value, dossier: K.$('#c-dossier').value, nom: K.$('#c-nom').value.trim() } });
       K.fermer(); K.toast('Commande #' + r.ref + ' enregistrée'); apres();
     } catch (err) { K.toast(err.message); e.target.disabled = false; }
   };

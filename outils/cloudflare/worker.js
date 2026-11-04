@@ -928,7 +928,7 @@ let BASE_PRETE = false;
 // v70 : la base est vérifiée une seule fois par version. Avant, chaque démarrage du Worker refaisait
 // ~25 allers-retours (tables, colonnes, index) : près d'une seconde sur la 1re ouverture.
 // Augmenter SCHEMA_V à chaque nouvelle table ou colonne : la vérification complète repasse une fois.
-const SCHEMA_V = 82;   // v83 : pas de nouvelle colonne
+const SCHEMA_V = 84;   // v84 : commandes.nom (nom du projet, ex. deux projets pour un même client)
 let SCHEMA_EN_COURS = null;
 async function base(env) {
   if (!env.DB) throw new Error('Base de données absente : liez une base D1 au Worker sous le nom DB.');
@@ -968,7 +968,7 @@ async function migrerBase(env) {
       env.DB.prepare(`CREATE INDEX IF NOT EXISTS i_fac_client ON factures(client_id)`)
     ]);
     // colonnes ajoutées après coup : sans effet si elles existent déjà
-    for (const col of ['avis_le INTEGER', 'avis_ignore_le INTEGER', 'valide_le INTEGER', 'stripe_session TEXT', 'stripe_abo TEXT', 'stripe_facture TEXT', 'options TEXT', 'brief_json TEXT']) {
+    for (const col of ['avis_le INTEGER', 'avis_ignore_le INTEGER', 'valide_le INTEGER', 'stripe_session TEXT', 'stripe_abo TEXT', 'stripe_facture TEXT', 'options TEXT', 'brief_json TEXT', 'nom TEXT']) {
       try { await env.DB.prepare('ALTER TABLE commandes ADD COLUMN ' + col).run(); } catch (e) {}
     }
     for (const col of ['stripe_le INTEGER', 'offre_le INTEGER']) { try { await env.DB.prepare('ALTER TABLE abonnements ADD COLUMN ' + col).run(); } catch (e) {} }
@@ -1633,7 +1633,11 @@ async function apiAdmin(req, env, ctx, url, chemin, methode) {
     if (!cl) return json({ erreur: 'Client introuvable' }, 404);
     const pack = PACKS[b.pack] ? b.pack : 'growth', formule = ['unique', 'mensuel'].includes(b.formule) ? b.formule : 'unique';
     const { nb, prix } = prixPack(pack, formule, b);
-    return json(await creerCommande(db, { client_id: cl.id, pack, formule, nb, prix, dossier: propre(b.dossier, 60) || null }));
+    const r = await creerCommande(db, { client_id: cl.id, pack, formule, nb, prix, dossier: propre(b.dossier, 60) || null });
+    // v84 : le nom du projet (« Pack Marque A », « Pack Marque B ») quand un client a plusieurs projets
+    const nom = propre(b.nom, 60);
+    if (nom && r && r.id) await db.prepare('UPDATE commandes SET nom = ? WHERE id = ?').bind(nom, r.id).run();
+    return json(r);
   }
   if ((m = chemin.match(/^\/commandes\/(k_[A-Za-z0-9_]+)$/))) {
     const k = await db.prepare('SELECT * FROM commandes WHERE id = ?').bind(m[1]).first();
@@ -1641,7 +1645,7 @@ async function apiAdmin(req, env, ctx, url, chemin, methode) {
     if (methode === 'PATCH') {
       if ('statut' in b && !STATUTS.includes(b.statut)) return json({ erreur: 'Statut inconnu' }, 400);
       const maj = {};
-      for (const x of ['dossier', 'statut', 'deadline', 'notes']) if (x in b) maj[x] = x === 'deadline' ? (b[x] === '' || b[x] == null ? null : Number(b[x])) : (propre(b[x], 2000) || null);
+      for (const x of ['dossier', 'statut', 'deadline', 'notes', 'nom']) if (x in b) maj[x] = x === 'deadline' ? (b[x] === '' || b[x] == null ? null : Number(b[x])) : (propre(b[x], 2000) || null);
       if (env.PUSH_TEST && 'cree_le' in b) maj.cree_le = Number(b.cree_le);   // banc de test seulement : remonter le temps
       // banc de test seulement : reculer les dates d'envoi des livraisons de la commande (le calendrier du Custom en part)
       if (env.PUSH_TEST && b.decaler_livraisons && k.dossier) { const p0 = k.dossier.replace(/_L\d+$/, ''); await (await baseLiv(env)).prepare('UPDATE livraisons SET envoye_le = envoye_le - ? WHERE envoye_le IS NOT NULL AND (dossier = ? OR dossier LIKE ?)').bind(Number(b.decaler_livraisons), p0, p0 + '_L%').run(); }
@@ -1727,7 +1731,7 @@ async function apiAdmin(req, env, ctx, url, chemin, methode) {
     const sha = await shaMain(env).catch(() => null);
     TRAD_ERREURS = []; TRAD_MODELE = null;
     const essai = url.searchParams.has('traduction') ? (await traduire(env, ['Serait-il possible de mettre un visuel de l\'interface ?']))[0] : undefined;
-    return json({ worker: 'v83', traduction_essai: essai, traduction_modele: essai !== undefined ? TRAD_MODELE : undefined, traduction_refus: essai !== undefined && TRAD_ERREURS.length ? TRAD_ERREURS : undefined, depot_commit: sha ? sha.slice(0, 7) : null, github_jeton: gh === 200 ? 'ok' : gh === 401 ? 'REFUSÉ (jeton expiré ou révoqué)' : gh, github_derniere_lecture: DEPOT_DERNIER,
+    return json({ worker: 'v84', traduction_essai: essai, traduction_modele: essai !== undefined ? TRAD_MODELE : undefined, traduction_refus: essai !== undefined && TRAD_ERREURS.length ? TRAD_ERREURS : undefined, depot_commit: sha ? sha.slice(0, 7) : null, github_jeton: gh === 200 ? 'ok' : gh === 401 ? 'REFUSÉ (jeton expiré ou révoqué)' : gh, github_derniere_lecture: DEPOT_DERNIER,
       stockage_r2: !!env.FICHIERS, traduction_ai: !!env.AI, telegram_bot: !!env.TELEGRAM_BOT, code_fiche: !!(await codeFiche(env)) });
   }
   if (chemin === '/equipe' && methode === 'GET') {

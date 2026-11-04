@@ -307,6 +307,7 @@
   const NOMS_PACKS = { starter: 'Starter', growth: 'Growth', scale: 'Scale', custom: 'Custom' };
   // « Pack Growth · octobre 2026 » ou « Abonnement Growth · novembre 2026 »
   K.nomCommande = c => {
+    if (c.nom) return c.nom;   // v84 : le nom du projet donné par Kreative (un client avec plusieurs projets)
     const d = new Date(c.cree_le || Date.now());
     return (c.formule === 'mensuel' ? 'Abonnement ' : 'Pack ') + (NOMS_PACKS[c.pack] || c.pack) + ' · ' + MOIS[d.getMonth()] + ' ' + d.getFullYear();
   };

@@ -71,6 +71,19 @@
 .pl-e.futur b{color:var(--tx3)}
 .pl-e.cours small{color:var(--blue-tx);font-weight:600}
 @media(max-width:700px){.projet-l{padding:20px}.pl-et{grid-template-columns:1fr;gap:14px;text-align:left}.pl-e{text-align:left;padding:4px 0 0 44px}.pl-e::before{display:none}.pl-r{left:0;transform:none}.pl-e b{padding:0}}
+/* v84 : plusieurs projets, un brief chacun : on choisit le projet dans une carte */
+.bp{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin:0 0 18px}
+.bp a{display:flex;align-items:center;gap:14px;padding:16px 18px;border:1px solid var(--line);border-radius:10px;background:var(--card,#fff);color:inherit;text-decoration:none;box-shadow:rgba(18,18,18,.35) 0 30px 60px -50px;transition:border-color .15s,box-shadow .15s}
+.bp a:hover{border-color:var(--blue)}
+.bp a.on{border-color:var(--blue);box-shadow:0 0 0 1px var(--blue),rgba(77,148,255,.35) 0 18px 40px -24px}
+.bp .n{flex:none;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:600;background:var(--blue-soft);color:var(--blue-tx)}
+.bp a.on .n{background:var(--blue);color:#fff}
+.bp .n.ok{background:var(--green);color:#fff}
+.bp .n.ok svg{width:14px;height:14px}
+.bp b{display:block;font-size:15.5px;font-weight:600}
+.bp small{display:block;font-size:13px;color:var(--tx3,#71717b);margin-top:2px}
+.bp-form{padding:14px 20px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:14px}
+.bp-form b{font-weight:600}
 </style>
 <script src="/ui/app.js"></script>
 <script src="/ui/panier.js"></script>
@@ -268,6 +281,10 @@ function ecranAccueil() {
   if (aValider) h += '<div class="bandeau"><span class="ic">' + i.image + '</span><div><b>Vos créatives sont prêtes</b>' +
     '<small>' + esc(nom(aValider)) + '</small></div>' +
     '<a class="btn" href="#/projets/' + esc(aValider.id) + (aValider.creatives ? '/creatives' : '') + '">Voir mes créatives</a></div>';
+  else if (attente && D.commandes.filter(c => etat(c) === 'confirmee').length > 1) { const L = D.commandes.filter(c => etat(c) === 'confirmee').sort((x, y) => (x.cree_le || 0) - (y.cree_le || 0));
+    h += '<div class="bandeau"><span class="ic">' + i.doc + '</span><div><b>Il reste une étape : vos ' + L.length + ' briefs</b>' +
+    '<small>Un brief par projet : ' + esc(L.map(nom).join(' et ')) + '. Comptez une quinzaine de minutes chacun.</small></div>' +
+    '<a class="btn" href="#/brief/' + esc(attente.id) + '">Remplir mes briefs</a></div>'; }
   else if (attente) h += '<div class="bandeau"><span class="ic">' + i.doc + '</span><div><b>Il reste une étape : votre brief</b>' +
     '<small>Comptez une quinzaine de minutes. Il lance la production de votre ' + esc(nom(attente)) + '.</small></div>' +
     '<a class="btn" href="#/brief/' + esc(attente.id) + '">Remplir mon brief</a></div>';
@@ -466,7 +483,9 @@ function fenetreAvis(c) {
 //  - le brief de la livraison suivante d'un pack Custom livré en plusieurs fois (formulaire de retour).
 const MOIS_B = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
 function briefAFaire(c) {
-  const p = (base, extra) => base + '?' + new URLSearchParams(Object.assign({ commande: c.ref, client: D.client.id }, D.client.email ? { email: D.client.email } : {}, { marque: D.client.marque }, extra || {})).toString();
+  // un projet nommé par Kreative (« Pack Marque A », « Pack Marque B ») : son nom part comme marque, pour que les deux briefs ne se mélangent pas
+  const marque = c.nom ? c.nom.replace(/^pack\s+/i, '') : D.client.marque;
+  const p = (base, extra) => base + '?' + new URLSearchParams(Object.assign({ commande: c.ref, client: D.client.id }, D.client.email ? { email: D.client.email } : {}, { marque }, extra || {})).toString();
   if (etat(c) === 'confirmee' && c.brief_mois) { const m = MOIS_B[new Date(c.cree_le || Date.now()).getMonth()];
     return { cle: c.id, titre: 'Brief ' + (/^[ao]/.test(m) ? 'd\'' : 'de ') + m, texte: 'Dites-nous-en davantage sur ce qui a fonctionné le mois dernier, et sur ce que vous souhaitez garder ou changer ce mois-ci.', lien: p(LIENS.fillout.suivant, { dossier: c.brief_mois.dossier }) }; }
   // Custom : le nombre de créas commandé part dans le lien (champ caché « creas » du formulaire), lu par n8n
@@ -499,17 +518,27 @@ const qr = rep => {
         return '<div class="qr' + (court ? ' court' : '') + '"><div class="q">' + esc(x.q) + '</div><div class="r">' + reponse(x) + '</div></div>'; }).join('') +
       '</div></section>').join('') + '</div>';
 };
+// v84 : un client avec plusieurs projets : une carte par projet, celle ouverte en bleu
+function cartesBriefs(todo, actif) {
+  const L = D.commandes.filter(c => todo.some(x => x.c === c) || (c.brief_le && !['valide', 'annule'].includes(etat(c)))).sort((x, y) => (x.cree_le || 0) - (y.cree_le || 0));
+  if (L.length < 2) return '';
+  return '<div class="bp">' + L.map((c, n) => { const a = todo.some(x => x.c === c);
+    return '<a class="' + (c === actif ? 'on' : '') + '" href="#/brief/' + esc(c.id) + '"><span class="n' + (a ? '' : ' ok') + '">' + (a ? n + 1 : i.coche) + '</span>' +
+      '<span><b>' + esc(nom(c)) + '</b><small>' + (c.nb_creas || '') + ' créatives · ' + (a ? 'Brief à remplir' : 'Brief reçu') + '</small></span></a>'; }).join('') + '</div>';
+}
 function ecranBrief(id) {
   let h = apercu();
   if (!D.commandes.length) return h + '<div class="ph"><div><h1>Mon brief</h1><p>Votre brief s\'ouvre dès votre première commande.</p></div></div><div class="card"><div class="vide">' + i.doc + 'Aucune commande pour l\'instant.</div></div>';
   const todo = briefsAFaire();
   const choisi = (id && D.commandes.find(x => x.id === id)) || null;
-  const aFaire = choisi ? todo.find(x => x.c === choisi) : todo[0];
+  const aFaire = choisi ? todo.find(x => x.c === choisi) : todo.slice().sort((x, y) => (x.c.cree_le || 0) - (y.c.cree_le || 0))[0];   // le plus ancien projet d'abord
   if (aFaire) {
     const { c, b } = aFaire;
-    h += '<div class="ph"><div><h1>' + (b.titre === 'Votre brief' ? 'Il reste une étape' : esc(b.titre)) + '</h1><p>' + esc(b.texte) + '</p></div><span class="pill a"><i></i>Brief à remplir</span></div>';
-    if (todo.length > 1) h += '<div class="filtres">' + todo.map(x => '<a class="chip' + (x.c === c ? ' on' : '') + '" href="#/brief/' + esc(x.c.id) + '">' + esc(nom(x.c)) + (x.b.titre !== 'Votre brief' ? ' · ' + esc(x.b.titre.replace(/^Brief /, '')) : '') + '</a>').join('') + '</div>';
-    h += '<div class="card" style="overflow:hidden"><iframe src="' + esc(b.lien) + '" title="' + esc(b.titre) + '" style="display:block;width:100%;height:calc(100vh - 260px);min-height:620px;border:0" allow="clipboard-write"></iframe></div>' +
+    const cartes = cartesBriefs(todo, c);
+    if (cartes) h += '<div class="ph"><div><h1>Mes briefs</h1><p>Un brief par projet. Remplissez celui du projet sélectionné, puis passez au suivant.</p></div></div>' + cartes;
+    else h += '<div class="ph"><div><h1>' + (b.titre === 'Votre brief' ? 'Il reste une étape' : esc(b.titre)) + '</h1><p>' + esc(b.texte) + '</p></div><span class="pill a"><i></i>Brief à remplir</span></div>';
+    if (!cartes && todo.length > 1) h += '<div class="filtres">' + todo.map(x => '<a class="chip' + (x.c === c ? ' on' : '') + '" href="#/brief/' + esc(x.c.id) + '">' + esc(nom(x.c)) + (x.b.titre !== 'Votre brief' ? ' · ' + esc(x.b.titre.replace(/^Brief /, '')) : '') + '</a>').join('') + '</div>';
+    h += '<div class="card" style="overflow:hidden">' + (cartes ? '<div class="bp-form"><span>Brief du <b>' + esc(nom(c)) + '</b></span><span class="pill a"><i></i>À remplir</span></div>' : '') + '<iframe src="' + esc(b.lien) + '" title="' + esc(b.titre) + '" style="display:block;width:100%;height:calc(100vh - 260px);min-height:620px;border:0" allow="clipboard-write"></iframe></div>' +
       '<p class="muted" style="font-size:12.5px;margin-top:12px;text-align:center">Une fois votre brief envoyé, la production démarre. Vous suivez son avancement dans « Mes projets ».</p>';
     return h;
   }
@@ -522,8 +551,10 @@ function ecranBrief(id) {
   // 02/11 : la page « Informations complémentaires » du brief est un sondage pour Kreative : pas affichée au client
   const SONDAGE = /^(comment avez-vous compris|comment nous avez-vous decouvert|quel contenu vous a le plus marque|quelles etaient vos plus grosses hesitations|combien de temps vous a-t-il fallu|qu.est-ce qui vous a finalement fait choisir|qu.avez-vous pense de ce formulaire)/;
   rep = rep.filter(x => !SONDAGE.test(String(x.q || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')));
-  h += '<div class="ph"><div><h1>Mon brief</h1><p>' + esc(nom(c)) + ' · commande #' + esc(c.ref) + '</p></div></div>';
-  if (D.commandes.length > 1) h += '<div class="filtres">' + D.commandes.map(x => '<a class="chip' + (x.id === c.id ? ' on' : '') + '" href="#/brief/' + esc(x.id) + '">' + esc(nom(x)) + '</a>').join('') + '</div>';
+  const cartesR = cartesBriefs(todo, c);
+  h += cartesR ? '<div class="ph"><div><h1>Mes briefs</h1><p>Un brief par projet. ' + (todo.length ? 'Il en reste ' + todo.length + ' à remplir.' : 'Tous vos briefs sont reçus.') + '</p></div></div>' + cartesR
+    : '<div class="ph"><div><h1>Mon brief</h1><p>' + esc(nom(c)) + ' · commande #' + esc(c.ref) + '</p></div></div>';
+  if (!cartesR && D.commandes.length > 1) h += '<div class="filtres">' + D.commandes.map(x => '<a class="chip' + (x.id === c.id ? ' on' : '') + '" href="#/brief/' + esc(x.id) + '">' + esc(nom(x)) + '</a>').join('') + '</div>';
   h += '<div class="card pad brief-recu"><div class="brief-tete"><span class="tuile" style="background:var(--green)">' + i.coche.replace('<svg', '<svg width="18" height="18"') + '</span>' +
     '<div class="t"><h3 style="font-size:17px">Brief bien reçu</h3>' + (c.brief_le ? '<p class="muted" style="margin-top:5px;font-size:13.5px">Le ' + esc(K.dateHeure(c.brief_le)) + '.</p>' : '') + '</div>' +
     '<div class="acts"><a class="btn btn-s btn-sm" href="' + wa('Bonjour Kreative, je voudrais modifier mon brief (' + nom(c) + ', #' + c.ref + ') : ') + '" target="_blank" rel="noopener">Demander une modification</a>' +

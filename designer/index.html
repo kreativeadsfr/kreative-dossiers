@@ -325,7 +325,7 @@ const TEXTES = { visuels: 'The generated visuals and the copy for each project.'
 let derniere = '';
 K.rendre = async force => {
   const r = K.route(), cle = (location.hash || '#/');
-  if (!force && cle === derniere && document.querySelector('.app')) return;
+  if (!force && cle === derniere && document.querySelector('.app:not(.squelette)')) return;
   derniere = cle;
   if (!E.moi) E.moi = await K.lireJson('/_moi');
   await K.prod.charger();

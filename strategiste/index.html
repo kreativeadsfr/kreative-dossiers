@@ -181,7 +181,7 @@ const TEXTES = { fiche: 'Choisis le projet dont tu remplis la fiche.', dossier: 
 let derniere = '';
 K.rendre = async force => {
   const r = K.route(), cle = (location.hash || '#/');
-  if (!force && cle === derniere && document.querySelector('.app')) return;   // même page : rien ne bouge (le cadre ne se recharge pas)
+  if (!force && cle === derniere && document.querySelector('.app:not(.squelette)')) return;   // même page : rien ne bouge (le cadre ne se recharge pas)
   derniere = cle;
   if (!E.moi) E.moi = await K.lireJson('/_moi');
   await K.prod.charger();

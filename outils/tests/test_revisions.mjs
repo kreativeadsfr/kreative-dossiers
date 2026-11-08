@@ -155,7 +155,7 @@ const img = await get(lv2.fichiers[0].url, { headers: { Cookie: CK } }); t('le c
 r = await api('/api/equipe/livraisons/' + lv2.id + '/stockage', DE); t('la designer ne lance pas la vérification', r.s === 403, r.s);
 r = await get('/api/equipe/fichiers/' + lv2.fichiers[0].id + '/reparer', { method: 'PUT', headers: { Cookie: A, 'Content-Type': 'image/png' }, body: PNG });
 t('réparer un fichier : remis à la même place', r.status === 200, r.status);
-r = await api('/api/admin/diagnostic', A); t('diagnostic du Worker', r.s === 200 && r.d.worker === 'v84' && r.d.telegram_bot === true, JSON.stringify(r.d));
+r = await api('/api/admin/diagnostic', A); t('diagnostic du Worker', r.s === 200 && r.d.worker === 'v85' && r.d.telegram_bot === true, JSON.stringify(r.d));
 r = await api('/api/admin/diagnostic', DE); t('diagnostic : admin seulement', r.s === 403 || r.s === 401, r.s);
 
 // v78 : une page modifiée sur main est servie dès le nouveau commit (avant : une copie pouvait rester figée des heures)
@@ -169,7 +169,27 @@ r = await api('/api/admin/diagnostic', DE); t('diagnostic : admin seulement', r.
   let p2 = await (await get('/ui/essai-commit.css', { headers: { Cookie: A } })).text();
   t('nouveau commit : la page est relue tout de suite', p1.includes('version 1') && p2.includes('version 2'), p1 + ' / ' + p2);
   r = await api('/api/admin/diagnostic', A); t('diagnostic : le commit du dépôt', r.d.depot_commit === 'bbbbbbb', JSON.stringify(r.d));
-  fs.unlinkSync(SHA); fs.unlinkSync(FX);
+  // v85 : un nouveau commit ne fait relire que les fichiers qu'il change (avant : toutes les pages, l'admin mettait 10 s)
+  const FY = new URL('fixtures/ui/essai-stable.css', import.meta.url), CMP = new URL('compare.json', import.meta.url);
+  fs.writeFileSync(FY, '/* stable */');
+  await get('/ui/essai-stable.css', { headers: { Cookie: A } });
+  fs.writeFileSync(FX, '/* version 3 */'); fs.writeFileSync(CMP, JSON.stringify({ fichiers: ['ui/essai-commit.css'] })); fs.writeFileSync(SHA, 'c'.repeat(40));
+  await new Promise(z => setTimeout(z, 16000));
+  const avant = await (await fetch('http://127.0.0.1:9911/_compteur')).json();
+  const ps = await (await get('/ui/essai-stable.css', { headers: { Cookie: A } })).text();
+  const apres = await (await fetch('http://127.0.0.1:9911/_compteur')).json();
+  const p3 = await (await get('/ui/essai-commit.css', { headers: { Cookie: A } })).text();
+  t('nouveau commit : un fichier inchangé est servi sans relire GitHub', ps.includes('stable') && (apres.raw || 0) === (avant.raw || 0) && (apres.compare || 0) >= 1, JSON.stringify({ avant, apres }));
+  t('nouveau commit : le fichier changé est relu tout de suite', p3.includes('version 3'), p3);
+  fs.unlinkSync(SHA); fs.unlinkSync(FX); fs.unlinkSync(FY); fs.unlinkSync(CMP);
+}
+// v85 : le logo des emails sort du Worker, gardé un an (Gmail l'affiche dès l'ouverture)
+{
+  const lg = await get('/logo-email.png');
+  const b = new Uint8Array(await lg.arrayBuffer());
+  t('logo des emails : PNG servi sans connexion, gardé un an', lg.status === 200 && lg.headers.get('content-type') === 'image/png' && /public, max-age=31536000/.test(lg.headers.get('cache-control')) && b[1] === 0x50 && b.length > 1000, lg.status + ' ' + lg.headers.get('cache-control'));
+  const lk = await get('/ui/logo-kreative-noir.png');
+  t('logos publics gardés en cache partagé (plus « private »)', lk.status === 200 && /^public/.test(lk.headers.get('cache-control') || ''), lk.headers.get('cache-control'));
 }
 
 // la fiche du portail sait faire une reprise

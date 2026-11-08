@@ -82,6 +82,8 @@ http.createServer(async (req, res) => {
     res.writeHead(200, {'content-type':'application/json'}); return res.end(JSON.stringify({ sha: 'sha-'+rel, content: fs.readFileSync(f).toString('base64') }));
   }
   if (u.pathname === '/repos/kreativeadsfr/kreative-dossiers/commits/main') { const fsha = path.join(process.cwd(), 'sha_main.txt'); if (!fs.existsSync(fsha)) { res.writeHead(404); return res.end('{"message":"Not Found"}'); } res.writeHead(200, {'content-type':'application/vnd.github.sha'}); return res.end(fs.readFileSync(fsha, 'utf8').trim()); }
+  // v85 : les fichiers changés entre deux commits (compare.json écrit par le test : { "fichiers": [...] })
+  if (/^\/repos\/kreativeadsfr\/kreative-dossiers\/compare\//.test(u.pathname)) { const fc = path.join(process.cwd(), 'compare.json'); compteur.compare = (compteur.compare || 0) + 1; if (!fs.existsSync(fc)) { res.writeHead(404); return res.end('{"message":"Not Found"}'); } const j = JSON.parse(fs.readFileSync(fc, 'utf8')); res.writeHead(200, {'content-type':'application/json'}); return res.end(JSON.stringify({ status: 'ahead', files: j.fichiers.map(f => ({ filename: f })) })); }
   if (u.pathname === '/repos/kreativeadsfr/kreative-dossiers/git/ref/heads/main') { res.writeHead(200,{'content-type':'application/json'}); return res.end('{"object":{"sha":"abc123"}}'); }
   if (u.pathname === '/repos/kreativeadsfr/kreative-dossiers/git/commits/abc123') { res.writeHead(200,{'content-type':'application/json'}); return res.end('{"tree":{"sha":"t1"}}'); }
   if (u.pathname === '/repos/kreativeadsfr/kreative-dossiers/git/trees/t1') {

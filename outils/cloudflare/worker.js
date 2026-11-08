@@ -27,6 +27,7 @@ const ANCIENS = [
 ];
 const COOKIE = 'k_espace';
 const DUREE_JOURS = 60;
+const LOGO_EMAIL_PNG = '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';   // v85 : ui/logo-kreative-noir.png en 264 × 52 (affiché à 132 × 26 dans les emails)
 const PUBLICS = /^\/(ui\/kreative\.css|ui\/(app|review|panier|qr)\.(css|js)|ui\/logo-[a-z0-9-]+\.png|ui\/[a-z0-9-]+\.svg|favicon-\d+\.png|apple-touch-icon\.png|app-icon-[a-z0-9-]+\.png)$/;
 const INTERDITS = /(^|\/)(\.git|\.github|outils)(\/|$)|\.\./;
 const LIMITE_REECRITURE = 3 * 1024 * 1024;   // au-delà, le texte passe tel quel
@@ -122,7 +123,9 @@ async function traiter(req, env, ctx) {
   if (req.method !== 'GET' && req.method !== 'HEAD') return texte('Méthode non autorisée', 405);
 
   // ---------- fichiers publics (la page de connexion en a besoin) ----------
-  if (PUBLICS.test(chemin)) return servir(chemin.slice(1), env, ctx, { brut: false, origine: url.origin, req });
+  // v85 : le logo des emails, rangé dans le Worker (aucune lecture de GitHub) et gardé un an par Gmail et les navigateurs : affiché dès l'ouverture du mail
+  if (chemin === '/logo-email.png') return new Response(Uint8Array.from(atob(LOGO_EMAIL_PNG), c => c.charCodeAt(0)), { headers: { 'Content-Type': 'image/png', 'Cache-Control': 'public, max-age=31536000, immutable', 'Access-Control-Allow-Origin': '*' } });
+  if (PUBLICS.test(chemin)) return servir(chemin.slice(1), env, ctx, { brut: false, origine: url.origin, req, public: true });
 
   // ---------- tout le reste : connecté seulement ----------
   const page = /\.html?$|\/$/.test(chemin) || !/\.[a-z0-9]{1,5}$/i.test(chemin);
@@ -246,12 +249,44 @@ function shaMain(env) {
       const api = (env.GITHUB_API || 'https://api.github.com').replace(/\/$/, '');
       const r = await fetchGithub(api + '/repos/' + DEPOT + '/commits/' + BRANCHE, { 'Authorization': 'Bearer ' + (env.GITHUB_TOKEN || ''), 'Accept': 'application/vnd.github.sha', 'User-Agent': 'kreative-espace', 'X-GitHub-Api-Version': '2022-11-28' });
       const t = r.ok ? (await r.text()).trim() : (r.body && r.body.cancel(), '');
-      if (/^[0-9a-f]{40}$/.test(t)) { SHA_MAIN.sha = t; SHA_MAIN.lu = Date.now(); }
+      if (/^[0-9a-f]{40}$/.test(t)) {
+        const ancien = SHA_MAIN.sha;
+        if (ancien && ancien !== t) await noterSaut(env, api, ancien, t);
+        SHA_MAIN.sha = t; SHA_MAIN.lu = Date.now();
+      }
     } catch (e) {}
     SHA_MAIN.enCours = null;
     return SHA_MAIN.sha;
   })();
   return SHA_MAIN.enCours;
+}
+// v85 : les fichiers changés entre deux commits (compare de GitHub, un seul appel par nouveau commit). Une copie
+// d'un fichier qui n'a pas changé reste bonne : servie tout de suite, sans relire GitHub. Avant (v78), chaque
+// nouveau commit (n8n en pousse sans arrêt) faisait relire TOUTES les pages et données : l'admin mettait 10 s.
+const SAUTS = [];   // { de, a, fichiers: Set | null (inconnu) }, les derniers commits vus par cet isolat
+async function noterSaut(env, api, de, a) {
+  let fichiers = null;
+  try {
+    const r = await fetchGithub(api + '/repos/' + DEPOT + '/compare/' + de + '...' + a, { 'Authorization': 'Bearer ' + (env.GITHUB_TOKEN || ''), 'Accept': 'application/vnd.github+json', 'User-Agent': 'kreative-espace', 'X-GitHub-Api-Version': '2022-11-28' });
+    if (r.ok) {
+      const j = await r.json();
+      const l = Array.isArray(j.files) ? j.files : null;
+      if (l && l.length < 300 && j.status !== 'diverged') fichiers = new Set(l.flatMap(f => [f.filename, f.previous_filename].filter(Boolean)));
+    } else if (r.body) r.body.cancel();
+  } catch (e) {}
+  SAUTS.push({ de, a, fichiers });
+  if (SAUTS.length > 40) SAUTS.shift();
+}
+// true : le fichier n'a pas changé entre les deux commits ; false : il a changé ; null : on ne sait pas
+function inchange(fichier, de, a) {
+  let cur = de;
+  for (let i = 0; i < 40 && cur !== a; i++) {
+    const s = SAUTS.find(x => x.de === cur);
+    if (!s || !s.fichiers) return null;
+    if (s.fichiers.has(fichier)) return false;
+    cur = s.a;
+  }
+  return cur === a ? true : null;
 }
 async function depotRelire(fichier, env, e, sha) {
   const api = (env.GITHUB_API || 'https://api.github.com').replace(/\/$/, '');
@@ -294,6 +329,10 @@ async function lireDepot(fichier, env, ctx, frais, max) {
   }
   // v78 : un nouveau commit sur main : la copie est relue tout de suite, à ce commit
   const sha = await shaMain(env).catch(() => null);
+  if (sha && e && e.s === 200 && e.commit && e.commit !== sha && inchange(fichier, e.commit, sha) === true) {
+    e.commit = sha;   // le fichier n'a pas bougé depuis : la copie vaut pour ce commit
+    return depotReponse(e, d + '-inchange');
+  }
   if (sha && (!e || e.commit !== sha)) {
     const n = await depotRelire(fichier, env, e, sha).catch(() => null);
     if (n && !n.erreur) return depotReponse(n, 'github');
@@ -365,7 +404,8 @@ async function servir(chemin, env, ctx, o) {
   const entetes = new Headers({
     'Content-Type': type,
     'X-Robots-Tag': 'noindex, nofollow',
-    'Cache-Control': estTexte ? 'no-store' : 'private, max-age=300'
+    // v85 : logos et icônes publics gardés une semaine (aussi par le proxy d'images de Gmail) ; avant « private », relus à chaque ouverture
+    'Cache-Control': estTexte ? 'no-store' : (o.public ? 'public, max-age=604800, stale-while-revalidate=86400' : 'private, max-age=300')
   });
 
   if (!estTexte) {
@@ -1731,7 +1771,7 @@ async function apiAdmin(req, env, ctx, url, chemin, methode) {
     const sha = await shaMain(env).catch(() => null);
     TRAD_ERREURS = []; TRAD_MODELE = null;
     const essai = url.searchParams.has('traduction') ? (await traduire(env, ['Serait-il possible de mettre un visuel de l\'interface ?']))[0] : undefined;
-    return json({ worker: 'v84', traduction_essai: essai, traduction_modele: essai !== undefined ? TRAD_MODELE : undefined, traduction_refus: essai !== undefined && TRAD_ERREURS.length ? TRAD_ERREURS : undefined, depot_commit: sha ? sha.slice(0, 7) : null, github_jeton: gh === 200 ? 'ok' : gh === 401 ? 'REFUSÉ (jeton expiré ou révoqué)' : gh, github_derniere_lecture: DEPOT_DERNIER,
+    return json({ worker: 'v85', traduction_essai: essai, traduction_modele: essai !== undefined ? TRAD_MODELE : undefined, traduction_refus: essai !== undefined && TRAD_ERREURS.length ? TRAD_ERREURS : undefined, depot_commit: sha ? sha.slice(0, 7) : null, github_jeton: gh === 200 ? 'ok' : gh === 401 ? 'REFUSÉ (jeton expiré ou révoqué)' : gh, github_derniere_lecture: DEPOT_DERNIER,
       stockage_r2: !!env.FICHIERS, traduction_ai: !!env.AI, telegram_bot: !!env.TELEGRAM_BOT, code_fiche: !!(await codeFiche(env)) });
   }
   if (chemin === '/equipe' && methode === 'GET') {
@@ -2203,7 +2243,7 @@ function emailHtml(origine, o) {
   const e = t => String(t == null ? '' : t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   return '<div style="background:#f3f1ec;padding:32px 12px;font-family:Inter,Arial,sans-serif">' +
     '<div style="max-width:560px;margin:0 auto;background:#fff;border:1px solid #ebe5df;border-radius:18px;padding:36px 40px">' +
-    '<img src="' + e(origine) + '/ui/logo-kreative-noir.png" alt="Kreative" height="26" style="display:block;height:26px">' +
+    '<img src="' + e(origine) + '/logo-email.png" alt="Kreative" width="132" height="26" style="display:block;width:132px;height:26px;border:0">' +
     '<h1 style="font-size:24px;line-height:1.25;margin:28px 0 14px;color:#000">' + e(o.titre) + '</h1>' +
     o.paragraphes.map(p => '<p style="font-size:16px;line-height:1.6;color:#333;margin:0 0 14px">' + p + '</p>').join('') +
     (o.bouton ? '<a href="' + e(o.bouton[1]) + '" style="display:inline-block;margin-top:10px;background:#4d94ff;color:#fff;text-decoration:none;font-weight:600;font-size:16px;padding:14px 26px;border-radius:12px">' + e(o.bouton[0]) + '</a>' : '') +

@@ -649,6 +649,19 @@
   };
 })();
 
+// 08/11 : dès l'ouverture, avant les données, la coquille (barre latérale avec le logo) s'affiche : plus d'écran vide ni de logo
+// qui apparaît en retard. Elle est remplacée par la vraie page dès que les données arrivent.
+(function () {
+  const montrer = () => {
+    const r = document.getElementById('racine'), K = window.K;
+    if (!r || !K || !K.logo || r.querySelector('.app') || !r.querySelector('.chargement')) return;
+    const msg = r.textContent.trim() || 'Chargement…';
+    r.innerHTML = '<div class="app squelette"><aside class="side"><div class="side-logo">' + K.logo + '</div></aside>' +
+      '<div class="main"><div class="panel"><header class="top"></header><div class="scroll"><div class="page"><div class="chargement">' + K.esc(msg) + '</div></div></div></div></div></div>';
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', montrer); else montrer();
+})();
+
 // ============================================================
 //  v75 : RÉVISIONS. Déposer une créa retouchée (les 3 formats d'un coup) dans la version
 //  en cours : elle remplace l'ancienne créa du même numéro, même si le nom du fichier change.

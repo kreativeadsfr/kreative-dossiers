@@ -189,10 +189,22 @@ function policesDuCode(textes) {
     for (const m of t.matchAll(/fonts\.googleapis\.com\/css2?\?family=([^"'&)\s]+)/gi))
       for (const f of decodeURIComponent(m[1]).split('|')) ajoute(f.split(':')[0].replace(/\+/g, ' ').trim(), 3);
     for (const m of t.matchAll(/@font-face\s*\{[^}]*?font-family\s*:\s*([^;}]+)/gi)) ajoute(premiere(m[1]), 3);
-    for (const m of t.matchAll(/([^{}@]*)\{[^{}]*?font-family\s*:\s*([^;}]+)/gi)) {
-      const sel = m[1].trim();
+    //  08/11 : les règles CSS sont lues bloc par bloc (découpe sur « } »), plus par une expression
+    //  qui repartait de chaque caractère : sur un gros site (Shopify), le calcul durait des minutes
+    //  et n8n coupait le Moteur (« runner became unresponsive »). Dans une page HTML, seuls les
+    //  blocs <style> sont lus comme du CSS.
+    const css = /<(html|body|div|head)\b/i.test(t.slice(0, 20000))
+      ? Array.from(t.matchAll(/<style\b[^>]*>([\s\S]*?)<\/style>/gi), x => x[1]).join('\n')
+      : t;
+    for (const bloc of css.split('}')) {
+      const k = bloc.lastIndexOf('{');
+      if (k < 0) continue;
+      const fm = bloc.slice(k + 1).match(/font-family\s*:\s*([^;}]+)/i);
+      if (!fm) continue;
+      let sel = bloc.slice(0, k);
+      sel = sel.slice(Math.max(sel.lastIndexOf('{'), sel.lastIndexOf(';'), sel.lastIndexOf('@')) + 1).trim();
       if (/code|kbd|samp|pre\b|mono/i.test(sel)) continue;
-      ajoute(premiere(m[2]), 1, sel);
+      ajoute(premiere(fm[1]), 1, sel);
     }
     for (const m of t.matchAll(/style\s*=\s*["'][^"']*font-family\s*:\s*([^;"']+)/gi)) ajoute(premiere(m[1]), 1);
   }

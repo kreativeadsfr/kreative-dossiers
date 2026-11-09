@@ -1,0 +1,31 @@
+Créa 2 · Attari
+
+1. Titre : Pourquoi choisir un seul parfum ?
+2. Badge : 49,90 €
+3. Sous-titre : Choisis le coffret 3 huiles de 6 ml et reçois 10 échantillons au choix offerts.
+
+Idée du visuel : Reprendre fidèlement la structure de l'inspi : fond beige lumineux dans la partie supérieure, surface aquatique dans la partie inférieure, grand titre centré, badge commercial, sous-titre et trois produits mis en scène.
+
+1 — Titre : remplacer « Black Friday Exclusive » par « Pourquoi choisir un seul parfum ? ». Conserver une grande typographie élégante, centrée en haut du visuel, sur deux lignes maximum.
+
+2 — Badge : remplacer le badge promotionnel d'origine par « 49,90 € ». Conserver son emplacement sous le titre, sa forme rectangulaire et son traitement graphique discret.
+
+3 — Sous-titre : afficher « Choisis le coffret 3 huiles de 6 ml et reçois 10 échantillons au choix offerts. » sous le badge. Privilégier une typographie sobre et parfaitement lisible sur mobile.
+
+Composition produit : remplacer les trois produits Salt & Stone par trois flacons Attari de fragrances différentes.
+
+- Conserver un flacon principal, plus grand, au centre de la composition.
+- Positionner les deux autres flacons de part et d'autre, en reprenant les proportions et les inclinaisons de l'inspi.
+- Utiliser les photographies WS18, WS24 et WS25 comme sources pour les flacons.
+- Préserver les bouchons dorés, les étiquettes et les logos Attari, sans déformer les produits.
+
+Décor : conserver l'univers aquatique de l'inspiration, avec une eau bleu-vert, des reflets naturels et une lumière douce. Intégrer les flacons avec des ombres et des reflets cohérents pour obtenir un photomontage réaliste.
+
+Direction artistique : préserver l'esthétique premium, sobre et élégante du modèle. Le contraste entre les flacons dorés, le fond beige et l'eau bleu-vert doit apporter de la fraîcheur tout en valorisant les produits.
+
+Ne pas ajouter de coffret, d'échantillons supplémentaires, d'éléments décoratifs inutiles ou de mentions promotionnelles non prévues.
+
+Objectif : mettre en valeur la possibilité de choisir trois senteurs différentes, tout en communiquant immédiatement le prix et les dix échantillons offerts.
+Référence      : EC1-25 · trio de flacons dans l'eau
+
+Alerte : La couleur d'accent #F5F0E8 serait invisible sur le ciel crème : le titre reste entièrement noir, comme sur la référence. La référence et la fiche n'ont pas de CTA : aucun n'a été ajouté. Le logo n'existe pas en fichier séparé : il n'apparaît que gravé sur les flacons. Les flacons sont détourés de leurs rondins de bois, comme le demande l'idée. WS18 est en basse définition (300 px). Les « 10 échantillons au choix offerts » ne figurent pas dans les promos de la DA : à vérifier avec le client.

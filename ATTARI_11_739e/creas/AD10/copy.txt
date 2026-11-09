@@ -1,0 +1,29 @@
+Créa 10 · Attari
+
+1. Avis client : "Les odeurs sont dingues et la tenue aussi. "
+2. Nom de l'auteur : AMINA C. — AVIS APRÈS ACHAT
+3. Chiffre mis en avant : 9,9/10 207 avis clients publiés
+4. Mention : Avis récoltés auprès des acheteurs Attari
+
+Idée du visuel : Reprendre fidèlement la structure de l'inspi : fond crème, grand témoignage en haut à gauche, chiffre de réassurance, cinq étoiles, produit à droite et badge inférieur.
+
+Logo : remplacer le logo EcoWise par le logo Attari, en conservant sa position dans le coin supérieur droit.
+
+1 — Avis client : afficher « Les odeurs sont dingues et la tenue aussi. » en grande typographie serif noire, avec les guillemets, dans la partie supérieure gauche. Conserver l'impact typographique de l'inspiration.
+
+2 — Auteur : afficher « AMINA C. — AVIS APRÈS ACHAT » sous le témoignage, en petites capitales.
+
+3 — Chiffre : remplacer « 5,000+ » par « 9,9/10 207 avis clients publiés », en très grand, sur deux lignes, dans la partie inférieure gauche.
+
+4 — Badge : remplacer le texte par « Avis 5 étoiles auprès des acheteurs Attari », en conservant sa forme ronde et son positionnement inférieur gauche. Cette mention se rapporte au témoignage cité.
+
+Produit : remplacer le flacon par un flacon Attari issu de l'asset WS25. Le produit doit rester l'élément visuel dominant à droite, détouré proprement, avec une ombre naturelle. Conserver la flèche courbée orientée vers le flacon.
+
+Bas du visuel : supprimer les logos de magazines présents dans l'inspi.
+
+Direction artistique : conserver le fond crème lumineux et l'esthétique premium. Utiliser des accents brun profond et doré pour rester cohérent avec l'identité Attari. Typographie élégante, mise en page aérée et excellente lisibilité sur mobile.
+
+Ne pas inventer de témoignage, de partenariat média, de garantie commerciale ou de chiffre de satisfaction.
+Référence      : UG5-04 · témoignage serif et flacon détouré
+
+Alerte : UG5-04 est une ugly ad : j'ai gardé le fond gris, la serif noire et les étoiles orange de la référence, et retiré le logo du coin supérieur droit malgré la demande du stratégiste ; je n'ai pas non plus appliqué le fond crème ni les accents brun et doré (la marque reste visible sur le flacon). Le tiret cadratin de l'emplacement 2 est remplacé par « · » (règle du skill). L'emplacement 1 est affiché avec des guillemets typographiques courbes, sans l'espace finale. Pour l'emplacement 4, j'ai suivi le texte numéroté « Avis récoltés auprès des acheteurs Attari » et non la variante « Avis 5 étoiles… » de l'idée du visuel. Le flacon garde ses deux rondins pour que l'asset apparaisse en entier. À vérifier dans les preuves : l'avis d'Amina C., la note 9,9/10 et les 207 avis.

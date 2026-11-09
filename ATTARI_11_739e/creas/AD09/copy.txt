@@ -1,0 +1,28 @@
+Créa 9 · Attari
+
+2. Recherche Google : comment trouver un parfum qui dure longtemps ?
+
+Idée du visuel : Reprendre fidèlement la structure de l'inspi : fond beige clair, composition centrée, recherche Google dans la partie supérieure et produit Attari présenté comme la réponse dans la partie inférieure.
+
+1 — Libellé supérieur : conserver « la recherche : » en haut du visuel, avec une typographie noire, épaisse et légèrement irrégulière, fidèle à l'inspiration.
+
+2 — Recherche Google : remplacer le texte original par « comment trouver un parfum qui dure longtemps ? ».
+
+Conserver l'apparence d'une véritable barre de recherche Google : rectangle blanc légèrement arrondi, pictogramme de loupe à gauche et texte noir à l'intérieur. La phrase doit rester parfaitement lisible sur mobile.
+
+3 — Libellé du produit : conserver « la solution : » au centre du visuel, juste au-dessus du flacon Attari. Reprendre la typographie et les proportions du modèle.
+
+Produit : remplacer le paquet de café par un flacon Attari issu de WS25 (Oud Cambodi). Positionner le flacon au centre de la partie inférieure, avec une taille suffisamment importante pour que la marque et le packaging soient reconnaissables.
+
+Préserver la forme réelle du flacon, son bouchon doré, son étiquette et ses proportions. Le produit doit être correctement détouré et intégré avec une ombre naturelle au sol.
+
+Éléments graphiques : supprimer les grains de café présents autour du produit. Ne pas les remplacer par des éléments décoratifs inutiles. Laisser le flacon occuper visuellement le premier plan.
+
+Direction artistique : conserver le fond beige légèrement texturé, la lumière douce et la composition minimaliste de l'inspiration. Le rendu doit rester simple, presque amateur, sans effets publicitaires sophistiqués.
+
+Éviter les badges, les promotions et les arguments supplémentaires. Toute la création doit reposer sur la succession « recherche → solution ».
+
+Objectif : attirer les personnes qui souhaitent découvrir un parfum différent des références habituelles et présenter Attari comme une marque à explorer, sans utiliser de promesses non vérifiées sur la tenue du parfum.
+Référence      : UG1-03 · recherche Google puis produit réponse
+
+Alerte : Contradiction dans la fiche : les emplacements 1 (« la recherche : ») et 3 (« la solution : ») sont marqués À RETIRER alors que l'idée du visuel demande de les conserver ; j'ai suivi les emplacements et les ai retirés, à rajouter si le stratégiste les voulait. Le flacon est détouré sans ses rondins de bois, comme l'idée le demande. Pas de fichier logo séparé : le logo Attari n'apparaît que sur le flacon, ce qui convient à une ugly ad.

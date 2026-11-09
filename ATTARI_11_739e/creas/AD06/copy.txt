@@ -1,0 +1,37 @@
+Créa 6 · Attari
+
+1. Titre : Pourquoi continuer à acheter tes parfums à l'unité ?
+3. Prix : 69,90 €
+4. Preuve sociale : 9,9/10 — 207 avis clients
+5. Mention : Pack : 3 huiles de 12 ml + un cadeau au choix
+
+Idée du visuel : Reprendre fidèlement la structure de l'inspi : fond beige lumineux, logo en haut à droite, grand titre, composition produit dominante à gauche, prix très visible à droite, preuve sociale et mention commerciale en bas.
+
+Logo : remplacer le logo Manukora par le logo Attari, en conservant son emplacement supérieur droit et des proportions comparables.
+
+1 — Titre : afficher « Pourquoi continuer à acheter tes parfums à l'unité ? » dans la partie supérieure droite. Conserver une typographie serif élégante et une hiérarchie forte. Adapter les retours à la ligne et la taille du texte pour garantir une excellente lisibilité sur mobile.
+
+2 — Prix barré : supprimer entièrement le prix barré de l'inspiration. Aucun prix de référence unique n'est confirmé pour les différentes fragrances proposées.
+
+3 — Prix : afficher « 69,90 € » en très grand, à droite des produits. Le prix doit être l'un des éléments les plus visibles de la composition.
+
+4 — Preuve sociale : remplacer « 20,000+ 5-Star Reviews » par « 9,9/10 — 207 avis clients ». Conserver la zone de réassurance et les étoiles dorées. Ces chiffres concernent la boutique Attari dans son ensemble et doivent être actualisés avant diffusion.
+
+Composition produit : remplacer le pot par trois flacons Attari de fragrances différentes.
+
+- WS07 : Ambre Al Majliss.
+- WS24 : Musc Al Jannatayn.
+- WS25 : Oud Cambodi.
+
+Disposer les trois flacons en conservant l'espace et l'équilibre visuel du produit original : un flacon légèrement en avant, deux autres en retrait. Préserver les bouchons dorés, les logos, les étiquettes et les proportions réelles. Vérifier que les contenances photographiées correspondent à l'offre avant finalisation.
+
+5 — Mention : remplacer la mention promotionnelle inférieure par « Pack : 3 huiles de 12 ml + un cadeau au choix ». Conserver son emplacement discret sous la preuve sociale.
+
+Décor : conserver le fond beige chaud, la lumière naturelle et les ombres douces de l'inspi. Supprimer les abeilles et les références au miel. Intégrer les trois flacons de manière réaliste, sans ajouter d'accessoires inutiles.
+
+Direction artistique : préserver l'esthétique premium, sobre et élégante du modèle. Privilégier les tons crème, brun profond et doré, cohérents avec l'univers Attari.
+
+La priorité est de faire ressortir trois éléments : l'accroche qui interpelle, les trois parfums et le prix de 69,90 €. Éviter toute surcharge graphique, les fausses réductions et les promesses non vérifiées.
+Référence      : EC1-03 · trio de flacons et prix
+
+Alerte : Six points à vérifier avant diffusion. (1) Aucun logo Attari n'est joint seul : l'emplacement du logo en haut à droite est supprimé et le titre remonte ; joindre le logo pour le rétablir. (2) Le tiret cadratin de « 9,9/10 — 207 avis clients » est interdit : il est remplacé par un retour à la ligne, « 9,9/10 » puis « 207 avis clients ». (3) La note 9,9/10 ne figure pas dans les preuves fournies (« + de 200 avis 5* ») : à confirmer et actualiser. (4) Les flacons sont détourés sans leurs rondins de bois, pour rester grands dans l'emplacement unique du produit et suivre la consigne « sans accessoires inutiles ». (5) Les trois flacons photographiés semblent de tailles différentes : vérifier qu'ils correspondent bien au format 12 ml de l'offre. (6) L'accent de la charte, #f5f0e8, est invisible sur ce fond crème et la référence n'a ni mot pivot coloré ni CTA : il n'est donc pas utilisé.

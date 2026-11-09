@@ -1,0 +1,30 @@
+Créa 12 · Attari
+
+2. Titre : Tu pensais qu'un parfum se vaporisait forcément avec un diffuseur ?
+3. Signature : Par Sylvie V. · 9 novembre 2026 · 3 min de lecture
+4. Paragraphe : Et si tu changeais simplement ta façon de te parfumer ? Sans alcool, les huiles Attari s'appliquent au pinceau, par petites touches, sur les poignets, le cou ou derrière les oreilles. Un autre rituel à découvrir.
+
+Idée du visuel : Reprendre fidèlement la structure de l'inspi : visuel vertical imitant la mise en page d'un article de magazine, fond blanc cassé, en-tête éditorial, grand titre noir, photographie lifestyle occupant la partie centrale et court paragraphe en bas.
+
+1 — Rubrique : inchangé
+
+2 — Titre : remplacer le titre original par « Tu pensais qu'un parfum se vaporisait forcément avec un diffuseur ? ».
+
+Conserver une grande typographie serif noire, avec une mise en page sur trois ou quatre lignes. L'accroche doit être suffisamment imposante pour attirer immédiatement l'attention, tout en conservant l'apparence d'un véritable titre éditorial.
+
+3 — Signature : remplacer la signature originale par « Par Sylvie V. · 9 novembre 2026 · 3 min de lecture ».
+
+Photographie principale : remplacer la femme tenant le produit par une photographie lifestyle réaliste montrant la femme en train de tenir un flacon d'huile de parfum Attari à la place du produit original (exemple : WS18) OU utiliser la photo du coffret WS19 si ça n'est pas possible.
+
+4 — Paragraphe : remplacer le texte original par « Et si tu changeais simplement ta façon de te parfumer ? Sans alcool, les huiles Attari s'appliquent au pinceau, par petites touches, sur les poignets, le cou ou derrière les oreilles. Un autre rituel à découvrir. »
+
+Placer ce paragraphe directement sous la photographie, en noir, aligné à gauche. Conserver une taille de police lisible sur mobile.
+
+Direction artistique : respecter l'esthétique d'une page éditoriale consultée sur smartphone : fond blanc cassé, typographies noires, marges simples, photographie naturelle et absence d'effets commerciaux.
+
+Ne pas ajouter de prix, de promotion, de badge ou de faux logo média. L'objectif n'est pas de faire croire qu'une publication indépendante recommande Attari, mais de reprendre les codes visuels d'un article pour présenter le produit autrement.
+
+Objectif : susciter la curiosité autour du geste d'application des huiles de parfum Attari. Faire découvrir une autre manière de se parfumer, avec une publicité au rendu éditorial, naturel et crédible.
+Référence      : UG6-16 · faux article de magazine mobile
+
+Alerte : 1. Le coffret (pièce jointe 1) est laissé de côté : le faux article n'a qu'une photo, et le stratégiste a choisi en priorité le flacon WS18 tenu par la femme. Si le générateur déforme l'étiquette du flacon, le plan B est la photo du coffret WS19 seule en pleine largeur. 2. Contradiction dans la fiche : l'idée du visuel dit « Rubrique : inchangé », mais l'emplacement 1 est marqué À RETIRER. J'ai suivi l'emplacement et retiré la rubrique. 3. Le nom du média au centre de l'en-tête est supprimé, pour respecter la consigne « pas de faux logo média ». La barre garde seulement ses icônes menu et recherche. 4. Il n'y a pas de logo Attari séparé, seulement l'inscription sur le flacon. C'est normal pour une ugly ad.

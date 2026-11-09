@@ -1,0 +1,30 @@
+Créa 1 · Attari
+
+1. Titre : Un seul parfum ?
+2. Accroche manuscrite : Choisis-en trois.
+3. Sous-titre : 3 huiles de parfum de 12 ml pour 69,90 €
+4. CTA : Composer mon pack
+5. Badge : + un cadeau au choix !
+
+Idée du visuel : Reprendre fidèlement la structure de l'inspi : fond beige lumineux, logo centré en haut, titre principal, accroche manuscrite, sous-titre, bouton CTA, trois produits dans la partie inférieure et badge à droite.
+
+Logo : remplacer le logo Tatiana B par le logo Attari, en conservant son emplacement centré et des proportions comparables.
+
+1 — Titre : afficher « Un seul parfum ? » en grande typographie dans la partie supérieure du visuel.
+
+2 — Accroche manuscrite : afficher « Choisis-en trois. » directement sous le titre, en conservant le style calligraphique élégant de l'inspiration.
+
+3 — Sous-titre : afficher « 3 huiles de parfum de 12 ml pour 69,90 € » sous l'accroche, dans une typographie plus petite et parfaitement lisible.
+
+4 — CTA : remplacer le bouton original par « Composer mon pack », avec un fond brun très foncé et un texte blanc.
+
+Produits : remplacer les trois flacons d'origine par une photographie de trois flacons Attari. Privilégier une composition existante parmi les assets WS01, WS04 ou WS22, plutôt qu'un photomontage complexe. Les flacons doivent rester suffisamment grands pour identifier la marque. Vérifier que leur présentation correspond bien au format commercial annoncé avant la finalisation.
+
+5 — Badge : remplacer le badge original par « + un cadeau au choix ! ». Conserver sa position à droite des produits et sa forme décorative, avec un traitement brun et doré discret.
+
+Direction artistique : conserver le fond beige clair, la lumière naturelle, les ombres douces et l'esthétique premium de l'inspi. Privilégier une palette crème, brun, bois naturel et or, cohérente avec la D.A Attari.
+
+Ne pas ajouter de fausse urgence, de pourcentage de réduction, de prix barré ou de promesses non confirmées.
+Référence      : EC1-72 · produit héros et offre centrés
+
+Alerte : Aucun logo Attari joint : pas de logo en haut, la marque n'apparaît que sur les flacons. Seule WS01 est utilisée, WS04 et WS22 sont laissées de côté comme le demande l'idée. Les trois photos montrent le même parfum en trois tailles différentes, pas trois huiles de 12 ml : décalage avec le sous-titre, à vérifier avant diffusion. L'accent de la charte (#f5f0e8) est identique au fond : le bouton suit l'idée du stratégiste (brun très foncé #2B1E12, texte blanc). L'accroche calligraphiée sort de la police unique Kraton, à la demande explicite du stratégiste.

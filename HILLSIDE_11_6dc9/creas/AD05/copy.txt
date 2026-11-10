@@ -2,7 +2,7 @@ Créa 5 · Hillside
 
 1. Titre, en haut : T'es pas Elon Musk
 2. Titre, au milieu : mon
-3. Titre, à droite : poto
+3. Titre, à droite : ami
 4. Sous-titre : Viens te former pendant 5 jours chez Hillside Barber Paris et apprends un vrai métier.
 
 Idée du visuel : Reprendre fidèlement la structure de l'inspi : fond bleu-gris légèrement dégradé, grande accroche noire en haut, personnage masculin au centre, deux mots blancs disposés de part et d'autre du personnage et petite phrase en bas du visuel.
@@ -50,6 +50,6 @@ Objectif : interpeller avec humour les personnes qui envisagent une reconversion
 La création doit d'abord surprendre par son ton, puis présenter la formation intensive de barber proposée par Hillside à Paris.
 
 L'effet recherché repose sur trois éléments : une accroche insolente, une mise en scène volontairement sérieuse et une chute qui ramène vers une possibilité concrète de reconversion.
-Référence      : AG1-58 · portrait studio pris en sandwich typographique
+Référence      : AG1-58 · portrait contre-plongée, typo superposée
 
-Alerte : VISUEL NON GÉNÉRÉ : 400 - "{\"error\":{\"message\":\"Image generation blocked for unspecified reasons. Please modify your input and retry.\",\"code\":\"image_other\"}}" | Aucun asset n'est joint : le logo Hillside n'est pas disponible, donc son emplacement est retiré et rien n'est inventé. Le personnage est un modèle fictif généré, à la demande explicite du stratégiste. La police de la charte ("notre DA") n'est pas nommée : j'ai utilisé une sans-serif de type Inter, lue sur le site. Le fond bleu-gris demandé a été tenu en gris froid pour rester dans la palette monochrome de Hillside. La mention verticale de la référence, absente de la fiche, a été retirée : à vérifier si une mention d'image générée par IA est souhaitée pour Meta.
+Alerte : VISUEL NON GÉNÉRÉ : 400 - "{\"error\":{\"message\":\"Image generation blocked for unspecified reasons. Please modify your input and retry.\",\"code\":\"image_other\"}}" | Aucun asset joint : le logo Hillside est absent et retiré du haut, et le personnage est entièrement généré (fictif, sans ressemblance avec Elon Musk). Conflit dans la fiche : l'emplacement 3 indique « ami » alors que l'idée du visuel demande « poto ». J'ai suivi l'emplacement numéroté (« ami »), à confirmer avec le stratégiste. Le fond bleu-gris suit la consigne de l'idée et non la palette neutre du client. La police de la charte, « notre DA », n'est pas nommée : j'ai décrit une linéale géométrique. Aucun CTA dans la référence ni dans la fiche, donc aucun CTA. La mention verticale de génération IA de la référence n'est pas reprise : à ajouter en post-prod si une mention IA est requise.

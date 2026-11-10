@@ -1,39 +1,13 @@
 Créa 2 · Podmax
 
-1. Titre : Horrible.
-2. Avis client : Moins cher. Plus qualitatif. Plus rapide.
-3. Nom de l'auteur : La concurrence.
-4. CTA : Réserve ton appel.
+1. Titre : T'es patron. Pas créateur de pubs.
+2. Liste à puces 1 : Arrête d'écrire tes scripts
+3. Liste à puces 2 : Arrête de gérer le tournage et le montage
+4. Liste à puces 3 : Ta priorité c'est ton business, pas les pubs maladroites
+5. CTA : Podmax produit tes pubs vidéo en 10 jours. 👇
 
-Idée du visuel : Reprendre fidèlement la structure de l'inspi : photographie réaliste d'une affiche publicitaire dans une rame de métro, encadrée dans une paroi métallique grise. L'affiche conserve son fond noir, ses typographies blanches et ses cinq étoiles vides.
+Idée du visuel : Conserver fidèlement l'inspi : capture d'écran de l'application Notes sur iPhone en mode sombre, avec fond noir, typographie blanche et coches jaunes.
 
-1 — Titre : remplacer « Zéro étoile. » par « Horrible. ».
+Mettre l'accroche en évidence, puis présenter les trois puces avec des espacements généreux. Isoler la phrase finale sur Podmax pour qu'elle soit immédiatement repérable.
 
-Afficher ce mot en très grands caractères blancs, dans la partie supérieure de l'affiche. Conserver les cinq étoiles vides en contour doré juste en dessous, pour évoquer immédiatement un avis extrêmement négatif.
-
-2 — Avis client : remplacer « Je ne recommande pas. » par « Moins cher. Plus qualitatif. Plus rapide. ».
-
-Conserver une typographie blanche, simple et directe. Présenter les trois affirmations sur trois lignes distinctes, pour leur donner davantage d'impact.
-
-Le ton doit être volontairement sérieux, comme si l'auteur exprimait une véritable indignation.
-
-3 — Nom de l'auteur : remplacer « — Satan » par « — La concurrence. ».
-
-Positionner cette signature directement sous le texte, comme dans l'inspiration. Elle constitue la chute humoristique de la publicité et doit être parfaitement lisible.
-
-4 — CTA : remplacer « Téléchargez maintenant » par « Réserve ton appel. ».
-
-Conserver son emplacement dans la partie inférieure droite de l'affiche, avec une typographie blanche discrète mais lisible.
-
-Logo : remplacer le logo de l'application Bible en bas à gauche par le logo Podmax, en conservant une taille similaire.
-
-Mention : ajouter discrètement « Parodie publicitaire » dans la partie inférieure. L'affiche ne doit pas pouvoir être confondue avec un véritable avis émis par un concurrent.
-
-Direction artistique : respecter strictement l'univers visuel de l'inspiration : noir, blanc, étoiles dorées, environnement urbain brut et rendu photographique naturel.
-
-Ne pas ajouter d'autres éléments graphiques. L'intérêt de cette créa repose sur son apparente simplicité.
-
-Objectif : provoquer un effet de surprise grâce à un avis négatif fictif attribué à la concurrence. La chute doit faire sourire et susciter la curiosité pour Podmax, tout en encourageant les dirigeants à réserver un appel découverte.
-Référence      : UG5-06 · affiche avis dans le métro
-
-Alerte : Le logo Podmax demandé par le stratégiste n'est pas joint : l'emplacement du logo est retiré et la mention "Parodie publicitaire" prend sa place en bas à gauche. Une ugly ad n'affiche de toute façon aucun logo. Le texte 3 est recopié mot pour mot ("La concurrence.") : le tiret demandé dans l'idée du visuel n'est pas dans la fiche, et le tiret cadratin est interdit. Le stratégiste peut ajouter un trait d'union simple au texte s'il le souhaite.
+Référence      : UG1-13 · capture Notes iPhone mode sombre

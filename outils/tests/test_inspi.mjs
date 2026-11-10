@@ -65,6 +65,12 @@ await pg.click('#m-libre');
 await pg.click('#grid .it:not(.ajout)');   // la 1re tuile = son image
 t('nouvelle idée : son image comme inspiration', await pg.evaluate(() => crea(cur).moods.some(m => /^PRX-/.test(m))), await pg.evaluate(() => JSON.stringify(crea(cur).moods)));
 t('nouvelle idée : son image s\'affiche, et le bouton « Ma propre image » reste là', await pg.$eval('#zone .moods', m => /data:image/.test(m.innerHTML) && !!m.querySelector('button[data-perso]')));
+// 10/11 (Podmax) : le compte d'envois vient du serveur : un compteur remis par Kreative débloque la fiche, même si le navigateur disait 2
+await pg.evaluate(() => localStorage.setItem('fiche:nb_envois', JSON.stringify({ TURNLY_10_bc5e: 2 })));
+await pg.goto(B + '/fiche/?projet=TURNLY_10_bc5e&integre=1'); await pg.waitForFunction(() => typeof PRJ !== 'undefined' && PRJ && PRJ.dossier === 'TURNLY_10_bc5e', null, { timeout: 20000 });
+await pg.waitForTimeout(500);
+const nbServeur = JSON.parse(fs.readFileSync(new URL('fixtures/TURNLY_10_bc5e/envois.json', import.meta.url))).envois.length;
+t('compte d\'envois relu sur le serveur (' + nbServeur + '), pas celui du navigateur (2)', await pg.evaluate(() => nbEnvois('TURNLY_10_bc5e')) === nbServeur, await pg.evaluate(() => nbEnvois('TURNLY_10_bc5e')));
 t('aucune erreur JavaScript', !err.length, err.join(' | '));
 await nav.close();
 console.log('\n' + ok + ' ok, ' + ko + ' en échec');

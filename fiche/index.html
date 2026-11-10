@@ -965,6 +965,12 @@ async function ouvre(dossier){
     if(r.ok){const d=await r.json();if(d&&d.nb_creas)n=d.nb_creas;
       if(d&&d.brand_name)PRJ.brand_name=d.brand_name}
   }catch(e){/* donnees.json absent : on garde ce que dit projets.json */}
+  /* 10/11 : le compte d envois vient du serveur (envois.json), pas seulement du navigateur :
+     quand Kreative remet le compteur d un projet, la fiche se debloque toute seule (Podmax) */
+  try{
+    const r=await fetchT("../"+dossier+"/envois.json",{cache:"no-store"});
+    if(r.ok){const e=await r.json();if(e&&Array.isArray(e.envois)){NBENV[dossier]=e.envois.length;saveNb();}}
+  }catch(e){/* pas encore envoyee : rien a lire */}
   /* 17/10 : les options payees par le client (variations de texte, express ;
      anciennes commandes : A/B tests), lues dans le portail. Les variations
      multiplient les textes de chaque crea, les A/B tests ajoutent des creas. */

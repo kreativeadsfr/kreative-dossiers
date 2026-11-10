@@ -34,6 +34,6 @@ Direction artistique : respecter strictement l'univers visuel de l'inspiration :
 Ne pas ajouter d'autres éléments graphiques. L'intérêt de cette créa repose sur son apparente simplicité.
 
 Objectif : provoquer un effet de surprise grâce à un avis négatif fictif attribué à la concurrence. La chute doit faire sourire et susciter la curiosité pour Podmax, tout en encourageant les dirigeants à réserver un appel découverte.
-Référence      : UG5-06 · affiche métro, faux avis
+Référence      : UG5-06 · affiche avis dans le métro
 
-Alerte : Aucun logo Podmax joint et une ugly ad n'en porte pas : le bloc logo et nom d'application en bas à gauche est retiré, et la mention "Parodie publicitaire" demandée dans l'idée prend sa place. La signature est écrite "La concurrence." mot pour mot, sans le tiret cadratin de l'idée (interdit) : un trait d'union court "- La concurrence.", comme sur la référence, peut être ajouté si le stratégiste le valide.
+Alerte : Le logo Podmax demandé par le stratégiste n'est pas joint : l'emplacement du logo est retiré et la mention "Parodie publicitaire" prend sa place en bas à gauche. Une ugly ad n'affiche de toute façon aucun logo. Le texte 3 est recopié mot pour mot ("La concurrence.") : le tiret demandé dans l'idée du visuel n'est pas dans la fiche, et le tiret cadratin est interdit. Le stratégiste peut ajouter un trait d'union simple au texte s'il le souhaite.

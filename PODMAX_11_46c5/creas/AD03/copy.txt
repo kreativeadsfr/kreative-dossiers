@@ -1,58 +1,19 @@
 Créa 3 · Podmax
 
-1. Titre : J'AI VIRÉ LE PIRE RÉALISATEUR DE MA BOÎTE. C'ÉTAIT MOI.
-2. Liste à puces 1 : Je flippais de payer pour des pubs inutiles
-3. Liste à puces 2 : Je perdais mes soirées entre scripts et montages
-4. Liste à puces 3 : J'avais le charisme d'une moule face caméra
-5. Prix : MA BOÎTE A BESOIN DE CLIENTS. PAS DE MES TALENTS DE RÉAL.
-7. Calcul de l'économie : PODMAX S’OCCUPE DES PUBS. PAS MOI.
-8. CTA : RÉSERVE TON APPEL DÉCOUVERTE
+1. Titre : J'AI VIRÉ LE PIRE EMPLOYÉ DE MA BOÎTE.
+2. Liste à puces 1 : Ses idées pubs n'étaient pas abouties.
+3. Liste à puces 2 : Il était lent et incompétent.
+5. Prix : AUJOURD'HUI JE CONFIE MES ADS À PODMAX.
+7. Calcul de l'économie : Cet employé, c'était moi.
+8. CTA : RÉSERVE TON APPEL
 
-Idée du visuel : Reprendre fidèlement la structure de l'inspi : photographie d'un tableau blanc vertical, dans un environnement de travail réaliste, avec des textes écrits au marqueur noir et certains éléments commerciaux entourés ou soulignés en rouge.
+Idée du visuel : Reprendre la structure de l'inspi : tableau blanc photographié dans un environnement de bureau, avec une écriture manuscrite noire et des annotations au marqueur rouge.
 
-1 — Titre : remplacer « POURQUOI J'AI ENFIN ACHETÉ DES PLAQUETTES » par « J'AI VIRÉ LE PIRE RÉALISATEUR DE MA BOÎTE. C'ÉTAIT MOI. ».
+Conserver un rendu naturel, légèrement imparfait, comme si un dirigeant avait réellement écrit ces réflexions sur son tableau.
 
-Conserver une grande écriture manuscrite noire, légèrement irrégulière, dans la partie supérieure du tableau. Répartir le titre sur deux ou trois lignes pour préserver sa lisibilité sur mobile.
+Garder une compo très aérée, sans chercher à remplir les espaces laissés vides. Aucun texte ni élément décoratif supplémentaire.
 
-2 — Liste à puces 1 : remplacer le premier argument par « Je flippais de payer pour des pubs inutiles ».
+L'objectif est de conserver l'autodérision et l'humour du concept.
+Référence      : UG2-05 · tableau blanc manuscrit au bureau
 
-Conserver une puce noire et une écriture naturelle, comme si un entrepreneur avait commencé à dresser la liste de ses contraintes.
-
-3 — Liste à puces 2 : remplacer le deuxième argument par « Je perdais mes soirées entre scripts et montages ».
-
-Reprendre le même style manuscrit et le même alignement. Cette ligne doit illustrer la complexité logistique de la production vidéo.
-
-4 — Liste à puces 3 : remplacer le troisième argument par « J'avais le charisme d'une moule face caméra ».
-
-Conserver la troisième puce noire. Les trois arguments doivent former un ensemble cohérent, avec suffisamment d'espacement pour rester lisibles.
-
-5 — Prix : remplacer « PACK PLAQUETTES = 199 $ » par « MA BOÎTE A BESOIN DE CLIENTS. PAS DE MES TALENTS DE RÉAL. ».
-
-Conserver l'emplacement central du modèle et le grand cercle tracé au marqueur rouge autour de cette mention. Le délai de livraison annoncé doit devenir l'élément le plus visible après le titre.
-
-6 — Prix barré : supprimer « au lieu de 580 $ ». Aucun tarif comparatif n'étant disponible, ne pas inventer de prix de référence ou de réduction.
-
-7 — Calcul de l'économie : remplacer « 580 $ - 199 $ = 381 $ ÉCONOMISÉS » par « PODMAX S’OCCUPE DES PUBS. PAS MOI. ».
-
-Conserver le positionnement sous le cercle rouge, avec une écriture manuscrite noire. Souligner « DES RÉSULTATS CONCRETS » en rouge pour mettre en évidence la simplification du processus.
-
-8 — CTA : remplacer « ACHETEZ LES PLAQUETTES » par « RÉSERVE TON APPEL DÉCOUVERTE ».
-
-Conserver une grande écriture manuscrite rouge, dans la partie inférieure du tableau, avec un double soulignement rouge comme sur l'inspiration.
-
-Environnement : conserver le principe d'un véritable tableau blanc photographié dans un espace de travail. Privilégier un bureau ou un studio simple si possible à la place de l'atelier, avec une lumière naturelle et quelques éléments visibles autour du tableau.
-
-Ne pas transformer la scène en composition graphique parfaitement symétrique. Les imperfections de l'écriture, les traces de marqueur et le cadrage légèrement spontané participent à l'esthétique ugly ad.
-
-Direction artistique : conserver strictement l'écriture manuscrite noire et rouge, le tableau blanc, le décor photographique et l'organisation générale des informations.
-
-Ne pas ajouter de photographies de produits, de badges promotionnels, de faux prix ou d'éléments graphiques supplémentaires.
-
-Objectif : interpeller les dirigeants qui sous-estiment le temps et l'organisation nécessaires pour produire leurs publicités vidéo.
-
-Montrer que Podmax centralise les différentes étapes de production avec un chef de projet unique et des créations annoncées comme livrées sous 10 jours.
-
-Le visuel doit donner l'impression qu'un entrepreneur vient de poser un calcul simple sur son tableau blanc : pourquoi continuer à gérer toutes ces étapes quand elles peuvent être déléguées ?
-Référence      : UG2-05 · tableau blanc manuscrit photographié
-
-Alerte : L'idée du visuel cite un délai de livraison (10 jours) et un soulignement de « DES RÉSULTATS CONCRETS », deux éléments absents des textes de la fiche. Je n'ai rien ajouté et j'ai placé le double soulignement rouge sous « PAS MOI. ». Comme demandé, le décor d'atelier devient un bureau simple. La casquette suspendue de la créa d'origine est retirée, car c'est un objet propre à l'ancienne marque.
+Alerte : Le décor passe de l'atelier vélo au bureau, comme le demande l'idée du stratégiste. La casquette de cycliste accrochée au coin du tableau est retirée, car elle n'avait de sens que dans le décor d'origine et aucun élément décoratif ne doit être ajouté. L'ellipse rouge est conservée autour du texte 5, puisque seul le prix barré (6) est retiré.

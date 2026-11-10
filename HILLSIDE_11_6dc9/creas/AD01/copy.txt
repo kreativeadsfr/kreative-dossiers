@@ -1,52 +1,9 @@
 Créa 1 · Hillside
 
-1. Titre : Tu veux te sortir les doigts mon frérot ?
-2. Sous-titre : Apprends plutôt un vrai métier
-3. Annotation, en haut à droite : Tout le monde sait mettre du gel
-4. Annotation, à gauche : Par contre faire un dégradé c'est pas la même
-5. Annotation, en bas à droite : Viens chez Barber Hillside, on te forme en 5 jours.
+1. Titre : Regarder 40 tutos pour devenir barber
+2. Titre : Te former en 5 jours dans le salon Hillside à Paris
 
-Idée du visuel : Reprendre fidèlement la structure de l'inspiration UG2-08 : fond blanc, immense titre noir très gras occupant la partie supérieure, sous-titre plus discret et photographie en très gros plan d'un doigt recouvert d'une matière gélatineuse, accompagnée de trois annotations manuscrites et de flèches noires.
+Idée du visuel : Utiliser le meme Drake en 2 parties, avec très peu de texte dans chaque bloc. En haut, l’idée des tutos / de la débrouille. Garder le rendu meme simple, lisible et immédiat.
+Nouvelle idée, inspirations : UGX-9d355dc26b4c · mème rejet approbation deux cases
 
-1 — Titre : remplacer « Est-ce que votre eczéma empire 10 fois la nuit ? » par « Tu veux te sortir les doigts mon frérot ? ».
-
-Conserver une typographie noire, très épaisse et imposante, comme sur l'inspiration. Répartir le titre sur plusieurs lignes en mettant particulièrement en évidence « SORTIR LES DOIGTS » pour renforcer le double sens avec la photographie.
-
-2 — Sous-titre : remplacer « Vous n'êtes pas seul. Voici ce qui se passe : » par « Apprends plutôt un vrai métier ».
-
-Conserver une typographie noire plus fine, directement sous le titre. Cette phrase doit créer la transition entre l'accroche provocatrice et l'univers de la reconversion professionnelle.
-
-Photo principale : conserver le principe exact de l'inspiration : un doigt photographié en très gros plan, recouvert d'une matière translucide et gélatineuse, sur fond blanc.
-
-Ne pas remplacer le doigt par une tondeuse, une coupe de cheveux ou un accessoire de barber. C'est précisément l'association improbable entre cette photographie et le texte qui doit provoquer une réaction.
-
-3 — Annotation en haut à droite : remplacer « Une peau plus sèche, plus irritée la nuit » par « Tout le monde sait mettre du gel ».
-
-Conserver l'écriture manuscrite noire, légèrement irrégulière, et la flèche pointant vers la matière présente sur le doigt.
-
-4 — Annotation à gauche : remplacer « La chaleur augmente les démangeaisons » par « Par contre faire un dégradé c'est pas la même ».
-
-Conserver l'emplacement à gauche de la photographie et la flèche manuscrite pointant vers le doigt. Cette phrase doit apporter un second niveau de lecture, en opposant le geste très simple d'appliquer du gel à la maîtrise d'une véritable technique de coupe.
-
-5 — Annotation en bas à droite : remplacer « Une production de liquide accrue » par « Viens chez Barber Hillside, on te forme en 5 jours. ».
-
-Conserver une écriture manuscrite noire et une flèche similaire à celle de l'inspiration. Cette dernière annotation doit introduire la solution de manière directe, sans ajouter de bloc commercial supplémentaire.
-
-Mise en page : conserver les proportions, les espacements et les placements de l'inspiration. Les trois annotations doivent entourer le doigt sans masquer la photographie. Ajuster uniquement les retours à la ligne pour assurer la lisibilité sur mobile.
-
-Direction artistique : respecter strictement l'esthétique originale : fond blanc, titre noir massif, photographie très rapprochée, annotations manuscrites et flèches dessinées à la main.
-
-Ne pas ajouter de tondeuse, de ciseaux, de photographie de salon, de badge promotionnel ou de décoration supplémentaire.
-
-Le visuel doit conserver son aspect volontairement étrange et presque absurde. L'objectif n'est pas d'obtenir une publicité élégante, mais de créer un décalage suffisamment inattendu pour arrêter le scroll.
-
-Si la photographie originale n'est pas réutilisable commercialement, recréer une photographie équivalente en conservant le même sujet et le même cadrage.
-
-Objectif : interpeller avec humour les personnes qui souhaitent apprendre un métier manuel et envisagent une reconversion dans l'univers du barber.
-
-La création joue sur le double sens de l'expression « se sortir les doigts », le détournement de la photo et les annotations volontairement décalées.
-
-L'objectif est de faire sourire avant de présenter Hillside comme une possibilité concrète de découvrir et d'apprendre les techniques du métier de barber grâce à une formation pratique de cinq jours.
-Référence      : UG2-08 · photo macro annotée à la main
-
-Alerte : Aucun asset joint : la photo macro du doigt recouvert de gel est entièrement générée, à la demande explicite du stratégiste, comme image conceptuelle non identifiable. Le texte « Tu veux te sortir les doigts mon frérot ? » est recopié mot pour mot, avec la casse de la fiche : la mise en avant de « sortir les doigts » passe par la taille, comme sur la référence, et non par des capitales. Le ton est très familier : il faut vérifier qu'il colle à la marque Hillside.
+Alerte : Le personnage est volontairement générique et non identifiable, et son t-shirt ne porte aucun logo : utiliser le visage d'une célébrité réelle dans une publicité sans autorisation est un risque juridique (droit à l'image). Le format reste reconnaissable par la grille, les gestes, la doudoune orange et le fond jaune. Le champ « À NE PAS FAIRE : Oui » est ambigu, aucun interdit précis n'a pu être appliqué.

@@ -116,4 +116,22 @@ await new Promise(z => setTimeout(z, 400));
 t('démo envoyée sans email', r.d.action === 'envoyee' && lignes('emails.log').length === avant2, lignes('emails.log').slice(avant2).join('|').slice(0, 160));
 await api('/api/admin/demo', A, 'DELETE');
 r = await api('/api/equipe/etats', A); t('démo retirée : plus d\'état de démo', !Object.keys(r.d.etats).some(d => /^TEST_DEMO_/.test(d)), Object.keys(r.d.etats).join(','));
+// 9. 10/11 (Podmax) : un projet déjà envoyé, renvoyé au stratégiste par Kreative, disparaît de l'espace designer
+{
+  const T = 'TURNLY_10_bc5e';
+  const { createRequire } = await import('node:module'); const { chromium } = createRequire(import.meta.url)('playwright');
+  const nav = await chromium.launch(); const ctx = await nav.newContext();
+  const [nm, val] = DE.split('='); await ctx.addCookies([{ name: nm, value: val, url: B }]);
+  const pg = await ctx.newPage(); const err = []; pg.on('pageerror', e => err.push(e.message));
+  const voit = async sec => { await pg.goto(B + '/designer/#/' + sec); await pg.reload(); await pg.waitForSelector('.app:not(.squelette)', { timeout: 15000 }); await pg.waitForTimeout(400); return (await pg.textContent('main, .app')).includes(T); };
+  t('avant : le projet envoyé est chez la designer', await voit('visuels'));
+  await api('/api/equipe/deplacer', A, 'POST', { dossier: T, vers: 'strat', confirme: true });
+  t('renvoyé au stratégiste : absent de Previews', !(await voit('visuels')));
+  t('… absent de Downloads', !(await voit('telechargement')));
+  t('… absent de Overview', !(await voit('')));
+  await api('/api/equipe/deplacer', A, 'POST', { dossier: T, vers: 'desi', confirme: true });
+  t('rendu à la designer : de retour dans Previews', await voit('visuels'));
+  t('aucune erreur JavaScript (designer)', !err.length, err.join(' | '));
+  await nav.close();
+}
 console.log('\n' + ok + ' ok, ' + ko + ' en échec');

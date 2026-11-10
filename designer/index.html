@@ -28,7 +28,10 @@ const aFaire = x => !!(x.etape ? x.etape.cle === 'desi' : !x.livre);
 // 02/11 : une retouche n'a pas l'échéance du projet (passée depuis longtemps) : jamais « Late » pour une retouche
 const enRev = x => !!(x.etape && (x.etape.retouche || x.etape.ret));
 const ech = x => enRev(x) ? null : x.desi;
-const mesProjets = () => (K.prod.liste || []).filter(x => x.envoye || (x.etape && x.etape.cle !== 'strat'));          // seulement ce qui est arrivé chez la designer
+// seulement ce qui est arrivé chez la designer. 10/11 : un projet que Kreative a repris en amont (Podmax)
+// disparaît de son espace, et revient tout seul au prochain envoi de la fiche (l'envoi passe après le déplacement)
+const reprisAvant = x => !!(x.etape && x.etape.cle === 'strat' && !x.etape.retouche && !x.etape.ret);
+const mesProjets = () => (K.prod.liste || []).filter(x => (x.envoye || (x.etape && x.etape.cle !== 'strat')) && !reprisAvant(x));
 const quand = ms => {
   const p = {};
   new Intl.DateTimeFormat('en-GB', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: 'Europe/Paris' })

@@ -1,0 +1,46 @@
+Créa 3 · Hillside
+
+1. Message reçu 1 : Frérot ça fait 2 ans que tu dis que tu veux changer de taf
+2. Message envoyé 1 : Je sais. Je pense devenir barber. J'ai vu des tutos de fou
+3. Message reçu 2 : Toi ? Tu sais même pas couper une pizza droite 💀
+4. Message reçu 3 : Non mais en vrai arrête avec les tutos. Va chez Hillside : formation barber en 5 jours, dans un vrai salon à Paris
+5. Message reçu 4 : Je te jure, si tu fais pas ça, jamais je te confie mon dégradé 😂
+
+Idée du visuel : Reprendre fidèlement la structure de l'inspi : capture d'écran d'une conversation iMessage sur iPhone, en mode clair, avec des bulles grises pour les messages reçus et une bulle bleue pour la réponse envoyée.
+
+Interface : conserver les éléments caractéristiques d'iMessage : barre d'état iPhone, heure, flèche de retour, photo de profil, nom du contact, icône d'appel vidéo et champ de saisie en bas.
+
+Remplacer le contact « Sœur » par « Frérot ». L'ensemble doit donner l'impression d'une véritable conversation privée entre deux amis qui se connaissent bien, avec un ton spontané, familier et légèrement moqueur.
+
+1 — Message reçu 1 : remplacer le premier message gris par « Frérot ça fait 2 ans que tu dis que tu veux changer de taf ».
+
+2 — Message envoyé 1 : remplacer la réponse bleue par « Je sais. Je pense devenir barber. J'ai vu des tutos de fou ».
+
+3 — Message reçu 2 : remplacer le deuxième message gris par « Toi ? Tu sais même pas couper une pizza droite 💀 ».
+
+4 — Message reçu 3 : remplacer le troisième message gris par « Non mais en vrai arrête avec les tutos. Va chez Hillside : formation barber en 5 jours, dans un vrai salon à Paris ».
+
+Conserver une bulle grise sous la précédente. Ce message introduit naturellement Hillside dans la conversation en présentant les deux éléments essentiels de l'offre : une formation intensive de cinq jours et un apprentissage directement dans un salon en activité.
+
+5 — Message reçu 4 : remplacer le dernier message gris par « Je te jure, si tu fais pas ça, jamais je te confie mon dégradé 😂 ».
+
+Ce dernier message constitue la chute finale de la conversation. Le conserver dans une bulle distincte afin de renforcer l'effet humoristique et de terminer sur une remarque typique entre amis.
+
+Mise en page : respecter l'enchaînement exact de l'inspiration : un premier message reçu, une réponse envoyée, puis trois messages reçus successifs.
+
+Adapter la hauteur des bulles et les espacements pour intégrer les textes sans réduire excessivement la taille de la police. Préserver une excellente lisibilité sur mobile.
+
+Direction artistique : conserver strictement l'esthétique native d'une conversation iMessage : fond blanc, bulles grises et bleues, typographie système iPhone, espacements naturels et interface réaliste.
+
+Ne pas ajouter de photographie de salon, de tondeuse, de coupe de cheveux, de bouton CTA ou de gros logo Hillside. La marque apparaît naturellement dans le quatrième message.
+
+L'ensemble doit ressembler à une véritable capture de conversation spontanée, sans mise en page publicitaire apparente. Il s'agit toutefois d'une conversation fictive créée pour la publicité, et non d'un témoignage réel.
+
+Objectif : interpeller en priorité les personnes qui envisagent une reconversion professionnelle, mais repoussent sans cesse leur décision de changer de métier.
+
+Utiliser l'humour et la complicité entre amis pour montrer la différence entre regarder des tutoriels de coiffure et commencer à apprendre concrètement le métier auprès de professionnels.
+
+La progression doit être immédiate : envie de changer de métier → confiance excessive dans les tutos → moquerie du pote → découverte de Hillside → chute humoristique sur le dégradé.
+Référence      : UG1-02 · capture conversation iMessage native
+
+Alerte : L'idée du visuel demande une barre d'état iPhone avec l'heure, mais la capture d'origine n'en a pas : pour garder le rendu natif sans ajouter de bloc, elle n'est pas ajoutée, et l'heure apparaît dans l'horodatage de la conversation. Aucune photo de profil n'est jointe : la petite photo du contact Frérot sera générée, générique et non identifiable.

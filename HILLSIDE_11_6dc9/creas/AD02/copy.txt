@@ -1,27 +1,17 @@
 Créa 2 · Hillside
 
-1. Titre : LIBERATION
-2. Sous-titre : A UN MOMENT, IL VA FALLOIR METTRE LES MAINS DEDANS.
-3. Mention : HILLSIDE PARIS · FORMATION BARBER · 5 JOURS.
+1. Titre : Moi qui attends le bon moment pour changer de métier.
+2. CTA : HILLSIDE — Formation barber en 5 jours à Paris.
 
-Idée du visuel : Reprendre fidèlement la structure de l’inspi : une personne allongée sur la plage tient un journal devant son visage, dans une ambiance éditoriale légère, avec ciel bleu en fond et cadrage très proche de l’original.
+Idée du visuel : Créer une ugly ad au format 3:4 en utilisant le meme du squelette fourni en inspiration.
 
-1 — Rubrique : remplacer « BREAKING NEWS. » par « LIBÉRATION ».
+Conserver l'image comme élément central, avec un rendu volontairement brut et humoristique.
 
-Conserver un traitement typographique éditorial, en capitales, placé en haut du journal, dans l’esprit d’un vrai quotidien.
+Placer le titre en haut, en caractères suffisamment grands pour être lus immédiatement. Le squelette doit occuper la majorité du visuel : c'est lui qui apporte la chute humoristique.
 
-2 — Titre principal : remplacer « CHRISTIAN TURNIER SUMMER COLLECTION IS COMING. » par « A UN MOMENT, IL VA FALLOIR METTRE LES MAINS DEDANS. »
+Afficher la mention Hillside en bas, sur une zone claire et bien lisible, afin que le prospect comprenne immédiatement qu'il s'agit d'une formation de barber en 5 jours à Paris.
 
-Conserver une grande typographie de manchette, très lisible, en capitales, répartie sur plusieurs lignes pour garder l’impact visuel de l’inspiration. Le ton doit être direct, un peu provoquant, avec une vraie sensation d’interpellation.
+Ne pas ajouter d'effets graphiques, de décorations ou d'arguments supplémentaires. L'objectif est de conserver l'apparence d'un véritable meme Internet, pas d'une publicité classique.
+Nouvelle idée, inspirations : UGX-1257a6147552 · meme photo légendé natif
 
-3 — Signature / chute : remplacer « Join » par « HILLSIDE PARIS · FORMATION BARBER · 5 JOURS ».
-Conserver un petit bloc texte discret en bas du journal, dans un style éditorial sobre, comme une signature ou une mention de fin.
-
-Direction artistique : respecter strictement l’esthétique de l’inspiration : faux journal, ambiance été / plage, visuel léger, ton éditorial détourné.
-
-Ne pas transformer cette créa en publicité classique de centre de formation. Ce qui fait l’intérêt de l’inspiration, c’est justement le décalage entre une image lifestyle très magazine et un message plus cash.
-
-Objectif : créer une ugly ad décalée, interpellante et légèrement insolente, qui attire l’œil dans le feed, fait sourire et introduit l’idée qu’à un moment, si on veut devenir barber, il faut passer à l’action concrète avec une vraie formation terrain.
-Référence      : UG6-10 · faux journal tenu à la plage
-
-Alerte : Deux accents ajoutés sur des capitales : "LIBERATION" devient "LIBÉRATION" (forme écrite dans l'idée du stratégiste) et "A UN MOMENT" devient "À UN MOMENT". Le texte 3 garde le point final de l'emplacement, alors que l'idée l'écrit sans point. "LIBÉRATION" en tête de journal évoque fortement le quotidien français Libération : à valider côté marque et droit. Le logo de la marque d'origine, en haut du ciel, est retiré comme l'exige une ugly ad.
+Alerte : Le texte 2 contenait un tiret cadratin, interdit : il est remplacé par un point médian ("HILLSIDE · Formation barber en 5 jours à Paris."). Le format 3:4 demandé est recomposé en carré 1:1. Aucun logo Hillside dans les assets, et il n'en faut pas en ugly ad : la marque n'apparaît que dans le texte du bas.

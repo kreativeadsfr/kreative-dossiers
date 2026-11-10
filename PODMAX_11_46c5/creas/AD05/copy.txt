@@ -1,30 +1,17 @@
 Créa 5 · Podmax
 
 1. Titre : Idée de génie : augmenter mon budget pub.
-2. Phrase 2 de la note : Idée débile : le faire alors que mes vidéos n'accrochent personne.
-3. Phrase 3 de la note : Idée débile 2 : payer plus pour diffuser les mêmes pubs.
-4. Paragraphe de la note : En vrai je suis fou, il me faut surtout de nouvelles créas. Pas perdre mon temps entre scripts, acteurs, tournage et montage. Podmax peut gérer tout ça, avec des pubs livrées en 10 jours. Moi, j'ai juste à valider.
-5. Phrase de chute : Bref, changer mes pubs avant de changer mon budget.
+2. Phrase 2 de la note : Problème de débutant : mes vidéos n'accrochent pas.
+4. Paragraphe de la note : Solution : changer mes pubs, pas mon budget.
+5. Phrase de chute : Besoin de meilleures pubs ? Podmax.
 
-Idée du visuel : Reprendre fidèlement la structure de l’inspi : une capture d’écran de note iPhone très simple, sur fond blanc, avec une mise en page minimaliste et un texte tapé comme une vraie réflexion personnelle d’un dirigeant.
+Idée du visuel : Reprendre fidèlement l'inspi: capture d'écran d'une note iPhone en mode clair, avec fond blanc, typographie noire et interface iCloud.
 
-1 — Titre : remplacer « Je suis le PDG d’une entreprise de 8 personnes. » par « Idée de génie : augmenter mon budget pub. »
-Le titre doit apparaître en haut de la note, en gras, avec un ton direct et spontané.
+Conserver une mise en page très épurée. Mettre les deux premières phrases en gras (la prmeière doit vraiment ressortir plus que les autres, puis isoler la conclusion pour qu'elle ressorte immédiatement. Placer « Besoin de meilleures pubs ? Podmax. » discrètement en bas, comme une signature.
 
-2 — Phrase 2 de la note : remplacer « J’ai essayé de recruter pendant trois mois. » par « Idée débile : le faire alors que mes vidéos n'accrochent personne. »
+Laisser beaucoup d'espace vide pour éviter l'effet bloc de texte. Aucun logo imposant, badge ou élément décoratif supplémentaire.
 
-3 — Phrase 3 de la note : remplacer « 200 candidats, aucun n’a pu faire l’affaire. » par « Idée débile 2 : payer plus pour diffuser les mêmes pubs. »
-
-4 — Paragraphe de la note : remplacer le paragraphe original par :
-« En vrai je suis fou, il me faut surtout de nouvelles créas. Pas perdre mon temps entre scripts, acteurs, tournage et montage. Podmax peut gérer tout ça, avec des pubs livrées en 10 jours. Moi, j'ai juste à valider. »
-Le paragraphe doit rester compact, lisible, et donner l’impression d’une vraie réflexion notée rapidement sur téléphone.
-
-5 — Phrase de chute : remplacer « Honnêtement, ça fait mal. » par « Bref, changer mes pubs avant de changer mon budget. »
-Cette dernière phrase doit conclure la note de façon claire et mémorable.
-
-Direction artistique : conserver l’aspect très natif, brut et crédible d’une vraie note iPhone. Ne pas surdesigner. L’objectif n’est pas de faire une publicité élégante, mais une création qui ressemble réellement à une capture personnelle prise sur le téléphone d’un dirigeant.
-
-Objectif : faire comprendre en quelques secondes qu’avant d’augmenter son budget publicitaire, il faut surtout améliorer ses créas, et que Podmax permet justement de déléguer toute la production de pubs vidéo, de l’idée à la livraison.
+Le rendu doit ressembler à une véritable note personnelle, spontanée et légèrement ironique.
 Référence      : UG1-06 · capture native note iPhone
 
-Alerte : L'heure de la barre d'état est remplacée par "8:14" pour ne reprendre aucun texte de la référence. Le libellé natif "iCloud" est conservé, car il fait partie de l'interface Notes.
+Alerte : Sur la référence, les blocs de texte de la note sont alignés à gauche, alors que la fiche les situe « au centre ». J'ai gardé l'alignement à gauche de la référence, natif à Apple Notes.

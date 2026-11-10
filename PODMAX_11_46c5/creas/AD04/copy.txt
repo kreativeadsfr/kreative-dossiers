@@ -1,0 +1,52 @@
+Créa 4 · Podmax
+
+1. Message reçu 1 : Non mais sérieux, ta zone de génie c'est ta boîte. Pas tes pubs. Arrête de t'acharner 😂
+2. Message envoyé 1 : Je sais bien, mais je veux tout contrôler j'y peux rien. Tu me connais
+3. Message reçu 2 : Je t'explique : déléguer ce que tu maîtrises pas, c'est la base. Et le pire, c'est que tu le sais
+4. Message reçu 3 : Moi je confie tout à Podmax depuis plusieurs mois : scripts, acteurs, tournage, montage
+5. Message reçu 4 : Ils construisent tout. Je valide. On avance. Et surtout, je me concentre sur ma boîte et pas sur mes pubs
+
+Idée du visuel : Reprendre fidèlement la structure de l'inspi : capture d'écran d'une conversation iMessage sur iPhone, en mode clair, avec des bulles grises pour les messages reçus et une bulle bleue pour la réponse envoyée.
+
+Interface : conserver les éléments caractéristiques d'iMessage : barre d'état iPhone, heure, flèche de retour, photo de profil, nom du contact, icône d'appel vidéo et champ de saisie en bas.
+
+Remplacer le contact « Sœur » par « Thomas ». L'ensemble doit donner l'impression d'une conversation spontanée entre deux entrepreneurs qui se connaissent bien (changer la photo).
+
+1 — Message reçu 1 : remplacer le premier message gris par « Non mais sérieux, ta zone de génie c'est ta boîte. Pas tes pubs. Arrête de t'acharner 😂 ».
+
+Conserver une bulle grise alignée à gauche, dans la partie supérieure de la conversation. Le ton doit être direct et légèrement moqueur, comme un ami qui remet gentiment les idées en place à son interlocuteur.
+
+2 — Message envoyé 1 : remplacer la réponse bleue par « Je sais bien, mais je veux tout contrôler j'y peux rien. Tu me connais ».
+
+Conserver la bulle bleue alignée à droite. Cette réponse doit donner l'impression d'un aveu spontané, dans lequel de nombreux dirigeants pourraient se reconnaître.
+
+3 — Message reçu 2 : remplacer le deuxième message gris par « Je t'explique : déléguer ce que tu maîtrises pas, c'est la base. Et le pire, c'est que tu le sais ».
+
+Conserver une bulle grise distincte, alignée à gauche, avec les mêmes proportions et la même typographie que les autres messages reçus.
+
+4 — Message reçu 3 : remplacer le troisième message gris par « Moi je confie tout à Podmax depuis plusieurs mois : scripts, acteurs, tournage, montage ».
+
+Conserver une nouvelle bulle grise sous la précédente. Ce message introduit naturellement Podmax dans la conversation, sans ajouter de bloc promotionnel ou de logo.
+
+5 — Message reçu 4 : remplacer le dernier message gris par « Ils construisent tout. Je valide. On avance. Et surtout, je me concentre sur ma boîte et pas sur mes pubs ».
+
+Ce dernier message constitue la chute de la conversation. Le conserver dans une bulle distincte pour mettre en évidence la simplicité de l'offre et le temps que le dirigeant peut consacrer à son activité.
+
+Mise en page : respecter l'ordre et la disposition des cinq messages de l'inspiration : un message reçu, une réponse envoyée, puis trois messages reçus.
+
+Adapter la hauteur des bulles et les espacements pour intégrer l'ensemble des textes tout en conservant une excellente lisibilité sur mobile. Éviter de réduire excessivement la taille de la police.
+
+Direction artistique : conserver strictement l'apparence native d'une conversation iMessage : fond blanc, bulles grises et bleues, typographie système iPhone, espacements naturels et aucun effet graphique supplémentaire.
+
+Ne pas ajouter de bouton CTA, de bannière commerciale, de photographie de studio ou de gros logo Podmax. La marque apparaît naturellement dans le quatrième message.
+
+La conversation est une mise en scène publicitaire fictive : ne pas la présenter comme un véritable échange entre clients ou associés identifiés.
+
+Objectif : interpeller les dirigeants qui cherchent à tout contrôler, y compris la production de leurs publicités, alors qu'ils manquent de temps ou de compétences spécialisées.
+
+Faire comprendre, à travers une conversation directe et légèrement provocante, qu'ils peuvent déléguer la production de leurs publicités vidéo à Podmax et se concentrer sur leur activité.
+
+Le visuel doit ressembler à une véritable capture de conversation privée, et non à une publicité d'agence traditionnelle. Son efficacité recherchée repose sur l'identification au dirigeant, le ton naturel des messages et la simplicité de la solution présentée.
+Référence      : UG1-02 · capture conversation iMessage
+
+Alerte : L'idée demande une barre d'état iPhone avec l'heure, mais elle n'existe pas sur la référence UG1-02. Elle a été omise pour ne pas ajouter de bloc et pour garder de la place aux cinq messages dans le carré. La photo de profil de Thomas est générée car aucun asset n'est joint : c'est un contact fictif, sans lien avec un vrai client.

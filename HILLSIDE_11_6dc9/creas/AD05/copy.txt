@@ -1,0 +1,55 @@
+Créa 5 · Hillside
+
+1. Titre, en haut : T'es pas Elon Musk
+2. Titre, au milieu : mon
+3. Titre, à droite : poto
+4. Sous-titre : Viens te former pendant 5 jours chez Hillside Barber Paris et apprends un vrai métier.
+
+Idée du visuel : Reprendre fidèlement la structure de l'inspi : fond bleu-gris légèrement dégradé, grande accroche noire en haut, personnage masculin au centre, deux mots blancs disposés de part et d'autre du personnage et petite phrase en bas du visuel.
+
+Logo : remplacer le logo Superads situé en haut par le logo Hillside si dispo, en conservant un emplacement et des proportions similaires.
+
+1 — Titre : remplacer « Launch ads that win, » par « T'es pas Elon Musk ».
+
+Conserver une grande typographie sans serif noire, très épaisse, centrée dans la partie supérieure du visuel. Répartir le titre sur deux ou trois lignes pour préserver son impact et sa lisibilité sur mobile.
+
+L'accroche doit sembler volontairement provocatrice, presque comme si quelqu'un s'adressait directement au personnage.
+
+2 — Texte gauche : remplacer « every » par « mon ».
+
+Conserver une typographie blanche, grasse et imposante. Positionner le mot à gauche du personnage, dans la partie inférieure, en reprenant exactement le principe de superposition de l'inspiration.
+
+3 — Texte droit : remplacer « time » par « poto ».
+
+Conserver la même typographie blanche et placer le mot à droite du personnage.
+
+La lecture globale doit être naturelle : « T'es pas Elon Musk, mon poto ».
+
+Personnage central : conserver le principe du modèle masculin photographié debout, avec une attitude sérieuse, presque excessivement confiante.
+
+L'idéal serait un homme en tenue de businessman décontracté, adoptant une posture légèrement prétentieuse, comme s'il se prenait pour un grand entrepreneur.
+
+Conserver son placement central, son cadrage et sa superposition avec les textes « mon » et « poto ».
+
+L'humour doit provenir du contraste entre cette posture très sérieuse et le langage familier de l'accroche.
+
+Ne pas utiliser de véritable photographie d'Elon Musk : la référence à son nom suffit pour faire fonctionner le concept.
+
+4 — Texte inférieur : remplacer « Best analytics tool to improve your ad campaigns. » par « Viens te former pendant 5 jours chez Hillside Barber Paris et apprends un vrai métier. ».
+
+Conserver une typographie blanche plus petite, centrée en bas du visuel. Adapter les retours à la ligne pour garantir une bonne lisibilité sur mobile.
+
+Direction artistique : respecter l'esthétique de l'inspiration : fond bleu-gris, personnage photographique central, typographies très imposantes et composition volontairement décalée.
+
+Ne pas ajouter de tondeuse, de ciseaux, de photos de dégradés, de badges promotionnels ou d'éléments graphiques supplémentaires.
+
+Ne pas transformer la création en publicité traditionnelle de formation. Le caractère provocateur repose précisément sur le décalage entre le personnage, l'accroche et la présentation finale de Hillside.
+
+Objectif : interpeller avec humour les personnes qui envisagent une reconversion professionnelle, en utilisant une référence connue et une accroche familière pour attirer leur attention.
+
+La création doit d'abord surprendre par son ton, puis présenter la formation intensive de barber proposée par Hillside à Paris.
+
+L'effet recherché repose sur trois éléments : une accroche insolente, une mise en scène volontairement sérieuse et une chute qui ramène vers une possibilité concrète de reconversion.
+Référence      : AG1-58 · portrait studio pris en sandwich typographique
+
+Alerte : VISUEL NON GÉNÉRÉ : 400 - "{\"error\":{\"message\":\"Image generation blocked for unspecified reasons. Please modify your input and retry.\",\"code\":\"image_other\"}}" | Aucun asset n'est joint : le logo Hillside n'est pas disponible, donc son emplacement est retiré et rien n'est inventé. Le personnage est un modèle fictif généré, à la demande explicite du stratégiste. La police de la charte ("notre DA") n'est pas nommée : j'ai utilisé une sans-serif de type Inter, lue sur le site. Le fond bleu-gris demandé a été tenu en gris froid pour rester dans la palette monochrome de Hillside. La mention verticale de la référence, absente de la fiche, a été retirée : à vérifier si une mention d'image générée par IA est souhaitée pour Meta.

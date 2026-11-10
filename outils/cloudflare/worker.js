@@ -58,6 +58,14 @@ export default {
   }
 };
 
+// v86 : les inspirations ajoutées par le stratégiste (voir /api/equipe/inspiration), au chemin des créas de la banque
+const INSPI_PERSO = /^\/?fiche\/lot\d+\/refs\/((?:UGX|PRX)-[a-f0-9]{12})\.jpg$/;
+async function servirInspiPerso(env, id) {
+  const o = env.FICHIERS && await env.FICHIERS.get('inspi/' + id);
+  if (!o) return texte('Introuvable', 404);
+  return new Response(o.body, { headers: { 'Content-Type': 'image/jpeg', 'Cache-Control': 'private, max-age=31536000, immutable' } });
+}
+
 async function traiter(req, env, ctx) {
   const url = new URL(req.url);
   let chemin;
@@ -72,6 +80,7 @@ async function traiter(req, env, ctx) {
     const sous = i < 0 ? '' : reste.slice(i + 1);
     if (req.method !== 'GET' && req.method !== 'HEAD') return texte('Lecture seule', 405);
     if (sous.startsWith('_api/')) return apiGithub(sous.slice(5) + url.search, env);
+    const perso = sous.match(INSPI_PERSO); if (perso) return servirInspiPerso(env, perso[1]);
     return servir(sous, env, ctx, { brut: true, origine: url.origin, req });
   }
 
@@ -151,6 +160,7 @@ async function traiter(req, env, ctx) {
     return texte('Accès refusé', 403);
   }
   if (chemin === '/_telecharger') return telechargerFichier(url);
+  const perso = chemin.match(INSPI_PERSO); if (perso) return servirInspiPerso(env, perso[1]);
   if (req.headers.get('Sec-Fetch-Dest') === 'document' && !url.searchParams.has('integre')) {
     const route = routePortail(chemin, url);
     if (route) return redirection(accueil + '#/' + route);
@@ -1143,6 +1153,7 @@ async function routerPortail(req, env, ctx, url, chemin) {
     if (qui.role === 'strategiste' && !(
       (sousChemin === '/etats' && methode === 'GET') ||
       (sousChemin === '/fiche' && methode === 'POST') ||
+      (sousChemin === '/inspiration' && methode === 'POST') ||
       (/^\/livraisons\/[A-Za-z0-9_-]{3,80}$/.test(sousChemin) && methode === 'GET') ||
       (/^\/livraisons\/l_[A-Za-z0-9_]+\/retouches-faites$/.test(sousChemin) && methode === 'POST') ||
       (/^\/revisions(\/[A-Za-z0-9_-]{3,80})?$/.test(sousChemin) && methode === 'GET') ||
@@ -1771,7 +1782,7 @@ async function apiAdmin(req, env, ctx, url, chemin, methode) {
     const sha = await shaMain(env).catch(() => null);
     TRAD_ERREURS = []; TRAD_MODELE = null;
     const essai = url.searchParams.has('traduction') ? (await traduire(env, ['Serait-il possible de mettre un visuel de l\'interface ?']))[0] : undefined;
-    return json({ worker: 'v85', traduction_essai: essai, traduction_modele: essai !== undefined ? TRAD_MODELE : undefined, traduction_refus: essai !== undefined && TRAD_ERREURS.length ? TRAD_ERREURS : undefined, depot_commit: sha ? sha.slice(0, 7) : null, github_jeton: gh === 200 ? 'ok' : gh === 401 ? 'REFUSÉ (jeton expiré ou révoqué)' : gh, github_derniere_lecture: DEPOT_DERNIER,
+    return json({ worker: 'v86', traduction_essai: essai, traduction_modele: essai !== undefined ? TRAD_MODELE : undefined, traduction_refus: essai !== undefined && TRAD_ERREURS.length ? TRAD_ERREURS : undefined, depot_commit: sha ? sha.slice(0, 7) : null, github_jeton: gh === 200 ? 'ok' : gh === 401 ? 'REFUSÉ (jeton expiré ou révoqué)' : gh, github_derniere_lecture: DEPOT_DERNIER,
       stockage_r2: !!env.FICHIERS, traduction_ai: !!env.AI, telegram_bot: !!env.TELEGRAM_BOT, code_fiche: !!(await codeFiche(env)) });
   }
   if (chemin === '/equipe' && methode === 'GET') {
@@ -2280,6 +2291,21 @@ async function apiEquipe(req, env, ctx, url, chemin, methode, qui) {
     } else if (chemin === '/livraisons' && methode === 'POST') d = (await req.clone().json().catch(() => ({}))).dossier;
     else if ((m = chemin.match(/^\/livraisons\/([A-Za-z0-9_-]{3,80})$/))) d = m[1];
     if (cache(d)) return json({ erreur: 'Introuvable' }, 404);
+  }
+  // v86 : une inspiration trouvée par le stratégiste lui-même (image d'internet, meme...) : rangée dans R2 et servie
+  // au même chemin que les créas de la banque (fiche/lot1/refs/<id>.jpg) : n8n VISUELS, la page du batch et l'espace
+  // designer la lisent sans aucun changement. « UGX- » = style natif (VISUELS la traite comme une ugly ad), « PRX- » sinon.
+  if (chemin === '/inspiration' && methode === 'POST') {
+    if (!['admin', 'strategiste'].includes(qui.role)) return json({ erreur: 'Accès refusé' }, 403);
+    if (!env.FICHIERS) return json({ erreur: 'Stockage indisponible.' }, 503);
+    const type = (req.headers.get('Content-Type') || '').split(';')[0].trim();
+    if (type !== 'image/jpeg') return json({ erreur: 'Image JPEG attendue.' }, 415);
+    const corps = await req.arrayBuffer();
+    if (!corps.byteLength || corps.byteLength > 8e6) return json({ erreur: 'Image trop lourde (8 Mo au plus).' }, 413);
+    const empreinte = [...new Uint8Array(await crypto.subtle.digest('SHA-256', corps))].map(x => x.toString(16).padStart(2, '0')).join('').slice(0, 12);
+    const id = (url.searchParams.get('style') === 'natif' ? 'UGX-' : 'PRX-') + empreinte;
+    await env.FICHIERS.put('inspi/' + id, corps, { httpMetadata: { contentType: 'image/jpeg' } });
+    return json({ ok: true, id });
   }
   // la fiche créas envoyée depuis le portail : la session suffit, le code Kreative est ajouté ici
   // (secret CODE_FICHE dans Cloudflare), le stratégiste n'a plus rien à taper

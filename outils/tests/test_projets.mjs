@@ -9,7 +9,7 @@ async function equipe(qui) { const r = await get('/_connexion', { method: 'POST'
 const A = await equipe('dario');
 const api = async (p, ck, methode, corps, entetes) => { const r = await get(p, { method: methode || 'GET', headers: { Cookie: ck, 'Content-Type': 'application/json', ...(entetes || {}) }, body: corps ? JSON.stringify(corps) : undefined }); let d = null; try { d = await r.json(); } catch (e) {} return { s: r.status, d }; };
 
-let r = await api('/api/admin/diagnostic', A); t('diagnostic : Worker v85', r.d && r.d.worker === 'v85', JSON.stringify(r.d && r.d.worker));
+let r = await api('/api/admin/diagnostic', A); t('diagnostic : Worker v86', r.d && r.d.worker === 'v86', JSON.stringify(r.d && r.d.worker));
 r = await api('/api/admin/clients', A, 'POST', { marque: 'Deux Marques', contact: 'Léa Martin', email: 'lea@deuxmarques.test' }); const cid = r.d.id; const lien = new URL(r.d.lien).pathname;
 // la commande payée (Custom 10 créas, 200 €) devient le projet Marque A : 5 créas, 100 €
 r = await api('/api/admin/commandes', A, 'POST', { client_id: cid, pack: 'custom', formule: 'unique', nb_creas: 10, prix: 200 }); const k1 = r.d;

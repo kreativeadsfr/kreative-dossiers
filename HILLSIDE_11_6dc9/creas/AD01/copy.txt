@@ -1,9 +1,25 @@
 Créa 1 · Hillside
 
-1. Titre : Regarder 40 tutos pour devenir barber
-2. Titre : Te former en 5 jours dans le salon Hillside à Paris
+1. Titre : Tu veux devenir barber ?
+2. Sous-titre : Évite de te former avec des tutos YouTube
+3. CTA : HILLSIDE - Formation Barber à Paris
+4. CTA : 5 jours dans un vrai salon, avec des vrais clients
 
-Idée du visuel : Utiliser le meme Drake en 2 parties, avec très peu de texte dans chaque bloc. En haut, l’idée des tutos / de la débrouille. Garder le rendu meme simple, lisible et immédiat.
-Nouvelle idée, inspirations : UGX-9d355dc26b4c · mème rejet approbation deux cases
+Idée du visuel : Reprendre l’image fournie en inspi, au format 3:4, avec le personnage au centre et le fond bleu d’origine. Conserver un rendu brut, humoristique et percutant, dans l’esprit d’un meme.
 
-Alerte : Le personnage est volontairement générique et non identifiable, et son t-shirt ne porte aucun logo : utiliser le visage d'une célébrité réelle dans une publicité sans autorisation est un risque juridique (droit à l'image). Le format reste reconnaissable par la grille, les gestes, la doudoune orange et le fond jaune. Le champ « À NE PAS FAIRE : Oui » est ambigu, aucun interdit précis n'a pu être appliqué.
+Emplacement des textes :
+
+Tout en haut : « Tu veux devenir barber ? » — Très grand, en noir sur un bandeau jaune légèrement incliné.
+
+Juste en dessous : « Évite de te former avec des tutos YouTube » — En blanc sur un bandeau noir, bien lisible.
+
+En bas, sous le visage : « HILLSIDE – Formation Barber à Paris » — En noir sur un bandeau jaune, suffisamment grand pour identifier immédiatement l'offre.
+
+Tout en bas : « 5 jours dans un vrai salon, avec des vrais clients » — En blanc sur un bandeau noir.
+
+Le visage et surtout la coupe du personnage doivent rester parfaitement visibles : c'est ce qui donne tout son humour à la création.
+
+Respecter cet ordre et cette hiérarchie. Aucun texte supplémentaire, aucun effet décoratif inutile.
+Nouvelle idée, inspirations : UGX-5653d9179ffd · meme portrait coupe ratée
+
+Alerte : Le stratégiste demandait un format 3:4 : la créa est recomposée en carré 1:1 dans le même ordre de blocs. Son idée écrit le troisième texte avec un tiret long, j'ai recopié le texte de la fiche avec un simple trait d'union. Le champ « À NE PAS FAIRE : Oui » ne contient aucune consigne exploitable. Le personnage est généré à partir de la description du portrait, sans asset joint.

@@ -10,4 +10,4 @@ Idée du visuel : Conserver fidèlement l'inspi : capture d'écran de l'applicat
 
 Mettre l'accroche en évidence, puis présenter les trois puces avec des espacements généreux. Isoler la phrase finale sur Podmax pour qu'elle soit immédiatement repérable.
 
-Référence      : UG1-13 · capture Notes iPhone mode sombre
+Référence      : UG1-13 · note iPhone cochée, mode sombre

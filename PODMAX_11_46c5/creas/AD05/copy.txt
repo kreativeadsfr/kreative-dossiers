@@ -14,4 +14,4 @@ Laisser beaucoup d'espace vide pour éviter l'effet bloc de texte. Aucun logo im
 Le rendu doit ressembler à une véritable note personnelle, spontanée et légèrement ironique.
 Référence      : UG1-06 · capture native note iPhone
 
-Alerte : Sur la référence, les blocs de texte de la note sont alignés à gauche, alors que la fiche les situe « au centre ». J'ai gardé l'alignement à gauche de la référence, natif à Apple Notes.
+Alerte : La référence 9:16 est recomposée en carré. Selon l'idée du stratégiste, la hiérarchie diffère légèrement de la référence : la phrase 1 est plus grande que la 2 et la conclusion est passée en demi-gras.

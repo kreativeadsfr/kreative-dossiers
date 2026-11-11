@@ -1,17 +1,21 @@
 Créa 2 · Hillside
 
 1. Titre : Moi qui attends le bon moment pour changer de métier.
-2. CTA : HILLSIDE — Formation barber en 5 jours à Paris.
+2. CTA : HILLSIDE — Formation barber de 5 jours à Paris.
 
-Idée du visuel : Créer une ugly ad au format 3:4 en utilisant le meme du squelette fourni en inspiration.
+Idée du visuel : Créer une ugly ad au format 3:4, dans l'esprit d'un véritable meme Internet, en utilisant l'image fournie de la femme assise sur une balançoire en feu.
 
-Conserver l'image comme élément central, avec un rendu volontairement brut et humoristique.
+Mise en page :
 
-Placer le titre en haut, en caractères suffisamment grands pour être lus immédiatement. Le squelette doit occuper la majorité du visuel : c'est lui qui apporte la chute humoristique.
+- En haut : prévoir un grand espace blanc pour le titre « Moi qui attends le bon moment pour changer de métier. » Texte noir, gras, centré, dans une typographie simple de meme.
 
-Afficher la mention Hillside en bas, sur une zone claire et bien lisible, afin que le prospect comprenne immédiatement qu'il s'agit d'une formation de barber en 5 jours à Paris.
+- Au centre : conserver la photo comme élément principal. La femme, son expression impassible et les flammes doivent être parfaitement visibles. C'est ce contraste qui crée l'humour.
 
-Ne pas ajouter d'effets graphiques, de décorations ou d'arguments supplémentaires. L'objectif est de conserver l'apparence d'un véritable meme Internet, pas d'une publicité classique.
-Nouvelle idée, inspirations : UGX-1257a6147552 · meme photo légendé natif
+- En bas : prévoir un espace blanc distinct pour la mention « HILLSIDE — Formation barber de 5 jours à Paris. » Texte noir, suffisamment grand pour être lu immédiatement.
 
-Alerte : Le texte 2 contenait un tiret cadratin, interdit : il est remplacé par un point médian ("HILLSIDE · Formation barber en 5 jours à Paris."). Le format 3:4 demandé est recomposé en carré 1:1. Aucun logo Hillside dans les assets, et il n'en faut pas en ugly ad : la marque n'apparaît que dans le texte du bas.
+Direction artistique : rendu volontairement brut et minimaliste, comme un meme partagé sur les réseaux. Fond blanc, texte noir, photo centrale. Aucun bandeau coloré, dégradé, logo surdimensionné ou effet graphique publicitaire.
+
+Le résultat doit ressembler à un meme détourné par une marque, pas à une publicité conçue par une agence.
+Nouvelle idée, inspirations : UGX-dc93d466724c · meme photo à légendes blanches
+
+Alerte : Le stratégiste demande « l'image fournie de la femme » mais aucun asset n'est joint : la photo, visible seulement en inspiration, est régénérée d'après sa description et ne sera pas identique. Format 3:4 demandé ramené au carré 1:1 imposé. Tiret cadratin du texte de marque remplacé par « · » (interdit). Le champ « À NE PAS FAIRE : Oui » est ambigu et n'a pas été exploité.

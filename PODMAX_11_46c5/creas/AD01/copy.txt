@@ -1,17 +1,14 @@
 Créa 1 · Podmax
 
-1. Titre : 89 K€ de chiffre d'affaires en 3 mois.
-2. Étiquette 1 : 3 876 € de dépenses pub
-3. Étiquette 2 : 38 clientes signées
-4. Sous-titre : Cas client Une Com Badass · Avril à juin 2026
+1. Avis client : PODMAX a compris notre clientèle : aucun script à revoir, tout était juste dès le départ. Une équipe pro, réactive et créative, qui a respecté un timing très serré. »  — Marvin Ndiaye, ULTRA
 
-Idée du visuel : Reprendre la structure de l'inspi : fond clair, grande accroche en haut, composition centrée et informations secondaires discrètes.
+Idée du visuel : Reprendre la structure de l'inspi au format 3:4, en remplaçant la photo du produit par une véritable photo de Marvin Ndiaye (ULTRA), fournie dans les ressources du projet.
 
-Remplacer la capture de l'interface Meta Ads par la véritable capture des résultats d'Une Com Badass, fournie par Podmax. La présenter au centre, comme une carte de résultats, en conservant ses chiffres et son identité visuelle.
+Conserver le principe d'un avis client authentique : photo bien visible, encadré blanc légèrement superposé, cinq étoiles et témoignage lisible en grand.
 
-Remplacer le logo Superads par Podmax. Privilégier une mise en page très aérée, avec une hiérarchie claire et aucune surcharge graphique.
+Ajouter impérativement un emplacement de texte supplémentaire, sous le témoignage, pour afficher : « — Marvin Ndiaye, ULTRA ».
 
-L'objectif est de mettre en valeur un cas client réel (témoignage), sans témoignage inventé ni promesse de résultats similaires.
-Référence      : AG1-73 · carte de résultats héro centrée
+Le témoignage doit rester l'élément principal. Prévoir suffisamment d'espace pour les deux lignes de texte et la signature, sans réduire excessivement leur taille. Rendu naturel, crédible et sobre, sans ajouter de résultats chiffrés ni de texte inventé.
+Référence      : UG5-03 · avis client photo et encadré
 
-Alerte : Aucun logo Podmax n'a été joint, donc la créa sort sans logo, et aucune capture du site n'a été fournie. La police Plus Jakarta Sans et les couleurs violet, orange et menthe sont donc déduites de la carte de résultats. La pastille Meta de la référence est retirée, car c'est une marque tierce et ses icônes sont déjà dans la carte. Aucun CTA n'a été ajouté, faute de CTA dans la référence et dans la fiche. Enfin, la carte est en portrait et ne peut pas être recadrée : elle occupera donc un peu moins de la moitié de la largeur du carré.
+Alerte : Le format est en carré 1:1 et non en 3:4 comme le demandait l'idée, conformément à la charte. Le tiret cadratin de la signature est retiré (interdit) : elle s'affiche "Marvin Ndiaye, ULTRA". Le » parasite en fin de texte n'est pas repris. Aucun logo Podmax n'est joint ni utilisé, ce qui est normal pour une ugly ad. La photo de Marvin est sombre et en clair-obscur, contrairement à la photo lumineuse de la référence, et l'encadré masque le bas de la photo (jambes et fauteuil) sans la recadrer.

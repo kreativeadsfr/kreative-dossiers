@@ -1,10 +1,18 @@
 Créa 4 · Hillside
 
-1. Titre : Arrête avec tes contours éclatés
-2. Sous-titre : « T'inquiète, ça repousse », c'est pas une technique. Et ça, on te l'explique chez HILLSIDE.
-3. Mention : HILLSIDE — Formation barber en 5 jours, dans un vrai salon à Paris.
+1. Titre : Arrête de te prendre pour un barber
+2. Sous-titre : Chez HILLSIDE, apprends les techniques du métier dans un vrai salon à Paris.
+3. Mention : Formation barber intensive de 5 jours, avec des vrais clients.
 
-Idée du visuel : Reprendre la structure de l’inspi avec un visuel central volontairement flou, mais remplacer la main par une photo de dégradé raté / contour raté en gros plan. Garder un rendu natif, simple et percutant. Le titre doit être très visible au centre. Le sous-titre doit rester court et lisible. La mention HILLSIDE —  doit apparaître clairement et assez grand, pour que l’offre soit comprise immédiatement.
-Référence      : UG1-01 · photo floue plein cadre texte centré
+Idée du visuel : Reprendre la structure du visuel d'inspi, mais remplacer la photo d'origine par un gros plan d'une coupe de cheveux volontairement ratée ou approximative. Le rendu doit rester naturel, légèrement brut et humoristique.
 
-Alerte : La mention 3 contenait un tiret cadratin (« HILLSIDE — Formation… »), interdit : remplacé par « · ». Aucun asset joint : la photo floue du dégradé raté est générée, générique et non identifiable, comme demandé dans l'idée du visuel. Le pictogramme feuille du médaillon est remplacé par des ciseaux au trait pour rester dans le sujet.
+Emplacement des textes :
+
+1. Au centre, en grand : « Arrête de te prendre pour un barber » — Accroche principale, immédiatement visible.
+2. Juste en dessous : « Chez HILLSIDE, apprends les techniques du métier dans un vrai salon à Paris. » — Mettre HILLSIDE en évidence et conserver une taille de texte suffisamment importante.
+3. En bas, plus petit : « Formation barber intensive de 5 jours, avec de vrais clients. » — Dans un bandeau contrasté, bien lisible.
+
+Important : l'offre Hillside doit être comprise dès la deuxième ligne, même par une personne qui ne connaît pas la marque. Ne pas reléguer les informations essentielles en petits caractères. Format 3:4, sans texte supplémentaire.
+Référence      : UG1-01 · photo floutée, texte centré natif
+
+Alerte : Format 3:4 demandé dans l'idée, ramené au carré 1:1 imposé par la charte. Emplacement 3 corrigé : « des vrais clients » devient « de vrais clients », comme dans l'idée du stratégiste. Le bandeau contrasté demandé pour la mention n'a pas été ajouté, parce qu'une ugly ad garde le rendu natif ; la mention est agrandie et posée sur la zone la plus sombre pour rester lisible. La photo de coupe ratée est générée, générique et non identifiable : elle ne représente ni Hillside ni son salon. L'icône de feuille barrée est remplacée par une tondeuse barrée, sur le même modèle de pastille.

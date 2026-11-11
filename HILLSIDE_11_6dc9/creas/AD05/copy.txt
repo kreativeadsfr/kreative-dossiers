@@ -1,55 +1,34 @@
 Créa 5 · Hillside
 
-1. Titre, en haut : T'es pas Elon Musk
-2. Titre, au milieu : mon
-3. Titre, à droite : ami
-4. Sous-titre : Viens te former pendant 5 jours chez Hillside Barber Paris et apprends un vrai métier.
+1. Titre : ENTRETIEN ANNUEL
+2. Sous-titre : Où vous voyez-vous dans 5 ans ?
+3. Sous-titre : Derrière un fauteuil de barber. Pas dans cette réunion.
+4. CTA : HILLSIDE
+5. CTA : Formation barber en 5 jours, dans un vrai salon à Paris.
 
-Idée du visuel : Reprendre fidèlement la structure de l'inspi : fond bleu-gris légèrement dégradé, grande accroche noire en haut, personnage masculin au centre, deux mots blancs disposés de part et d'autre du personnage et petite phrase en bas du visuel.
+Idée du visuel : L'idée est de détourner le principe de l'écriture manuscrite de l'inspi pour créer une ugly ad humoristique autour de la reconversion professionnelle.
 
-Logo : remplacer le logo Superads situé en haut par le logo Hillside si dispo, en conservant un emplacement et des proportions similaires.
+Plutôt que de reprendre la composition originale, on souhaite représenter une véritable fiche d'entretien annuel, posée sur un bureau et photographiée rapidement avec un téléphone.
 
-1 — Titre : remplacer « Launch ads that win, » par « T'es pas Elon Musk ».
+Sur le document :
 
-Conserver une grande typographie sans serif noire, très épaisse, centrée dans la partie supérieure du visuel. Répartir le titre sur deux ou trois lignes pour préserver son impact et sa lisibilité sur mobile.
+- En haut, le titre imprimé « ENTRETIEN ANNUEL ».
+- Juste en dessous, la question « Où vous voyez-vous dans 5 ans ? ».
+- Dans l'espace réservé à la réponse, une inscription manuscrite au stylo bleu : « Derrière un fauteuil de barber. Pas dans cette réunion. »
 
-L'accroche doit sembler volontairement provocatrice, presque comme si quelqu'un s'adressait directement au personnage.
+En bas de la fiche :
 
-2 — Texte gauche : remplacer « every » par « mon ».
+Intégrer un encadré distinct contenant la mention « HILLSIDE — Formation barber en 5 jours, dans un vrai salon à Paris. »
 
-Conserver une typographie blanche, grasse et imposante. Positionner le mot à gauche du personnage, dans la partie inférieure, en reprenant exactement le principe de superposition de l'inspiration.
+Le nom HILLSIDE doit apparaître en lettres capitales et en gras, avec la description de la formation juste en dessous, dans une typographie plus petite. L'ensemble doit ressembler à une mention imprimée directement sur le document, sans effet graphique publicitaire.
 
-3 — Texte droit : remplacer « time » par « poto ».
+Direction visuelle :
 
-Conserver la même typographie blanche et placer le mot à droite du personnage.
+S'appuyer sur l'image de référence fournie pour la mise en scène : feuille légèrement froissée, bureau visible, lumière naturelle et cadrage amateur. L'écriture manuscrite doit être crédible et spontanée.
 
-La lecture globale doit être naturelle : « T'es pas Elon Musk, mon poto ».
+Le rendu doit donner l'impression d'une vraie fiche d'entretien photographiée sur le vif, pas d'une publicité travaillée
 
-Personnage central : conserver le principe du modèle masculin photographié debout, avec une attitude sérieuse, presque excessivement confiante.
+L'objectif : créer un décalage entre le sérieux d'un entretien annuel et la réponse inattendue d'un salarié qui rêve de changer de métier. La réponse manuscrite doit rester l'élément central de la création, tandis que la mention Hillside permet de comprendre immédiatement la formation proposée.
+Nouvelle idée, inspirations : PRX-760de96db84a · fiche d'entretien manuscrite photographiée
 
-L'idéal serait un homme en tenue de businessman décontracté, adoptant une posture légèrement prétentieuse, comme s'il se prenait pour un grand entrepreneur.
-
-Conserver son placement central, son cadrage et sa superposition avec les textes « mon » et « poto ».
-
-L'humour doit provenir du contraste entre cette posture très sérieuse et le langage familier de l'accroche.
-
-Ne pas utiliser de véritable photographie d'Elon Musk : la référence à son nom suffit pour faire fonctionner le concept.
-
-4 — Texte inférieur : remplacer « Best analytics tool to improve your ad campaigns. » par « Viens te former pendant 5 jours chez Hillside Barber Paris et apprends un vrai métier. ».
-
-Conserver une typographie blanche plus petite, centrée en bas du visuel. Adapter les retours à la ligne pour garantir une bonne lisibilité sur mobile.
-
-Direction artistique : respecter l'esthétique de l'inspiration : fond bleu-gris, personnage photographique central, typographies très imposantes et composition volontairement décalée.
-
-Ne pas ajouter de tondeuse, de ciseaux, de photos de dégradés, de badges promotionnels ou d'éléments graphiques supplémentaires.
-
-Ne pas transformer la création en publicité traditionnelle de formation. Le caractère provocateur repose précisément sur le décalage entre le personnage, l'accroche et la présentation finale de Hillside.
-
-Objectif : interpeller avec humour les personnes qui envisagent une reconversion professionnelle, en utilisant une référence connue et une accroche familière pour attirer leur attention.
-
-La création doit d'abord surprendre par son ton, puis présenter la formation intensive de barber proposée par Hillside à Paris.
-
-L'effet recherché repose sur trois éléments : une accroche insolente, une mise en scène volontairement sérieuse et une chute qui ramène vers une possibilité concrète de reconversion.
-Référence      : AG1-58 · portrait contre-plongée, typo superposée
-
-Alerte : VISUEL NON GÉNÉRÉ : 400 - "{\"error\":{\"message\":\"Image generation blocked for unspecified reasons. Please modify your input and retry.\",\"code\":\"image_other\"}}" | Aucun asset joint : le logo Hillside est absent et retiré du haut, et le personnage est entièrement généré (fictif, sans ressemblance avec Elon Musk). Conflit dans la fiche : l'emplacement 3 indique « ami » alors que l'idée du visuel demande « poto ». J'ai suivi l'emplacement numéroté (« ami »), à confirmer avec le stratégiste. Le fond bleu-gris suit la consigne de l'idée et non la palette neutre du client. La police de la charte, « notre DA », n'est pas nommée : j'ai décrit une linéale géométrique. Aucun CTA dans la référence ni dans la fiche, donc aucun CTA. La mention verticale de génération IA de la référence n'est pas reprise : à ajouter en post-prod si une mention IA est requise.
+Alerte : Aucun asset déposé : créa construite sans logo ni visuel, uniquement avec le document photographié. Créa traitée en ugly ad (idée du stratégiste) : DA du client, charte du pack, bouton et accent #ffffff volontairement non appliqués ; le CTA est un encadré imprimé natif du formulaire. Le tiret cadratin de l'idée ("HILLSIDE — Formation...") est remplacé par un retour à la ligne. Le vouvoiement de la question est conservé car il imite un formulaire RH, malgré le tutoiement de la marque. Consigne "À NE PAS FAIRE : Oui" ambiguë, sans interdit exploitable. Le visuel du site WS01 (carte floutée de Paris) n'apportait aucune information de DA.

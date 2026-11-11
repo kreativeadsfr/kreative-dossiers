@@ -15,4 +15,4 @@ Garder des bulles courtes, des espacements naturels et une typographie parfaitem
 La conversation doit sembler spontanée, avec une touche d'humour, tout en permettant de comprendre rapidement l'offre Hillside.
 Référence      : UG1-02 · capture conversation iMessage native
 
-Alerte : Faute corrigée dans le message envoyé 1 : « Je trouvé des tutos » devient « J'ai trouvé des tutos ». La photo d'avatar de la référence est remplacée par l'avatar iOS par défaut à l'initiale « M », pour ne pas générer de visage inventé. L'horodatage et la mention native « Distribué » sont écrits en entier pour que le générateur n'invente aucun texte.
+Alerte : Faute corrigée dans l'emplacement 2 : « Je trouvé des tutos » devient « J'ai trouvé des tutos ». L'avatar photo est remplacé par l'avatar iOS par défaut à initiale « M », pour ne pas inventer de visage. L'horodatage est réécrit en « Aujourd'hui 18:32 » pour ne pas reprendre celui d'origine.

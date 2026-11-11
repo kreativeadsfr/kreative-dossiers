@@ -14,6 +14,6 @@ Idée du visuel : Conserver une structure pub très simple :
 L’ensemble doit ressembler à une pub très directe, compréhensible instantanément, avec un contraste fort entre le ton calme du texte et l’image de chaos.
 
 Ne pas reprendre l’univers skincare de l’inspiration : seule la logique de composition compte, pas son contenu.
-Nouvelle idée, inspirations : UGX-95762ecd575b · mème photo, calme face au chaos
+Nouvelle idée, inspirations : UGX-95762ecd575b · mème photo, légende au-dessus
 
-Alerte : L'image d'origine (la photo réelle dite « Disaster Girl ») n'est pas jointe comme asset. Elle montre en plus une personne réelle et identifiable, photographiée enfant, dont l'usage publicitaire exige ses droits à l'image. Le prompt génère donc une scène équivalente, générique et non identifiable, avec une adulte au premier plan. Pour utiliser la photo originale, il faut acquérir la licence et la joindre comme asset. Le visuel est en paysage plutôt qu'en 3:4 portrait, pour tenir dans le carré sous le titre et le sous-titre.
+Alerte : La photo « Disaster Girl » montre une personne réelle identifiable, et ses droits sont protégés. Elle n'est pas jointe en asset, donc le prompt génère une scène originale avec la même mécanique (sujet calme au premier plan, incendie derrière) et un adulte générique non identifiable. Si Podmax détient une licence d'exploitation de la photo d'origine, il faut la déposer en asset pour l'utiliser telle quelle. Le visuel en 3:4 portrait a été adapté en photo pleine largeur pour tenir dans le carré 1:1 avec le titre, le sous-titre et la ligne du bas.

@@ -51,7 +51,9 @@ const avantMails = lignes('emails.log').length;
 r = await api('/api/equipe/livraisons/' + v2.id + '/decision', A, 'POST', { action: 'envoyer' }); t('Kreative envoie au client', r.s === 200, JSON.stringify(r.d));
 await new Promise(z => setTimeout(z, 400));
 const mail = lignes('emails.log').slice(avantMails).map(l => JSON.parse(l).corps).pop() || {};
-t('le client reçoit un email « nouvelle version » avec le HTML', mail.a === 'ines@nova.fr' && /· Vos créatives modifiées$/.test(mail.sujet) && /Voir la nouvelle version/.test(mail.html) && /ou validez le projet en un clic/.test(mail.html), JSON.stringify(mail).slice(0, 200));
+// v87 (12/11, Podmax) : la version 1 a été corrigée en interne, le client n'a jamais rien reçu : c'est sa 1re livraison
+t('version refaite en interne : le client reçoit « Vos créatives sont prêtes », pas « modifiées »', mail.a === 'ines@nova.fr' && /· Vos créatives sont prêtes$/.test(mail.sujet) && /Voir mes créatives/.test(mail.html) && !/retouches|nouvelle version/i.test(mail.html), JSON.stringify(mail).slice(0, 200));
+t('… avec le nom du projet dans l\'objet et le texte', /^Pack Growth · \S+ \d{4} · /.test(mail.sujet) && /Les créatives de votre projet « Pack Growth · \S+ \d{4} » sont prêtes\./.test(mail.html), mail.sujet);
 r = await api('/api/admin/clients/' + cid, A); t('commande passée en « livré »', r.d.commandes[0].statut === 'livre', r.d.commandes[0].statut);
 r = await api('/api/client/moi', CK); t('le portail sait qu\'une review attend', r.d.commandes[0].creatives === 1 && r.d.commandes[0].a_reviewer === true, JSON.stringify(r.d.commandes[0].creatives));
 
@@ -84,7 +86,11 @@ r = await api('/api/equipe/livraisons', DE, 'POST', { dossier: 'TURNLY_10_bc5e' 
 t('version 3 : le fichier approuvé le reste', v3.version === 3 && v3.fichiers.find(f => f.format === '4x5').approuve_le, JSON.stringify(v3.fichiers && v3.fichiers.map(f => f.approuve_le)));
 await deposer(v3.id, 'NOVA_STANDARD_01.png', '1x1');
 await api('/api/equipe/livraisons/' + v3.id + '/envoyer', DE, 'POST', {});
+const avantMails3 = lignes('emails.log').length;
 await api('/api/equipe/livraisons/' + v3.id + '/decision', A, 'POST', { action: 'envoyer' });
+await new Promise(z => setTimeout(z, 400));
+const mail3 = lignes('emails.log').slice(avantMails3).map(l => JSON.parse(l).corps).pop() || {};
+t('retouches demandées par le client : « Vos créatives modifiées », avec le projet', /^Pack Growth · .* · Vos créatives modifiées$/.test(mail3.sujet) && /Les retouches demandées de votre projet « Pack Growth/.test(mail3.html) && /Voir la nouvelle version/.test(mail3.html) && /ou validez le projet en un clic/.test(mail3.html), JSON.stringify(mail3).slice(0, 240));
 r = await api('/api/client/commandes/' + kid + '/creatives', CK); t('le client voit les versions 3 et 2', r.d.livraisons.map(l => l.version).join(',') === '3,2', r.d.livraisons.map(l => l.version).join(','));
 r = await api('/api/client/livraisons/' + v3.id + '/tout-approuver', CK, 'POST'); t('tout approuver', r.s === 200);
 r = await api('/api/client/livraisons/' + v3.id + '/terminer', CK, 'POST'); t('review terminée, tout approuvé : projet validé', r.d.approuvee === true && r.d.valide === true, JSON.stringify(r.d));

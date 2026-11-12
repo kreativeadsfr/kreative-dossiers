@@ -1782,7 +1782,7 @@ async function apiAdmin(req, env, ctx, url, chemin, methode) {
     const sha = await shaMain(env).catch(() => null);
     TRAD_ERREURS = []; TRAD_MODELE = null;
     const essai = url.searchParams.has('traduction') ? (await traduire(env, ['Serait-il possible de mettre un visuel de l\'interface ?']))[0] : undefined;
-    return json({ worker: 'v86', traduction_essai: essai, traduction_modele: essai !== undefined ? TRAD_MODELE : undefined, traduction_refus: essai !== undefined && TRAD_ERREURS.length ? TRAD_ERREURS : undefined, depot_commit: sha ? sha.slice(0, 7) : null, github_jeton: gh === 200 ? 'ok' : gh === 401 ? 'REFUSÉ (jeton expiré ou révoqué)' : gh, github_derniere_lecture: DEPOT_DERNIER,
+    return json({ worker: 'v87', traduction_essai: essai, traduction_modele: essai !== undefined ? TRAD_MODELE : undefined, traduction_refus: essai !== undefined && TRAD_ERREURS.length ? TRAD_ERREURS : undefined, depot_commit: sha ? sha.slice(0, 7) : null, github_jeton: gh === 200 ? 'ok' : gh === 401 ? 'REFUSÉ (jeton expiré ou révoqué)' : gh, github_derniere_lecture: DEPOT_DERNIER,
       stockage_r2: !!env.FICHIERS, traduction_ai: !!env.AI, telegram_bot: !!env.TELEGRAM_BOT, code_fiche: !!(await codeFiche(env)) });
   }
   if (chemin === '/equipe' && methode === 'GET') {
@@ -1900,6 +1900,12 @@ async function renvoyerVersion(db, l, pour, note) {
   return true;
 }
 // envoyer une version au client : la commande passe « livré », le client reçoit l'email
+// v87 : le nom d'un projet tel que le client le voit dans son espace (comme K.nomCommande dans ui/app.js)
+function nomProjet(k) {   // MOIS_FR : plus bas, avec les briefs du mois
+  if (k.nom) return k.nom;
+  const d = new Date(k.cree_le || Date.now()), p = { starter: 'Starter', growth: 'Growth', scale: 'Scale', custom: 'Custom' }[k.pack] || k.pack || '';
+  return (k.formule === 'mensuel' ? 'Abonnement ' : 'Pack ') + p + ' · ' + MOIS_FR[d.getMonth()] + ' ' + d.getFullYear();
+}
 async function envoyerAuClient(env, ctx, url, db, l) {
   const now = maintenant();
   // une seule fois, même si deux clics (ou un clic et un glisser) arrivent en même temps
@@ -1912,10 +1918,14 @@ async function envoyerAuClient(env, ctx, url, db, l) {
   if (finale && !['valide', 'annule'].includes(k.statut)) await db.prepare("UPDATE commandes SET statut = 'livre', livre_le = COALESCE(livre_le, ?) WHERE id = ?").bind(now, k.id).run();
   // une partie (1/2…) renvoyée après retouches : la commande repart en production
   if (!finale && k.statut === 'revisions') await db.prepare("UPDATE commandes SET statut = 'production' WHERE id = ?").bind(k.id).run();
-  await noter(db, k.client_id, k.id, 'livre', l.version > 1 ? 'Nouvelle version de vos créatives (version ' + l.version + ')' : 'Vos créatives sont livrées');
+  // v87 (12/11, Podmax) : « Vos créatives modifiées » seulement si le client a déjà reçu une version de ce projet.
+  // Une version refaite en interne avant tout envoi (Kreative a renvoyé le projet à l'équipe) est, pour le client,
+  // sa première livraison : « Vos créatives sont prêtes ».
+  const dejaVue = l.version > 1 && await db.prepare('SELECT 1 AS ok FROM livraisons WHERE dossier = ? AND version < ? AND envoye_le IS NOT NULL LIMIT 1').bind(l.dossier, l.version).first();
+  const partie = await partieDe(env, l.dossier), v2 = !!dejaVue;
+  await noter(db, k.client_id, k.id, 'livre', v2 ? 'Nouvelle version de vos créatives (version ' + l.version + ')' : 'Vos créatives sont livrées');
   // une partie d'un projet livré en plusieurs fois : « Livraison 1 sur 4 disponible », et le brief de la suivante est
   // programmé à sa date (voir briefSuivantLe) : il partira seul, au bon moment
-  const partie = await partieDe(env, l.dossier), v2 = l.version > 1;
   if (partie && !v2 && partie.n < partie.sur) {
     // au moins une heure après la livraison, même si la date est déjà passée : jamais dans le même message
     const l1 = partie.n === 1 ? now : await premiereRecue(env, l.dossier.replace(/_L\d+$/, ''));
@@ -1923,17 +1933,19 @@ async function envoyerAuClient(env, ctx, url, db, l) {
     await db.prepare(`INSERT OR IGNORE INTO rappels (cle, client_id, commande_id, type, n, sur, dossier, le) VALUES (?,?,?,?,?,?,?,?)`)
       .bind('brief:' + l.dossier, k.client_id, k.id, 'brief_suivant', partie.n + 1, partie.sur, l.dossier, le).run();
   }
+  // v87 : le nom du projet dans l'objet, la notification et l'email (un client peut avoir plusieurs projets)
+  const projet = nomProjet(k), dans = ' de votre projet « ' + projet + ' »';
   const titre = v2 ? 'Vos créatives modifiées' : partie ? 'Livraison ' + partie.n + ' sur ' + partie.sur + ' disponible' : 'Vos créatives sont prêtes';
-  const texte = v2 ? 'Les retouches demandées ont été appliquées. La nouvelle version est disponible dans votre espace.'
-    : partie ? 'Les créatives de votre livraison ' + partie.n + ' sont disponibles dans votre espace Kreative.' : 'Vos nouvelles créatives sont disponibles dans votre espace Kreative.';
+  const texte = v2 ? 'Les retouches demandées' + dans + ' ont été appliquées. La nouvelle version est disponible dans votre espace.'
+    : partie ? 'Les créatives de la livraison ' + partie.n + dans + ' sont disponibles dans votre espace Kreative.' : 'Les créatives' + dans + ' sont disponibles dans votre espace Kreative.';
   const notif = notifier(env, k.client_id, { titre, texte, url: '/client/#/projets/' + k.id + '/creatives' });
   if (ctx && ctx.waitUntil) ctx.waitUntil(notif); else await notif;
   if (k.email && k.jeton && !/^TEST_DEMO_/.test(l.dossier)) {
     const prenom = String(k.contact || '').trim().split(/\s+/)[0], lien = lienAcces(url, k.jeton);
-    const envoi = envoyerEmail(env, { type: 'creatives', a: k.email, marque: k.marque, contact: k.contact || '', lien, sujet: k.marque + ' · ' + titre,
+    const envoi = envoyerEmail(env, { type: 'creatives', a: k.email, marque: k.marque, contact: k.contact || '', lien, sujet: projet + ' · ' + titre,
       html: emailHtml(url.origin, { titre: 'Bonjour' + (prenom ? ' ' + prenom : '') + ',',
-        paragraphes: v2 ? ['Les retouches demandées ont été appliquées. Si d\'autres ajustements sont nécessaires, indiquez-les directement sur les créatives concernées, ou validez le projet en un clic.']
-          : [(partie ? 'Votre livraison ' + partie.n + ' sur ' + partie.sur + ' est prête.' : 'Vos créatives sont prêtes.') + ' Si des ajustements sont nécessaires, indiquez-les directement sur les créatives concernées.'],
+        paragraphes: v2 ? ['Les retouches demandées' + dans + ' ont été appliquées. Si d\'autres ajustements sont nécessaires, indiquez-les directement sur les créatives concernées, ou validez le projet en un clic.']
+          : [(partie ? 'La livraison ' + partie.n + ' sur ' + partie.sur + dans + ' est prête.' : 'Les créatives' + dans + ' sont prêtes.') + ' Si des ajustements sont nécessaires, indiquez-les directement sur les créatives concernées.'],
         bouton: [v2 ? 'Voir la nouvelle version' : 'Voir mes créatives', lien] }) });
     if (ctx && ctx.waitUntil) ctx.waitUntil(envoi); else await envoi;
   }

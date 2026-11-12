@@ -25,7 +25,7 @@ moi = (await api('/api/client/moi', CK)).d; k = moi.commandes[0];
 const prevu2 = t1 + 11 * 864e5;
 t('livraison 1 chez le client : le brief de la 2 n\'est pas encore demandé, il est annoncé 11 jours après la livraison 1', !k.brief_suivant && k.brief_prochain && k.brief_prochain.n === 2 && k.brief_prochain.sur === 2 && Math.abs(k.brief_prochain.le - prevu2) < 5000, JSON.stringify([k.brief_suivant, k.brief_prochain]));
 let nq = (await api('/api/client/notifications/derniere', CK)).d;
-t('… notification « Livraison 1 sur 2 disponible », sans parler du brief', nq.titre === 'Livraison 1 sur 2 disponible' && nq.texte === 'Les créatives de votre livraison 1 sont disponibles dans votre espace Kreative.', JSON.stringify(nq));
+t('… notification « Livraison 1 sur 2 disponible », sans parler du brief', nq.titre === 'Livraison 1 sur 2 disponible' && /^Les créatives de la livraison 1 de votre projet « [^»]+ » sont disponibles dans votre espace Kreative\.$/.test(nq.texte) && !/brief/i.test(nq.texte), JSON.stringify(nq));
 const rappels = a => n8n('rappels', { a });
 r = await rappels(Date.now()); t('avant sa date : aucun rappel envoyé', r.envoyes === 0, JSON.stringify(r));
 const mails0 = fs.existsSync('emails.log') ? fs.readFileSync('emails.log', 'utf8').trim().split('\n').filter(Boolean).length : 0;
@@ -68,7 +68,7 @@ for (let n = 1; n <= 3; n++) {
   await livrer('QUAD_10_bbbb_L' + n); qk = await etatQ();
   const nq = (await api('/api/client/notifications/derniere', QK)).d;
   // chaque semaine : le brief de la livraison suivante n'est jamais envoyé avec la livraison, mais la veille de la semaine suivante
-  t('livraison ' + n + '/4 : message de livraison seul, brief de la ' + (n + 1) + ' pas encore demandé', !qk.brief_suivant && qk.brief_prochain && qk.brief_prochain.n === n + 1 && nq.titre === 'Livraison ' + n + ' sur 4 disponible' && nq.texte === 'Les créatives de votre livraison ' + n + ' sont disponibles dans votre espace Kreative.', JSON.stringify([qk.brief_prochain, nq]));
+  t('livraison ' + n + '/4 : message de livraison seul, brief de la ' + (n + 1) + ' pas encore demandé', !qk.brief_suivant && qk.brief_prochain && qk.brief_prochain.n === n + 1 && nq.titre === 'Livraison ' + n + ' sur 4 disponible' && nq.texte.startsWith('Les créatives de la livraison ' + n + ' de votre projet « ') && !/brief/i.test(nq.texte), JSON.stringify([qk.brief_prochain, nq]));
   // la livraison n+1 arrive n semaines après la livraison 1, démarrée 72 h avant : brief demandé la veille, plus tard
   t('… prévu plus tard, la veille du début de la livraison ' + (n + 1), qk.brief_prochain.le > Date.now() + 864e5, qk.brief_prochain.le);
   await api('/api/admin/commandes/' + q1.id, A, 'PATCH', { decaler_livraisons: 7 * 864e5 });
@@ -78,7 +78,7 @@ for (let n = 1; n <= 3; n++) {
   qk = await etatQ(); t('… retour ' + n + ' reçu : plus rien à remplir jusqu\'à la livraison suivante', r.ok === true && !qk.brief_suivant, JSON.stringify(r));
 }
 await livrer('QUAD_10_bbbb_L4'); qk = await etatQ();
-t('dernière livraison : « Livraison 4 sur 4 disponible », sans brief à remplir', (await api('/api/client/notifications/derniere', QK)).d.titre === 'Livraison 4 sur 4 disponible' && (await api('/api/client/notifications/derniere', QK)).d.texte === 'Les créatives de votre livraison 4 sont disponibles dans votre espace Kreative.');
+t('dernière livraison : « Livraison 4 sur 4 disponible », sans brief à remplir', (await api('/api/client/notifications/derniere', QK)).d.titre === 'Livraison 4 sur 4 disponible' && (await api('/api/client/notifications/derniere', QK)).d.texte.startsWith('Les créatives de la livraison 4 de votre projet « '));
 t('livraison 4/4 : plus de formulaire de retour pour ce mois', !qk.brief_suivant && qk.retours.length === 3, JSON.stringify(qk.brief_suivant) + ' ' + qk.retours.length);
 await new Promise(z => setTimeout(z, 20));
 r = await api('/api/admin/commandes', A, 'POST', { client_id: qid, pack: 'custom', formule: 'mensuel', nb_creas: 80 }); const q2 = r.d;

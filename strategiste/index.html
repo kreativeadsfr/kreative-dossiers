@@ -29,6 +29,9 @@ const SECS = ['fiche', 'dossier', 'brief'];
 // à faire pour le stratégiste : une fiche à remplir, ou des textes à corriger après les retours du client
 const aFaire = x => x.etape ? x.etape.cle === 'strat' : !x.envoye;
 const enRetouche = x => !!(x.etape && x.etape.cle === 'strat' && x.etape.retouche === 'strategiste');
+// 12/11 : un projet avec des créas à refaire (retours du client) ne s'ouvre que sur ces créas, quel que soit le bouton (Fiche, Ouvrir, recherche…)
+const aRefaire = x => !!(x && x.etape && x.etape.ret && x.etape.ret.strat);
+const lienFiche = x => (aRefaire(x) ? '#/reprise/' : '#/fiche/') + x.dossier;
 K.prod.autorisees = SECS;
 
 function conf() {
@@ -49,14 +52,14 @@ function conf() {
 function rechercher(q) {
   q = q.toLowerCase(); if (!q) return [];
   return (K.prod.liste || []).filter(x => (x.nom + ' ' + x.dossier).toLowerCase().includes(q)).slice(0, 10)
-    .map(x => ({ texte: x.nom, type: 'Fiche', icone: 'doc', href: '#/fiche/' + x.dossier }));
+    .map(x => ({ texte: x.nom, type: 'Fiche', icone: 'doc', href: lienFiche(x) }));
 }
 
 // les boutons d'un projet : chaque page s'ouvre dans le portail
 function boutons(x, principal) {
   const b = [];
   if (enRetouche(x)) b.push('<a class="btn btn-p btn-sm" href="#/retouches/' + esc(x.dossier) + '">' + i.message + 'Retours</a>');
-  b.push('<a class="btn ' + (principal === 'fiche' && !enRetouche(x) ? 'btn-p' : 'btn-s') + ' btn-sm" href="#/fiche/' + esc(x.dossier) + '">' + i.doc + 'Fiche</a>');
+  b.push('<a class="btn ' + (principal === 'fiche' && !enRetouche(x) ? 'btn-p' : 'btn-s') + ' btn-sm" href="' + esc(lienFiche(x)) + '">' + i.doc + 'Fiche</a>');
   b.push('<a class="btn btn-s btn-sm" href="#/dossier/' + esc(x.dossier) + '">' + i.calques + 'Dossier</a>');
   if (x.retour) b.push('<a class="btn btn-s btn-sm" href="#/brief/' + esc(x.dossier) + '">' + i.message + 'Brief</a>');
   return '<div style="display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap">' + b.join('') + '</div>';
@@ -147,7 +150,7 @@ function ecranRetouches(id) {
   if (!x) return '<a class="retour" href="#/">' + i.gauche + 'Vue d\'ensemble</a><div class="card"><div class="vide">Projet introuvable.</div></div>';
   if (RT.dossier !== id) { RT.dossier = id; RT.donnees = null; setTimeout(() => chargerRetouches(id), 0); }
   let h = '<a class="retour" href="#/">' + i.gauche + 'Vue d\'ensemble</a><div class="ph"><div><h1>' + esc(x.nom) + '</h1><p>Les retours du client sur la dernière version.</p></div>' +
-    '<div class="act"><a class="btn btn-s" href="#/fiche/' + esc(x.dossier) + '">' + i.doc + 'Ouvrir la fiche</a></div></div>';
+    '<div class="act"><a class="btn btn-s" href="' + esc(lienFiche(x)) + '">' + i.doc + 'Ouvrir la fiche</a></div></div>';
   if (!RT.donnees) return h + '<div class="card"><div class="vide">Chargement…</div></div>';
   if (RT.rev && RT.rev.items && RT.rev.items.length && RT.rev.travail && RT.rev.travail.statut === 'brouillon') return h.replace('Les retours du client sur la dernière version.', 'Les retours du client sur la version ' + (RT.rev.source ? RT.rev.source.version : '') + '.') + ecranRefaire(x);
   const v = (RT.donnees.versions || [])[0];
@@ -186,6 +189,7 @@ K.rendre = async force => {
   if (!E.moi) E.moi = await K.lireJson('/_moi');
   await K.prod.charger();
   const sec = r.ecran, id = r.params[0];
+  if (sec === 'fiche' && id && aRefaire(K.prod.trouver(id))) { location.replace('#/reprise/' + id); return; }   // la fiche complète d'un projet à refaire : on montre seulement les créas à refaire
   let contenu, plein = false, nomProjet = '';
   if (K.prod.sections[sec] && SECS.includes(sec)) {
     if (id) { contenu = K.prod.vue(sec, id, { sections: SECS, role: 'strategiste' }); plein = true; const x = K.prod.trouver(id); nomProjet = x ? x.nom : id === 'banque' ? 'Banque d\'inspirations' : id; }

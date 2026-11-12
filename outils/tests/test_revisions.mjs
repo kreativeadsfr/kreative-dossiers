@@ -71,6 +71,29 @@ const vD = await api('/api/equipe/revisions?vue=designer', A); const pvD = (vD.d
 t('admin en vue designer : la même chose que la designer (AD02 seulement, sans « qui »)', pvD && JSON.stringify(pvD) === JSON.stringify(pDe), JSON.stringify(pvD).slice(0, 200));
 const vS = await api('/api/equipe/revisions/' + D + '?vue=strategiste', A);
 t('admin en vue stratégiste : la même chose que le stratégiste', JSON.stringify(vS.d) === JSON.stringify(rSt.d), JSON.stringify(vS.d).slice(0, 200));
+// 12/11 : un projet avec des créas à refaire ne s'ouvre que sur ces créas, quel que soit le bouton (Fiche, Ouvrir la fiche, lien direct)
+{
+  const { createRequire } = await import('node:module'); const { chromium } = createRequire(import.meta.url)('playwright');
+  const nav = await chromium.launch(); const ctx = await nav.newContext();
+  await ctx.addCookies([{ name: ST.split('=')[0], value: ST.split('=').slice(1).join('='), url: B }]);
+  const pg = await ctx.newPage(); const err = []; pg.on('pageerror', e => err.push(e.message));
+  // le projet Pulso n'existe que dans la base de test : on l'ajoute à la liste des projets lue par la page
+  await pg.route(/\/projets\.json/, async rt => { const rep = await rt.fetch(); let l = []; try { l = await rep.json(); } catch (e) {}
+    if (Array.isArray(l) && !l.some(p => p.dossier === D)) l.unshift({ dossier: D, brand_name: 'Pulso', nb_creas: 4, pack: 'growth', date: '2026-11-01' });
+    await rt.fulfill({ response: rep, body: JSON.stringify(l), headers: { ...rep.headers(), 'content-type': 'application/json' } }); });
+  await pg.route(/\/PULSO_11_ab12\/donnees\.json/, rt => rt.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ brand_name: 'Pulso', nb_creas: 4, pack: 'growth', deadline_strategiste: '2026-11-20T10:00:00Z' }) }));
+  await pg.goto(B + '/strategiste/#/projets'); await pg.waitForSelector('.app:not(.squelette)', { timeout: 15000 }); await pg.waitForTimeout(600);
+  const hrefs = await pg.$$eval('a', l => l.map(a => a.getAttribute('href')).filter(h => /PULSO_11_ab12/.test(h || '')));
+  t('Projets : le bouton Fiche mène aux créas à refaire', hrefs.includes('#/reprise/' + D) && !hrefs.includes('#/fiche/' + D), JSON.stringify(hrefs));
+  await pg.goto(B + '/strategiste/#/fiche/' + D); await pg.waitForFunction(d => location.hash === '#/reprise/' + d, D, { timeout: 15000 }).catch(() => {});
+  await pg.waitForSelector('#vp-cadre', { timeout: 15000 }).catch(() => {});
+  const src = await pg.getAttribute('#vp-cadre', 'src').catch(() => '');
+  t('lien direct vers la fiche complète : renvoyé sur les créas à refaire', (await pg.evaluate(() => location.hash)) === '#/reprise/' + D && /reprise=3(&|$)/.test(src || ''), (await pg.evaluate(() => location.hash)) + ' ' + src);
+  await pg.goto(B + '/strategiste/#/fiche/TURNLY_10_bc5e'); await pg.waitForTimeout(1500);
+  t('un projet sans retours garde sa fiche complète', (await pg.evaluate(() => location.hash)) === '#/fiche/TURNLY_10_bc5e', await pg.evaluate(() => location.hash));
+  t('aucune erreur JavaScript (stratégiste)', !err.length, err.join(' | '));
+  await nav.close();
+}
 r = await api('/api/equipe/revisions?vue=admin', DE); const pDe2 = (r.d || []).find(p => p.dossier === D);
 t('la designer ne peut pas demander une autre vue', pDe2 && pDe2.items.length === 1 && !pDe2.items[0].qui, JSON.stringify(r.d).slice(0, 160));
 r = await api('/api/equipe/revisions/' + D + '?vue=designer', ST); t('le stratégiste ne peut pas voir la vue designer', r.d.items.length === 1 && r.d.items[0].crea === '03' && !JSON.stringify(r.d).includes('texte_en'), JSON.stringify(r.d).slice(0, 160));

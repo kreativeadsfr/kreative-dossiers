@@ -127,8 +127,8 @@ const TEXTE = `
 <p>Le Prestataire propose néanmoins, à titre purement commercial et volontaire, une garantie « satisfait ou remboursé » distincte de toute obligation légale, soumise aux conditions cumulatives suivantes :</p>
 <ul>
   <li>le Client formule sa demande dans un délai de 14 jours à compter de la livraison ;</li>
-  <li>il fournit des justificatifs chiffrés démontrant que les créatives n'ont pas généré au moins +15 % de performance sur un seul indicateur, choisi par le Client (par exemple le CTR, le ROAS ou le CPC) : l'amélioration n'est pas exigée sur plusieurs indicateurs à la fois ;</li>
-  <li>la référence de comparaison est constituée des résultats antérieurs du Client sur ses propres campagnes, si possible sur plusieurs années, et à défaut sur la période la plus longue et la plus comparable disponible ;</li>
+  <li>il fournit des justificatifs chiffrés démontrant que les créatives n'ont pas généré au moins +15 % de performance sur les indicateurs suivants : le CTR, le ROAS et le CPC ;</li>
+  <li>la référence de comparaison est constituée des résultats antérieurs du Client sur ses propres campagnes, sur une durée représentative ;</li>
   <li>les créatives ont été diffusées avec le même budget, les mêmes audiences et le même nombre de créatives que lors de la période de référence ;</li>
   <li>les visuels ont été diffusés dans des conditions correctes (budget suffisant, ciblage adapté, durée de test représentative).</li>
 </ul>

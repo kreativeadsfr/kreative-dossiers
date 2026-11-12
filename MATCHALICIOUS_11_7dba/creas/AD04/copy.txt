@@ -1,0 +1,23 @@
+Créa 4 · Matchalicious
+
+1. Titre : Tous les matchas ne se valent pas.
+2. Sous-titre : Découvrez ce qui fait la différence chez MATCHALICIOUS.
+3. Ingrédient 1 : Un goût doux
+4. Description ingrédient 1 : Peu amer, riche en saveurs
+5. Ingrédient 2 : Bio & première récolte
+6. Description ingrédient 2 : Feuilles récoltées au printemps
+7. Ingrédient 3 : Origine Japon
+8. Description ingrédient 3 : Cultivé à Kagoshima
+
+Idée du visuel : Reprendre l'inspi EC3-14 sur fond vert forêt profond, avec une direction artistique premium et épurée.
+
+À gauche, placer le pot Matchalicious WS10 en grand, en conservant fidèlement son packaging. Ajouter à sa base un petit monticule de poudre verte provenant de WS24, détouré sans le fond rose ni les pétales.
+
+En haut, disposer le titre et le sous-titre. À droite du pot, présenter les trois arguments dans cet ordre : goût, qualité, origine, chacun accompagné d'un pictogramme très minimaliste (bol fumant, feuilles de thé, montagne japonaise avec soleil levant).
+
+Relier les trois pictogrammes au produit par de fines lignes crème, comme dans l'inspiration. Typographies élégantes, composition aérée et lisible sur mobile.
+
+Respecter les textes renseignés dans les champs de copywriting. Format 3:4.
+Référence      : EC3-14 · produit héros et trois arguments reliés
+
+Alerte : Aucun fichier de logo n'est joint : le logo Matchalicious n'apparaît que sur la boîte, et le petit logo du haut est retiré. Le stratégiste demandait un format 3:4, la créa sort en 1:1 selon la charte. La charte ne donne pas de vrai nom de police : j'ai utilisé le serif éditorial vu sur le site. L'accent #1f4d2f n'est pas appliqué au titre, car il se confond avec le fond vert forêt et la mise en page reprise n'a aucun mot en couleur. Aucun CTA, comme sur la référence.

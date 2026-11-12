@@ -40,7 +40,7 @@ const STYLE = `
 `
 
 const TEXTE = `
-<p class="maj">Dernière mise à jour : 28/10/2026</p>
+<p class="maj">Dernière mise à jour : 12/11/2026</p>
 
 <h2>Article 1 - Objet et champ d'application</h2>
 <p>Les présentes Conditions Générales de Vente (« CGV ») régissent les relations contractuelles entre Kreative, entreprise individuelle (EI) immatriculée au nom de Dario Crespo (SIRET : 103 346 003 00017), dont le siège est situé 47 Rue Vivienne, 75002 Paris, ci-après « le Prestataire », et tout client souhaitant acquérir une prestation de création de visuels publicitaires statiques, ci-après « le Client ».</p>
@@ -127,9 +127,12 @@ const TEXTE = `
 <p>Le Prestataire propose néanmoins, à titre purement commercial et volontaire, une garantie « satisfait ou remboursé » distincte de toute obligation légale, soumise aux conditions cumulatives suivantes :</p>
 <ul>
   <li>le Client formule sa demande dans un délai de 14 jours à compter de la livraison ;</li>
-  <li>il fournit des justificatifs chiffrés démontrant que les créatives n'ont pas généré au moins +15 % de performance (CTR, ROAS ou CPC) par rapport à ses résultats antérieurs ;</li>
+  <li>il fournit des justificatifs chiffrés démontrant que les créatives n'ont pas généré au moins +15 % de performance sur un seul indicateur, choisi par le Client (par exemple le CTR, le ROAS ou le CPC) : l'amélioration n'est pas exigée sur plusieurs indicateurs à la fois ;</li>
+  <li>la référence de comparaison est constituée des résultats antérieurs du Client sur ses propres campagnes, si possible sur plusieurs années, et à défaut sur la période la plus longue et la plus comparable disponible ;</li>
+  <li>les créatives ont été diffusées avec le même budget, les mêmes audiences et le même nombre de créatives que lors de la période de référence ;</li>
   <li>les visuels ont été diffusés dans des conditions correctes (budget suffisant, ciblage adapté, durée de test représentative).</li>
 </ul>
+<p>La comparaison tient compte de la saisonnalité. Une période de diffusion comprenant un temps fort commercial (Black Friday, Noël, soldes…) ou un événement indépendant du Prestataire (actualité, évolution des plateformes publicitaires, rupture de stock…) ne peut être comparée qu'à une période de référence équivalente. À défaut de période équivalente, ces résultats ne peuvent pas fonder une demande de remboursement.</p>
 <p>Si ces conditions sont réunies, le remboursement intégral est accordé sans discussion. La garantie ne s'applique pas en cas de diffusion dans des conditions inadéquates, de facteurs externes indépendants de la qualité des visuels, de brief erroné, de non-respect du délai de 14 jours, ni lorsque les visuels diffusés résultent d'une ou plusieurs révisions ayant fondamentalement modifié les créatives initialement livrées. Dans ce cas, les performances ne pouvant plus être rattachées au travail initial du Prestataire, aucun remboursement ne sera dû.</p>
 
 <h2>Article 9 - Limitation de responsabilité</h2>

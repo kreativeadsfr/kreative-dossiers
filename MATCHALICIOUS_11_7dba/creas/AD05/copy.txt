@@ -1,0 +1,18 @@
+Créa 5 · Matchalicious
+
+1. Libellé au-dessus de la recherche : la recherche :
+2. Recherche Google : par quoi remplacer le café pour avoir de l'énergie ?
+3. Libellé au-dessus du produit : la solution :
+
+Idée du visuel : Reprendre la compo UG1-03 au format 3:4, avec un rendu simple et natif.
+
+En haut, afficher « La recherche : », puis une barre de recherche Google contenant la requête du champ 2.
+
+En dessous, afficher « La solution : », puis le sachet Matchalicious WS05 en grand, en conservant son packaging exact et le petit tas de matcha à côté.
+
+Enlever les grains de café de l'inspi originale.
+
+Fond beige clair, mise en page volontairement simple. Aucun élément publicitaire supplémentaire.
+Référence      : UG1-03 · recherche Google puis packshot
+
+Alerte : Le stratégiste demandait un format 3:4, mais la créa sort en carré 1:1 selon la charte. Son idée écrivait « La recherche : » avec une majuscule, alors que le texte de l'emplacement 1 est « la recherche : » en minuscule : j'ai gardé la minuscule de l'emplacement, fidèle à la référence. Le logo Matchalicious n'apparaît que sur l'étiquette du produit, aucun logo n'est ajouté.

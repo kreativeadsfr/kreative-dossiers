@@ -1,0 +1,31 @@
+Créa 3 · Matchalicious
+
+1. Titre : Vous avez le droit d'être exigeante.
+2. Annotation avec flèche : Matcha doux
+3. Annotation avec flèche : Première récolte
+
+Idée du visuel : Créer une pub premium au format 3:4 en combinant trois inspirations :
+
+- EC2-37 (inspiration principale) : reprendre le cadrage, le socle circulaire en bois et les petites annotations avec flèches autour du produit.
+- EC1-07 : conserver une composition épurée, avec un produit central imposant et une ambiance haut de gamme.
+- EC2-07 : s'inspirer de l'univers beige et vert matcha, mais sans les nombreux pictogrammes ni les textes superflus.
+
+Composition :
+
+En haut, placer le logo Matchalicious, puis le titre exact : « Vous avez le droit d'être exigeante. »
+
+Au centre, placer le verre de matcha WS07, en respectant son apparence d'origine, sur un socle circulaire en bois clair.
+
+Autour du socle, créer un véritable tapis de poudre de matcha inspiré de WS24 : vert vif, abondant, épais et naturellement texturé.
+
+Ajouter seulement deux petites annotations avec des flèches courbées :
+
+- À gauche : « Matcha doux »
+- À droite : « Première récolte »
+
+Fond beige chaud, lumière naturelle douce, ombres réalistes et typographies élégantes. Le verre doit dominer la composition.
+
+Ne pas ajouter de pictogrammes, d'avis clients, de faux bouton CTA ni d'autres textes. Garder un rendu premium, gourmand et très lisible sur mobile.
+Nouvelle idée, inspirations : EC2-07, EC1-07, EC2-37 · produit héros annoté sur socle
+
+Alerte : Aucun logo Matchalicious n'est joint : le logo demandé en haut n'est pas mis. L'idée prévoyait un format 3:4, recomposé en carré 1:1 selon la charte. La police de la charte (« Voir Matchalicious.ch ») n'est pas une police réelle : le prompt décrit la serif élégante des titres du site. Le tapis de poudre autour du socle est un prolongement généré à partir de la pile réelle de la pièce jointe 2, qui est seule et petite.

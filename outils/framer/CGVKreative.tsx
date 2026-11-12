@@ -129,7 +129,7 @@ const TEXTE = `
   <li>le Client formule sa demande dans un délai de 14 jours à compter de la livraison ;</li>
   <li>il fournit des justificatifs chiffrés démontrant que les créatives n'ont pas généré au moins +15 % de performance sur les indicateurs suivants : le CTR, le ROAS et le CPC ;</li>
   <li>la référence de comparaison est constituée des résultats antérieurs du Client sur ses propres campagnes, sur une durée représentative ;</li>
-  <li>les créatives ont été diffusées avec le même budget, les mêmes audiences et le même nombre de créatives que lors de la période de référence ;</li>
+  <li>les créatives ont été diffusées avec un budget, une audience et un nombre de créatives similaires à ceux de la période de référence ;</li>
   <li>les visuels ont été diffusés dans des conditions correctes (budget suffisant, ciblage adapté, durée de test représentative).</li>
 </ul>
 <p>La comparaison tient compte de la saisonnalité. Une période de diffusion comprenant un temps fort commercial (Black Friday, Noël, soldes…) ou un événement indépendant du Prestataire (actualité, évolution des plateformes publicitaires, rupture de stock…) ne peut être comparée qu'à une période de référence équivalente. À défaut de période équivalente, ces résultats ne peuvent pas fonder une demande de remboursement.</p>

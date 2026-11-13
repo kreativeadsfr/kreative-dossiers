@@ -350,13 +350,17 @@ function ecranMerci() {
 }
 
 // ---------- FACTURES ----------
+// 13/11 : les mois payés avant le portail (août, septembre) ont été ajoutés à la main, sans commande :
+// une facture de 1 200 € sans commande = un mois d'abonnement (60 créatives), comme sur les PDF d'origine
+const ABO_WIMMOV = { formule: 'mensuel', pack: 'custom', nb_creas: 60, options: '' };
+const aboSansCommande = f => (!f.commande_id && Number(f.montant) === 1200) ? ABO_WIMMOV : null;
 function ecranFactures() {
   const F = payees(D.factures);
   let h = apercu() + '<div class="ph"><div><h1>Factures</h1><p>Toutes vos factures Kreative, à télécharger quand vous le souhaitez.</p></div></div>';
   if (!F.length) return h + '<div class="card"><div class="vide">' + i.recu + 'Vos factures apparaissent ici après chaque paiement.</div></div>';
   return h + '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Facture</th><th class="w-mc">Objet</th><th class="num">Montant</th><th class="w-mc">Date</th><th></th></tr></thead><tbody>' +
     F.map(f => { const c = D.commandes.find(x => x.id === f.commande_id);
-      return '<tr><td><b>' + esc(f.numero || 'Facture') + '</b></td><td class="w-mc">' + (c ? esc(nomCmd(c)) : '') + '</td><td class="num">' + K.euros(f.montant) + '</td><td class="w-mc">' + esc(K.date(f.emise_le)) + '</td>' +
+      return '<tr><td><b>' + esc(f.numero || 'Facture') + '</b></td><td class="w-mc">' + (c ? esc(nomCmd(c)) : aboSansCommande(f) ? 'Abonnement Custom' : '') + '</td><td class="num">' + K.euros(f.montant) + '</td><td class="w-mc">' + esc(K.date(f.emise_le)) + '</td>' +
         '<td class="fin"><button class="btn btn-s btn-sm" data-fdl="' + esc(f.id) + '">' + i.telecharger + 'Télécharger</button></td></tr>'; }).join('') + '</tbody></table></div></div>';
 }
 document.addEventListener('click', e => {
@@ -365,7 +369,7 @@ document.addEventListener('click', e => {
   const f = (D.factures || []).find(x => x.id === b.dataset.fdl); if (!f) return;
   const c = D.commandes.find(x => x.id === f.commande_id);
   // une facture payée : le PDF fait par le portail, marqué « Payée » (voir K.telechargerFacture)
-  K.telechargerFacture(f, { client: D.client.marque, email: D.client.email, commande: c ? c.ref : '', projet: c ? nomCmd(c) : '', k: c || null });
+  K.telechargerFacture(f, { client: D.client.marque, email: D.client.email, commande: c ? c.ref : '', projet: c ? nomCmd(c) : '', k: c || aboSansCommande(f) });
 });
 
 // ---------- PARTAGER L'ACCÈS ----------

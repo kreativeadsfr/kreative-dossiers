@@ -859,7 +859,9 @@ function brancherTelechargements(F) {
     const f = F.find(x => x.id === b.dataset.fdl); if (!f) return;
     const k = (S.commandes || []).find(c => c.id === f.commande_id) || (FICHE && FICHE.commandes.find(c => c.id === f.commande_id));
     const cl = (S.clients || []).find(c => c.id === f.client_id) || (FICHE && FICHE.client);
-    K.telechargerFacture(f, { client: f.marque || (cl && cl.marque), email: cl && cl.email, projet: k ? K.nomCommande(k) + ' · ' + k.nb_creas + ' créatives' : '', k: k || null });
+    // Wimmov : un mois payé avant le portail, ajouté à la main sans commande (1 200 €) = un mois d'abonnement de 60 créatives
+    const aboW = !k && cl && cl.special === 'wimmov' && Number(f.montant) === 1200 ? { formule: 'mensuel', pack: 'custom', nb_creas: 60, options: '' } : null;
+    K.telechargerFacture(f, { client: f.marque || (cl && cl.marque), email: cl && cl.email, projet: k ? K.nomCommande(k) + ' · ' + k.nb_creas + ' créatives' : '', k: k || aboW });
   });
 }
 function ecranFactures() {

@@ -105,6 +105,15 @@ body.vide .prog{opacity:.35}
 
 /* la deuxieme ligne : les creas, sur son propre fond */
 .reprise[hidden]{display:none}
+.reprise img.zoom{cursor:zoom-in}
+.it .dejaut{position:absolute;z-index:1;left:8px;right:8px;top:8px;padding:5px 8px;border-radius:7px;background:rgba(26,26,26,.85);color:#fff;font-size:11.5px;font-weight:600;line-height:1.3;text-align:center}
+.it.dejavu .im img{opacity:.55}
+.grand{position:fixed;inset:0;z-index:999;background:rgba(10,10,10,.86);display:flex;align-items:center;justify-content:center;padding:40px 24px;cursor:zoom-out}
+.grand .gl{display:flex;gap:18px;align-items:center;justify-content:center;max-width:100%;max-height:100%;overflow:auto;cursor:default}
+.grand figure{margin:0;display:flex;flex-direction:column;align-items:center;gap:8px;max-height:calc(100vh - 80px)}
+.grand img{max-width:min(46vw,640px);max-height:calc(100vh - 120px);object-fit:contain;border-radius:8px;background:#fff}
+.grand figcaption{color:#ddd;font-size:13px}
+.grand .gx{position:fixed;top:14px;right:18px;width:40px;height:40px;border-radius:50%;border:0;background:#fff;color:#111;font-size:24px;line-height:1;cursor:pointer}
 .reprise{display:flex;gap:16px;align-items:center;margin:12px var(--gut) 0;padding:14px 16px;border-radius:12px;background:#F4EFFF;border:1px solid #E2D9FF}
 .reprise img{width:64px;height:64px;border-radius:8px;object-fit:cover;flex-shrink:0}
 .reprise .rt{flex:1;min-width:0}.reprise .rt small{display:block;font-size:12px;font-weight:600;color:#6B4FD8;letter-spacing:.04em;text-transform:uppercase;margin-bottom:3px}
@@ -975,7 +984,7 @@ async function ouvre(dossier){
      anciennes commandes : A/B tests), lues dans le portail. Les variations
      multiplient les textes de chaque crea, les A/B tests ajoutent des creas. */
   const o=await optionsClient(dossier);
-  PRJ.opts=o;
+  PRJ.opts=o;PRJ.nbBase=n;
   PRJ.nb_creas=n?n*o.textes+o.abv+o.abt:0;
   if(!n)$("custom").value="";
   montreOptions();
@@ -1069,9 +1078,10 @@ function grid(){
     miennes.concat(BANK.filter(b => b.fam === fam && (fmt === "tous" || b.fmt === fmt)))
     .map(b => {
       const r = libre ? d.moods.indexOf(b.id) : -1;
-      return '<div class="it ' + (!libre && b.id === d.ref ? 'on' : '') + (r >= 0 ? ' mood-on' : '') + '" data-id="' + esc(b.id) + '">' +
+      return '<div class="it ' + (!libre && b.id === d.ref ? 'on' : '') + (r >= 0 ? ' mood-on' : '') + (DEJA[b.id] ? ' dejavu' : '') + '" data-id="' + esc(b.id) + '">' +
         '<div class="im"><img loading="lazy" decoding="async" src="' + b.src + '" alt="' + esc(b.id) + '"></div>' +
         (r >= 0 ? '<span class="rank">' + (r + 1) + '</span>' : '') +
+        (DEJA[b.id] ? '<span class="dejaut">Déjà utilisée<br>' + DEJA[b.id].map(k => 'AD' + String(k).padStart(2, '0')).join(', ') + '</span>' : '') +
         '<div class="cap">' + esc(b.id) + '</div></div>';
     }).join("");
   if ($("grid").children.length === 1) $("grid").insertAdjacentHTML("beforeend", '<div class="gvide">Aucune inspiration dans ce format pour l\'instant.</div>');
@@ -1307,17 +1317,42 @@ async function chargeReprise(dossier){
   document.body.classList.add("en-reprise");
   try{const r=await fetchT("/api/equipe/revisions/"+encodeURIComponent(dossier)+"?vue=strategiste",{credentials:"same-origin",cache:"no-store"});
     if(r.ok){const j=await r.json();RETOURS=(j.items||[]).filter(x=>x.etat==="a_faire"&&REPRISE.includes(Number(x.crea)));}}catch(e){}
+  await chargeDeja(dossier);
+}
+/* 13/11 (Attari) : les inspirations deja utilisees sur ce projet (copy.txt de chaque crea),
+   marquees dans la banque pour ne pas reprendre les memes */
+let DEJA={};
+async function chargeDeja(dossier){
+  DEJA={};
+  const n=Math.min(PRJ&&PRJ.nbBase||0,120),RX=/\b(?:[A-Z]{2}\d-\d{2,3}|(?:UGX|PRX)-[a-f0-9]{12})\b/g;
+  await Promise.all(Array.from({length:n},(_,i)=>i+1).map(async k=>{
+    try{const r=await fetchT("../"+dossier+"/creas/AD"+String(k).padStart(2,"0")+"/copy.txt",{cache:"no-store"});
+      if(!r.ok)return;
+      const l=((await r.text()).match(/^R[ée]f[ée]rences?\s*:.*$/mi)||[""])[0];
+      for(const id of new Set(l.match(RX)||[]))(DEJA[id]=DEJA[id]||[]).push(k);
+    }catch(e){}
+  }));
+}
+/* la crea que le client a vue, en grand (ses 3 formats) */
+function voirAvant(r){
+  if(!r||!r.avant||!r.avant.length)return;
+  const v=document.createElement("div");v.className="grand";
+  v.innerHTML='<button class="gx" aria-label="Fermer">×</button><div class="gl">'+r.avant.map(a=>'<figure><img src="'+esc(String(a.mini).replace(/[?&]mini=1$/,""))+'" alt=""><figcaption>'+esc({"1x1":"1:1","4x5":"4:5","9x16":"9:16"}[a.format]||a.format)+'</figcaption></figure>').join("")+'</div>';
+  const fermer=()=>{v.remove();document.removeEventListener("keydown",esc2)},esc2=e=>{if(e.key==="Escape")fermer()};
+  v.onclick=e=>{if(e.target===v||e.target.closest(".gx"))fermer()};document.addEventListener("keydown",esc2);
+  document.body.appendChild(v);
 }
 function montreRetour(){
   const z=$("reprise");if(!z)return;
   if(!EN_REPRISE||!PRJ){z.hidden=true;return;}
   const r=(RETOURS||[]).find(x=>Number(x.crea)===numDe(cur));
   const autres=REPRISE.length-1;
-  const img=r&&r.avant&&r.avant[0]?'<img src="'+esc(r.avant[0].mini)+'" alt="">':"";
+  const img=r&&r.avant&&r.avant[0]?'<img src="'+esc(r.avant[0].mini)+'" alt="" class="zoom" title="Voir en grand">':"";
   const coms=r&&r.coms&&r.coms.length?r.coms.map(c=>"<p>« "+esc(c.texte)+" »</p>").join(""):"<p>Le client souhaite une nouvelle créa à la place.</p>";
   z.innerHTML=img+'<div class="rt"><small>Créa '+String(numDe(cur)).padStart(2,"0")+" à refaire · retour du client</small>"+coms+"</div>"+
-    '<div class="rx">Seule'+(autres?"s ces créas repartent":" cette créa repart")+" en production. Les autres restent telles quelles.</div>";
+    '<div class="rx">Seule'+(autres?"s ces créas repartent":" cette créa repart")+" en production. Les autres restent telles quelles."+(Object.keys(DEJA).length?" Les inspirations déjà utilisées sur ce projet sont marquées dans la banque.":"")+"</div>";
   z.hidden=false;
+  const zi=z.querySelector("img.zoom");if(zi)zi.onclick=()=>voirAvant(r);
 }
 
 function form(){

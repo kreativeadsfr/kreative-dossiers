@@ -116,6 +116,47 @@ async function chargerRetouches(d) {
   RT.dossier = d;
   try { [RT.donnees, RT.rev] = await Promise.all([K.api('/api/equipe/livraisons/' + d), K.api('/api/equipe/revisions/' + d + '?vue=strategiste').catch(() => null)]); } catch (e) { RT.donnees = { versions: [], erreur: e.message }; }
   K.rendre(true);
+  if (RT.rev && RT.rev.items && RT.rev.items.length) { RT.copies = await lireCopies(d, versionVue()); if (RT.dossier === d) K.rendre(true); }
+}
+// 13/11 (Attari) : voir les créas en grand, et toutes les créas déjà faites pour ce client avec l'inspiration de chacune
+const numCrea = nom => { const m = String(nom || '').replace(/\.[a-z0-9]+$/i, '').match(/(\d+)\D*$/); return m ? Number(m[1]) : 0; };
+const versionVue = () => { const V = (RT.donnees && RT.donnees.versions) || [], n = RT.rev && RT.rev.source ? RT.rev.source.version : null;
+  return V.find(v => v.version === n) || V.find(v => v.statut !== 'brouillon') || V[0] || null; };
+const REF_ID = /\b(?:[A-Z]{2}\d-\d{2,3}|(?:UGX|PRX)-[a-f0-9]{12})\b/g;
+const imgRef = id => /^(UGX|PRX)-/.test(id) ? '/fiche/lot1/refs/' + id + '.jpg' : '/fiche/mini/' + id + '.jpg';
+// le texte de chaque créa (copy.txt du dossier) : l'inspiration utilisée et le titre
+async function lireCopies(d, v) {
+  const nums = v ? [...new Set(v.fichiers.map(f => numCrea(f.nom)).filter(Boolean))] : [];
+  const C = {};
+  await Promise.all(nums.map(async n => {
+    try {
+      const r = await fetch('/' + d + '/creas/AD' + String(n).padStart(2, '0') + '/copy.txt', { cache: 'no-store' });
+      if (!r.ok) return;
+      const t = await r.text(), ligne = (t.match(/^R[ée]f[ée]rences?\s*:.*$/mi) || [''])[0];
+      C[n] = { refs: [...new Set(ligne.match(REF_ID) || [])], idee: (ligne.split('·')[1] || '').trim(), titre: ((t.match(/^\s*1\.\s*[^:\n]*:\s*(.+)$/m) || [])[1] || '').trim() };
+    } catch (e) {}
+  }));
+  return C;
+}
+// toutes les créas de la version que le client a vue : en grand au clic, avec leur inspiration
+function toutesLesCreas(v) {
+  if (!v) return '';
+  const nums = [...new Set(v.fichiers.map(f => numCrea(f.nom)).filter(Boolean))].sort((a, b) => a - b);
+  const afaire = new Set((RT.rev.items || []).filter(r => r.etat === 'a_faire').map(r => Number(r.crea)));
+  const C = RT.copies || {};
+  return '<div class="sec"><div><h2>Toutes les créas du projet</h2><p>Ce que tu as déjà fait pour ce client, avec l\'inspiration de chaque créa : clique pour voir en grand. Évite de reprendre les mêmes inspirations.</p></div></div>' +
+    '<div class="tc-grille">' + nums.map(n => {
+      const F = v.fichiers.filter(f => numCrea(f.nom) === n), f = F.find(x => x.format === '1x1') || F[0], c = C[n];
+      return '<div class="card tc"><button class="tc-img" data-voir="' + esc(f.id) + '" title="Voir en grand"><img src="' + esc(f.mini) + '" alt="" loading="lazy"></button>' +
+        '<div class="tc-b"><div class="tc-t"><b>AD' + String(n).padStart(2, '0') + '</b>' + (afaire.has(n) ? '<span class="pill v"><i></i>À refaire</span>' : '') + '</div>' +
+        (c && c.titre ? '<div class="tc-titre">' + esc(c.titre) + '</div>' : '') +
+        (c ? (c.refs.length ? '<div class="tc-refs">' + c.refs.map(id => '<span class="tc-ref"><img src="' + esc(imgRef(id)) + '" alt="" loading="lazy">' + esc(id) + '</span>').join('') + '</div>' + (c.idee ? '<small>' + esc(c.idee) + '</small>' : '')
+          : '<small>Nouvelle idée, sans inspiration de la banque</small>') : (RT.copies ? '' : '<small>Chargement…</small>')) + '</div></div>';
+    }).join('') + '</div>';
+}
+function brancherVoir() {
+  const v = versionVue(); if (!v) return;
+  document.querySelectorAll('[data-voir]').forEach(b => b.onclick = () => K.rv.voir(v, b.dataset.voir, { mode: 'strategiste', peutCommenter: () => false, peutApprouver: () => false }));
 }
 // 02/11 : les créas que le client veut voir refaites : on les refait dans la fiche créas, comme une créa normale
 function ecranRefaire(x) {
@@ -125,9 +166,10 @@ function ecranRefaire(x) {
     '<small>Le client veut ' + (reste.length > 1 ? 'de nouvelles créas à la place' : 'une nouvelle créa à la place') + '. Refais-' + (reste.length > 1 ? 'les' : 'la') + ' dans la fiche créas, comme une créa normale : seule' + (reste.length > 1 ? 's ces créas repartent' : ' cette créa repart') + ' en production.</small></div>' +
     '<a class="btn btn-p" href="#/reprise/' + esc(x.dossier) + '">' + i.doc + 'Refaire dans la fiche</a></div>';
   else h += '<div class="etat-envoi" style="margin:0 0 22px"><span class="pastille">' + i.coche + '</span><div><b>Reprise envoyée</b><small>Tes nouvelles créas sont parties en production. Rien d\'autre à faire sur ce projet.</small></div></div>';
-  return h + '<div class="rp-liste">' + items.map(r => '<div class="card rq"><div class="rp-img">' + (r.avant[0] ? '<img src="' + esc(r.avant[0].mini) + '" alt="" loading="lazy">' : '') + '</div><div><div class="rp-meta">AD' + esc(r.crea) + ' · version ' + (RT.rev.source ? RT.rev.source.version : 1) + '</div>' +
+  return h + '<div class="rp-liste">' + items.map(r => '<div class="card rq">' + (r.avant[0] ? '<button class="rp-img" data-voir="' + esc((r.avant.find(a => a.format === '1x1') || r.avant[0]).id) + '" title="Voir en grand"><img src="' + esc(r.avant[0].mini) + '" alt="" loading="lazy"></button>' : '<div class="rp-img"></div>') + '<div><div class="rp-meta">AD' + esc(r.crea) + ' · version ' + (RT.rev.source ? RT.rev.source.version : 1) + '</div>' +
     '<div class="rq-b"><small>Retour du client</small>' + (r.coms.length ? r.coms.map(c => esc(c.texte)).join('<br>') : 'Le client souhaite une nouvelle créa à la place.') + '</div></div>' +
-    (r.etat === 'a_faire' ? '<a class="btn btn-p" href="#/reprise/' + esc(x.dossier) + '">Refaire dans la fiche</a>' : '<span class="pill g"><i></i>Envoyée ' + esc(K.ilya(r.reprise_le)) + '</span>') + '</div>').join('') + '</div>';
+    (r.etat === 'a_faire' ? '<a class="btn btn-p" href="#/reprise/' + esc(x.dossier) + '">Refaire dans la fiche</a>' : '<span class="pill g"><i></i>Envoyée ' + esc(K.ilya(r.reprise_le)) + '</span>') + '</div>').join('') + '</div>' +
+    toutesLesCreas(versionVue());
 }
 // la fiche créas, seulement avec les créas à refaire (envoi dans un petit dossier à part)
 function ecranReprise(id) {
@@ -163,6 +205,7 @@ function ecranRetouches(id) {
   return h + K.rv.grille(v, { mode: 'strategiste', titre: 'Version ' + v.version, sousTitre: v.fichiers.length + ' fichiers' });
 }
 function brancherRetouches(id) {
+  brancherVoir();
   const x = K.prod.trouver(id), v = RT.donnees && (RT.donnees.versions || [])[0];
   if (!x || !v || (RT.rev && RT.rev.items && RT.rev.items.length)) return;
   K.rv.brancher(v, { mode: 'strategiste', nomZip: (x.marque + '-v' + v.version).replace(/[^A-Za-z0-9]+/g, '-'), rendre: () => K.rendre(true), auteur: (E.moi && E.moi.nom) || 'Stratégiste',

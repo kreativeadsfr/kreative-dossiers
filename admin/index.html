@@ -838,7 +838,8 @@ function exporterCommandes() {
 
 // ---------- FACTURES ----------
 // les factures : un historique à télécharger (tout est payé à la commande, via Stripe)
-const facturesPayees = F => F.filter(f => f.statut === 'payee' || f.source !== 'stripe');
+// une facture Stripe à 0 € (changement de date d'un abonnement, « essai gratuit » technique) n'est pas une vraie facture : cachée
+const facturesPayees = F => F.filter(f => f.source !== 'stripe' || (f.statut === 'payee' && Number(f.montant) > 0));
 function tableFactures(F, avecClient) {
   return '<table class="tbl"><thead><tr><th>Facture</th>' + (avecClient ? '<th>Client</th>' : '') + '<th>Projet</th><th class="num">Montant</th><th>Émise le</th><th></th></tr></thead><tbody>' +
     F.map(f => {
@@ -1661,8 +1662,9 @@ function ecranCommandes() {
     D.commandes.map(k => '<tr><td><b>' + esc(nomCmd(k)) + '</b><span class="sub">#' + esc(k.ref) + ' · ' + esc(K.date(k.cree_le)) + '</span></td><td class="num">' + k.nb_creas + '</td><td class="num">' + (k.livrees || 0) + '</td>' +
       '<td class="num">' + K.euros(k.prix) + '</td><td>' + k.livraisons.filter(l => l.statut !== 'brouillon').length + (k.formule === 'mensuel' ? ' / ' + D.contrat.livraisons_mois : '') + '</td></tr>').join('') + '</tbody></table></div></div>'
     : '<div class="card"><div class="vide">' + i.sac + 'Aucune commande pour l\'instant.</div></div>';
-  if ((D.factures || []).length) h += '<div class="sec"><div><h2>Factures</h2></div></div><div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Facture</th><th class="num">Montant</th><th>Statut</th><th>Date</th></tr></thead><tbody>' +
-    D.factures.map(f => '<tr><td><b>' + esc(f.numero || 'Facture') + '</b></td><td class="num">' + K.euros(f.montant) + '</td><td>' + esc(f.statut) + '</td><td>' + esc(K.date(f.emise_le)) + '</td></tr>').join('') + '</tbody></table></div></div>';
+  const FW = facturesPayees(D.factures || []);
+  if (FW.length) h += '<div class="sec"><div><h2>Factures</h2></div></div><div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Facture</th><th class="num">Montant</th><th>Statut</th><th>Date</th></tr></thead><tbody>' +
+    FW.map(f => '<tr><td><b>' + esc(f.numero || 'Facture') + '</b></td><td class="num">' + K.euros(f.montant) + '</td><td>' + esc(f.statut) + '</td><td>' + esc(K.date(f.emise_le)) + '</td></tr>').join('') + '</tbody></table></div></div>';
   return h;
 }
 function brancherCommandes() {

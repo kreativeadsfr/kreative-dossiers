@@ -71,7 +71,7 @@ const moisDe = ms => { const d = new Date(ms || Date.now()); return MOIS[d.getMo
 const nomCmd = c => c.formule === 'mensuel' ? 'Abonnement · ' + moisDe(c.cree_le) : 'Créatives en plus · ' + c.nb_creas + ' créatives';
 const livrees = () => D.commandes.flatMap(c => c.livraisons.map(l => ({ ...l, c }))).sort((a, b) => (b.envoye_le || 0) - (a.envoye_le || 0));
 const urlPhoto = () => D.client.photo_le ? '/api/client/photo' + (K.suffixe ? K.suffixe + '&' : '?') + 'v=' + D.client.photo_le : '';
-const payees = F => (F || []).filter(f => f.statut === 'payee' || f.source !== 'stripe');
+const payees = F => (F || []).filter(f => f.source !== 'stripe' || (f.statut === 'payee' && Number(f.montant) > 0));   // pas les factures Stripe à 0 €
 const taille = n => n > 1e6 ? (n / 1e6).toFixed(1).replace('.', ',') + ' Mo' : Math.max(1, Math.round((n || 0) / 1e3)) + ' ko';
 async function recharger() { D = await K.api('/api/client/wimmov'); K.rendre(); }
 

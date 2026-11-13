@@ -590,7 +590,7 @@ function attendreBrief(id) {
 
 // ---------- FACTURES ----------
 // les factures : un historique, chacune se télécharge
-const payees = F => (F || []).filter(f => f.statut === 'payee' || f.source !== 'stripe');
+const payees = F => (F || []).filter(f => f.source !== 'stripe' || (f.statut === 'payee' && Number(f.montant) > 0));   // pas les factures Stripe à 0 €
 function tableFactures(F) {
   return '<table class="tbl"><thead><tr><th>Facture</th><th>Projet</th><th class="num">Montant</th><th>Date</th><th></th></tr></thead><tbody>' +
     F.map(f => {

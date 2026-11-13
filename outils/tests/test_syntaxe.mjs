@@ -12,4 +12,11 @@ for (const p of ['admin/index.html', 'client/index.html', 'client/wimmov.html', 
   t(p + ' (' + n + ' scripts)', !err, err);
 }
 const w = lire(fs.readFileSync(R + 'outils/cloudflare/worker.js', 'utf8').replace(/^export default/m, 'const _x ='), 'worker.js'); t('worker.js', !w, w);
+// 13/11 (Wimmov) : une facture Stripe à 0 € (date d'abonnement déplacée, « essai gratuit ») ne s'affiche ni chez le client ni dans l'admin
+for (const [p, nom] of [['admin/index.html', 'facturesPayees'], ['client/index.html', 'payees'], ['client/wimmov.html', 'payees']]) {
+  const l = fs.readFileSync(R + p, 'utf8').match(new RegExp('const ' + nom + ' = (F => .*?);(?:\\s|$)', 'm'));
+  const f = l && vm.runInNewContext('(' + l[1] + ')');
+  const F = [{ id: 'a', source: 'stripe', statut: 'payee', montant: 1200 }, { id: 'b', source: 'stripe', statut: 'payee', montant: 0 }, { id: 'c', source: 'manuelle', statut: 'payee', montant: 50 }, { id: 'd', source: 'stripe', statut: 'ouverte', montant: 90 }];
+  t(p + ' : facture Stripe à 0 € cachée', f && f(F).map(x => x.id).join() === 'a,c', l ? JSON.stringify(f && f(F)) : 'introuvable');
+}
 console.log(`\n${ok} OK, ${ko} en échec`);

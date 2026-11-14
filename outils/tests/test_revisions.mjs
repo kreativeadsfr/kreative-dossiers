@@ -239,6 +239,12 @@ r = await api('/api/admin/diagnostic', DE); t('diagnostic : admin seulement', r.
   t('logos publics gardés en cache partagé (plus « private »)', lk.status === 200 && /^public/.test(lk.headers.get('cache-control') || ''), lk.headers.get('cache-control'));
 }
 
+// 14/11 (Attari) : « Voir l'aperçu de la reprise » ouvrait l'accueil (route #/production/… inconnue), et la designer voyait l'ancienne créa refusée
+{
+  const ad = fs.readFileSync(new URL('../../admin/index.html', import.meta.url), 'utf8'), de = fs.readFileSync(new URL('../../designer/index.html', import.meta.url), 'utf8');
+  t('admin : le lien de l\'aperçu de la reprise ouvre la page Visuels du dossier _R', !ad.includes('#/production/visuels/') && /href="#\/visuels\/' \+ esc\(x\.reprise\)/.test(ad), '');
+  t('admin et designer : une créa refaite montre son nouveau visuel de départ', ["'/' + x.reprise + '/creas/AD' + x.crea + '/visuel.jpg'"].every(c => ad.includes(c) && de.includes(c)), '');
+}
 // la fiche du portail sait faire une reprise
 const pf = await (await get('/fiche/', { headers: { Cookie: ST } })).text();
 t('la fiche connaît le mode reprise', pf.includes('const EN_REPRISE') && pf.includes('reprise:true') && pf.includes('Envoyer la reprise'), '');

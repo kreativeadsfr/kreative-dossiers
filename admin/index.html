@@ -1179,10 +1179,14 @@ function blocSuivi(rv, travailLiv) {
     else {
       const etats = x.qui === 'designer' ? '<span class="sv-etat att">● Chez ' + esc(D) + '</span>'
         : x.etat === 'a_faire' ? '<span class="sv-etat att">● Chez ' + esc(St) + ' : nouvelle créa</span>'
-        : '<span class="sv-etat ok">' + i.coche + 'Nouveau texte de ' + esc(St) + '</span><span class="sv-etat att">● Chez ' + esc(D) + '</span>' + (x.reprise ? '<a class="rp-plus" href="#/production/visuels/' + esc(x.reprise) + '">Voir l\'aperçu de la reprise</a>' : '');
+        : '<span class="sv-etat ok">' + i.coche + 'Nouveau texte de ' + esc(St) + '</span><span class="sv-etat att">● Chez ' + esc(D) + '</span>' + (x.reprise ? '<a class="rp-plus" href="#/visuels/' + esc(x.reprise) + '">Voir l\'aperçu de la reprise</a>' : '');
       droite = '<div class="sv-droite">' + etats + '<select class="in sv-qui" data-sv-qui="' + x.id + '"><option value="">Changer…</option><option value="moi">Je m\'en occupe</option>' + (x.qui !== 'designer' ? '<option value="designer">Confier à ' + esc(D) + '</option>' : '') + (x.qui !== 'refaire' ? '<option value="refaire">À refaire (' + esc(St) + ')</option>' : '') + '<option value="faite">Marquer comme faite</option></select></div>';
     }
-    return '<div class="card sv-c"><div class="rp-img">' + (av ? '<img src="' + esc(av.mini) + '" alt="" loading="lazy">' : '') + '</div><div><div class="rp-meta">AD' + esc(x.crea) + ' · ' + esc(quiTxt(x)) + '</div>' +
+    // 14/11 (Attari) : une créa refaite par le stratégiste = son nouveau visuel de départ, l'ancienne version reste à un clic
+    const neuf = x.reprise && x.etat !== 'faite' ? '/' + x.reprise + '/creas/AD' + x.crea + '/visuel.jpg' : '';
+    const vignette = neuf ? '<div class="rp-vig"><a class="rp-img" href="' + esc(neuf) + '" target="_blank" rel="noopener" title="Ouvrir le nouveau visuel"><img src="' + esc(neuf) + '" alt="" loading="lazy"' + (av ? ' onerror="this.src=\'' + esc(av.mini) + '\';this.closest(\'.rp-vig\').classList.add(\'sans\')"' : '') + '></a><small class="rp-vig-t">Nouveau visuel</small>' + (av ? '<a class="rp-vig-av" href="' + esc(av.mini.replace('?mini=1', '')) + '" target="_blank" rel="noopener">Ancienne version</a>' : '') + '</div>'
+      : '<div class="rp-img">' + (av ? '<img src="' + esc(av.mini) + '" alt="" loading="lazy">' : '') + '</div>';
+    return '<div class="card sv-c">' + vignette + '<div><div class="rp-meta">AD' + esc(x.crea) + ' · ' + esc(quiTxt(x)) + '</div>' +
       (x.coms.length ? x.coms.map(c => '<p class="rp-txt" style="font-size:14.5px">' + esc(c.texte) + '</p>').join('') : '<p class="rp-txt" style="font-size:14.5px">Sans commentaire du client.</p>') +
       (x.note ? '<p class="rp-txt"><small>Votre précision : ' + esc(x.note) + '</small></p>' : '') +
       puceFormats(ORDRE_F, x.requis || x.formats, 'data-sv-fmt="' + x.id + '"', x.etat === 'faite') + '</div>' + droite + '</div>';

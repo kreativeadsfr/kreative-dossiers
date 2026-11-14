@@ -1030,6 +1030,12 @@ a.lien-kpi:hover{border-color:var(--line2)}
 .rq-b{background:var(--soft);border-radius:4px 14px 14px 14px;padding:12px 14px;font-size:15px;line-height:1.45;margin-top:6px}
 .rq-b small{display:block;font-size:12px;color:var(--tx3);margin-bottom:4px}
 @media (max-width:900px){.rp-c,.sv-c,.rq{grid-template-columns:80px 1fr}.rp-c>:last-child,.sv-c>:last-child,.rq>:last-child{grid-column:1/-1}.rp-img,.sv-c .rp-img,.rq .rp-img{width:80px;height:80px}.rp-seg{overflow-x:auto}}
+/* 14/11 : créa refaite : le nouveau visuel de départ, l'ancienne version en lien */
+.rp-vig{display:flex;flex-direction:column;align-items:center;gap:5px}
+.rp-vig .rp-img{display:block}
+.rp-vig-t{font-size:11.5px;font-weight:600;color:var(--tx2);text-align:center}
+.rp-vig-av{font-size:11.5px;color:var(--tx3);text-decoration:underline}
+.rp-vig.sans .rp-vig-t,.rp-vig.sans .rp-vig-av{display:none}
 /* 13/11 : toutes les créas du projet, avec leur inspiration (espace du stratégiste) */
 .tc-grille{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}
 .tc{padding:0;overflow:hidden;display:flex;flex-direction:column}

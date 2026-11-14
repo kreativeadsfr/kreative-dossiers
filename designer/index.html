@@ -92,7 +92,11 @@ function ecranRevisions(id) {
         const droite = x.etat === 'faite' ? '<div class="sv-droite"><span class="sv-etat ok">' + i.coche + 'Delivered</span>' + (ap ? '<span class="sv-new"><img src="' + esc(ap.mini) + '" alt="">New version</span>' : '') + '</div>'
           : '<div class="sv-droite">' + (nouvelle && x.reprise ? '<a class="btn btn-s" style="width:100%;justify-content:center" href="#/visuels/' + esc(x.reprise) + '">' + i.image + 'Open in Previews</a>' : '') +
             '<div class="sv-drop" data-rev-depot="' + esc(x.crea) + '" data-rev-liv="' + esc(p.travail.id) + '"><b>Drop the new AD' + esc(x.crea) + ' in ' + (x.requis || x.formats).map(f => K.rv.nomFormat(f)).join(', ') + '</b><small>' + ((x.requis || x.formats).length < x.formats.length ? 'Only ' + ((x.requis || x.formats).length > 1 ? 'these formats' : 'this format') + ': the others stay as they are.' : 'All ' + x.formats.length + ' formats, together or one by one.') + ' It replaces the old file.</small></div></div>';
-        return '<div class="card sv-c" style="grid-template-columns:120px 1fr 290px"><div class="rp-img" style="width:120px;height:120px">' + (av ? '<img src="' + esc(av.mini) + '" alt="" loading="lazy">' : '') + '</div>' + gauche + droite + '</div>';
+        // 14/11 (Attari) : une créa refaite = son nouveau visuel de départ, pas l'ancienne version que le client a refusée
+        const neuf = nouvelle && x.reprise && x.etat !== 'faite' ? '/' + x.reprise + '/creas/AD' + x.crea + '/visuel.jpg' : '';
+        const vignette = neuf ? '<div class="rp-vig"><a class="rp-img" style="width:120px;height:120px" href="' + esc(neuf) + '" target="_blank" rel="noopener" title="Open the new starting visual"><img src="' + esc(neuf) + '" alt="" loading="lazy"' + (av ? ' onerror="this.src=\'' + esc(av.mini) + '\';this.closest(\'.rp-vig\').classList.add(\'sans\')"' : '') + '></a><small class="rp-vig-t">New starting visual</small>' + (av ? '<a class="rp-vig-av" href="' + esc(av.mini.replace('?mini=1', '')) + '" target="_blank" rel="noopener">Old version</a>' : '') + '</div>'
+          : '<div class="rp-img" style="width:120px;height:120px">' + (av ? '<img src="' + esc(av.mini) + '" alt="" loading="lazy">' : '') + '</div>';
+        return '<div class="card sv-c" style="grid-template-columns:120px 1fr 290px">' + vignette + gauche + droite + '</div>';
       }).join('') + '</div>';
   }).join('');
 }

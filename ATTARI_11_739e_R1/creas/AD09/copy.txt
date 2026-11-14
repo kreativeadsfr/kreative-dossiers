@@ -1,0 +1,52 @@
+Créa 9 · Attari
+
+1. Logo : ATTARI
+2. Titre : Vous en choisissez 3. Vous en recevez 5.
+3. Sous-titre : 3 huiles de parfum de 12 ml + 2 formats 3 ml offerts
+4. Prix : 69,90 €
+
+Idée du visuel : Base : inspi EC1-53
+
+Créer un visuel premium, sobre et élégant, inspiré de la compo, dans l'univers de la parfumerie haut de gamme Attari.
+
+Compo :
+
+- Reprendre la structure de l'inspi : textes dans la partie supérieure et produits soigneusement disposés dans la moitié inférieure.
+- Au centre, placer le coffret orange Attari 3 × 12 ml ouvert, avec ses trois flacons bien visibles (voir asset).
+- Devant le coffret, ajouter exactement deux petits flacons de 3 ml, à partir de l'asset fourni.
+- Respecter les proportions : les deux flacons offerts doivent être nettement plus petits que les trois flacons de 12 ml.
+- Conserver les packagings, les étiquettes et les couleurs réelles des produits.
+- Garder une composition équilibrée, chic et aérée.
+
+Zone de texte :
+
+- Placer le logo Attari en haut, discrètement.
+- Sous le logo, afficher le titre principal en grand, sur deux lignes si besoin.
+- Ajouter le sous-titre juste en dessous.
+- Mettre le prix en évidence dans un petit encadré élégant, comme sur l'inspi.
+
+Textes à intégrer :
+
+- Titre : Vous en choisissez 3. Vous en recevez 5.
+- Sous-titre : 3 huiles de parfum de 12 ml + 2 formats 3 ml offerts
+- Prix : 69,90 €
+
+D.A :
+
+- Fond crème ou beige chaud, comme sur l'inspiration.
+- Lumière douce et naturelle.
+- Typographie élégante, avec un titre serif.
+- Tons crème, orange terracotta et doré.
+- Rendu photographique réaliste et haut de gamme.
+- Aucun élément décoratif superflu.
+
+Important :
+
+- Les trois flacons de 12 ml restent les produits principaux.
+- Les deux flacons de 3 ml doivent être clairement visibles devant le coffret.
+- Ne pas ajouter d'autres flacons ou modifier les contenances.
+- L'offre doit être comprise immédiatement, sans donner l'impression que les cinq flacons ont la même contenance.
+- Le résultat doit rester premium, pas promotionnel ou surchargé.
+Nouvelle idée, inspirations : EC1-53 · packshot coffret offre studio
+
+Alerte : Aucun fichier logo n'est joint : ATTARI est écrit en texte Kraton, il faut fournir le logo détouré pour l'utiliser à la place. Sur la pièce jointe 1, seuls deux flacons sont debout et le troisième est couché, donc les trois flacons ne seront pas aussi bien visibles que le souhaite le stratégiste. Il faudrait un meilleur packshot du coffret 3 × 12 ml. La pièce jointe 2 ne montre qu'une fiole : elle est dupliquée pour obtenir les deux formats 3 ml. Elle semble plus petite qu'un 3 ml, contenance à vérifier. L'offre « 2 formats 3 ml offerts » n'apparaît pas dans les promos listées par le client (seul « 69,90 € les 3 × 12 ml » y figure), à confirmer. La copy vouvoie alors que la DA demande le tutoiement : recopiée telle quelle, à valider. La couleur d'accent de la charte #F5F0E8 serait invisible sur le fond crème : le chiffre pivot passe en terracotta #DA5C2C et #F5F0E8 sert de couleur au texte du prix dans l'encadré terracotta.

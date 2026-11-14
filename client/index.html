@@ -420,9 +420,14 @@ function ecranCreatives(id) {
   h += RV.puces(L, l.id, nomVersion);
   const enReview = l.statut === 'envoyee' && !D.apercu;
   if (l.statut === 'review_terminee') h += '<div class="rv-note">' + i.coche + '<div><b>Review envoyée' + (l.review_le ? ' le ' + esc(K.date(l.review_le, { year: undefined })) : '') + '.</b> Vos retours sont chez Kreative : la nouvelle version arrive ici.</div></div>';
-  if (l.statut === 'approuvee') h += '<div class="rv-note">' + i.coche + '<div><b>Livraison approuvée.</b> Vos créatives sont définitives, téléchargez-les quand vous voulez.</div></div>';
+  // v88 (14/11) : revenir sur sa validation pendant 7 jours (dernière version du projet)
+  const rouvrable = l.statut === 'approuvee' && !D.apercu && l.review_le && Date.now() - l.review_le < 7 * 86400000 && !L.some(x => x.version > l.version);
+  if (l.statut === 'approuvee') h += '<div class="rv-note">' + i.coche + '<div><b>Livraison approuvée.</b> Vos créatives sont définitives, téléchargez-les quand vous voulez.' + (rouvrable ? ' <button class="lien-btn" data-rouvrir>Annuler ma validation</button>' : '') + '</div></div>';
+  // 14/11 : un seul bouton pour approuver, qui termine la review ; « Envoyer mes retours » seulement s'il y a des commentaires
+  const coms = l.fichiers.reduce((s, f) => s + f.commentaires.length, 0), toutOk = l.fichiers.every(f => f.approuve_le);
   return h + RV.grille(l, { mode: 'client', titre: nom(c) + (L.length > 1 ? ' · ' + nomVersion(l) : ''),
-    actions: enReview ? '<button class="btn btn-s" data-tout-ok>' + i.coche + 'Tout approuver</button><button class="btn btn-d" data-terminer>' + i.envoi + 'Review terminée</button>' : '' });
+    actions: enReview ? (coms ? '<button class="btn btn-s" data-terminer>' + i.envoi + 'Envoyer mes retours</button>' : '') +
+      '<button class="btn btn-d" data-tout-ok>' + i.coche + (toutOk ? 'Valider la livraison' : 'Tout approuver') + '</button>' : '' });
 }
 const RV = K.rv;
 function brancherCreatives(params) {
@@ -437,10 +442,27 @@ function brancherCreatives(params) {
       supprimer: id => K.api('/api/client/commentaires/' + id, { methode: 'DELETE' }),
       approuver: (f, oui) => K.api('/api/client/fichiers/' + f.id + '/approuver', { methode: 'POST', corps: { oui } })
     } });
+  // « Tout approuver » = toutes les créas approuvées ET la review terminée : le projet est validé
   const t = document.querySelector('[data-tout-ok]');
   if (t) t.onclick = async () => {
-    if (!await K.confirmer('Tout approuver ?', 'Les ' + l.fichiers.length + ' fichiers de cette version sont marqués comme approuvés. Vous terminez ensuite votre review.', 'Tout approuver')) return;
-    try { await K.api('/api/client/livraisons/' + l.id + '/tout-approuver', { methode: 'POST' }); l.fichiers.forEach(f => { f.approuve_le = f.approuve_le || Date.now(); }); K.rendre(); K.toast('Tout est approuvé'); } catch (e) { K.toast(e.message); }
+    const coms = l.fichiers.reduce((s, f) => s + f.commentaires.length, 0);
+    if (!await K.confirmer('Tout approuver ?', 'Les ' + l.fichiers.length + ' fichiers de cette version sont approuvés et votre review est terminée : vos créatives deviennent définitives.' +
+      (coms ? ' Vos ' + coms + ' commentaire' + (coms > 1 ? 's' : '') + ' ne ser' + (coms > 1 ? 'ont' : 'a') + ' pas traité' + (coms > 1 ? 's' : '') + ' : pour des retouches, cliquez plutôt sur « Envoyer mes retours ».' : '') +
+      ' Vous pourrez revenir sur votre validation pendant 7 jours.', 'Tout approuver')) return;
+    t.disabled = true;
+    try {
+      await K.api('/api/client/livraisons/' + l.id + '/tout-approuver', { methode: 'POST' });
+      const r = await K.api('/api/client/livraisons/' + l.id + '/terminer', { methode: 'POST' });
+      await recharger(); await chargerCreatives(c.id);
+      if (r.valide) fenetreAvis(D.commandes.find(x => x.id === c.id));
+      else K.toast('Livraison approuvée, merci');
+    } catch (e) { t.disabled = false; K.toast(e.message); }
+  };
+  const ro = document.querySelector('[data-rouvrir]');
+  if (ro) ro.onclick = async () => {
+    if (!await K.confirmer('Annuler votre validation ?', 'Cette version repasse en review : vous pourrez commenter les créatives et envoyer vos retours à Kreative.', 'Rouvrir la review')) return;
+    try { await K.api('/api/client/livraisons/' + l.id + '/rouvrir', { methode: 'POST' }); await recharger(); await chargerCreatives(c.id); K.toast('Votre review est rouverte'); }
+    catch (e) { K.toast(/introuvable|not found|404/i.test(e.message) ? 'Écrivez-nous pour modifier votre validation.' : e.message); }
   };
   const fin = document.querySelector('[data-terminer]');
   if (fin) fin.onclick = async () => {

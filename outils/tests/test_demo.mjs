@@ -64,6 +64,28 @@ r = await get('/ui/app.js'); h = await r.text(); t('garde démo dans app.js', h.
 r = await get('/ui/page.js', { headers: { Cookie: A } }); h = await r.text(); t('garde démo dans page.js', h.includes('TEST_DEMO_') && h.includes('kDemo'));
 
 // retirer : seul le vrai client reste, intact
+// 14/11 : un seul bouton « Tout approuver » qui termine la review (projet validé, fenêtre d'avis), « Envoyer mes retours » seulement avec des commentaires
+{
+  const { createRequire } = await import('node:module'); const { chromium } = createRequire(import.meta.url)('playwright');
+  r = await api('/api/admin/clients/c_demo_pulse', A); const lienP = r.d.client.lien, kP = r.d.commandes[0].id;
+  const accP = cookie(await get(new URL(lienP).pathname));
+  const nav = await chromium.launch(); const ctx = await nav.newContext({ viewport: { width: 1400, height: 900 } });
+  await ctx.addCookies([{ name: accP.split('=')[0], value: accP.split('=').slice(1).join('='), url: B }]);
+  const pg = await ctx.newPage(); const err = []; pg.on('pageerror', e => err.push(e.message));
+  await pg.goto(B + '/client/#/projets/' + kP + '/creatives'); await pg.waitForSelector('[data-tout-ok]', { timeout: 15000 }).catch(() => {});
+  const avant = await pg.$$eval('.rv-actions button, [data-tout-ok], [data-terminer]', l => [...new Set(l.map(b => b.textContent.trim()))]);
+  t('client : « Tout approuver » en bouton principal, plus de « Review terminée »', avant.includes('Tout approuver') && !avant.some(x => /Review terminée/.test(x)), JSON.stringify(avant));
+  await pg.click('[data-tout-ok]'); await pg.waitForSelector('[data-o]', { timeout: 5000 }).catch(() => {});
+  await pg.click('[data-o]').catch(() => {});
+  await pg.waitForSelector('.avis-fen', { timeout: 10000 }).catch(() => {});
+  t('« Tout approuver » valide le projet et ouvre la fenêtre d\'avis', !!(await pg.$('.avis-fen')), await pg.content().then(h => h.length));
+  r = await api('/api/admin/clients/c_demo_pulse', A); t('… commande « validée » (100 %)', r.d.commandes[0].statut === 'valide', r.d.commandes[0].statut);
+  await pg.click('[data-plustard]').catch(() => {}); await pg.waitForTimeout(800);
+  await pg.goto(B + '/client/#/projets/' + kP + '/creatives'); await pg.waitForSelector('[data-rouvrir]', { timeout: 10000 }).catch(() => {});
+  t('« Annuler ma validation » proposé après la validation', !!(await pg.$('[data-rouvrir]')));
+  t('client : aucune erreur JavaScript', !err.length, err.join(' | '));
+  await nav.close();
+}
 r = await api('/api/admin/demo', A, 'DELETE'); t('retirer la démo', r.s === 200 && r.d.retires === 9, JSON.stringify(r.d));
 r = await api('/api/admin/clients', A); t('plus aucun client de démo, le vrai client est là', !r.d.some(c => c.id.startsWith('c_demo_')) && r.d.some(c => c.id === vrai), r.d.map(c => c.id));
 r = await api('/api/admin/clients/' + vrai, A); t('sa commande est intacte', r.d.commandes.length === 1, r.d.commandes.length);

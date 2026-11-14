@@ -1142,6 +1142,8 @@ function blocRepartir(l) {
   const enCours = l.statut === 'envoyee';
   let h = '<div class="rp-tete"><div><h2>Retours du client</h2><p>Version ' + l.version + ' · ' + (enCours ? 'review en cours chez le client' : 'review terminée ' + (l.review_le ? esc(K.ilya(l.review_le)) : '')) + ' · ' + ok + ' approuvé' + (ok > 1 ? 's' : '') + ' sur ' + l.fichiers.length +
     (R.length ? ', <b>' + R.length + ' créa' + (R.length > 1 ? 's' : '') + ' à répartir</b>' : '') + '</p></div>' + (R.length ? '<button class="btn btn-s btn-sm" data-rp-tout>Tout pour moi</button>' : '') + '</div>';
+  // v88 (14/11, Attari) : tout est approuvé mais la review n'est pas terminée : Kreative peut valider à la place du client
+  if (!R.length && enCours && l.fichiers.length && ok === l.fichiers.length) return h + '<div class="card valider-cl" style="margin-bottom:18px"><div><b>Le client a tout approuvé</b><small>Il n\'a pas cliqué sur « Review terminée » : le projet reste « à valider ». Validez à sa place pour le passer à 100 %.</small></div><button class="btn btn-p" data-valider-client="' + esc(l.id) + '">' + i.coche + 'Valider le projet</button></div>';
   if (!R.length) return h + '<div class="card" style="margin-bottom:18px"><div class="vide">' + i.message + (enCours ? 'Pas encore de commentaire du client sur cette version.' : 'Le client n\'a laissé aucun commentaire.') + '</div></div>';
   const D = nomRole('designer'), St = nomRole('strategiste');
   const opts = [['moi', 'DC', 'Moi'], ['designer', ini(D), D], ['refaire', ini(St) + '+' + ini(D), St + ' + ' + D]];
@@ -1216,6 +1218,12 @@ function brancherRevisions(l) {
     try { await K.api('/api/equipe/retouches/' + x.id, { methode: 'POST', corps: { formats: nv } }); await recharger(); } catch (e) { K.toast(e.message); }
   });
   document.querySelectorAll('[data-rp-note]').forEach(c => c.oninput = () => { REP.notes[c.dataset.rpNote] = c.value; });
+  const vcl = document.querySelector('[data-valider-client]');
+  if (vcl) vcl.onclick = async () => {
+    if (!await K.confirmer('Valider le projet ?', 'Le client a approuvé toutes les créatives : le projet passe en « Validé » (100 %), comme s\'il avait terminé sa review. Il ne reçoit pas d\'email.', 'Valider le projet')) return;
+    try { const r = await K.api('/api/equipe/livraisons/' + vcl.dataset.validerClient + '/valider-client', { methode: 'POST' }); K.toast(r.valide ? 'Projet validé' : 'Livraison approuvée'); await recharger(); }
+    catch (e) { K.toast(/404|introuvable|Not Found/i.test(e.message) ? 'Collez d\'abord le Worker v88 dans Cloudflare.' : e.message); }
+  };
   const tout = document.querySelector('[data-rp-tout]');
   if (tout) tout.onclick = () => { Object.keys(REP.choix).forEach(k => { REP.choix[k] = 'moi'; }); K.rendre(); };
   const lancer = document.querySelector('[data-rp-lancer]');

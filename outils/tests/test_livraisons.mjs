@@ -95,6 +95,16 @@ r = await api('/api/client/commandes/' + kid + '/creatives', CK); t('le client v
 r = await api('/api/client/livraisons/' + v3.id + '/tout-approuver', CK, 'POST'); t('tout approuver', r.s === 200);
 r = await api('/api/client/livraisons/' + v3.id + '/terminer', CK, 'POST'); t('review terminée, tout approuvé : projet validé', r.d.approuvee === true && r.d.valide === true, JSON.stringify(r.d));
 r = await api('/api/admin/clients/' + cid, A); t('commande « validée »', r.d.commandes[0].statut === 'valide', r.d.commandes[0].statut);
+// v88 (14/11) : revenir sur sa validation (7 jours) ; Kreative valide à la place d'un client qui a tout approuvé sans terminer
+r = await api('/api/client/livraisons/' + v2.id + '/rouvrir', CK, 'POST'); t('une ancienne version ne se rouvre pas', r.s === 409, r.s);
+r = await api('/api/client/livraisons/' + v3.id + '/rouvrir', CK, 'POST'); t('le client rouvre sa review', r.s === 200, JSON.stringify(r.d));
+r = await api('/api/admin/clients/' + cid, A); t('… la commande repasse en « livré »', r.d.commandes[0].statut === 'livre', r.d.commandes[0].statut);
+r = await api('/api/client/commandes/' + kid + '/creatives', CK); t('… la version 3 est de nouveau en review, toujours approuvée', r.d.livraisons[0].statut === 'envoyee' && r.d.livraisons[0].fichiers.every(f => f.approuve_le), r.d.livraisons[0].statut);
+r = await api('/api/client/livraisons/' + v3.id + '/rouvrir', CK, 'POST'); t('… pas deux fois', r.s === 409, r.s);
+r = await api('/api/equipe/livraisons/' + v3.id + '/valider-client', DE, 'POST'); t('la designer ne valide pas à la place du client', r.s === 403, r.s);
+r = await api('/api/equipe/livraisons/' + v3.id + '/valider-client', A, 'POST'); t('Kreative valide à la place du client (tout approuvé)', r.s === 200 && r.d.valide === true, JSON.stringify(r.d));
+r = await api('/api/admin/clients/' + cid, A); t('… commande de nouveau « validée »', r.d.commandes[0].statut === 'valide', r.d.commandes[0].statut);
+r = await api('/api/equipe/livraisons/' + v3.id + '/valider-client', A, 'POST'); t('… une version déjà validée : refusé', r.s === 409, r.s);
 r = await api('/api/equipe/livraisons', A); t('la liste de l\'admin connaît la marque et le numéro', r.d.some(l => l.dossier === 'TURNLY_10_bc5e' && l.marque === 'Nova' && l.ref), JSON.stringify(r.d[0]));
 
 // n8n relie le brief à la commande

@@ -1782,7 +1782,7 @@ async function apiAdmin(req, env, ctx, url, chemin, methode) {
     const sha = await shaMain(env).catch(() => null);
     TRAD_ERREURS = []; TRAD_MODELE = null;
     const essai = url.searchParams.has('traduction') ? (await traduire(env, ['Serait-il possible de mettre un visuel de l\'interface ?']))[0] : undefined;
-    return json({ worker: 'v87', traduction_essai: essai, traduction_modele: essai !== undefined ? TRAD_MODELE : undefined, traduction_refus: essai !== undefined && TRAD_ERREURS.length ? TRAD_ERREURS : undefined, depot_commit: sha ? sha.slice(0, 7) : null, github_jeton: gh === 200 ? 'ok' : gh === 401 ? 'REFUSÉ (jeton expiré ou révoqué)' : gh, github_derniere_lecture: DEPOT_DERNIER,
+    return json({ worker: 'v88', traduction_essai: essai, traduction_modele: essai !== undefined ? TRAD_MODELE : undefined, traduction_refus: essai !== undefined && TRAD_ERREURS.length ? TRAD_ERREURS : undefined, depot_commit: sha ? sha.slice(0, 7) : null, github_jeton: gh === 200 ? 'ok' : gh === 401 ? 'REFUSÉ (jeton expiré ou révoqué)' : gh, github_derniere_lecture: DEPOT_DERNIER,
       stockage_r2: !!env.FICHIERS, traduction_ai: !!env.AI, telegram_bot: !!env.TELEGRAM_BOT, code_fiche: !!(await codeFiche(env)) });
   }
   if (chemin === '/equipe' && methode === 'GET') {
@@ -1890,6 +1890,26 @@ async function estDerniereLivraison(env, dossier) {
   return !(l && l.sur > 1 && l.n < l.sur);
 }
 
+// toutes les créas sont approuvées : la version est validée ; la commande aussi si c'est la dernière livraison
+const ROUVRIR_MS = 7 * 86400000;
+async function approuverLivraison(env, db, l, k, client_id) {
+  const now = maintenant();
+  await db.prepare("UPDATE livraisons SET statut = 'approuvee', review_le = ? WHERE id = ?").bind(now, l.id).run();
+  let valide = false;
+  // Wimmov : son mois (60 créas) n'est terminé qu'à la 4e livraison ; des créas en plus, dès la 1re
+  const derniere = DOSSIER_WIMMOV.test(l.dossier) ? !k || k.formule !== 'mensuel' || Number((l.dossier.match(/_L(\d+)$/) || [])[1] || 0) >= WIMMOV.livraisons_mois
+    : await estDerniereLivraison(env, l.dossier);
+  if (k && derniere && !['valide', 'annule'].includes(k.statut)) {
+    await db.prepare("UPDATE commandes SET statut = 'valide', valide_le = ? WHERE id = ?").bind(now, k.id).run();
+    await noter(db, client_id, k.id, 'valide', 'Créatives validées · projet terminé');
+    valide = true;
+  } else if (k) {
+    // une partie approuvée (1/2…) : la commande continue, la suite est en production
+    if (k.statut === 'revisions') await db.prepare("UPDATE commandes SET statut = 'production' WHERE id = ?").bind(k.id).run();
+    await noter(db, client_id, k.id, 'valide', 'Livraison approuvée');
+  }
+  return { valide };
+}
 // renvoyer une version : à la designer, ou d'abord au stratégiste (textes)
 async function renvoyerVersion(db, l, pour, note) {
   const now = maintenant();
@@ -2470,6 +2490,17 @@ async function apiEquipe(req, env, ctx, url, chemin, methode, qui) {
       db.prepare('DELETE FROM fichiers WHERE livraison_id = ?').bind(l.id), db.prepare('DELETE FROM livraisons WHERE id = ?').bind(l.id)]);
     return json({ ok: true, message: 'Version ' + l.version + ' de ' + l.dossier + ' supprimée.' });
   }
+  // v88 (14/11, Attari) : le client a tout approuvé sans terminer sa review : Kreative valide à sa place
+  if ((m = chemin.match(/^\/livraisons\/(l_[A-Za-z0-9_]+)\/valider-client$/)) && methode === 'POST') {
+    if (qui.role !== 'admin') return json({ erreur: 'Réservé à Kreative' }, 403);
+    const l = await db.prepare('SELECT * FROM livraisons WHERE id = ?').bind(m[1]).first();
+    if (!l || l.statut !== 'envoyee') return json({ erreur: 'Cette version n\'est pas en review chez le client.' }, 409);
+    const t = await db.prepare('SELECT COUNT(*) AS n, SUM(CASE WHEN approuve_le IS NULL THEN 1 ELSE 0 END) AS reste FROM fichiers WHERE livraison_id = ?').bind(l.id).first();
+    if (!t.n || t.reste) return json({ erreur: 'Le client n\'a pas tout approuvé (' + (t.reste || 0) + ' fichier' + (t.reste > 1 ? 's' : '') + ' restant' + (t.reste > 1 ? 's' : '') + ').' }, 409);
+    const k = await commandeDuDossier(db, l.dossier);
+    const r = await approuverLivraison(env, db, l, k, k ? k.client_id : null);
+    return json({ ok: true, valide: r.valide });
+  }
   // la designer envoie sa version à Kreative
   if ((m = chemin.match(/^\/livraisons\/(l_[A-Za-z0-9_]+)\/envoyer$/)) && methode === 'POST') {
     const b = await corpsJson(req);
@@ -2745,6 +2776,22 @@ async function apiClientLivraisons(req, env, ctx, url, chemin, methode, cl, aper
     await db.prepare('DELETE FROM commentaires WHERE id = ?').bind(c.id).run();
     return json({ ok: true });
   }
+  // v88 (14/11) : « Tout approuver » termine la review ; le client peut revenir sur sa validation pendant 7 jours
+  // (dernière version du projet seulement, pas Wimmov) : la version repasse en review, la commande en « livré »
+  if ((m = chemin.match(/^\/livraisons\/(l_[A-Za-z0-9_]+)\/rouvrir$/)) && methode === 'POST') {
+    const l = await livraisonDuClient(db, cl, m[1]);
+    if (!l || l.statut !== 'approuvee' || DOSSIER_WIMMOV.test(l.dossier)) return json({ erreur: 'Cette version ne peut plus être rouverte.' }, 409);
+    if (!l.review_le || maintenant() - l.review_le > ROUVRIR_MS) return json({ erreur: 'La validation date de plus de 7 jours : écrivez-nous pour la modifier.' }, 409);
+    const plus = await db.prepare('SELECT 1 AS x FROM livraisons WHERE dossier = ? AND version > ? LIMIT 1').bind(l.dossier, l.version).first();
+    if (plus) return json({ erreur: 'Une version plus récente existe déjà.' }, 409);
+    await db.prepare("UPDATE livraisons SET statut = 'envoyee', review_le = NULL WHERE id = ? AND statut = 'approuvee'").bind(l.id).run();
+    const k = await commandeDuDossier(db, l.dossier);
+    if (k && k.statut === 'valide') {
+      await db.prepare("UPDATE commandes SET statut = 'livre', valide_le = NULL WHERE id = ?").bind(k.id).run();
+      await noter(db, cl.id, k.id, 'livre', 'Validation annulée · review rouverte');
+    }
+    return json({ ok: true });
+  }
   // fin de la review : tout est approuvé (projet validé) ou des retouches sont demandées
   if ((m = chemin.match(/^\/livraisons\/(l_[A-Za-z0-9_]+)\/terminer$/)) && methode === 'POST') {
     const l = await livraisonDuClient(db, cl, m[1]);
@@ -2756,21 +2803,8 @@ async function apiClientLivraisons(req, env, ctx, url, chemin, methode, cl, aper
       (SELECT COUNT(*) FROM commentaires WHERE livraison_id = ? AND interne = 0) AS coms FROM fichiers WHERE livraison_id = ?`).bind(l.id, l.id).first();
     const now = maintenant(), k = await commandeDuDossier(db, l.dossier);
     if (!t.reste) {
-      await db.prepare("UPDATE livraisons SET statut = 'approuvee', review_le = ? WHERE id = ?").bind(now, l.id).run();
-      let valide = false;
-      // Wimmov : son mois (60 créas) n'est terminé qu'à la 4e livraison ; des créas en plus, dès la 1re
-      const derniere = DOSSIER_WIMMOV.test(l.dossier) ? !k || k.formule !== 'mensuel' || Number((l.dossier.match(/_L(\d+)$/) || [])[1] || 0) >= WIMMOV.livraisons_mois
-        : await estDerniereLivraison(env, l.dossier);
-      if (k && derniere && !['valide', 'annule'].includes(k.statut)) {
-        await db.prepare("UPDATE commandes SET statut = 'valide', valide_le = ? WHERE id = ?").bind(now, k.id).run();
-        await noter(db, cl.id, k.id, 'valide', 'Créatives validées · projet terminé');
-        valide = true;
-      } else if (k) {
-        // une partie approuvée (1/2…) : la commande continue, la suite est en production
-        if (k.statut === 'revisions') await db.prepare("UPDATE commandes SET statut = 'production' WHERE id = ?").bind(k.id).run();
-        await noter(db, cl.id, k.id, 'valide', 'Livraison approuvée');
-      }
-      return json({ ok: true, approuvee: true, valide, commande: k && k.id });
+      const r = await approuverLivraison(env, db, l, k, cl.id);
+      return json({ ok: true, approuvee: true, valide: r.valide, commande: k && k.id });
     }
     // v75 : les retours attendent que Kreative les répartisse, créa par créa (moi, la designer, ou à refaire)
     const pour = 'repartir';

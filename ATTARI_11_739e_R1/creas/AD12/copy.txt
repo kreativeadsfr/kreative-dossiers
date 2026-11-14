@@ -1,0 +1,41 @@
+Créa 12 · Attari
+
+1. Titre : Ils en parlent mieux que nous.
+
+Idée du visuel : Base : inspi EC4-16 
+
+Créer une publicité élégante mettant en avant trois véritables avis clients Attari, dans un style premium, naturel et épuré.
+
+Compo :
+
+- En haut, placer le logo ATTARI, puis une accroche en grande typographie serif.
+- Au centre, disposer trois cartes d'avis légèrement superposées, inspirées du modèle Snoozy.
+- Chaque carte contient cinq étoiles dorées, l'avis et le prénom du client.
+- En arrière-plan, placer le coffret orange Attari 3 × 6 ml ouvert (asset COFFRET-PLAT), avec les trois flacons visibles.
+- Le coffret doit rester reconnaissable sans prendre le dessus sur les témoignages.
+
+Zone de texte :
+
+- Titre : « Ils en parlent mieux que nous. »
+- Avis 1 — Hassan C. : « Huile de parfum de qualité, tient longtemps, une goutte suffit, pack très rentable et il y en a pour tous les goûts »
+- Avis 2 — Jonathan T. : « Des huiles de qualité, avec des échantillons qui ont été offert en plus pour pouvoir découvrir d'autres huiles ! »
+- Avis 3 — Célivan H. : « Toujours rien à dire les huiles sont magnifiques, livraison rapide et une équipe à l'écoute... »
+
+D.A :
+
+- Fond crème et beige chaud.
+- Cartes d'avis blanc cassé, avec ombres très discrètes.
+- Typographie élégante brun foncé.
+- Étoiles dorées sobres.
+- Lumière naturelle, ombres douces.
+- Conserver fidèlement le packaging orange et les flacons du coffret.
+
+Important :
+
+- Les trois avis doivent rester parfaitement lisibles sur mobile.
+- Pas de fausse note globale, de statistiques inventées ni de CTA.
+- Ne pas ajouter de mentions historiques ou de slogans non fournis.
+- Le résultat doit inspirer confiance et conserver l'univers haut de gamme Attari.
+Nouvelle idée, inspirations : EC4-16 · trois cartes d'avis devant coffret
+
+Alerte : Aucun logo ATTARI n'est joint, donc il n'est pas placé malgré la demande du stratégiste. Dans l'avis 2, la faute évidente « offert » est corrigée en « offerts ». L'accent #f5f0e8 de la charte serait invisible sur le fond crème : le mot pivot est donc souligné dans l'or #D4A853 du site. L'inscription dorée imprimée dans le couvercle du coffret reste visible, car elle fait partie de l'asset.

@@ -672,6 +672,13 @@ async function ecranClient(id) {
     h += '<div class="card pad" style="margin-top:14px"><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><h3 style="font-size:15px">Abonnement Pack ' + esc(a.nom) + '</h3>' +
       '<span class="pill ' + coul + '"><i></i>' + etat + '</span></div><p class="muted" style="font-size:13px;margin-top:6px">' + K.euros(a.prix) + ' par mois, depuis le ' + dl(a.debut) + ', ' + a.mois_payes + ' mois payé' + (a.mois_payes > 1 ? 's' : '') + '. ' + esc(detail) + (a.offre_le ? ' Offre pour rester acceptée le ' + esc(dl(a.offre_le)) + '.' : '') + '</p></div>';
   });
+  // v89 (15/11) : projet validé sans avis Trustpilot : rappel par email (bouton qui ouvre Trustpilot, compté comme avis laissé)
+  const sansAvis = cmds.filter(k => k.statut === 'valide' && !k.avis_le);
+  if (sansAvis.length) h += '<div class="sec"><div><h2>Avis Trustpilot</h2><p>Projet validé, pas encore d\'avis. Le rappel est un email avec un bouton qui ouvre directement Trustpilot : un clic sur ce bouton compte comme avis laissé.</p></div></div>' +
+    sansAvis.map(k => '<div class="card avis-rel"><div><b>' + esc(K.nomCommande(k)) + '</b><small>Validé ' + (k.valide_le ? 'le ' + esc(K.date(k.valide_le)) : '') +
+      (k.avis_relance_le ? ' · rappel envoyé ' + esc(K.ilya(k.avis_relance_le)) : ' · aucun rappel envoyé') + (k.avis_ignore_le ? ' · « Plus tard » cliqué dans son espace' : '') + '</small></div>' +
+      '<div class="act"><button class="btn btn-g btn-sm" data-avis-recu="' + esc(k.id) + '" title="Il a laissé son avis autrement">' + i.coche + 'Avis reçu</button>' +
+      '<button class="btn btn-p btn-sm" data-relance-avis="' + esc(k.id) + '"' + (c.email ? '' : ' disabled title="Ajoutez un email"') + '>' + i.mail + (k.avis_relance_le ? 'Relancer encore' : 'Envoyer un rappel') + '</button></div></div>').join('');
   h += '<div class="sec"><div><h2>Commandes</h2><p>Reliez chaque commande à son dossier de production dès que le brief est arrivé.</p></div></div>';
   h += cmds.length ? '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Commande</th><th>Pack</th><th class="num">Prix</th><th>Dossier de production</th><th>Statut</th><th>Avancement</th><th></th></tr></thead><tbody>' +
     cmds.map(k => '<tr><td><b>' + esc(K.nomCommande(k)) + '</b> <button class="btn btn-g btn-sm" style="height:24px;padding:0 6px;vertical-align:-6px" data-modcmd="' + esc(k.id) + '" title="Nom du projet, créatives, prix">' + i.crayon + '</button><span class="sub">#' + esc(k.ref) + ' · ' + esc(K.date(k.cree_le)) + (k.stripe_session ? ' · payée en ligne' : '') + '</span></td><td>' + k.nb_creas + ' créas<span class="sub">' + esc(FORMULES[k.formule] || '') + '</span></td>' +
@@ -721,6 +728,19 @@ function brancherClient() {
     await K.api('/api/admin/clients/' + c.id + '/nouveau-lien', { methode: 'POST' }); K.toast('Nouveau lien créé'); recharger();
   };
   if (b('b-notif')) b('b-notif').onclick = () => notifierClients(c);
+  document.querySelectorAll('[data-relance-avis]').forEach(x => x.onclick = async () => {
+    const k = FICHE.commandes.find(y => y.id === x.dataset.relanceAvis); if (!k) return;
+    const encore = k.avis_relance_le && Date.now() - k.avis_relance_le < 3 * 86400000;
+    if (!await K.confirmer('Envoyer le rappel d\'avis ?', 'Email à ' + (c.email || '') + ' : « Vous avez validé votre projet « ' + K.nomCommande(k) + ' ». Merci pour votre confiance. Nous aimerions beaucoup savoir ce que vous en avez pensé… » avec le bouton « Laisser mon avis sur Trustpilot ».' + (encore ? ' Un rappel est déjà parti ' + K.ilya(k.avis_relance_le) + '.' : ''), 'Envoyer le rappel')) return;
+    x.disabled = true;
+    try { const r = await K.api('/api/admin/commandes/' + k.id + '/relance-avis', { methode: 'POST' }); K.toast(r.demo ? 'Client de démonstration : aucun email envoyé' : 'Rappel envoyé'); FICHE = null; K.rendre(); }
+    catch (e) { x.disabled = false; K.toast(/introuvable|not found|404/i.test(e.message) ? 'Collez d\'abord le Worker v89 dans Cloudflare.' : e.message); }
+  });
+  document.querySelectorAll('[data-avis-recu]').forEach(x => x.onclick = async () => {
+    if (!await K.confirmer('Avis reçu ?', 'Le projet ne sera plus marqué « à relancer · pas d\'avis Trustpilot ».', 'Oui, avis reçu')) return;
+    try { await K.api('/api/admin/commandes/' + x.dataset.avisRecu + '/avis-recu', { methode: 'POST' }); K.toast('Avis noté'); FICHE = null; K.rendre(); }
+    catch (e) { K.toast(/introuvable|not found|404/i.test(e.message) ? 'Collez d\'abord le Worker v89 dans Cloudflare.' : e.message); }
+  });
   if (b('b-modif')) b('b-modif').onclick = () => {
     const v = K.fenetre('<div class="fen-h"><h2>Modifier ' + esc(c.marque) + '</h2></div><div class="fen-b">' + formClient(c) + '</div><div class="fen-f"><button class="btn btn-s" data-n>Annuler</button><button class="btn btn-p" data-o>Enregistrer</button></div>');
     v.querySelector('[data-n]').onclick = K.fermer;

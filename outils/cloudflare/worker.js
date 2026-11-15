@@ -978,7 +978,8 @@ let BASE_PRETE = false;
 // v70 : la base est vérifiée une seule fois par version. Avant, chaque démarrage du Worker refaisait
 // ~25 allers-retours (tables, colonnes, index) : près d'une seconde sur la 1re ouverture.
 // Augmenter SCHEMA_V à chaque nouvelle table ou colonne : la vérification complète repasse une fois.
-const SCHEMA_V = 84;   // v84 : commandes.nom (nom du projet, ex. deux projets pour un même client)
+const SCHEMA_V = 88;   // v88 : commandes.avis_relance_le (rappel d'avis Trustpilot)
+// v84 : commandes.nom (nom du projet, ex. deux projets pour un même client)
 let SCHEMA_EN_COURS = null;
 async function base(env) {
   if (!env.DB) throw new Error('Base de données absente : liez une base D1 au Worker sous le nom DB.');
@@ -1018,7 +1019,7 @@ async function migrerBase(env) {
       env.DB.prepare(`CREATE INDEX IF NOT EXISTS i_fac_client ON factures(client_id)`)
     ]);
     // colonnes ajoutées après coup : sans effet si elles existent déjà
-    for (const col of ['avis_le INTEGER', 'avis_ignore_le INTEGER', 'valide_le INTEGER', 'stripe_session TEXT', 'stripe_abo TEXT', 'stripe_facture TEXT', 'options TEXT', 'brief_json TEXT', 'nom TEXT']) {
+    for (const col of ['avis_le INTEGER', 'avis_ignore_le INTEGER', 'valide_le INTEGER', 'stripe_session TEXT', 'stripe_abo TEXT', 'stripe_facture TEXT', 'options TEXT', 'brief_json TEXT', 'nom TEXT', 'avis_relance_le INTEGER']) {
       try { await env.DB.prepare('ALTER TABLE commandes ADD COLUMN ' + col).run(); } catch (e) {}
     }
     for (const col of ['stripe_le INTEGER', 'offre_le INTEGER']) { try { await env.DB.prepare('ALTER TABLE abonnements ADD COLUMN ' + col).run(); } catch (e) {} }
@@ -1098,6 +1099,17 @@ async function routerPortail(req, env, ctx, url, chemin) {
     await db.prepare('UPDATE clients SET vu_le = ? WHERE id = ?').bind(maintenant(), cl.id).run();
     return new Response(null, { status: 302, headers: { 'Location': '/client/', 'Cache-Control': 'no-store',
       'Set-Cookie': COOKIE_CLIENT + '=' + valeur + '; Path=/; Max-Age=' + DUREE_CLIENT_JOURS * 86400 + '; HttpOnly; Secure; SameSite=Lax' } });
+  }
+  // v88 : bouton de l'email d'avis : l'avis est compté comme laissé, puis Trustpilot s'ouvre (même si le lien est abîmé)
+  const avisLien = chemin.match(/^\/avis\/(k_[A-Za-z0-9_]{3,60})\.([A-Za-z0-9_-]{10,200})\/?$/);
+  if (avisLien) {
+    if (env.CLE && egal(avisLien[2], await signer(env, 'avis.' + avisLien[1]))) {
+      try {
+        const db = await base(env), k = await db.prepare('SELECT id, client_id, avis_le FROM commandes WHERE id = ?').bind(avisLien[1]).first();
+        if (k && !k.avis_le) { await db.prepare('UPDATE commandes SET avis_le = ? WHERE id = ?').bind(maintenant(), k.id).run(); await noter(db, k.client_id, k.id, 'avis', 'Avis Trustpilot ouvert depuis l\'email de rappel'); }
+      } catch (e) {}
+    }
+    return new Response(null, { status: 302, headers: { 'Location': TRUSTPILOT_AVIS, 'Cache-Control': 'no-store' } });
   }
   // v74 : le QR code de la page App (ordinateur) : connecte le téléphone du client pendant 30 min, puis ouvre l'installation
   const accesApp = chemin.match(/^\/acces-app\/([A-Za-z0-9_-]{3,80})\.(\d{10,16})\.([A-Za-z0-9_-]{10,200})\/?$/);
@@ -1690,6 +1702,24 @@ async function apiAdmin(req, env, ctx, url, chemin, methode) {
     if (nom && r && r.id) await db.prepare('UPDATE commandes SET nom = ? WHERE id = ?').bind(nom, r.id).run();
     return json(r);
   }
+  // v88 (15/11) : relancer un client pour son avis Trustpilot (projet validé, pas d'avis), ou noter l'avis à la main
+  if ((m = chemin.match(/^\/commandes\/(k_[A-Za-z0-9_]+)\/(relance-avis|avis-recu)$/)) && methode === 'POST') {
+    const k = await db.prepare('SELECT k.*, c.email, c.contact, c.marque FROM commandes k JOIN clients c ON c.id = k.client_id WHERE k.id = ?').bind(m[1]).first();
+    if (!k) return json({ erreur: 'Commande introuvable' }, 404);
+    if (m[2] === 'avis-recu') {
+      await db.prepare('UPDATE commandes SET avis_le = COALESCE(avis_le, ?) WHERE id = ?').bind(maintenant(), k.id).run();
+      if (!k.avis_le) await noter(db, k.client_id, k.id, 'avis', 'Avis Trustpilot reçu');
+      return json({ ok: true });
+    }
+    if (k.statut !== 'valide') return json({ erreur: 'Le projet n\'est pas encore validé par le client.' }, 409);
+    if (k.avis_le) return json({ erreur: 'Ce client a déjà laissé son avis.' }, 409);
+    if (!k.email) return json({ erreur: 'Ce client n\'a pas d\'email.' }, 409);
+    const r = await envoyerEmail(env, emailRelanceAvis(url, k, await lienAvis(env, url, k.id)));
+    if (!r.ok) return json({ erreur: r.message || 'Email non envoyé' }, 502);
+    await db.prepare('UPDATE commandes SET avis_relance_le = ? WHERE id = ?').bind(maintenant(), k.id).run();
+    await noter(db, k.client_id, k.id, 'avis', 'Rappel d\'avis Trustpilot envoyé par email');
+    return json({ ok: true, demo: !!r.demo });
+  }
   if ((m = chemin.match(/^\/commandes\/(k_[A-Za-z0-9_]+)$/))) {
     const k = await db.prepare('SELECT * FROM commandes WHERE id = ?').bind(m[1]).first();
     if (!k) return json({ erreur: 'Commande introuvable' }, 404);
@@ -1782,7 +1812,7 @@ async function apiAdmin(req, env, ctx, url, chemin, methode) {
     const sha = await shaMain(env).catch(() => null);
     TRAD_ERREURS = []; TRAD_MODELE = null;
     const essai = url.searchParams.has('traduction') ? (await traduire(env, ['Serait-il possible de mettre un visuel de l\'interface ?']))[0] : undefined;
-    return json({ worker: 'v88', traduction_essai: essai, traduction_modele: essai !== undefined ? TRAD_MODELE : undefined, traduction_refus: essai !== undefined && TRAD_ERREURS.length ? TRAD_ERREURS : undefined, depot_commit: sha ? sha.slice(0, 7) : null, github_jeton: gh === 200 ? 'ok' : gh === 401 ? 'REFUSÉ (jeton expiré ou révoqué)' : gh, github_derniere_lecture: DEPOT_DERNIER,
+    return json({ worker: 'v89', traduction_essai: essai, traduction_modele: essai !== undefined ? TRAD_MODELE : undefined, traduction_refus: essai !== undefined && TRAD_ERREURS.length ? TRAD_ERREURS : undefined, depot_commit: sha ? sha.slice(0, 7) : null, github_jeton: gh === 200 ? 'ok' : gh === 401 ? 'REFUSÉ (jeton expiré ou révoqué)' : gh, github_derniere_lecture: DEPOT_DERNIER,
       stockage_r2: !!env.FICHIERS, traduction_ai: !!env.AI, telegram_bot: !!env.TELEGRAM_BOT, code_fiche: !!(await codeFiche(env)) });
   }
   if (chemin === '/equipe' && methode === 'GET') {
@@ -2295,6 +2325,17 @@ function emailHtml(origine, o) {
     '</div></div>';
 }
 const echapper = t => String(t == null ? '' : t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+// v88 : le lien du bouton de l'email d'avis passe par le portail (avis compté comme laissé), puis ouvre Trustpilot
+const TRUSTPILOT_AVIS = 'https://www.trustpilot.com/evaluate/kreativeads.fr';
+async function lienAvis(env, url, kid) { return url.origin + '/avis/' + kid + '.' + (await signer(env, 'avis.' + kid)); }
+function emailRelanceAvis(url, k, lien) {
+  const prenom = String(k.contact || '').trim().split(/\s+/)[0], projet = nomProjet(k);
+  return { type: 'avis', a: k.email, marque: k.marque, contact: k.contact || '', lien, sujet: projet + ' · Votre avis compte pour nous',
+    html: emailHtml(url.origin, { titre: 'Bonjour' + (prenom ? ' ' + prenom : '') + ',',
+      paragraphes: ['Vous avez validé votre projet « ' + echapper(projet) + ' ». Merci pour votre confiance.',
+        'Nous aimerions beaucoup savoir ce que vous en avez pensé. Votre avis sur Trustpilot aide d\'autres marques à nous découvrir, et nous aide à continuer de nous améliorer.'],
+      bouton: ['Laisser mon avis sur Trustpilot', lien] }) };
+}
 function emailAcces(url, cl, lien) {
   const prenom = String(cl.contact || '').trim().split(/\s+/)[0];
   return { type: 'acces', a: cl.email, marque: cl.marque, contact: cl.contact || '', lien,

@@ -105,6 +105,23 @@ r = await api('/api/equipe/livraisons/' + v3.id + '/valider-client', DE, 'POST')
 r = await api('/api/equipe/livraisons/' + v3.id + '/valider-client', A, 'POST'); t('Kreative valide à la place du client (tout approuvé)', r.s === 200 && r.d.valide === true, JSON.stringify(r.d));
 r = await api('/api/admin/clients/' + cid, A); t('… commande de nouveau « validée »', r.d.commandes[0].statut === 'valide', r.d.commandes[0].statut);
 r = await api('/api/equipe/livraisons/' + v3.id + '/valider-client', A, 'POST'); t('… une version déjà validée : refusé', r.s === 409, r.s);
+// v89 (15/11) : rappel d'avis Trustpilot par email ; le bouton compte l'avis comme laissé puis ouvre Trustpilot
+{
+  const avant = lignes('emails.log').length;
+  r = await api('/api/admin/commandes/' + kid + '/relance-avis', A, 'POST'); t('rappel d\'avis envoyé', r.s === 200 && r.d.ok, JSON.stringify(r.d));
+  await new Promise(z => setTimeout(z, 300));
+  const mail = lignes('emails.log').slice(avant).map(l => JSON.parse(l).corps).pop() || {};
+  const lien = (mail.html || '').match(/href="(https?:\/\/[^"]*\/avis\/k_[^"]+)"/);
+  t('email : projet, texte et bouton Trustpilot', /^Pack Growth · .* · Votre avis compte pour nous$/.test(mail.sujet) && /Vous avez validé votre projet « Pack Growth/.test(mail.html) && /Laisser mon avis sur Trustpilot/.test(mail.html) && !!lien, mail.sujet + ' ' + (mail.html || '').slice(0, 200));
+  r = await api('/api/admin/clients/' + cid, A); t('rappel noté sur la commande', !!r.d.commandes[0].avis_relance_le && !r.d.commandes[0].avis_le, JSON.stringify([r.d.commandes[0].avis_relance_le, r.d.commandes[0].avis_le]));
+  let g = await get(new URL(lien[1]).pathname.replace(/.$/, 'x')); t('lien abîmé : Trustpilot quand même, avis pas compté', g.status === 302 && /trustpilot\.com/.test(g.headers.get('location')), g.status);
+  r = await api('/api/admin/clients/' + cid, A); t('… toujours sans avis', !r.d.commandes[0].avis_le);
+  g = await get(new URL(lien[1]).pathname); t('le bouton ouvre Trustpilot', g.status === 302 && g.headers.get('location') === 'https://www.trustpilot.com/evaluate/kreativeads.fr', g.status + ' ' + g.headers.get('location'));
+  r = await api('/api/admin/clients/' + cid, A); t('… et l\'avis est compté', !!r.d.commandes[0].avis_le);
+  r = await api('/api/admin/commandes/' + kid + '/relance-avis', A, 'POST'); t('plus de rappel une fois l\'avis laissé', r.s === 409, r.s);
+  r = await api('/api/equipe/livraisons/' + v3.id + '/valider-client', DE, 'POST');
+  r = await api('/api/admin/commandes/' + kid + '/avis-recu', DE, 'POST'); t('la designer ne touche pas aux avis', r.s === 403 || r.s === 401, r.s);
+}
 r = await api('/api/equipe/livraisons', A); t('la liste de l\'admin connaît la marque et le numéro', r.d.some(l => l.dossier === 'TURNLY_10_bc5e' && l.marque === 'Nova' && l.ref), JSON.stringify(r.d[0]));
 
 // n8n relie le brief à la commande

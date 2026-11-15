@@ -83,6 +83,16 @@ r = await get('/ui/page.js', { headers: { Cookie: A } }); h = await r.text(); t(
   await pg.click('[data-plustard]').catch(() => {}); await pg.waitForTimeout(800);
   await pg.goto(B + '/client/#/projets/' + kP + '/creatives'); await pg.waitForSelector('[data-rouvrir]', { timeout: 10000 }).catch(() => {});
   t('« Annuler ma validation » proposé après la validation', !!(await pg.$('[data-rouvrir]')));
+  // v89 : l'admin voit le projet validé sans avis et envoie le rappel (client de démo : aucun email ne part)
+  const ctxA = await nav.newContext({ viewport: { width: 1400, height: 900 } });
+  await ctxA.addCookies([{ name: A.split('=')[0], value: A.split('=').slice(1).join('='), url: B }]);
+  const pa = await ctxA.newPage(); pa.on('pageerror', e => err.push('admin: ' + e.message));
+  await pa.goto(B + '/admin/#/clients/c_demo_pulse'); await pa.waitForSelector('[data-relance-avis]', { timeout: 15000 }).catch(() => {});
+  t('admin : carte « Avis Trustpilot » avec « Envoyer un rappel »', /Envoyer un rappel/.test(await pa.textContent('[data-relance-avis]').catch(() => '')) && /Plus tard/.test(await pa.textContent('.avis-rel').catch(() => '')));
+  await pa.click('[data-relance-avis]'); await pa.click('[data-o]').catch(() => {}); await pa.waitForSelector('[data-relance-avis]:has-text("Relancer encore")', { timeout: 8000 }).catch(() => {});
+  t('… rappel envoyé, le bouton devient « Relancer encore »', /Relancer encore/.test(await pa.textContent('[data-relance-avis]').catch(() => '')) && /rappel envoyé/.test(await pa.textContent('.avis-rel').catch(() => '')));
+  await pa.click('[data-avis-recu]'); await pa.click('[data-o]').catch(() => {}); await pa.waitForTimeout(1500);
+  t('… « Avis reçu » retire la carte', !(await pa.$('.avis-rel')));
   t('client : aucune erreur JavaScript', !err.length, err.join(' | '));
   await nav.close();
 }

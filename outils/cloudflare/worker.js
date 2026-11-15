@@ -2333,7 +2333,7 @@ function emailRelanceAvis(url, k, lien) {
   return { type: 'avis', a: k.email, marque: k.marque, contact: k.contact || '', lien, sujet: projet + ' · Votre avis compte pour nous',
     html: emailHtml(url.origin, { titre: 'Bonjour' + (prenom ? ' ' + prenom : '') + ',',
       paragraphes: ['Vous avez validé votre projet « ' + echapper(projet) + ' ». Merci pour votre confiance.',
-        'Nous aimerions beaucoup savoir ce que vous en avez pensé. Votre avis sur Trustpilot aide d\'autres marques à nous découvrir, et nous aide à continuer de nous améliorer.'],
+        'Nous aimerions beaucoup savoir ce que vous en avez pensé. Votre avis sur Trustpilot aide d\'autres entreprises à nous découvrir, et nous aide à continuer de nous améliorer.'],
       bouton: ['Laisser mon avis sur Trustpilot', lien] }) };
 }
 function emailAcces(url, cl, lien) {

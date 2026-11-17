@@ -1434,6 +1434,7 @@ const MOIS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 
 const moisDe = ms => { const d = new Date(ms || Date.now()); return MOIS[d.getMonth()] + ' ' + d.getFullYear(); };
 const nomCmd = c => c.formule === 'mensuel' ? 'Abonnement · ' + moisDe(c.cree_le) : 'Créatives en plus · ' + c.nb_creas + ' créatives';
 const NOMS_F = { '1x1': '1:1', '4x5': '4:5', '9x16': '9:16', autre: 'Autre' };
+const dateProg = ms => { const x = new Date(ms); return 'le ' + x.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }) + ' à ' + String(x.getHours()).padStart(2, '0') + ' h ' + String(x.getMinutes()).padStart(2, '0'); };
 const ST = { brouillon: ['Pas encore envoyée', 'a'], envoyee: ['Chez Wimmov', 'b'], review_terminee: ['Retouches demandées', 'a'], approuvee: ['Validée par Wimmov', 'g'], a_verifier: ['À vérifier', 'a'], a_corriger: ['À corriger', 'r'] };
 const pill = st => { const x = ST[st] || [st, '']; return '<span class="pill ' + x[1] + '"><i></i>' + esc(x[0]) + '</span>'; };
 const taille = n => n > 1e6 ? (n / 1e6).toFixed(1).replace('.', ',') + ' Mo' : Math.max(1, Math.round((n || 0) / 1e3)) + ' ko';
@@ -1486,7 +1487,7 @@ function tableLivraisons(L) {
   if (!L.length) return '<div class="card"><div class="vide">' + i.envoi + 'Aucune livraison pour l\'instant.</div></div>';
   return '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Livraison</th><th class="num">Créatives</th><th>Statut</th><th>Envoyée le</th><th></th></tr></thead><tbody>' +
     L.map(l => '<tr class="clic" onclick="W.ouvrir(\'' + esc(l.dossier) + '\',\'livraisons\')"><td><b>Livraison ' + l.n + (l.version > 1 ? ' · version ' + l.version : '') + '</b><span class="sub">' + esc(nomCmd(l.k)) + '</span></td>' +
-      '<td class="num">' + (l.creatives || 0) + '</td><td>' + pill(l.statut) + '</td><td>' + (l.envoye_le ? esc(K.dateHeure(l.envoye_le)) : '<span class="muted">Pas encore</span>') + '</td>' +
+      '<td class="num">' + (l.creatives || 0) + '</td><td>' + (l.statut === 'brouillon' && l.programme_le ? '<span class="pill b"><i></i>Programmée</span>' : pill(l.statut)) + '</td><td>' + (l.envoye_le ? esc(K.dateHeure(l.envoye_le)) : l.programme_le ? '<span class="muted">Prévue ' + esc(K.dateHeure(l.programme_le)) + '</span>' : '<span class="muted">Pas encore</span>') + '</td>' +
       '<td class="fin"><span class="btn btn-s btn-sm">Ouvrir</span></td></tr>').join('') + '</tbody></table></div></div>';
 }
 
@@ -1543,7 +1544,10 @@ function ecranLivraison(d) {
       '<div class="depot" id="lv-depot" style="margin-top:14px">' + i.telecharger + '<b>Glissez les PNG ici, ou cliquez pour les choisir</b><small>PNG seulement. 1080 × 1080, 1080 × 1350 et 1080 × 1920.</small><input type="file" id="lv-fichiers" multiple accept="image/png,.png" hidden></div>' +
       '<div class="envois" id="lv-envois"></div>' +
       '<div class="compte-formats">' + ['1x1', '4x5', '9x16'].map(f => '<span class="pill ' + (par(f) ? 'g' : '') + '">' + NOMS_F[f] + ' · ' + par(f) + '</span>').join('') + (par('autre') ? '<span class="pill r">Autres tailles · ' + par('autre') + '</span>' : '') + '</div>' +
-      '<div style="display:flex;gap:10px;margin-top:18px;flex-wrap:wrap"><button class="btn btn-p btn-lg" id="lv-envoyer"' + (F.length ? '' : ' disabled') + '>' + i.envoi + 'Envoyer à Wimmov' + (F.length ? ' (' + F.length + ' fichiers)' : '') + '</button>' +
+      // v90 (17/11) : envoi programmé : Wimmov ne voit rien avant l'heure, puis email comme un envoi normal
+      (travail.programme_le ? '<div class="prog-wim">' + i.horloge + '<div><b>Envoi programmé ' + esc(dateProg(travail.programme_le)) + '</b><small>Wimmov ne voit rien d\'ici là. À cette heure (au quart d\'heure près), la livraison apparaît dans son espace et Hugo et les adresses ajoutées reçoivent l\'email.' + (Date.now() > travail.programme_le ? ' L\'heure est passée : l\'envoi part au prochain passage.' : '') + '</small></div><button class="btn btn-s btn-sm" id="lv-prog">Changer l\'heure</button><button class="btn btn-g btn-sm" id="lv-deprog">Annuler</button></div>' : '') +
+      '<div style="display:flex;gap:10px;margin-top:18px;flex-wrap:wrap"><button class="btn btn-p btn-lg" id="lv-envoyer"' + (F.length ? '' : ' disabled') + '>' + i.envoi + (travail.programme_le ? 'Envoyer maintenant' : 'Envoyer à Wimmov') + (F.length ? ' (' + F.length + ' fichiers)' : '') + '</button>' +
+      (travail.programme_le ? '' : '<button class="btn btn-s btn-lg" id="lv-prog"' + (F.length ? '' : ' disabled') + '>' + i.horloge + 'Programmer l\'envoi</button>') +
       (travail.version > 1 ? '<button class="btn btn-s btn-lg" id="lv-maj"' + (F.length ? '' : ' disabled') + '>' + i.coche + 'Mettre à jour sans email</button>' : '') +
       '<button class="btn btn-g" id="lv-jeter">' + i.poubelle + 'Supprimer ce brouillon</button></div>' +
       '<p class="muted" style="font-size:12.5px;margin-top:10px">' + (travail.version > 1 ? '« Envoyer à Wimmov » : Hugo et les adresses ajoutées reçoivent un email « nouvelle version ». « Mettre à jour sans email » : Wimmov voit les nouveaux fichiers dans son espace, sans être prévenu.' : 'Wimmov la voit tout de suite dans son espace. Hugo et les adresses ajoutées reçoivent un email.') + '</p></div>';
@@ -1648,6 +1652,32 @@ function brancherLivraison(d) {
     env.disabled = true;
     try { const r = await K.api('/api/admin/wimmov/livraisons/' + t.id + '/envoyer', { methode: 'POST' }); K.toast(r.message); await charger(); await chargerLivraison(d); }
     catch (e) { K.toast(e.message); env.disabled = false; }
+  };
+  // v90 : programmer l'envoi à une date et une heure (heure de Paris de l'ordinateur de Dario)
+  const prog = document.getElementById('lv-prog');
+  if (prog) prog.onclick = () => {
+    const t = V[0], deux = x => String(x).padStart(2, '0');
+    const def = t.programme_le ? new Date(t.programme_le) : (() => { const x = new Date(Date.now() + 864e5); x.setHours(9, 0, 0, 0); return x; })();
+    const v = K.fenetre('<div class="fen-h"><h2>Programmer la livraison ' + numero(d) + '</h2><p>Wimmov ne voit rien avant cette heure. Ensuite, la livraison apparaît dans son espace et Hugo et les adresses ajoutées reçoivent l\'email, comme un envoi normal (au quart d\'heure près).</p></div>' +
+      '<div class="fen-b"><div class="g2"><div class="champ"><label>Jour</label><input class="in" type="date" id="p-jour" value="' + def.getFullYear() + '-' + deux(def.getMonth() + 1) + '-' + deux(def.getDate()) + '"></div>' +
+      '<div class="champ"><label>Heure</label><input class="in" type="time" id="p-heure" step="900" value="' + deux(def.getHours()) + ':' + deux(def.getMinutes()) + '"></div></div><p class="muted" id="p-resume" style="font-size:13px;margin-top:10px"></p></div>' +
+      '<div class="fen-f"><button class="btn btn-s" data-n>Annuler</button><button class="btn btn-p" data-o>' + i.horloge + 'Programmer</button></div>');
+    const quand = () => { const [a, mo, j] = (v.querySelector('#p-jour').value || '').split('-').map(Number), [h, mi] = (v.querySelector('#p-heure').value || '').split(':').map(Number); return a && h >= 0 ? new Date(a, mo - 1, j, h, mi || 0).getTime() : NaN; };
+    const maj2 = () => { const q = quand(); v.querySelector('#p-resume').textContent = isNaN(q) ? '' : q < Date.now() + 60e3 ? 'Cette heure est déjà passée.' : 'Envoi ' + dateProg(q) + '.'; };
+    v.querySelectorAll('input').forEach(x => x.oninput = maj2); maj2();
+    v.querySelector('[data-n]').onclick = K.fermer;
+    v.querySelector('[data-o]').onclick = async () => {
+      const q = quand(); if (isNaN(q) || q < Date.now() + 60e3) return K.toast('Choisissez une heure à venir.');
+      try { const r = await K.api('/api/admin/wimmov/livraisons/' + t.id + '/envoyer', { methode: 'POST', corps: { programme_le: q } });
+        if (!r.programme_le) { K.fermer(); K.toast('Collez d\'abord le Worker v90 dans Cloudflare.'); return; }
+        K.fermer(); K.toast('Envoi programmé ' + dateProg(q)); await charger(); await chargerLivraison(d); }
+      catch (e) { K.toast(e.message); }
+    };
+  };
+  const deprog = document.getElementById('lv-deprog');
+  if (deprog) deprog.onclick = async () => {
+    if (!await K.confirmer('Annuler l\'envoi programmé ?', 'La livraison reste en brouillon : Wimmov ne la reçoit pas tant que vous ne l\'envoyez pas.', 'Annuler l\'envoi programmé')) return;
+    try { const r = await K.api('/api/admin/wimmov/livraisons/' + V[0].id + '/envoyer', { methode: 'POST', corps: { annuler_programme: true } }); K.toast(r.message); await charger(); await chargerLivraison(d); } catch (e) { K.toast(e.message); }
   };
   const maj = document.getElementById('lv-maj');
   if (maj) maj.onclick = async () => {

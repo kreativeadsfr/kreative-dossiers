@@ -49,6 +49,7 @@ export default {
   // le Studio (reels programmés) à chaque déclencheur, aussi celui de 5 min s'il existe (les rappels, eux, restent au quart d'heure)
   async scheduled(ev, env, ctx) {
     if (!ev || ev.cron !== '*/5 * * * *') ctx.waitUntil(rappelsDus(env).catch(() => {}));
+    ctx.waitUntil(wimmovProgrammes(env).catch(() => {}));   // v90 : livraisons Wimmov programmées (à chaque déclencheur)
     ctx.waitUntil(cronStudio(env).catch(() => {}));
   },
   async fetch(req, env, ctx) {
@@ -1812,7 +1813,7 @@ async function apiAdmin(req, env, ctx, url, chemin, methode) {
     const sha = await shaMain(env).catch(() => null);
     TRAD_ERREURS = []; TRAD_MODELE = null;
     const essai = url.searchParams.has('traduction') ? (await traduire(env, ['Serait-il possible de mettre un visuel de l\'interface ?']))[0] : undefined;
-    return json({ worker: 'v89', traduction_essai: essai, traduction_modele: essai !== undefined ? TRAD_MODELE : undefined, traduction_refus: essai !== undefined && TRAD_ERREURS.length ? TRAD_ERREURS : undefined, depot_commit: sha ? sha.slice(0, 7) : null, github_jeton: gh === 200 ? 'ok' : gh === 401 ? 'REFUSÉ (jeton expiré ou révoqué)' : gh, github_derniere_lecture: DEPOT_DERNIER,
+    return json({ worker: 'v90', traduction_essai: essai, traduction_modele: essai !== undefined ? TRAD_MODELE : undefined, traduction_refus: essai !== undefined && TRAD_ERREURS.length ? TRAD_ERREURS : undefined, depot_commit: sha ? sha.slice(0, 7) : null, github_jeton: gh === 200 ? 'ok' : gh === 401 ? 'REFUSÉ (jeton expiré ou révoqué)' : gh, github_derniere_lecture: DEPOT_DERNIER,
       stockage_r2: !!env.FICHIERS, traduction_ai: !!env.AI, telegram_bot: !!env.TELEGRAM_BOT, code_fiche: !!(await codeFiche(env)) });
   }
   if (chemin === '/equipe' && methode === 'GET') {
@@ -1871,7 +1872,7 @@ async function baseLiv(env) {
       db.prepare('CREATE INDEX IF NOT EXISTS i_fic_liv ON fichiers(livraison_id)'),
       db.prepare('CREATE INDEX IF NOT EXISTS i_com_fic ON commentaires(fichier_id)')]);
     // les retouches : qui doit agir en premier (le stratégiste pour les textes, la designer pour le visuel)
-    for (const col of ['retouche TEXT', 'retouche_le INTEGER']) { try { await db.prepare('ALTER TABLE livraisons ADD COLUMN ' + col).run(); } catch (e) {} }
+    for (const col of ['retouche TEXT', 'retouche_le INTEGER', 'programme_le INTEGER']) { try { await db.prepare('ALTER TABLE livraisons ADD COLUMN ' + col).run(); } catch (e) {} }   // v90 : programme_le = envoi programmé (Wimmov)
     // v75 : les révisions, une ligne par créa retouchée (voir « RÉVISIONS »)
     await db.prepare(`CREATE TABLE IF NOT EXISTS retouches (id INTEGER PRIMARY KEY AUTOINCREMENT, dossier TEXT, source_id TEXT, livraison_id TEXT, crea TEXT, qui TEXT,
       etat TEXT, note TEXT, note_en TEXT, coms TEXT, reprise TEXT, reprise_le INTEGER, fait_le INTEGER, cree_le INTEGER)`).run();
@@ -1893,7 +1894,7 @@ async function detailLivraison(db, l, client) {
   const [{ results: F }, { results: C }] = await Promise.all([
     db.prepare('SELECT * FROM fichiers WHERE livraison_id = ? ORDER BY format, nom').bind(l.id).all(),
     db.prepare('SELECT * FROM commentaires WHERE livraison_id = ?' + (client ? ' AND interne = 0' : '') + ' ORDER BY cree_le').bind(l.id).all()]);
-  const sortie = { id: l.id, dossier: l.dossier, version: l.version, statut: l.statut, depose_le: l.depose_le, envoye_le: l.envoye_le, review_le: l.review_le,
+  const sortie = { id: l.id, dossier: l.dossier, version: l.version, statut: l.statut, depose_le: l.depose_le, envoye_le: l.envoye_le, review_le: l.review_le, programme_le: client ? undefined : l.programme_le || null,
     retouche: client ? undefined : (['a_corriger', 'review_terminee'].includes(l.statut) ? (l.retouche || 'designer') : null),
     fichiers: F.map(f => ({ id: f.id, format: f.format, nom: f.nom, type: f.type, taille: f.taille, largeur: f.largeur, hauteur: f.hauteur, approuve_le: f.approuve_le,
       url: '/fichiers/' + f.id, mini: '/fichiers/' + f.id + (f.mini ? '?mini=1' : ''),
@@ -2976,7 +2977,8 @@ async function apiN8n(req, env, ctx, url, chemin, methode) {
   // envoyer les briefs arrivés à leur date (le déclencheur Cron le fait seul ; ceci sert de secours et au banc de test)
   if (chemin === '/rappels' && methode === 'POST') {
     const b = await corpsJson(req);
-    return json({ envoyes: await rappelsDus(env, url, env.PUSH_TEST && b.a ? Number(b.a) : null) });
+    const a = env.PUSH_TEST && b.a ? Number(b.a) : null;
+    return json({ envoyes: await rappelsDus(env, url, a), wimmov: await wimmovProgrammes(env, a).catch(() => 0) });
   }
   if (chemin === '/brief' && methode === 'POST') {
     const b = await corpsJson(req);
@@ -3497,6 +3499,52 @@ async function paiementWimmov(env, ctx, url, s) {
 }
 // ---------- l'état d'une livraison Wimmov : « Livraison 2 » (le numéro vient du dossier _L2) ----------
 const numeroLivraison = d => Number((String(d).match(/_L(\d+)$/) || [])[1]) || 1;
+// v90 : l'envoi d'une livraison à Wimmov (tout de suite, ou par le Cron à l'heure programmée)
+async function envoyerLivraisonWimmov(env, ctx, url, db, cl, l, silencieux) {
+  const b = { silencieux };
+    const now = maintenant();
+    const ch = await db.prepare("UPDATE livraisons SET statut = 'envoyee', depose_le = ?, verifie_le = ?, envoye_le = ?, programme_le = NULL WHERE id = ? AND statut = 'brouillon'").bind(now, now, now, l.id).run();
+    if (!ch.meta || ch.meta.changes !== 1) return { erreur: 'Cette livraison est déjà envoyée.' };
+    const k = await commandeDuDossier(db, l.dossier);
+    const n = numeroLivraison(l.dossier), v2 = l.version > 1;
+    // v83 : corriger des fichiers sans prévenir (Wimmov voit la nouvelle version, ni email ni notification)
+    const silence = v2 && !!(b && b.silencieux === true);
+    if (k) {
+      // un mois (60 créas) n'est livré qu'à sa 4e livraison ; des créas en plus, dès la 1re
+      const faites = await db.prepare("SELECT COUNT(DISTINCT dossier) AS n FROM livraisons WHERE statut = 'envoyee' AND (dossier = ? OR dossier LIKE ?)").bind(k.dossier, k.dossier + '_L%').first().catch(() => null);
+      const fini = k.formule !== 'mensuel' || (faites && faites.n >= WIMMOV.livraisons_mois);
+      if (fini && !['valide', 'annule'].includes(k.statut)) await db.prepare("UPDATE commandes SET statut = 'livre', livre_le = COALESCE(livre_le, ?) WHERE id = ?").bind(now, k.id).run();
+      await noter(db, k.client_id, k.id, 'livre', silence ? 'Livraison ' + n + ' : fichiers mis à jour' : v2 ? 'Livraison ' + n + ' : nouvelle version' : 'Livraison ' + n + ' disponible');
+    }
+    if (silence) return { ok: true, message: 'Livraison ' + n + ' mise à jour : Wimmov voit les nouveaux fichiers, sans email.' };
+    const titre = v2 ? 'Livraison ' + n + ' : nouvelle version' : 'Livraison ' + n + ' disponible';
+    const notif = notifier(env, cl.id, { titre, texte: 'Vos nouvelles créatives sont disponibles dans votre espace.', url: '/client/#/creatives' });
+    if (ctx && ctx.waitUntil) ctx.waitUntil(notif); else await notif;
+    const lien = lienAcces(url, cl.jeton), a = [cl.email].concat(await emailsWimmov(env)).filter(Boolean);
+    const envoi = (async () => { for (const x of a) await envoyerEmail(env, { type: 'creatives', a: x, marque: cl.marque, contact: cl.contact || '', lien, sujet: cl.marque + ' · ' + titre,
+      html: emailHtml(url.origin, { titre: 'Bonjour' + (x === String(cl.email).toLowerCase() && cl.contact ? ' ' + String(cl.contact).trim().split(/\s+/)[0] : '') + ',',
+        paragraphes: [v2 ? 'La nouvelle version de la livraison ' + n + ' est disponible dans votre espace.' : 'Les créatives de la livraison ' + n + ' sont disponibles dans votre espace.',
+          'Vos retours de la semaine se déposent au même endroit.'],
+        bouton: ['Voir les créatives', lien] }) }); })();
+    if (ctx && ctx.waitUntil) ctx.waitUntil(envoi); else await envoi;
+    return { ok: true, message: 'Livraison ' + n + ' envoyée à ' + cl.marque + '.' };
+  }
+// le Cron : les livraisons Wimmov programmées dont l'heure est passée partent (une fois, même si deux Cron se croisent)
+async function wimmovProgrammes(env, a) {
+  const db = await baseWimmov(env), now = a || maintenant();
+  const { results } = await db.prepare("SELECT * FROM livraisons WHERE statut = 'brouillon' AND programme_le IS NOT NULL AND programme_le <= ? AND dossier LIKE 'WIMMOV%'").bind(now).all();
+  if (!results.length) return 0;
+  const cl = await clientWimmov(db); if (!cl) return 0;
+  const url = new URL(env.ORIGINE || 'https://app.kreativeads.fr');
+  let n = 0;
+  for (const l of results) {
+    const ch = await db.prepare('UPDATE livraisons SET programme_le = NULL WHERE id = ? AND programme_le IS NOT NULL').bind(l.id).run();
+    if (!ch.meta || ch.meta.changes !== 1) continue;
+    const r = await envoyerLivraisonWimmov(env, null, url, db, cl, l, false);
+    if (r.ok) n++;
+  }
+  return n;
+}
 async function commandesWimmov(env, db, clientId, pourClient) {
   const { results: K } = await db.prepare("SELECT * FROM commandes WHERE client_id = ? AND statut != 'annule' ORDER BY cree_le DESC").bind(clientId).all();
   const dossiers = K.map(k => k.dossier).filter(Boolean);
@@ -3512,7 +3560,7 @@ async function commandesWimmov(env, db, clientId, pourClient) {
     const par = {};
     for (const l of mes) if (!par[l.dossier]) par[l.dossier] = l;
     const livraisons = Object.values(par).map(l => ({ id: l.id, dossier: l.dossier, n: numeroLivraison(l.dossier), version: l.version, statut: l.statut,
-      envoye_le: l.envoye_le, cree_le: l.cree_le, fichiers: l.nb, creatives: l.nb_1x1 || Math.round((l.nb || 0) / 3) })).sort((a, b) => a.n - b.n);
+      envoye_le: l.envoye_le, cree_le: l.cree_le, programme_le: pourClient ? undefined : l.programme_le || null, fichiers: l.nb, creatives: l.nb_1x1 || Math.round((l.nb || 0) / 3) })).sort((a, b) => a.n - b.n);
     return { id: k.id, ref: k.ref, formule: k.formule, nb_creas: k.nb_creas, prix: k.prix, statut: k.statut, cree_le: k.cree_le, dossier: k.dossier,
       livraisons, livrees: livraisons.filter(l => VISIBLES_CLIENT.includes(l.statut)).reduce((s, l) => s + l.creatives, 0) };
   });
@@ -3707,38 +3755,27 @@ async function apiWimmovAdmin(env, ctx, url, chemin, methode, b) {
     return json({ dossier: m[1], versions: await Promise.all(results.map(l => detailLivraison(db, l, false))) });
   }
   // envoyer une livraison à Wimmov : visible tout de suite dans son espace, email à Hugo et au media buyer
+  // v90 (17/11) : ou programmer l'envoi (Wimmov ne voit rien avant l'heure, le Cron l'envoie à l'heure choisie, au quart d'heure près)
   if ((m = chemin.match(/^\/livraisons\/(l_[A-Za-z0-9_]+)\/envoyer$/)) && methode === 'POST') {
     const l = await db.prepare('SELECT * FROM livraisons WHERE id = ?').bind(m[1]).first();
     if (!l || !DOSSIER_WIMMOV.test(l.dossier)) return json({ erreur: 'Livraison inconnue.' }, 404);
     if (l.statut !== 'brouillon') return json({ erreur: 'Cette livraison est déjà envoyée.' }, 409);
+    if (b && b.annuler_programme) {
+      await db.prepare('UPDATE livraisons SET programme_le = NULL WHERE id = ?').bind(l.id).run();
+      return json({ ok: true, message: 'Envoi programmé annulé : la livraison reste en brouillon.' });
+    }
     const nf = await db.prepare('SELECT COUNT(*) AS n FROM fichiers WHERE livraison_id = ?').bind(l.id).first();
     if (!nf || !nf.n) return json({ erreur: 'Ajoutez d\'abord les fichiers.' }, 400);
-    const now = maintenant();
-    const ch = await db.prepare("UPDATE livraisons SET statut = 'envoyee', depose_le = ?, verifie_le = ?, envoye_le = ? WHERE id = ? AND statut = 'brouillon'").bind(now, now, now, l.id).run();
-    if (!ch.meta || ch.meta.changes !== 1) return json({ erreur: 'Cette livraison est déjà envoyée.' }, 409);
-    const k = await commandeDuDossier(db, l.dossier);
-    const n = numeroLivraison(l.dossier), v2 = l.version > 1;
-    // v83 : corriger des fichiers sans prévenir (Wimmov voit la nouvelle version, ni email ni notification)
-    const silence = v2 && !!(b && b.silencieux === true);
-    if (k) {
-      // un mois (60 créas) n'est livré qu'à sa 4e livraison ; des créas en plus, dès la 1re
-      const faites = await db.prepare("SELECT COUNT(DISTINCT dossier) AS n FROM livraisons WHERE statut = 'envoyee' AND (dossier = ? OR dossier LIKE ?)").bind(k.dossier, k.dossier + '_L%').first().catch(() => null);
-      const fini = k.formule !== 'mensuel' || (faites && faites.n >= WIMMOV.livraisons_mois);
-      if (fini && !['valide', 'annule'].includes(k.statut)) await db.prepare("UPDATE commandes SET statut = 'livre', livre_le = COALESCE(livre_le, ?) WHERE id = ?").bind(now, k.id).run();
-      await noter(db, k.client_id, k.id, 'livre', silence ? 'Livraison ' + n + ' : fichiers mis à jour' : v2 ? 'Livraison ' + n + ' : nouvelle version' : 'Livraison ' + n + ' disponible');
+    if (b && b.programme_le != null) {
+      const le = Math.round(Number(b.programme_le));
+      if (!(le > maintenant() + 60e3) || le > maintenant() + 90 * 864e5) return json({ erreur: 'Choisissez une date à venir (dans les 90 jours).' }, 400);
+      await db.prepare('UPDATE livraisons SET programme_le = ? WHERE id = ?').bind(le, l.id).run();
+      const k = await commandeDuDossier(db, l.dossier);
+      if (k) await noter(db, k.client_id, k.id, 'programme', 'Livraison ' + numeroLivraison(l.dossier) + ' programmée');
+      return json({ ok: true, programme_le: le, message: 'Livraison ' + numeroLivraison(l.dossier) + ' programmée : Wimmov la recevra à l\'heure choisie.' });
     }
-    if (silence) return json({ ok: true, message: 'Livraison ' + n + ' mise à jour : Wimmov voit les nouveaux fichiers, sans email.' });
-    const titre = v2 ? 'Livraison ' + n + ' : nouvelle version' : 'Livraison ' + n + ' disponible';
-    const notif = notifier(env, cl.id, { titre, texte: 'Vos nouvelles créatives sont disponibles dans votre espace.', url: '/client/#/creatives' });
-    if (ctx && ctx.waitUntil) ctx.waitUntil(notif); else await notif;
-    const lien = lienAcces(url, cl.jeton), a = [cl.email].concat(await emailsWimmov(env)).filter(Boolean);
-    const envoi = (async () => { for (const x of a) await envoyerEmail(env, { type: 'creatives', a: x, marque: cl.marque, contact: cl.contact || '', lien, sujet: cl.marque + ' · ' + titre,
-      html: emailHtml(url.origin, { titre: 'Bonjour' + (x === String(cl.email).toLowerCase() && cl.contact ? ' ' + String(cl.contact).trim().split(/\s+/)[0] : '') + ',',
-        paragraphes: [v2 ? 'La nouvelle version de la livraison ' + n + ' est disponible dans votre espace.' : 'Les créatives de la livraison ' + n + ' sont disponibles dans votre espace.',
-          'Vos retours de la semaine se déposent au même endroit.'],
-        bouton: ['Voir les créatives', lien] }) }); })();
-    if (ctx && ctx.waitUntil) ctx.waitUntil(envoi); else await envoi;
-    return json({ ok: true, message: 'Livraison ' + n + ' envoyée à ' + cl.marque + '.' });
+    const r = await envoyerLivraisonWimmov(env, ctx, url, db, cl, l, !!(b && b.silencieux === true));
+    return json(r.erreur ? { erreur: r.erreur } : r, r.erreur ? 409 : 200);
   }
   // les adresses qui reçoivent aussi les emails, et l'envoi du lien de l'espace
   if (chemin === '/acces' && methode === 'PATCH') return json({ ok: true, emails: await enregistrerEmailsWimmov(env, b.emails, cl) });

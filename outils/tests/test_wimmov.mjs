@@ -160,6 +160,51 @@ E = emails().filter(e => e.type === 'creatives').slice(nC);
 t('après 2 livraisons sur 4, toujours en production', (await api('/api/admin/wimmov', A)).d.commandes.find(x => x.id === k.id).statut === 'production');
 t('une livraison part à Hugo ET au media buyer', E.map(e => e.a).sort().join(',') === 'hugo.raffaelli@wimmov.com,media@wimmov.com', JSON.stringify(E.map(e => e.a)));
 
+// v90 (17/11) : programmer l'envoi d'une livraison : Wimmov ne voit rien avant l'heure, le Cron l'envoie ensuite (une seule fois)
+{
+  const l3 = (await api('/api/admin/wimmov/livraisons', A, 'POST', { commande_id: k.id })).d;
+  r = await api('/api/admin/wimmov/livraisons/' + l3.id + '/envoyer', A, 'POST', { programme_le: Date.now() + 864e5 }); t('programmer sans fichier : refusé', r.s === 400, r.s);
+  await deposer(A, l3.id, 'WIMMOV_STANDARD_03.png', 1080, 1080, '1x1');
+  r = await api('/api/admin/wimmov/livraisons/' + l3.id + '/envoyer', A, 'POST', { programme_le: Date.now() - 6e4 }); t('une heure passée : refusée', r.s === 400, r.s);
+  const quand = Date.now() + 2 * 864e5, nC3 = emails().filter(e => e.type === 'creatives').length;
+  r = await api('/api/admin/wimmov/livraisons/' + l3.id + '/envoyer', A, 'POST', { programme_le: quand }); t('livraison programmée', r.s === 200 && r.d.programme_le === quand, JSON.stringify(r.d));
+  let ad = (await api('/api/admin/wimmov', A)).d.commandes.find(x => x.id === k.id).livraisons.find(x => x.id === l3.id);
+  t('… l\'admin la voit programmée, encore en brouillon', ad && ad.statut === 'brouillon' && ad.programme_le === quand, JSON.stringify(ad));
+  const vueW = JSON.stringify((await api('/api/client/wimmov', W)).d || {});
+  t('… Wimmov ne la voit pas', !vueW.includes(l3.id));
+  await pause(300); t('… aucun email avant l\'heure', emails().filter(e => e.type === 'creatives').length === nC3);
+  const cron = async at => { const x = await get('/api/n8n/rappels', { method: 'POST', headers: { 'X-Kreative-Cle': sec.CLE, 'Content-Type': 'application/json' }, body: JSON.stringify({ a: at }) }); return { s: x.status, d: await x.json().catch(() => null) }; };
+  r = await cron(quand - 6e4); t('le Cron avant l\'heure : rien ne part', r.d && r.d.wimmov === 0, JSON.stringify(r.d));
+  r = await cron(quand + 6e4); await pause(400); t('le Cron à l\'heure : la livraison part', r.d && r.d.wimmov === 1, JSON.stringify(r.d));
+  const E3 = emails().filter(e => e.type === 'creatives').slice(nC3);
+  t('… email « Livraison 3 disponible » à Hugo et au media buyer', E3.length === 2 && E3.every(e => /Livraison 3 disponible/.test(e.sujet)), JSON.stringify(E3.map(e => e.sujet)));
+  ad = (await api('/api/admin/wimmov', A)).d.commandes.find(x => x.id === k.id).livraisons.find(x => x.id === l3.id);
+  t('… envoyée, plus programmée', ad.statut === 'envoyee' && !ad.programme_le, JSON.stringify(ad));
+  r = await cron(quand + 12e4); t('… et une seule fois', r.d.wimmov === 0);
+  // annuler une programmation
+  const l4 = (await api('/api/admin/wimmov/livraisons', A, 'POST', { commande_id: k.id })).d;
+  await deposer(A, l4.id, 'WIMMOV_STANDARD_04.png', 1080, 1080, '1x1');
+  await api('/api/admin/wimmov/livraisons/' + l4.id + '/envoyer', A, 'POST', { programme_le: quand });
+  { // la page de l'admin : bandeau « Envoi programmé le … », « Envoyer maintenant », fenêtre pour changer l'heure
+    const { createRequire } = await import('node:module'); const { chromium } = createRequire(import.meta.url)('playwright');
+    const nav = await chromium.launch(), ctx = await nav.newContext({ viewport: { width: 1400, height: 900 }, timezoneId: 'Europe/Paris', locale: 'fr-FR' });
+    await ctx.addCookies([{ name: A.split('=')[0], value: A.split('=').slice(1).join('='), url: B }]);
+    const pg = await ctx.newPage(), err = []; pg.on('pageerror', e => err.push(e.message));
+    await pg.goto(B + '/admin/#/wimmov/livraison/' + l4.dossier); await pg.waitForSelector('.prog-wim', { timeout: 15000 }).catch(() => {});
+    const ban = await pg.textContent('.prog-wim').catch(() => '');
+    t('admin : bandeau « Envoi programmé le … à … h … »', /Envoi programmé le \S+ \d+ \S+ à \d\d h \d\d/.test(ban), ban);
+    t('… bouton « Envoyer maintenant »', /Envoyer maintenant/.test(await pg.textContent('#lv-envoyer').catch(() => '')));
+    await pg.click('#lv-prog'); await pg.waitForSelector('#p-jour', { timeout: 5000 }).catch(() => {});
+    t('… « Changer l\'heure » ouvre la fenêtre avec le jour et l\'heure', !!(await pg.$('#p-jour')) && /Envoi le/.test(await pg.textContent('#p-resume').catch(() => '')));
+    await pg.keyboard.press('Escape');
+    t('admin Wimmov : aucune erreur JavaScript', !err.length, err.join(' | '));
+    await nav.close();
+  }
+  r = await api('/api/admin/wimmov/livraisons/' + l4.id + '/envoyer', A, 'POST', { annuler_programme: true }); t('annuler la programmation', r.s === 200);
+  r = await cron(quand + 6e4); t('… le Cron ne l\'envoie plus', r.d.wimmov === 0);
+  await api('/api/equipe/livraisons/' + l4.id, A, 'DELETE');
+}
+
 // ---------- les retours de la semaine ----------
 r = await api('/api/client/wimmov/retours', W, 'POST'); const rid = r.d.id;
 t('brouillon de retours', r.s === 200 && /^wr_/.test(rid));

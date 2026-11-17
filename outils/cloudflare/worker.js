@@ -979,7 +979,7 @@ let BASE_PRETE = false;
 // v70 : la base est vérifiée une seule fois par version. Avant, chaque démarrage du Worker refaisait
 // ~25 allers-retours (tables, colonnes, index) : près d'une seconde sur la 1re ouverture.
 // Augmenter SCHEMA_V à chaque nouvelle table ou colonne : la vérification complète repasse une fois.
-const SCHEMA_V = 88;   // v88 : commandes.avis_relance_le (rappel d'avis Trustpilot)
+const SCHEMA_V = 90;   // v90 : livraisons.programme_le (envoi programmé Wimmov) ; v88 : commandes.avis_relance_le
 // v84 : commandes.nom (nom du projet, ex. deux projets pour un même client)
 let SCHEMA_EN_COURS = null;
 async function base(env) {

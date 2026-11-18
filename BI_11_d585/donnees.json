@@ -1,0 +1,283 @@
+{
+  "dossier": "BI_11_d585",
+  "brand_name": "übi",
+  "website": "https://ubi-apr.fr/",
+  "secteur": "Installation de monte-escaliers et aménagement de salles de bain PMR",
+  "pack": "starter",
+  "nb_creas": 6,
+  "deadline": "2026-11-20T10:56:20.409Z",
+  "deadline_heures": 48,
+  "deadline_strategiste": "2026-11-19T02:56:20.409Z",
+  "deadline_designer": "2026-11-20T02:56:20.409Z",
+  "nb_ugly": 0,
+  "date": "2026-11-18",
+  "couleurs": [
+    "#5d58be",
+    "#f09436",
+    "#5cb4d4",
+    "#ffffff"
+  ],
+  "couleurs_client": [
+    "#5d58be",
+    "#f09436"
+  ],
+  "couleurs_site": [
+    "#5cb4d4",
+    "#ffffff"
+  ],
+  "polices": [
+    "Gilroy",
+    "Source",
+    "Ubi"
+  ],
+  "polices_client": [
+    "Gilroy",
+    "Source"
+  ],
+  "polices_site": [
+    "Ubi"
+  ],
+  "captures": [
+    {
+      "page": "accueil",
+      "url": "https://storage.googleapis.com/firecrawl-scrape-media/screenshot-091a9147-f46c-4898-b51d-d245a8782e78.png?GoogleAccessId=fire-engine%40firecrawl.iam.gserviceaccount.com&Expires=1795604025&Signature=emoQAd%2FYsR4PXZnwxA2FMkCiNquuCvrYi7ZcUPfHWup5qPxDsrR4%2BK2VaLEGzkGjjQ4hn1VQDjpSQYwZpzJ8kX4%2BxQxa2F7HbMAfv%2FH%2B7Y0j6MH6dUubG%2FeL%2FLi304MOZFzdzN1gUSPnNa%2BWm%2Bmv%2Fy9vz9WdEj4duwZV%2BJOHplQ%2F8Rel5kfLe3p%2FqVYhqZSFNl22AOlWWY8u0QPLrWm%2FgYhNhzdNDQj0Z%2F6cFwbVi7YI5919T9rPlVAB2NxnIpTsuwkyrkFzo4YrmqRgILvWkk5MM0KVlxgrNZPsMXaxhgQDeDxgLY5VRMSap0s%2Bm0VyZhSLE5w7clBk95qt97MHxg%3D%3D"
+    }
+  ],
+  "da_site": "Le fond principal est blanc. Les sections utilisent des aplats de bleu violet (#5d58be) pour encadrer le contenu. Les titres sont en Gilroy, graisse extra-bold, casse normale, avec un interlettrage standard. Le logo übi utilise des trémas graphiques de deux ronds de couleurs différentes (bleu et orange). Les boutons sont des rectangles arrondis avec coins à rayon moyen, en bleu cyan (#5cb4d4) ou orange (#f09436), avec texte blanc et flèche droite. Des pastilles numérotées cerclées servent de navigation dans les carrousels. Les éléments graphiques décoratifs reprennent les formes arrondies du logo.",
+  "da_source": "capture du site",
+  "brand_kit": {
+    "fonts": [
+      {
+        "name": "Gilroy",
+        "use": "headlines"
+      },
+      {
+        "name": "Source",
+        "use": "body text"
+      }
+    ],
+    "colors": [
+      {
+        "hex": "#5D58BE",
+        "name": "Purple blue, primary"
+      },
+      {
+        "hex": "#F09436",
+        "name": "Orange, secondary"
+      },
+      {
+        "hex": "#5CB4D4",
+        "name": "Cyan blue, buttons"
+      },
+      {
+        "hex": "#FFFFFF",
+        "name": "White, background"
+      }
+    ],
+    "note": "Client provided colors: #5d58be / #f09436. Use Gilroy for all headlines and Ubi (or Source as fallback) for body text."
+  },
+  "ton": "Expert & rassurant (sérieux, pédagogue)",
+  "adresse": "Vouvoiement",
+  "ambiance": "Joyeuse, graphique, aérée",
+  "consignes": "",
+  "promo": "",
+  "interdits": "",
+  "preuves": "5/5 en note sur Google (17 avis) \nAttention : ils ne concernent pas tous l'aménagement du domicile, übi propose aussi de l'aide à domicile et du ménage.",
+  "offre": "",
+  "differenciation": "- Véritable accompagnement et conseils dans le projet d'aménagement du logement\n- Equipe à l'écoute des besoins pour répondre parfaitement à la demande de façon personnalisée\n- Un seul et unique interlocuteur, gage d'efficacité et de sérénité.\n- Approche sans sous-traitance et produit de grande qualité\n- Réactivité des équipes : devis facile, SAV présent",
+  "client_ideal": "On cherche à toucher les séniors directement en perte d'autonomie mais voulant rester chez eux. \nMais aussi les proches aidants (souvent les enfants de ces séniors) qui sont parfois à l'origine de la demande. \nLes concurrents ont l'air de s'adresser directement aux séniors : je ne sais pas si c'est une bonne stratégie.",
+  "freins": "Le prix peut freiner. Des aides comme MaPrimeAdapt' existent (sous conditions) et übi peut informer sur les démarches (attention, ils ne constituent pas de dossier, ils informent juste).",
+  "objectif": "Générer des demandes de devis.",
+  "assets": [
+    {
+      "id": "PJ01",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-hSWiGFjTVhus/85bc34f4-cc0b-4aa1-b9e5-7b302e373faa-5EkgN4xJkZ28jvcQUs6VY1XHxAyGtjcyxxML7ot5TZXMSCvZfH61faWSOUPI0of4OndzOTHmtVIqD8tEr2ohFzg7Z3SD4742ATX/logo-ubi-groupe_apr-cartouche.png",
+      "type": "logo"
+    },
+    {
+      "id": "PJ02",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-hSWiGFjTVhus/44d19343-b742-4fab-9b85-207e8682c111-kLlVYZCKLKao336PjYUitkz3MmKY4Wm75W8qxzBf0jhU4EoDdNax2OUR3IKuBqeYQm6YMw3FZpiMinB0CVpLXe0h3D6tsrhoZPk/logo-ubi-groupe_apr.png",
+      "type": "logo"
+    },
+    {
+      "id": "PJ03",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-hSWiGFjTVhus/fbbabfc6-38a9-40bf-be52-cacd8f3405bc-WDegtmtGDoEqTtMlHvwCO1CXMtuUL6lhCx6tG9HxeJCfPG5OE7i08RTRiblYB359jUXxQvi9CKW3v06ezqxI5GIF1r70Kw9NCkt/logo-ubi-groupe_apr-blanc.png",
+      "type": "logo"
+    },
+    {
+      "id": "PJ04",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-hSWiGFjTVhus/2957b23b-0114-48b3-b760-99f7a99dbf1f-NwNazs3QWYlSU3Swgnz2tNvhETqryhTqgt7o42lMZBLDj6qyTpFscAoiAYBd8YiB1A6zN2V6IEJdONlFjf0JcqYuAfTpJi7bSI1/IMG_4702.jpg",
+      "type": "autre"
+    },
+    {
+      "id": "PJ05",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-hSWiGFjTVhus/23d2281b-b2cf-4d49-a44a-39873c47bdc6-OTL6JWSPSEdaSiohLtpqJv97bzQYWWN5lQjfT8itZLzq2l3fNG9HRMxQWAgIAqj2NW5qUXEyb3d4N10lFkdxdmIELMZ3Yv67LNt/IMG_4700.jpg",
+      "type": "autre"
+    },
+    {
+      "id": "PJ06",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-hSWiGFjTVhus/42aecaa0-b885-4f71-9527-558748088f00-W90X3uIXNAVACACjCVZ40bxkUG5x7p3AXERPPqW5oZXzSd12xUeoAvvmlYtLdRAA0kwVyoc5kqlce2RnFJrrfR7mgJFfOCA6s5I/IMG_4715.jpg",
+      "type": "autre"
+    },
+    {
+      "id": "PJ07",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-hSWiGFjTVhus/0ad67b7c-1598-4111-8507-5a8cb6dc540e-upathyAGT7e8qpNWq95oLcPMsnsnluwq8F9yemwp2O08A6R2BhDiPrVZDp4MyIIQcX6I43DfPO9ywTQgxZ5tARsqibAp5OhSTg0/IMG_4721.jpg",
+      "type": "autre"
+    },
+    {
+      "id": "PJ08",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-hSWiGFjTVhus/fbb1b849-4151-47a2-8b18-9540f04a816e-PF63soCJv5rS5lurplBx3vUdufdFuZEpDQAGgGrLzTTufZ5IECZY9zJbB1qJvgKCAfIsFW0nHOlnj6AVIinj7ndPauYeAHZSQeE/IMG_4751.jpg",
+      "type": "autre"
+    },
+    {
+      "id": "PJ09",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-hSWiGFjTVhus/8ee3641f-aa2a-44be-b3ac-17b16beb67e3-B38iBsl8h6sY4VGuMsVVe6iVqtKN72Q6OaA2xt2z8KUjunj7wMDzuN0B9GIki0aY08qyIcbfShdcqA3zaYtPAPOpMfSZ2nXs0TB/IMG_4743.jpg",
+      "type": "autre"
+    },
+    {
+      "id": "PJ10",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-hSWiGFjTVhus/57fde978-1ecb-424a-abaf-1fbf2522bbb8-nzE361vuNKtbezIRiCqjgOE5nTTOzQMek1UOMsJmqufjCZnayqttsRoxfAbQvhMUsz2oW3VORnGQagLYQvyRplj2M4ratmSw2dR/IMG_4779.jpg",
+      "type": "autre"
+    },
+    {
+      "id": "PJ11",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-hSWiGFjTVhus/15e1199d-bd1c-42ad-89ce-9b8a007d45d6-okMT96tdDws2i5x6k6xLsJiJPFykaMrM1hSyHKPZzUzqMX7RLwSoUSyOoznEKOW2V4P4mozMoI5OTHS0LEo3Ih4cYSi6AWRacTN/IMG_4813.jpg",
+      "type": "autre"
+    },
+    {
+      "id": "PJ12",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-hSWiGFjTVhus/84c06a3b-916c-41d2-9bc1-79c10e4d2532-Ncf0zMnEhRYi7DiOkXgP22zUAc4o7tnjcNID6xumWY1mzBwuzRDpcKXBTHeIpkgbFImXP46TNNxkPOGRkreWaWIZDBoygUi9NxD/IMG_4802.jpg",
+      "type": "autre"
+    },
+    {
+      "id": "PJ13",
+      "url": "https://prod-fillout-oregon-s3.s3.us-west-2.amazonaws.com/orgid-630545/flowpublicid-hSWiGFjTVhus/299d98e9-d51f-4139-b684-96e744f7f06a-K7Xe9NfKEO38WbOr3AH47VmeTCzZC7qiSbD2RKIsa7SHJI9nWqZ9spIK4sSSEo8P8AzMUe9U9ettf5HiNpfEYsfYh45QDqB04sj/IMG_4759.jpg",
+      "type": "autre"
+    }
+  ],
+  "assets_site": [
+    {
+      "id": "WS01",
+      "url": "https://ubi-apr.fr/wp-content/uploads/2020/12/service-a-la-personne-tarbes-300x225.jpg",
+      "nom": "visuel du site",
+      "note": 11
+    },
+    {
+      "id": "WS02",
+      "url": "https://ubi-apr.fr/wp-content/uploads/2020/12/service-a-la-personne-bab-300x260.jpg",
+      "nom": "visuel du site",
+      "note": 11
+    },
+    {
+      "id": "WS03",
+      "url": "https://ubi-apr.fr/wp-content/uploads/2020/12/service-a-la-personne-oloron-300x211.jpg",
+      "nom": "visuel du site",
+      "note": 10
+    },
+    {
+      "id": "WS04",
+      "url": "https://ubi-apr.fr/wp-content/uploads/2020/12/service-a-la-personne-pau-halles-300x163.jpg",
+      "nom": "visuel du site",
+      "note": 10
+    },
+    {
+      "id": "WS05",
+      "url": "https://ubi-apr.fr/wp-content/uploads/2020/12/service-a-la-personne-bordeaux-300x260.jpg",
+      "nom": "visuel du site",
+      "note": 10
+    },
+    {
+      "id": "WS06",
+      "url": "https://ubi-apr.fr/wp-content/uploads/2020/12/service-a-la-personne-dax-1-300x260.jpg",
+      "nom": "visuel du site",
+      "note": 10
+    },
+    {
+      "id": "WS07",
+      "url": "https://ubi-apr.fr/wp-content/uploads/2020/12/service-a-la-personne-mont-de-marsan-300x225.jpg",
+      "nom": "visuel du site",
+      "note": 10
+    },
+    {
+      "id": "WS08",
+      "url": "https://ubi-apr.fr/wp-content/uploads/2020/12/service-a-la-personne-agen-1-300x260.jpg",
+      "nom": "visuel du site",
+      "note": 10
+    },
+    {
+      "id": "WS09",
+      "url": "https://ubi-apr.fr/wp-content/uploads/2023/12/amelioration-habitat-pau-300x260.jpg",
+      "nom": "visuel du site",
+      "note": 10
+    },
+    {
+      "id": "WS10",
+      "url": "https://ubi-apr.fr/wp-content/uploads/2021/07/HASP-300x226.jpg",
+      "nom": "visuel du site",
+      "note": 8
+    },
+    {
+      "id": "WS11",
+      "url": "https://ubi-apr.fr/wp-content/uploads/2020/12/UBI-FACADE-V5-1-VERSION-FINALE-300x130.jpg",
+      "nom": "visuel du site",
+      "note": 8
+    },
+    {
+      "id": "WS12",
+      "url": "https://ubi-apr.fr/wp-content/uploads/2022/05/avance-immediate-desktop.png",
+      "nom": "visuel du site",
+      "note": 7
+    }
+  ],
+  "pubs_client": [],
+  "pubs_concurrents": [
+    {
+      "id": "CC01",
+      "annonceur": "SVA France, l'autonomie à domicile",
+      "url": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/823787236_2453942041795410_46506960352183225_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=106&_nc_map=urlgen_bucketless&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=k-_qjyIBBO8Q7kNvwEImKNC&_nc_oc=AdqCCH761rNj2EHeDdvUJNddCXOQwB8y5lXUf2H_2UpltQQkBnLP5t3dz_O-DPhT99w&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=PFPppEzzTEzC_M-Uh0OwTA&_nc_ss=78180&oh=00_AQS5Yi6lJDMHrAd0pVX_k4rF6Qcy-LU7HyRemuid2Y80-A&oe=6B033B83",
+      "texte": "Testez votre éligibilité ! · Vous souhaitez faire adapter votre logement ? Testez votre éligibilité à MaPrimeAdapt' en quelques clics pour l'installation de votre douche sécurisée, monte escaliers, baignoire à porte. · P"
+    },
+    {
+      "id": "CC02",
+      "annonceur": "SVA France, l'autonomie à domicile",
+      "url": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/806249367_1354700416431313_2753868444465687786_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=111&_nc_map=urlgen_bucketless&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=V1HjQZHTEdsQ7kNvwFaii0M&_nc_oc=AdptQeVKAeFu-LO2LLpXkbH-D9QvomEHDjvQcefxWslmDMG5w1c6gXQD05mgdg3m368&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=PFPppEzzTEzC_M-Uh0OwTA&_nc_ss=78180&oh=00_AQQKruZVw9cVbHxZQapO039rBagN1Maq7s5XfTfa-oS_jg&oe=6B0366FD",
+      "texte": "Test en moins de 2 mn · SVA France vous propose la pose de douche sur sécurisée pour senior. Remplacez votre baignoire par une douche et évitez les chutes dans la salle de bain. · Evitez les chutes, faites installer votr"
+    },
+    {
+      "id": "CC03",
+      "annonceur": "SVA France, l'autonomie à domicile",
+      "url": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/801430327_1080844164499202_7773800965012242604_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=103&_nc_map=urlgen_bucketless&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=Nz2h-gM2ZPkQ7kNvwFlxXs2&_nc_oc=Adpjr1ZyDbZmvjOHKVe5I4rJVwBmb4aoV78lfhdCXRDfzWhLHujGWTiPQb1PLLkQhJE&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=PFPppEzzTEzC_M-Uh0OwTA&_nc_ss=78180&oh=00_AQRrlxMkWbNJVgRU6rvWqr2FfQU7W0lf5yztpYb1OzEpjA&oe=6B036730",
+      "texte": "Test en moins de 2 mn · SVA France vous propose la pose de douche sur sécurisée pour senior. Remplacez votre baignoire par une douche et évitez les chutes dans la salle de bain. · Evitez les chutes, faites installer votr"
+    },
+    {
+      "id": "CC04",
+      "annonceur": "SVA France, l'autonomie à domicile",
+      "url": "https://scontent-lga3-2.xx.fbcdn.net/v/t39.35426-6/801430327_1080844164499202_7773800965012242604_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=103&_nc_map=urlgen_bucketless&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=Nz2h-gM2ZPkQ7kNvwHZd4ij&_nc_oc=AdqxE-siUQ1DiNLkLcNKqKDZMxnPR7dxohyl7KCzsRDQXNa8ZA4PWDmCjqP7PtuR4Pg&_nc_zt=14&_nc_ht=scontent-lga3-2.xx&_nc_gid=JDkdY7bJESZCuF_8jo5H9w&_nc_ss=78180&oh=00_AQTvKSlDx6PTv0RfQ5GreFBM0xyBg-6WZOduw9nJp8BWMw&oe=6B036730",
+      "texte": "Test en moins de 2 mn · SVA France vous propose la pose de douche sur sécurisée pour senior. Remplacez votre baignoire par une douche et évitez les chutes dans la salle de bain. · Evitez les chutes, faites installer votr"
+    },
+    {
+      "id": "CC05",
+      "annonceur": "AMEO",
+      "url": "https://scontent-lga3-3.xx.fbcdn.net/v/t39.35426-6/847746885_1426303639678847_5451949180201782594_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=107&_nc_map=urlgen_bucketless&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=mkNYMUXjQkEQ7kNvwE22M2g&_nc_oc=Adp20ZDVJQo5Vdt9MR6opGrdgb_JXHaJrmUolcRHo3sLCaSNFueEw_Tpm_YvZAWfeHk&_nc_zt=14&_nc_ht=scontent-lga3-3.xx&_nc_gid=sh-RYp1XOUvmCDWMEsJysA&_nc_ss=78180&oh=00_AQSX89N7eOlUb8H-lWcVgzMxe5HgFsEiECNztqhq1_Cwag&oe=6B0370CA",
+      "texte": "Devis gratuit pour votre monte-escalier · Expert local – Intervention rapide · Monter les escaliers devient difficile ? AMEO installe des monte-escaliers sur mesure partout en Bretagne, Normandie et Pays de la Loire. · h"
+    },
+    {
+      "id": "CC06",
+      "annonceur": "AMEO",
+      "url": "https://scontent-lga3-3.xx.fbcdn.net/v/t39.35426-6/846824795_1390024253291593_9129499368254520742_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=105&_nc_map=urlgen_bucketless&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=zDpkSQN-T_4Q7kNvwHbULM3&_nc_oc=AdryGdkzIbZX2s57S4rGbFFOmcNM2cnXVvwI-7BIzPjCbyhD0MyzNLeZRmsZXXfg-3w&_nc_zt=14&_nc_ht=scontent-lga3-3.xx&_nc_gid=sh-RYp1XOUvmCDWMEsJysA&_nc_ss=78180&oh=00_AQSedJAZBRRRMj3s9Gy-7rBgEEjEQ69rXEmvYm1qoQeODw&oe=6B036E99",
+      "texte": "Devis gratuit pour votre monte-escalier · Expert local – Intervention rapide · Monter les escaliers devient difficile ? AMEO installe des monte-escaliers sur mesure partout en Bretagne, Normandie et Pays de la Loire. · h"
+    },
+    {
+      "id": "CC07",
+      "annonceur": "AMEO",
+      "url": "https://scontent-lga3-3.xx.fbcdn.net/v/t39.35426-6/849694686_1409011974724904_9153160020751575088_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=110&_nc_map=urlgen_bucketless&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=EJ7KUFV3OCwQ7kNvwF_7MzE&_nc_oc=AdrbTJLowTTHbxx4e3oSHR-PbYnCNIzWxicuiDKwz8ENES5Osyg8sUDC4_gzPt2xVuE&_nc_zt=14&_nc_ht=scontent-lga3-3.xx&_nc_gid=sh-RYp1XOUvmCDWMEsJysA&_nc_ss=78180&oh=00_AQR_UwF0q8Su2h3ow1yhQ9TTazwYRQuOq6ym_p3yFZtqNw&oe=6B036BAD",
+      "texte": "Devis gratuit. Installation rapide. Garantie 5 ans. · Depuis 2020, AMEO améliore l’autonomie des seniors en Bretagne et Normandie. Nos techniciens installent votre monte-escalier sur mesure avec une offre clé en main et "
+    },
+    {
+      "id": "CC08",
+      "annonceur": "AMEO",
+      "url": "https://scontent-lga3-3.xx.fbcdn.net/v/t39.35426-6/849910654_1109729698079380_8578242829487700774_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=102&_nc_map=urlgen_bucketless&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=nPYrInl_lewQ7kNvwFJzrgC&_nc_oc=AdqF5Zocdw8qdQ4JNTNag0T-6s7SidBPGB0QbtquMUoOQHT6t1plrYV0_I3HFv8rDn0&_nc_zt=14&_nc_ht=scontent-lga3-3.xx&_nc_gid=sh-RYp1XOUvmCDWMEsJysA&_nc_ss=78180&oh=00_AQRuLxCortXFwgS7xXK6tSaW_0WTDJbMuzZNoueovMEBvg&oe=6B0350E7",
+      "texte": "Devis gratuit. Installation rapide. Garantie 5 ans. · Depuis 2020, AMEO améliore l’autonomie des seniors en Bretagne et Normandie. Nos techniciens installent votre monte-escalier sur mesure avec une offre clé en main et "
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+Créa 2 · Podmax
+
+1. Titre : Tes concurrents quand ils vont voir tes nouvelles pubs vidéos
+2. Sous-titre : PODMAX, l’agence qui fait paniquer ta concurrence.
+
+Idée du visuel : Base : meme Zidane (4 cases)
+
+Créer un visuel meme / ugly ad, simple et très lisible, à partir du meme de Zidane en 4 cases.
+
+L’objectif est de garder l’effet viral du meme, sans surdesigner le visuel.
+
+Compo :
+
+- Utiliser le meme de Zidane en grille 2x2, avec les 4 expressions visibles.
+- Le meme doit prendre la majorité du visuel, car c’est lui qui porte l’impact.
+- Garder le rendu brut, internet, authentique, comme un vrai meme.
+- Ajouter le texte principal au-dessus du meme, centré et bien lisible.
+- Ajouter la phrase PODMAX en dessous du meme, comme une chute claire et percutante.
+- Prévoir assez d’espace blanc en haut et en bas pour que les textes respirent.
+
+Zone de texte :
+
+- En haut : gros texte principal.
+- En bas : phrase PODMAX plus courte, plus petite mais bien visible.
+- Le texte doit être très lisible dès le premier coup d’œil.
+
+Textes à intégrer :
+
+- Titre : Tes concurrents quand ils vont voir tes nouvelles pubs vidéos
+- Texte bas : PODMAX, l’agence qui fait paniquer ta concurrence.
+
+D.A :
+
+- Style meme natif / ugly ad
+- Rendu simple, frontal, efficace
+- Fond blanc autour du meme si nécessaire
+- Typo lisible, impactante, sans effet compliqué
+- Pas d’éléments inutiles
+- Pas de look “pub premium”
+- Ça doit vraiment faire meme transformé en pub
+
+Important :
+
+- Ne pas surcharger
+- Le meme doit rester l’élément central
+- L’humour doit venir du contraste entre le texte et les expressions de Zidane
+- Le visuel doit être compris en une seconde
+Nouvelle idée, inspirations : UGX-2d7915c4c898 · meme réaction en quatre cases
+
+Alerte : Aucun asset joint : le meme original de Zidane n'est pas fourni et le générateur ne voit pas l'inspiration, donc la grille est générée avec un homme générique non identifiable. Ce choix est volontaire : générer un sosie de Zidane dans une publicité payante exposerait Podmax à un risque juridique sur le droit à l'image d'une personne réelle. Si le stratégiste veut le vrai meme, il faut le déposer comme asset et faire valider les droits avant diffusion. Sinon, l'humour reposera sur la progression des expressions plutôt que sur la reconnaissance de Zidane.

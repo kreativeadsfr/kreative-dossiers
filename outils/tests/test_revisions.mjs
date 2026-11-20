@@ -163,6 +163,28 @@ r = await api('/api/equipe/fiche', ST, 'POST', { dossier: D, reprise: true, crea
 r = await api('/api/equipe/revisions', DE); const p2 = r.d.find(p => p.dossier === D);
 const it3 = p2 && p2.items.find(x => x.crea === '03');
 t('la designer voit maintenant la nouvelle créa AD03, avec son aperçu', it3 && it3.type === 'nouvelle' && it3.reprise === D + '_R1', JSON.stringify(p2 && p2.items).slice(0, 200));
+// 20/11 (Podmax, Hillside) : dans l'espace designer, le projet s'ouvre partout sur sa reprise, jamais sur les anciennes créas
+{
+  const { createRequire } = await import('node:module'); const { chromium } = createRequire(import.meta.url)('playwright');
+  const nav = await chromium.launch(); const ctx = await nav.newContext();
+  await ctx.addCookies([{ name: DE.split('=')[0], value: DE.split('=').slice(1).join('='), url: B }]);
+  const pg = await ctx.newPage(); const err = []; pg.on('pageerror', e => err.push(e.message));
+  await pg.route(/\/projets\.json/, async rt => { const rep = await rt.fetch(); let l = []; try { l = await rep.json(); } catch (e) {}
+    if (Array.isArray(l) && !l.some(p => p.dossier === D)) l.unshift({ dossier: D, brand_name: 'Pulso', nb_creas: 4, pack: 'growth', date: '2026-11-01' });
+    await rt.fulfill({ response: rep, body: JSON.stringify(l), headers: { ...rep.headers(), 'content-type': 'application/json' } }); });
+  const voir = async h => { await pg.goto(B + '/designer/' + h); await pg.waitForSelector('#vp-cadre', { timeout: 15000 }).catch(() => {});
+    return pg.evaluate(() => ({ src: (document.getElementById('vp-cadre') || {}).getAttribute ? document.getElementById('vp-cadre').getAttribute('src') : '', choix: (document.getElementById('vp-projet') || {}).value, bandeau: (document.querySelector('.vp-rev') || {}).textContent || '' })); };
+  let v = await voir('#/visuels/' + D);
+  t('designer : Preview du projet = la reprise (_R1), avec le bandeau des créas à refaire', v.src.startsWith('/' + D + '_R1/creas/') && /AD03/.test(v.bandeau) && v.choix === D, JSON.stringify(v));
+  v = await voir('#/visuels/' + D + '_R1');
+  t('designer : « Open in Previews » ouvre la même page, sous le nom du projet', v.src.startsWith('/' + D + '_R1/creas/') && v.choix === D, JSON.stringify(v));
+  v = await voir('#/telechargement/' + D);
+  t('designer : Download du projet = les fichiers de la reprise', v.src.startsWith('/' + D + '_R1/creas/telecharger.html'), JSON.stringify(v));
+  v = await voir('#/visuels/TURNLY_10_bc5e');
+  t('designer : un projet sans révisions garde sa page', v.src.startsWith('/TURNLY_10_bc5e/creas/') && !v.bandeau, JSON.stringify(v));
+  t('aucune erreur JavaScript (designer, aperçus)', !err.length, err.join(' | '));
+  await nav.close();
+}
 r = await api('/api/equipe/revisions/' + D, ST); t('le stratégiste voit sa reprise envoyée', r.d.items[0].reprise_le > 0 && r.d.items[0].etat === 'reprise', JSON.stringify(r.d.items[0]).slice(0, 160));
 
 // la designer dépose AD03, Kreative envoie la version 2

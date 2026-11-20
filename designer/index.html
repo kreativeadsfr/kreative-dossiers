@@ -74,6 +74,14 @@ function boutons(x) {
 const revAFaire = () => (E.rev || []).flatMap(p => p.items.filter(x => x.etat !== 'faite').map(x => ({ p, x })));
 const revDe = d => (E.rev || []).find(p => p.dossier === d) || null;
 const nomDe = d => { const x = K.prod.trouver(d); return x ? nomEn(x) : d; };
+// 20/11 (Podmax, Hillside) : un projet en révisions avec des créas refaites s'ouvre partout sur sa reprise (<dossier>_R1),
+// jamais sur les anciennes créas : Projects, Overview, Previews, Downloads, recherche, liste déroulante, Revisions
+const repriseDe = d => {
+  const p = revDe(d); if (!p) return '';
+  const R = p.items.map(x => x.reprise).filter(Boolean).sort((a, b) => (+(b.match(/_R(\d+)$/) || [0, 0])[1]) - (+(a.match(/_R(\d+)$/) || [0, 0])[1]));
+  return R[0] || '';
+};
+const baseDe = id => { const m = /^(.+)_R\d+$/.exec(id || ''); return m && (K.prod.trouver(m[1]) || revDe(m[1])) ? m[1] : id; };
 function ecranRevisions(id) {
   const P = (E.rev || []).filter(p => !id || p.dossier === id);
   let h = '<div class="ph"><div><h1>Revisions</h1><p>The creatives the client wants changed. Only these ones: the others stay as they are.</p></div></div>';
@@ -342,7 +350,16 @@ K.rendre = async force => {
   const sec = r.ecran, id = r.params[0];
   let contenu, plein = false, nomP = '';
   if (sec === 'visuels' || sec === 'telechargement') {
-    if (id) { contenu = K.prod.vue(sec, id, { en: true, sections: SECS }); plein = true; const x = K.prod.trouver(id); nomP = x ? nomEn(x) : id; }
+    if (id) {
+      const base = baseDe(id), rep = repriseDe(base) || (base !== id ? id : ''), opt = { en: true, sections: SECS };
+      if (rep) {
+        const p = revDe(base), nums = p ? p.items.filter(x => x.reprise === rep).map(x => 'AD' + x.crea) : [];
+        opt.src = sec === 'visuels' ? '/' + rep + '/creas/' : '/' + rep + '/creas/telecharger.html';
+        opt.bandeau = '<div class="vp-rev">' + i.crayon + '<span><b>Revisions</b> · ' + (nums.length ? 'only the creative' + (nums.length > 1 ? 's' : '') + ' to redo: ' + esc(nums.join(', ')) : 'only the creatives to redo') + '. The others stay as they are.</span>' +
+          (p ? '<a class="btn btn-s btn-sm" href="#/revisions/' + esc(base) + '">Open Revisions</a>' : '') + '</div>';
+      }
+      contenu = K.prod.vue(sec, base, opt); plein = true; const x = K.prod.trouver(base); nomP = x ? nomEn(x) : base;
+    }
     else { const tout = K.prod.liste; K.prod.liste = mesProjets(); contenu = K.prod.liste_(sec, { en: true, texte: TEXTES[sec] }); K.prod.liste = tout; }
   } else if (sec === 'livrer') { contenu = ecranLivrer(id); const x = id && K.prod.trouver(id); nomP = x ? nomEn(x) : ''; }
   else if (sec === 'revisions') { contenu = ecranRevisions(id); nomP = id ? nomDe(id) : ''; }

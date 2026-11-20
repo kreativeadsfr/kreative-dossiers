@@ -631,7 +631,8 @@
   P.vue = (sec, id, opt) => {
     const S = P.sections[sec], en = opt.en, secs = opt.sections || Object.keys(P.sections);
     const x = id === 'banque' ? null : P.trouver(id);
-    const src = id === 'banque' ? '/fiche/' : x ? S.src(x) : sec === 'dossier' ? '/' + id + '/' : sec === 'visuels' ? '/' + id + '/creas/' : sec === 'telechargement' ? '/' + id + '/creas/telecharger.html' : sec === 'brief' ? '/retours/?projet=' + encodeURIComponent(id) : '/fiche/?projet=' + encodeURIComponent(id);
+    // 20/11 : opt.src = une autre page pour ce projet (designer : la reprise d'un projet en révisions), opt.bandeau = une ligne au-dessus
+    const src = opt.src ? opt.src : id === 'banque' ? '/fiche/' : x ? S.src(x) : sec === 'dossier' ? '/' + id + '/' : sec === 'visuels' ? '/' + id + '/creas/' : sec === 'telechargement' ? '/' + id + '/creas/telecharger.html' : sec === 'brief' ? '/retours/?projet=' + encodeURIComponent(id) : '/fiche/?projet=' + encodeURIComponent(id);
     const choix = (P.liste || []).filter(S.ok);
     if (x && !choix.includes(x)) choix.unshift(x);
     const autres = x ? secs.filter(k => k !== sec && P.sections[k].ok(x)) : [];
@@ -641,7 +642,7 @@
       choix.map(y => '<option value="' + K.esc(y.dossier) + '"' + (x === y ? ' selected' : '') + '>' + K.esc(y.nom) + ' · ' + K.esc(y.nb || '?') + (en ? ' creatives' : ' créas') + '</option>').join('') + '</select></div>' +
       (x ? (opt.role === 'strategiste' ? P.pillStrat(x) : P.pill(x, en)) : '') +
       (autres.length ? '<div class="vp-autres">' + autres.map(k => '<a class="btn btn-s btn-sm" href="#/' + k + '/' + K.esc(x.dossier) + '">' + K.i[P.sections[k].icone] + K.esc(en ? P.sections[k].en : P.sections[k].fr) + '</a>').join('') + '</div>' : '') +
-      '</div><iframe class="vp-cadre" id="vp-cadre" src="' + K.esc(avecIntegre(src)) + '" title="' + K.esc(en ? S.en : S.fr) + '"></iframe></div>';
+      '</div>' + (opt.bandeau || '') + '<iframe class="vp-cadre" id="vp-cadre" src="' + K.esc(avecIntegre(src)) + '" title="' + K.esc(en ? S.en : S.fr) + '"></iframe></div>';
   };
   P.brancher = sec => {
     const s = document.getElementById('vp-projet');

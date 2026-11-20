@@ -355,7 +355,7 @@ K.rendre = async force => {
       if (rep) {
         const p = revDe(base), nums = p ? p.items.filter(x => x.reprise === rep).map(x => 'AD' + x.crea) : [];
         opt.src = sec === 'visuels' ? '/' + rep + '/creas/' : '/' + rep + '/creas/telecharger.html';
-        opt.bandeau = '<div class="vp-rev">' + i.crayon + '<span><b>Revisions</b> · ' + (nums.length ? 'only the creative' + (nums.length > 1 ? 's' : '') + ' to redo: ' + esc(nums.join(', ')) : 'only the creatives to redo') + '. The others stay as they are.</span>' +
+        opt.bandeau = '<div class="vp-rev">' + i.crayon + '<span><b>Revisions</b> · ' + (nums.length ? 'only the creative' + (nums.length > 1 ? 's' : '') + ' to redo: ' + esc(nums.join(', ')) : 'only the creatives to redo') + '.' + (p && nums.length && nums.length < p.nb_creas ? ' The others stay as they are.' : '') + '</span>' +
           (p ? '<a class="btn btn-s btn-sm" href="#/revisions/' + esc(base) + '">Open Revisions</a>' : '') + '</div>';
       }
       contenu = K.prod.vue(sec, base, opt); plein = true; const x = K.prod.trouver(base); nomP = x ? nomEn(x) : base;

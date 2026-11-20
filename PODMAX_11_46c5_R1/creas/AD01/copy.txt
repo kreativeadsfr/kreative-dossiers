@@ -1,0 +1,52 @@
+Créa 1 · Podmax
+
+1. Titre : Moi après avoir doublé mon budget pub sans changer mes vidéos.
+2. Sous-titre : Une mauvaise pub avec 2x plus de budget reste une mauvaise pub.
+3. Sous-titre : PODMAX. Change tes pubs, pas ton budget.
+
+Idée du visuel : Base : meme Key & Peele (image fournie)  
+
+Créer une ugly ad humoristique en reprenant le style d'un véritable meme Internet. La composition doit rester volontairement brute, simple et immédiatement compréhensible.
+
+Compo :
+
+- Diviser le visuel en trois zones verticales : texte en haut, photo au centre et conclusion en bas.
+- En haut (environ 25 %) : grand espace blanc avec le titre centré, en typographie noire, sans-serif et grasse.
+- Au centre (environ 50 %) : utiliser la photo fournie de l'homme qui transpire abondamment. La photo doit occuper presque toute la largeur, avec de petites marges blanches. Conserver son cadrage serré et son expression anxieuse.
+- En bas (environ 25 %) : réserver un espace blanc pour la conclusion et la signature PODMAX.
+
+Zone de texte :
+
+- Le titre doit être le plus grand texte du visuel, réparti sur quatre lignes.
+- Sous la photo, placer la première phrase de conclusion en noir, gras et centrée, sur deux lignes.
+- Tout en bas, ajouter un bandeau jaune vif aux angles arrondis, presque aussi large que le visuel, avec le texte PODMAX en noir et très gras.
+
+Textes à intégrer :
+
+Titre en haut :  
+« Moi après avoir doublé mon budget pub sans changer mes vidéos. »
+
+Conclusion sous la photo :
+« Une mauvaise pub avec 2x plus de budget reste une mauvaise pub. »
+
+Bandeau jaune en bas :
+« PODMAX. Change tes pubs, pas ton budget. »
+
+D.A :
+
+- Fond blanc uniforme.
+- Typographie noire, sans-serif, très grasse.
+- Photo originale conservée, sans retouche ni filtre.
+- Bandeau jaune vif uniquement pour la dernière phrase.
+- Aucun dégradé, aucune ombre et aucun effet graphique supplémentaire.
+
+Important :
+
+- Respecter strictement l'ordre : titre → photo → conclusion → bandeau jaune.
+- Garder les trois textes entièrement visibles et lisibles sur mobile.
+- Ne pas ajouter de logo, de CTA, d'emoji ou de décoration.
+- Le rendu doit ressembler à un meme partagé sur les réseaux sociaux, pas à une publicité traditionnelle.
+- L'expression du personnage doit rester au centre de l'attention : c'est elle qui donne tout son humour à la création.
+Nouvelle idée, inspirations : UGX-07b65dcced67 · meme réaction trois bandes
+
+Alerte : Aucune photo n'est jointe alors que l'idée demande « la photo fournie de l'homme qui transpire ». L'image du meme Key & Peele n'est jamais transmise au générateur, et reproduire le visage de Jordan Peele poserait de toute façon un problème de droit à l'image dans une publicité. Le prompt génère donc un homme générique non identifiable, dans le même cadrage et la même ambiance. Si le vrai meme est voulu, il faut joindre une photo dont les droits sont acquis.

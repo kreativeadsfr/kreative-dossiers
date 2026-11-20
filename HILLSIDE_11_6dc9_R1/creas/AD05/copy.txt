@@ -1,0 +1,58 @@
+Créa 5 · Hillside
+
+
+Idée du visuel : Base : concept avant / après
+
+Créer un visuel publicitaire très visuel, drôle et réaliste, basé sur un avant / après formation.
+
+Compo :
+
+- Faire un split visuel vertical au centre de l’image.
+- Utiliser le même homme, vu de face, assis dans un fauteuil de barbier, avec cape noire.
+- Son visage est coupé en deux.
+- Le décor doit être celui d’un vrai barber shop, avec un rendu premium et réaliste.
+
+Partie gauche — Avant la formation :
+
+- Le personnage doit avoir une coupe ratée mais crédible.
+- Les contours des cheveux doivent être mal faits, irréguliers, pas nets.
+- Le dégradé doit être loupé, avec une transition peu propre.
+- La barbe doit rester fournie, identique dans l’idée à celle de droite, mais mal tracée :
+  - ligne de barbe pas droite,
+  - contours imprécis,
+  - finition peu propre.
+- Le visage peut exprimer une légère gêne ou déception.
+
+Partie droite — Après la formation :
+
+- Reprendre le même homme, dans la même position.
+- Cette fois, la coupe doit être très propre, nette, maîtrisée.
+- Le dégradé doit être réussi, fluide et précis.
+- Les contours des cheveux doivent être nets.
+- La barbe doit être bien dessinée, droite, propre, avec une finition professionnelle.
+- Le visage peut afficher une expression plus confiante ou satisfaite.
+
+Important :
+
+- Le contraste entre les deux côtés doit être immédiatement compréhensible.
+- Le côté gauche doit être raté, mais jamais grotesque ou impossible.
+- On doit sentir : débutant avant / pro après.
+- L’humour doit venir du contraste visuel, pas d’un rendu caricatural.
+
+Textes à intégrer :
+
+- En haut à gauche : Avant la formation
+- En haut à droite : Après la formation
+- En bas, au centre : HILLSIDE
+- En dessous : Formation barber en 5 jours, dans un vrai salon à Paris.
+
+D.A. :
+
+- Rendu photo réaliste
+- Ambiance barber shop moderne
+- Lumière propre et flatteuse
+- Visuel impactant, lisible, publicitaire
+- Style premium, pas cheap
+Nouvelle idée, inspirations : EC4-22 · avant/après visage coupé en deux
+
+Alerte : Aucun asset déposé : pas de logo HILLSIDE (le nom est écrit en typographie) et la scène est générée selon l'idée du stratégiste, avec un salon générique flouté et non le vrai salon du client, et une fausse personne. Aucun texte de CTA dans la fiche, donc pas de bouton. La police de la charte (« notre DA ») n'est pas nommée : j'ai pris une sans-serif de type Inter, lue sur les captures du site. L'accent #ffffff n'est visible que sur l'étiquette de droite, le fond étant clair.

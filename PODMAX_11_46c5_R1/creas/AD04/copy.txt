@@ -1,0 +1,38 @@
+Créa 4 · Podmax
+
+1. Titre : Ta boîte a du potentiel. Ne le gâche pas avec de mauvaises pubs.
+2. Sous-titre : PODMAX. Des pubs vidéo à la hauteur de ton business. Clé en main en 10 jours.
+
+Idée du visuel : Base : meme The Rock avec une perruque de Dora (image fournie)
+
+Créer une ugly ad humoristique en conservant l'image originale et son côté décalé. Le visuel doit ressembler à un véritable meme Internet, sans être trop travaillé.
+
+Compo :
+
+- En haut : prévoir un espace blanc pour le titre, en grand et centré.
+- Au centre : placer le meme fourni, en conservant le personnage, sa perruque, son sac à dos violet et son expression. L'image doit occuper la majorité du visuel.
+- En bas : ajouter une bande blanche pour la signature PODMAX et sa promesse.
+- Adapter le cadrage au format 3:4 sans déformer le personnage.
+
+Textes à intégrer :
+
+- Titre en haut : « Ta boîte a du potentiel. Ne le gâche pas avec de mauvaises pubs. »
+- Texte en bas : « PODMAX. Des pubs vidéo à la hauteur de ton business. Clé en main en 10 jours. »
+
+D.A :
+
+- Fond blanc pour les zones de texte.
+- Typographie noire, sans-serif, grasse et très lisible.
+- Mettre PODMAX en évidence dans la partie inférieure.
+- Conserver les couleurs et l'aspect original du meme.
+- Aucun sticker, CTA, emoji ou élément décoratif.
+
+Important :
+
+- Ne pas retoucher ni régénérer le personnage.
+- Ne pas ajouter de texte directement sur son visage.
+- Le contraste entre son physique impressionnant et son apparence décalée doit rester au cœur de l'humour.
+- Le résultat doit être brut, drôle et immédiatement compréhensible, pas une publicité classique.
+Nouvelle idée, inspirations : UGX-86b29235a060 · meme Internet à bandes blanches
+
+Alerte : Le meme d'origine montre Dwayne Johnson, une personne réelle : son image ne peut pas servir dans une pub payante pour Podmax sans son accord (droit à l'image, fausse impression de soutien). Le meme n'était pas non plus joint comme asset, le générateur l'aurait donc régénéré. J'ai gardé le format meme, la pose et le contraste carrure / déguisement, avec un personnage générique non identifiable et sans référence nommée au personnage de Dora. Format recomposé en 1:1 au lieu du 3:4 demandé.

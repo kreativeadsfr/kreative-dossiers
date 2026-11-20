@@ -1,0 +1,32 @@
+Créa 5 · Podmax
+
+1. Titre : Quand je fais mes pubs tout seul
+2. Titre : Quand je fais mes pubs avec PODMAX
+
+Idée du visuel : Base : meme Buff Doge vs Cheems (image fournie)
+
+Créer une ugly ad humoristique en deux parties horizontales superposées, dans l'esprit du meme original.
+
+Compo :
+
+- Partie supérieure : chien gentil à gauche, texte à droite.
+- Partie inférieure : chien musclé à gauche, texte à droite.
+- Les deux chiens doivent être suffisamment grands et garder leur apparence d'origine.
+- Séparer les deux parties par une fine ligne horizontale noire.
+
+Textes à intégrer :
+
+- En haut, à droite du chien gentil : « Quand je fais mes pubs tout seul »
+- En bas, à droite du chien musclé : « Quand je fais mes pubs avec PODMAX »
+
+D.A :
+
+- Fond blanc, typographie noire simple et assez grande.
+- Conserver l'aspect brut et légèrement pixelisé du meme.
+- Aucun effet graphique, logo supplémentaire ou CTA.
+- Le contraste entre les deux chiens doit faire toute la blague.
+
+Important : ne pas inverser les personnages. Le chien gentil est en haut, le chien musclé en bas. Le rendu doit ressembler à un véritable meme Internet, pas à une publicité classique.
+Nouvelle idée, inspirations : UGX-01b3ae38dde4 · meme deux étages comparatif
+
+Alerte : Aucun asset n'est joint : les deux chiens du meme sont générés à partir de leur description et pourraient s'écarter légèrement des images originales. Joindre les deux chiens détourés garantirait leur apparence d'origine, comme le demande le stratégiste.
